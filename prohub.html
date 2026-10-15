@@ -2085,7 +2085,7 @@ function boot(){
  document.head.appendChild(s);
 })();
 
-window.proHUB={version:'1.0'},get state(){return S},set state(v){S=v},pull:pullFromPrehub,reload:function(){return load()},
+window.proHUB={version:'1.0',get state(){return S},set state(v){S=v},pull:pullFromPrehub,reload:function(){return load()},
  board:autoBoard,panels:buildPanels,dood:dood,budget:budgetTotals,sheet:sheetHTML,push:pushToPosthub,paint:paint,
  open:openHub,save:function(){return save(true)},apply:applyScript,lines:linesFromText,storageOk:function(){return STORAGE_OK}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
