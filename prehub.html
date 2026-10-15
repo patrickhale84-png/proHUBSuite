@@ -259,7 +259,6 @@ function boot(){try{var raw=localStorage.getItem(STORE);if(raw){var j=JSON.parse
 function scenesOf(){var out=[],cur=null;lines().forEach(function(l){if(l.type==='SCENE_HEADING'){cur={head:l.text,cast:[],count:0};out.push(cur)}else if(cur){cur.count++;if(l.type==='CHARACTER'&&cur.cast.indexOf(l.text)<0)cur.cast.push(l.text)}});return out}
 function castList(){var m={};lines().forEach(function(l){if(l.type==='CHARACTER')m[l.text]=(m[l.text]||0)+1});return m}
 function dialogueLines(){return lines().filter(function(l){return l.type==='DIALOGUE'&&l.text.trim()})}
-
 function analyse(){var L=lines(),sc=scenesOf(),d=dialogueLines(),ch=castList(),total=L.length||1;
  var names=Object.keys(ch),sets={},years={},dl=[],al=[],caps=0;
  L.forEach(function(l){var t=(l.text||'');
@@ -269,16 +268,16 @@ function analyse(){var L=lines(),sc=scenesOf(),d=dialogueLines(),ch=castList(),t
   if(l.type==='ACTION'){al.push(t.length)}});
  var mean=dl.length?dl.reduce(function(a,b){return a+b},0)/dl.length:0;
  var dev=dl.length?Math.sqrt(dl.reduce(function(s2,v){return s2+Math.pow(v-mean,2)},0)/dl.length):0;
- var dRatio=d.length/(total||1), longAct=al.filter(function(x){return x>250}).length;
- var places=Object.keys(sets).length, era=Object.keys(years).sort()[0];
- var genre=[];
- if(/police|detective|murder|crime|evidence/i.test(L.map(function(l){return l.text}).join(' ')))genre.push('Crime');
- if(/alien|space|ship|synthetic|machine|future/i.test(L.map(function(l){return l.text}).join(' ')))genre.push('Science Fiction');
- if(/blood|demon|ghost|curse|possess/i.test(L.map(function(l){return l.text}).join(' ')))genre.push('Horror');
- if(/war|soldier|regiment|enemy|battle/i.test(L.map(function(l){return l.text}).join(' ')))genre.push('War');
+ var dRatio=d.length/(total||1),longAct=al.filter(function(x){return x>250}).length;
+ var places=Object.keys(sets).length,era=Object.keys(years).sort()[0];
+ var all=L.map(function(l){return l.text}).join(' '),genre=[];
+ if(/police|detective|murder|crime|evidence/i.test(all))genre.push('Crime');
+ if(/alien|space|synthetic|machine|future|ship/i.test(all))genre.push('Science Fiction');
+ if(/blood|demon|ghost|curse|possess/i.test(all))genre.push('Horror');
+ if(/war|soldier|regiment|battle|enemy/i.test(all))genre.push('War');
  if(!genre.length)genre.push('Drama');
  var lead=names[0]||'the protagonist';
- var logline=caps>0?(lead+' faces a choice that the first scene refuses to explain yet.'):(lead+' moves through '+ (Object.keys(sets)[0]||'the setting')+', where the first scene sets the terms.');
+ var logline=lead+' moves through '+((Object.keys(sets)[0])||'the setting')+', where the opening scene sets the terms.';
  var clamp=function(x){return Math.max(1,Math.min(10,Math.round(x*10)/10))};
  var s={};
  s.SETTING=clamp(4.5+Math.min(3,places*0.5)+(era?1:0)+(sc.length>6?0.5:0));
@@ -287,37 +286,61 @@ function analyse(){var L=lines(),sc=scenesOf(),d=dialogueLines(),ch=castList(),t
  s.PLOT=clamp(4.5+(sc.length>=8&&sc.length<=70?2:0.5)+(longAct>6?-1:0.5)+(dev>3?0.5:0));
  s.PREMISE=clamp(4.5+(genre.length>1?1.2:0.6)+(places>3?1:0)+(era?0.8:0)+(sc.length>25?0.6:0));
  var vals=[s.SETTING,s.DIALOGUE,s.CHARACTER,s.PLOT,s.PREMISE];
- var avg=vals.reduce(function(a,b){return a+b},0)/5;
- s.OVERALL=Math.round(avg*10)/10;
- /* calibration from the reference coverage: Black List grades harsher, WeScreenplay maps to percentiles with ~3% recommend and ~20% consider */
- var bl=Math.round((avg-0.7)*10)/10; bl=Math.max(1,bl);
+ var avg=vals.reduce(function(a,b){return a+b},0)/5; s.OVERALL=Math.round(avg*10)/10;
+ var bl=Math.max(1,Math.round((avg-0.7)*10)/10);
  var band=avg>=8?'98th-100th percentile - virtually perfect':avg>=6.5?'85th-97th percentile - excellent':avg>=5?'50th-84th percentile - good':'0th-49th percentile - improve';
  var rating=avg>=8?'RECOMMEND':avg>=6.5?'CONSIDER':'PASS';
  var bad=[];
  L.forEach(function(l,i){if(l.type==='ACTION'&&l.text.length>250)bad.push('a dense action block near line '+(i+1)+' will slow the read');
-  if(l.type==='DIALOGUE'&&l.text.split(/\s+/).length>45)bad.push('a long speech near line '+(i+1)+' could be broken');});
+  if(l.type==='DIALOGUE'&&l.text.split(/\s+/).length>45)bad.push('a long speech near line '+(i+1)+' could be broken')});
  if(caps>2)bad.push('all-caps dialogue appears '+caps+' times - check the voice');
  if(names.length>8)bad.push('the cast runs to '+names.length+' names, which will need separating on the page');
  return {s:s,bl:bl,band:band,rating:rating,genre:genre.join(', '),era:era?(era+'s'):'contemporary',
-  places:Object.keys(sets).length,placeNames:Object.keys(sets).slice(0,6),pages:Math.max(1,Math.ceil(total/22)),
+  places:places,placeNames:Object.keys(sets).slice(0,6),pages:Math.max(1,Math.ceil(total/22)),
   scenes:sc.length,names:names,mean:mean.toFixed(1),dev:dev.toFixed(1),dRatio:Math.round(dRatio*100),
   bad:bad.slice(0,6),logline:logline};
 }
-function coverProse(a){var s=a.s,strong=Object.keys(s).filter(function(k){return k!=='OVERALL'}).sort(function(x,y){return s[y]-s[x]});
- var top=strong[0],low=strong[strong.length-1],lab={SETTING:'setting',DIALOGUE:'dialogue',CHARACTER:'character',PLOT:'plot',PREMISE:'premise'};
+function coverProse(a){var s=a.s,ord=Object.keys(s).filter(function(k){return k!=='OVERALL'}).sort(function(x,y){return s[y]-s[x]});
+ var top=ord[0],low=ord[ord.length-1],lab={SETTING:'setting',DIALOGUE:'dialogue',CHARACTER:'character',PLOT:'plot',PREMISE:'premise'};
  var st=['The draft reads confidently in its '+lab[top]+', which is what carries a reader through the first ten pages.',
   'What stands out first is the '+lab[top]+': '+a.places+' distinct spaces across '+a.scenes+' scenes, and it knows where it is.',
   'The '+lab[top]+' is the strongest axis here, and the scene economy supports it.'];
  var wk=['The '+lab[low]+' is where the draft is thinnest, and that is the work for the next pass.',
   'Against that, the '+lab[low]+' needs attention before this is ready to send out.',
   'The riskiest axis is the '+lab[low]+', and it is measurable rather than a matter of taste.'];
- var pick=function(arr,n){return arr[(a.scenes+n)%arr.length]};
- var out={};
- out.Strengths=pick(st,0)+' '+a.scenes+' scenes over about '+a.pages+' pages, '+a.names.length+' named characters, roughly '+a.dRatio+'% of lines spoken. '+a.logline.replace(/^/,'Suggested logline: ');
- out.Weaknesses=pick(wk,1)+' '+(a.bad.length?('Specifically: '+a.bad.join('; ')+'.'):'Nothing flagged by measurement - the notes here would be taste, not evidence.')+(a.mean>0?(' Average speech length is '+a.mean+' words with a spread of '+a.dev+'.'):'');
- out.Prospects='With '+a.places+' spaces and '+a.scenes+' scenes, this is a '+((a.places>6||a.era!=='contemporary')?'demanding':'contained')+' production - '+(a.era==='contemporary'?'contemporary and therefore easier to finance':'a period piece, which will need subsidy or a strong producer')+'. Genre reads as '+a.genre+'. Set against the reference benchmarks, this draft grades '+a.bl+' on a Black List-style scale and sits in the '+a.band+' band, which is a '+a.rating+'.';
- return out}
+ var pk=function(arr,n){return arr[a.scenes%n]};
+ return {Strengths:pk(st,3)+' '+a.scenes+' scenes over about '+a.pages+' pages, '+a.names.length+' named characters, roughly '+a.dRatio+'% of lines spoken. Suggested logline: '+a.logline,
+  Weaknesses:pk(wk,3)+' '+(a.bad.length?('Specifically: '+a.bad.join('; ')+'.'):'Nothing flagged by measurement - the notes here would be taste, not evidence.')+(a.mean>0?(' Average speech length is '+a.mean+' words with a spread of '+a.dev+'.'):''),
+  Prospects:'With '+a.places+' spaces and '+a.scenes+' scenes this is a '+((a.places>6||a.era!=='contemporary')?'demanding':'contained')+' production - '+(a.era==='contemporary'?'contemporary, and therefore easier to finance':'a period piece, which will need subsidy or a strong producer')+'. Genre reads as '+a.genre+'. Against the reference benchmarks this grades '+a.bl+' on a Black List-style scale and sits in the '+a.band+' band: a '+a.rating+'.'}}
 function coverage(){return analyse()}
+
+function budgetTotals(){var b=S.budget||{};
+ var atl=+b.atl||150000,btl=+b.btl||200000,post=+b.post||50000,pct=+b.pct||10;
+ var sub=atl+btl+post, cont=Math.round(sub*pct/100);
+ return {atl:atl,btl:btl,post:post,pct:pct,sub:sub,cont:cont,total:sub+cont}}
+function money(n){return '$'+(Math.round(n)||0).toLocaleString('en-US')}
+function hubShell(id,title,tag,color,actions,bodyHTML){var h=$('#hub-m-'+id);
+ if(!h){h=document.createElement('div');h.className='hub noprint';h.id='hub-m-'+id;
+  h.innerHTML='<div class="hubbox" style="border-top-color:'+color+'"><div class="hubhead"><div>'+ic('film')+'<div class="ht" style="color:'+color+'">'+tag+'</div><h2>'+title+'</h2></div><div class="ha">'+actions+'</div><button class="btn sm" id="mx-'+id+'">'+ic('x')+' Close</button></div><div class="hubbody" id="mb-'+id+'"></div></div>';
+  h.addEventListener('click',function(e){if(e.target===h)close2(h)});
+  $('#hubs').appendChild(h);$('#mx-'+id,h).addEventListener('click',function(){close2(h)});
+ }
+ $('#mb-'+id).innerHTML=bodyHTML;h.classList.add('open');document.body.style.overflow='hidden';return h}
+function close2(h){h.classList.remove('open');document.body.style.overflow=''}
+function renderCov(){var a=analyse(),p=coverProse(a),lab={PREMISE:'Premise',PLOT:'Plot',CHARACTER:'Character',DIALOGUE:'Dialogue',SETTING:'Setting'};
+ var cards=Object.keys(lab).map(function(k){var v=a.s[k],col=v>=7.5?'var(--lime)':v>=6.5?'var(--gold)':'var(--red)';
+  return '<div class="kpi"><div class="k">'+lab[k]+'</div><div class="v">'+v+'<span class="tiny muted">/10</span></div><div style="height:4px;background:#0A0F1D;border-radius:9px;margin-top:6px"><div style="width:'+Math.min(100,v*10)+'%;height:100%;background:'+col+';border-radius:9px"></div></div></div>'}).join('');
+ var blk=function(t,b){return '<div class="box"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">'+t+'</h3><p style="font-size:12.5px;color:#C6D1DC;margin:0;line-height:1.6">'+esc(b)+'</p></div>'};
+ return '<div class="grid4" style="grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px">'+cards+'</div>'+
+ '<div class="row" style="margin-bottom:12px"><span class="pill">OVERALL '+a.s.OVERALL+' / 10</span><span class="pill">BLACK LIST-STYLE '+a.bl+' / 10</span><span class="pill">'+a.rating+'</span><span class="pill">'+esc(a.band)+'</span></div>'+
+ '<div class="box" style="margin-bottom:12px"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">SCRIPT DETAILS</h3><table style="width:100%;font-size:12.5px">'+
+ '<tr><td class="muted">Era</td><td>'+esc(a.era)+'</td><td class="muted">Locations</td><td>'+esc(a.placeNames.join(', ')||'-')+'</td></tr>'+
+ '<tr><td class="muted">Genre</td><td>'+esc(a.genre)+'</td><td class="muted">Pages</td><td>'+a.pages+'</td></tr>'+
+ '<tr><td class="muted">Scenes</td><td>'+a.scenes+'</td><td class="muted">Named characters</td><td>'+a.names.length+'</td></tr>'+
+ '<tr><td class="muted">Dialogue share</td><td>'+a.dRatio+'%</td><td class="muted">Average speech</td><td>'+a.mean+' words (spread '+a.dev+')</td></tr></table></div>'+
+ blk('STRENGTHS',p.Strengths)+blk('WEAKNESSES',p.Weaknesses)+blk('PROSPECTS',p.Prospects)+
+ '<div class="box"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">HOW THIS IS GRADED</h3><p class="tiny" style="margin:0;color:#B9C4D2">Six axes measured from the draft itself: scene and location count, dialogue cadence and share, action length, cast size, era markers, genre signals. The Black List band is the same reading minus 0.7, matching the spread between your two reference reports. Bands and the pass / consider / recommend rating follow WeScreenplay published rates. No model is involved, so treat the prose as a first pass to edit.</p></div>'}
+
 function renderPitch(){var sc=scenesOf(),ch=Object.keys(castList()),t=S.project.title,w=S.project.writer;
  var set=sc[0]?sc[0].head:'the setting',lead=ch[0]||'the protagonist',foe=ch[1]||'the opposing force';
  var slides=[['Title',t+'\\n\\nWritten by '+w],['The hook','Why this story, and why now.'],['The world',set+' - the rules of this place and its palette.'],
