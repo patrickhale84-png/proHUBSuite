@@ -77,6 +77,30 @@ dialog::backdrop{background:rgba(3,6,12,.82)}
 #toasts{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:900;display:flex;flex-direction:column;gap:7px;pointer-events:none;width:92%;max-width:400px}
 .toast{background:rgba(8,13,20,.97);border:1px solid var(--gold);color:#F2D9A4;padding:9px 14px;border-radius:9px;font-size:12px;font-weight:600;text-align:center}
 .toast.good{border-color:var(--lime);color:#DFF6C6}.toast.bad{border-color:var(--red);color:#FFC9C2}
+.dtb{display:flex;flex-wrap:wrap;gap:0;background:#0A0F1A;border-bottom:1px solid var(--line)}
+.dtb .grp{display:flex;align-items:center;gap:4px;padding:6px 9px;border-right:1px solid var(--line)}
+.dtb .grp>b{font-family:var(--fm);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:600;margin-right:4px}
+.dgrid{display:grid;grid-template-columns:236px 1fr 280px;gap:0;min-height:70vh}
+.dpane{background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;max-height:74vh;display:flex;flex-direction:column}
+.dpane.ins{border-right:0;border-left:1px solid var(--line)}
+.dph{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--bar);font-family:var(--fm);font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--mu);position:sticky;top:0;z-index:3}
+.dsc{display:grid;grid-template-columns:22px 1fr auto;gap:7px;padding:6px 10px 6px 7px;border-bottom:1px solid rgba(27,36,54,.6);border-left:3px solid transparent;cursor:pointer;align-items:start}
+.dsc:hover{background:#101827}
+.dsc.on{background:#12202E;border-left-color:var(--cyan)}
+.dsc .n{font-family:var(--fm);font-size:10px;color:var(--gold);text-align:right}
+.dsc .s{font-family:var(--fm);font-size:10px;line-height:1.35;text-transform:uppercase;color:#CBD6E2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dsc .p{font-family:var(--fm);font-size:9px;color:var(--mu)}
+.dfield{margin:0 10px 9px}
+.dfield label{display:block;font-family:var(--fm);font-size:8.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--mu);margin-bottom:3px}
+.dfield .v{border:1px solid var(--line2);border-radius:5px;background:var(--panel2);padding:5px 8px;font-size:11.5px;color:var(--tx);min-height:26px}
+.dsw{display:flex;gap:4px;margin:0 10px 10px}
+.dsw i{flex:1;height:15px;border-radius:3px;display:block;border:2px solid transparent;cursor:pointer}
+.dsw i.on{border-color:#fff;box-shadow:0 0 0 1px #000}
+.dcenter{background:#05080E;overflow-y:auto;display:flex;justify-content:center;padding:14px 12px 24px;max-height:74vh}
+.dtb .btn.sm{padding:4px 8px;font-size:10.5px}
+.ln[data-rev="1"]{border-bottom:1px solid var(--revc,#F0A6C0)}
+.ln[data-rev="1"]:before{content:"*";position:absolute;margin-left:-16px;color:var(--revc,#F0A6C0);font-family:var(--fm);font-weight:700}
+@media(max-width:760px){.dgrid{grid-template-columns:1fr}.dpane{max-height:none}.dpane.nv,.dpane.ins{display:none}}
 .warnbar{background:#3A1210;border-bottom:1px solid #7A2A22;color:#FFC9C2;font-size:12px;padding:8px 14px;display:flex;gap:9px;align-items:center}
 .hide{display:none!important}
 #printArea{display:none}
@@ -142,7 +166,7 @@ function pr(html,title){var pa=$('#printArea');pa.innerHTML=html;var old=documen
 function addLine(type,text,at){var p=$('#paper');if(!p)return;var d=document.createElement('div');d.className='ln '+(CLS[type]||'t-act');d.contentEditable='true';d.textContent=text||'';d.setAttribute('data-t',type);d.setAttribute('data-ph',PH[type]||'');
  if(at!=null&&p.children[at])p.insertBefore(d,p.children[at]);else p.appendChild(d);bind(d);hud();return d}
 function bind(el){el.addEventListener('focus',function(){var e=$('#curType');if(e)e.textContent=el.getAttribute('data-t').replace('_',' ')});
- el.addEventListener('input',function(){clearTimeout(el._t);el._t=setTimeout(function(){saveSoon();hud()},500)});
+ el.addEventListener('input',function(){el.setAttribute('data-rev','1');clearTimeout(el._t);el._t=setTimeout(function(){saveSoon();hud()},500)});
  el.addEventListener('keydown',function(e){var p=$('#paper'),t=el.getAttribute('data-t'),i=Array.prototype.indexOf.call(p.children,el);
   if(e.key==='Tab'){e.preventDefault();var n=TYPES[(TYPES.indexOf(t)+(e.shiftKey?-1:1)+TYPES.length)%TYPES.length];el.className='ln '+CLS[n];el.setAttribute('data-t',n);el.setAttribute('data-ph',PH[n]||'');var c=$('#curType');if(c)c.textContent=n.replace('_',' ');saveSoon()}
   else if(e.key==='Enter'){e.preventDefault();var nx=NX[t]||'ACTION',sel=window.getSelection(),carry='';
@@ -495,6 +519,72 @@ function openModule(id){var m=MOD2[id];if(!m)return;
  var h=hubShell(id,m.n,m.t,m.c,m.acts(),m.render());
  if(h.getAttribute('data-wired')!=='1'){m.wire(h);h.setAttribute('data-wired','1')}}
 function refresh(h,id){var m=MOD2[id];if(m)$('#mb-'+id,h).innerHTML=m.render()}
+
+
+/* ===== three-pane writing desk ===== */
+var REVC=['#4C8DFF','#F0A6C0','#F5D90A','#46A758','#E2A93B','#E8DBB5','#FB7185','#B07CE8'];
+var REVN=['BLUE','PINK','YELLOW','GREEN','GOLD','BUFF','SALMON','CHERRY'];
+function deskScenes(){var L=lines(),out=[],cur=null;
+ L.forEach(function(l,i){if(l.type==='SCENE_HEADING'){cur={i:i,head:l.text,cast:[],lines:0};out.push(cur)}
+  else if(cur){cur.lines++;if(l.type==='CHARACTER'&&cur.cast.indexOf(l.text)<0)cur.cast.push(l.text)}});
+ out.forEach(function(s,i){s.num=i+1;s.eighth=Math.max(1,Math.round((s.lines||1)*8/55));s.pg=Math.round(s.eighth)/8});
+ return out}
+function deskPages(){return Math.max(1,Math.ceil(lines().length/22))}
+function deskBuild(){
+ var h=$('#hub-write');if(!h)return;var body=$('.hubbody',h),head=$('.hubhead',h),box=$('.hubbox',h);
+ if($('#dgrid',h)){deskFill();return}
+ head.style.display='none';
+ var tb=document.createElement('div');tb.className='dtb';
+ var groups=[['File',['btnIn']],['Draft',['btnRe']],['Output',['btnPr','btnTx']],['Desk',['btnX']]];
+ groups.forEach(function(g){
+  var d=document.createElement('div');d.className='grp';
+  var b=document.createElement('b');b.textContent=g[0];d.appendChild(b);
+  g[1].forEach(function(id){var el=$('#'+id,h);if(el)d.appendChild(el)});
+  tb.appendChild(d)});
+ var grid=document.createElement('div');grid.id='dgrid';grid.className='dgrid';
+ var nv=document.createElement('div');nv.className='dpane nv';
+ nv.innerHTML='<div class="dph">Scene navigator <span style="margin-left:auto" id="dcount"></span></div><div id="dlist"></div>';
+ var ce=document.createElement('div');ce.className='dcenter';
+ var ins=document.createElement('div');ins.className='dpane ins';
+ ins.innerHTML='<div class="dph">Inspector</div><div id="dinsp"></div>';
+ var pw=$('.paperwrap',h);box.insertBefore(tb,body);body.innerHTML='';
+ grid.appendChild(nv);grid.appendChild(ce);grid.appendChild(ins);
+ if(pw)ce.appendChild(pw);body.appendChild(grid);
+ body.style.padding='0';
+ deskFill()}
+function deskFill(){
+ var list=$('#dlist'),sc=deskScenes(),L=lines();
+ var dc=$('#dcount');if(dc)dc.textContent=sc.length+' scenes · '+deskPages()+' pages';
+ if(!list)return;
+ list.innerHTML=sc.map(function(s,i){
+  return '<div class="dsc'+(i===0?' on':'')+'" data-sc="'+i+'"><span class="n">'+s.num+'</span><span class="s">'+esc(s.head)+'</span><span class="p">'+(s.pg.toFixed(2))+'</span></div>'}).join('')||'<div class="dsc"><span class="s">No scene headings yet</span></div>';
+ $$('[data-sc]',list).forEach(function(r){r.addEventListener('click',function(){
+  var i=+r.getAttribute('data-sc');$$('.dsc',list).forEach(function(x){x.classList.remove('on')});r.classList.add('on');deskInsp(i)});
+  r.addEventListener('dblclick',function(){
+   var i=+r.getAttribute('data-sc');var els=$$('#paper .ln');var t=sc[i]&&els[sc[i].i];
+   if(t){t.scrollIntoView({block:'center'});t.focus()}})});
+ deskInsp(0)}
+function deskInsp(i){
+ var box=$('#dinsp');if(!box)return;var sc=deskScenes(),s=sc[i]||{head:'-',cast:[],lines:0,eighth:0,pg:0};
+ var rev=S.rev||0;
+ S.notes=S.notes||{};
+ box.innerHTML=
+  '<div class="dfield"><label>Slug line</label><div class="v mono" style="font-family:var(--fm);font-size:10.5px">'+esc(s.head)+'</div></div>'+
+  '<div class="dfield"><label>Pages</label><div class="v mono" style="font-family:var(--fm);font-size:10.5px">'+s.pg.toFixed(2)+' · '+s.eighth+' eighths</div></div>'+
+  '<div class="dfield"><label>Cast in scene</label><div class="v">'+esc(s.cast.join(', ')||'none yet')+'</div></div>'+
+  '<div class="dfield"><label>Scene notes</label><textarea data-note="'+i+'" rows="4" style="width:100%">'+esc(S.notes[i]||'')+'</textarea></div>'+
+  '<div class="dfield"><label>Revision colour</label><div class="v" id="revname" style="font-family:var(--fm);font-size:10.5px">'+REVN[rev]+'</div></div>'+
+  '<div class="dsw" id="revsw">'+REVC.map(function(c,n){return '<i data-rev="'+n+'" class="'+(n===rev?'on':'')+'" style="background:'+c+'"></i>'}).join('')+'</div>'+
+  '<div class="dfield"><label>Draft</label><div class="v mono" style="font-family:var(--fm);font-size:10.5px">'+lines().length+' lines · '+deskPages()+' pages · '+sc.length+' scenes</div></div>';
+ var ta=$('[data-note]',box);if(ta)ta.addEventListener('change',function(){S.notes[i]=ta.value;saveSoon();toast('Scene note saved','good')});
+ $$('#revsw i',box).forEach(function(sw){sw.addEventListener('click',function(){
+  S.rev=+sw.getAttribute('data-rev');document.querySelectorAll('#revsw i').forEach(function(x){x.classList.remove('on')});sw.classList.add('on');
+  var nm=$('#revname');if(nm)nm.textContent=REVN[S.rev];
+  var pb=$('#paper');if(pb)pb.parentElement.style.setProperty('--revc',REVC[S.rev]);
+  $$('#paper .ln[data-rev="1"]').forEach(function(l){l.style.borderBottomColor=REVC[S.rev]});
+  save(true);toast('Revision colour: '+REVN[S.rev],'good')})})}
+var _openHub=openHub;
+openHub=function(id){_openHub(id);if(id==='write')setTimeout(deskBuild,40)};
 
 window.preHUB={version:'1.0',sketch:sketchOf,stage:stage,paint:stagePaint,rooms:ROOMS,get state(){return S},lines:lines,setLines:setLines,tok:tok,transmit:transmit,reformat:reformat,pick:pick,save:function(){return save(true)},open:openHub,storageOk:function(){return OK}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
