@@ -71,3 +71,33 @@ length, cast size, era markers, genre signals.
 Rules not AI. Nothing leaves the browser. Nothing loaded from the internet (one exception: the PDF
 reader, fetched only on PDF import). No browser pop-ups. Exports always available by copy and
 print. Storage that admits when it is off.
+
+
+## Requested next: the writing desk, professional grade
+
+Target: a screenwriting surface that stands comparison with Final Draft and WriterDuet, with a
+WriterDuet-style control layout.
+
+**Editor**
+- Element types with correct tab/enter flow, dual dialogue (two columns), page breaks, scene numbers
+  (locked and auto), revision colours by draft (blue, pink, yellow, green, gold, buff, salmon, cherry)
+- Revision marks, "omitted" scenes, A/B scene pages, locked pages, title page
+- Smart-type: auto-capitalise character intros, auto-complete character names, scene heading
+  autocomplete from a location bank, transition and extension handling
+- Scene navigator, outline view, index cards, notes, character and dialogue reports, scene reports
+- Undo/redo across the whole document; find and replace; page-level navigation; word and page counts
+
+**Import** (reformatting on the way in)
+- Final Draft (.fdx), Fountain, plain text, WriterDuet/Fade In via FDX or Fountain
+- PDF (text extraction only - layout is reconstructed by rule, not guaranteed)
+- Rich text and Word documents (text extraction, elements re-typed by rule)
+- JSON round-trip of the app's own project file
+
+**Export**
+- Final Draft (.fdx), Fountain, plain text, PDF via print, HTML, CSV of scenes/cast for reports,
+  and a sides export per shooting day
+
+**Honest limit:** "any file" is not achievable in a browser with no server. There is no reliable way
+to read .docx or .rtf formatting without a parser, and no way at all to read scanned pages without
+OCR. What is achievable: every text exchange format a screenwriter actually swaps, re-typed into
+proper elements on the way in, and the industry formats out.
