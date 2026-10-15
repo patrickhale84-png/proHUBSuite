@@ -2088,6 +2088,74 @@ function boot(){
 window.proHUB={version:'1.0',get state(){return S},set state(v){S=v},pull:pullFromPrehub,reload:function(){return load()},
  board:autoBoard,panels:buildPanels,dood:dood,budget:budgetTotals,sheet:sheetHTML,push:pushToPosthub,paint:paint,
  open:openHub,save:function(){return save(true)},apply:applyScript,lines:linesFromText,storageOk:function(){return STORAGE_OK}};
+/* prohub.ops - a deterministic surface for tests.
+   Reads the rendered document rather than internal names, so a test drives the app the way a
+   person does without a click walk: open a desk by id, read the header, list the controls.
+   Nothing here changes behaviour; it only exposes what is already on screen. */
+window.proHUB.ops = {
+  ready: function () { return !!document.querySelector('.tile'); },
+  modules: function () {
+    return Array.prototype.slice.call(document.querySelectorAll('.tile[data-mod]'))
+      .map(function (t) { return t.getAttribute('data-mod'); });
+  },
+  tiles: function () { return document.querySelectorAll('.tile').length; },
+  openDesk: function (id) {
+    var t = document.querySelector('.tile[data-mod="' + id + '"]');
+    if (!t) return false;
+    t.click();
+    return true;
+  },
+  openDeskDirect: function (id) {
+    try { if (typeof window.proHUB.open === 'function') { window.proHUB.open(id); return true; } } catch (e) { return 'threw: ' + e.message; }
+    return false;
+  },
+  openHubId: function () { var h = document.querySelector('.hub.open'); return h ? h.id : null; },
+  closeAll: function () {
+    var hs = document.querySelectorAll('.hub.open');
+    for (var i = 0; i < hs.length; i++) hs[i].classList.remove('open');
+    return hs.length;
+  },
+  header: function () {
+    var p = document.querySelector('.proj');
+    return p ? p.textContent.replace(/\s+/g, ' ').trim().slice(0, 90) : null;
+  },
+  chips: function () {
+    return Array.prototype.slice.call(document.querySelectorAll('.chip, .pill'))
+      .map(function (c) { return c.textContent.replace(/\s+/g, ' ').trim(); }).slice(0, 12);
+  },
+  buttons: function () {
+    return Array.prototype.slice.call(document.querySelectorAll('button'))
+      .map(function (b) { return b.id || b.textContent.replace(/\s+/g, ' ').trim().slice(0, 20); }).slice(0, 26);
+  },
+  toolbar: function () {
+    var bar = document.querySelector('.topbar, .hd, header');
+    if (!bar) return [];
+    return Array.prototype.slice.call(bar.querySelectorAll('button, .chip'))
+      .map(function (e) { return e.id || e.textContent.replace(/\s+/g, ' ').trim().slice(0, 18); });
+  },
+  field: function (sel) {
+    var e = document.querySelector(sel);
+    return e ? String(e.value == null ? e.textContent : e.value).slice(0, 60) : null;
+  },
+  setField: function (sel, val) {
+    var e = document.querySelector(sel);
+    if (!e) return false;
+    e.value = val;
+    e.dispatchEvent(new Event('input', { bubbles: true }));
+    e.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  },
+  counts: function () {
+    return { tiles: document.querySelectorAll('.tile').length,
+             moduleTiles: document.querySelectorAll('.tile[data-mod]').length,
+             hubs: document.querySelectorAll('.hub').length,
+             openHubs: document.querySelectorAll('.hub.open').length,
+             buttons: document.querySelectorAll('button').length };
+  },
+  storageOk: function () { try { return window.proHUB.storageOk(); } catch (e) { return 'threw: ' + e.message; } },
+  stateKeys: function () { try { return Object.keys(window.proHUB.state || {}); } catch (e) { return 'threw: ' + e.message; } }
+};
+
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
 })();
 </script>
