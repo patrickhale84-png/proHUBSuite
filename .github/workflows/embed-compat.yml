@@ -4,6 +4,15 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      target:
+        description: 'Limit the run to one file (blank = all). e.g. prehub or posthub'
+        required: false
+        default: ''
+      promote:
+        description: 'Allow promotion to main if the verdict is PASS'
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -19,10 +28,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Assemble from parts
+      - name: Assemble every app from its parts
         run: python3 build/build.py
-      - name: Syntax-check the assembled script
-        run: node --check build/out.js
+      - name: Syntax-check each assembled script
+        run: |
+          fail=0
+          for f in build/out/*.js; do
+            echo "-- $f"
+            node --check "$f" || fail=1
+          done
+          exit $fail
       - name: Install test deps
         run: npm install
       - name: Install Chromium
@@ -30,6 +45,8 @@ jobs:
       - name: Run embed compatibility suite
         id: embed
         continue-on-error: true
+        env:
+          TARGET_FILTER: ${{ github.event.inputs.target }}
         run: npm test
       - name: Publish the report
         if: always()
@@ -46,7 +63,7 @@ jobs:
             echo "no report produced"
           fi
       - name: Promote if the suite proved the build
-        if: always()
+        if: always() && (github.event_name != 'workflow_dispatch' || github.event.inputs.promote == 'true')
         run: python3 build/promote.py
       - name: Fail the job if the suite failed
         if: steps.embed.outcome == 'failure'
