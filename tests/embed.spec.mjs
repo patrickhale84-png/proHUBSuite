@@ -59,20 +59,27 @@ for (const t of TARGETS) {
     route.fulfill({ status: 200, contentType: 'text/html', body: harness(u.searchParams.get('f'), u.searchParams.get('s')) });
   });
 
+  const statuses = [];
+  page.on('response', res => { if (res.url().includes(t.file)) statuses.push(res.status() + ' ' + res.url().split('/').pop()); });
   await page.goto(base + '/harness?f=' + encodeURIComponent(t.file) + '&s=' + encodeURIComponent(SB));
   // Wait for the condition, never for a stopwatch: CI runners are slower than a laptop and a
   // fixed delay probes the frame while a 139 KB script is still parsing - that is exactly what
   // "exposes proHUB -> undefined" and "no frame" were reporting.
   try { await page.waitForSelector('iframe', { timeout: 20000 }); } catch (e) {}
+  // the parent harness URL also contains 'f=<file>' (and percent-encodes the slashes), so
+  // matching on the file name alone can select the HARNESS frame instead of the app.
+  // Always exclude the main frame and match on the real path.
+  const wanted = t.file;
   let fr = null;
   for (let i = 0; i < 40 && !fr; i++) {
     await page.waitForTimeout(500);
-    fr = page.frames().find(f => f.url().includes(t.file)) || null;
+    fr = page.frames().find(f => f !== page.mainFrame() && f.url().includes(wanted)) || null;
   }
   if (fr && t.api) {
     try { await fr.waitForFunction('typeof window.' + t.api + ' === "object"', { timeout: 20000 }); } catch (e) {}
   }
   if (!fr) record(t.label, 'frames seen', false, page.frames().map(f => f.url()).join(' , ').slice(0, 160));
+  if (fr && statuses.length) record(t.label, 'target served', statuses.some(s => s.startsWith('200')), statuses.join(' / ').slice(0, 100));
   record(t.label, 'boots inside a Wix-shaped embed', !!fr, fr ? 'frame attached' : 'no frame');
   if (!fr) { await page.close(); continue; }
 
