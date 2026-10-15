@@ -428,6 +428,30 @@ function mwrap(id,label,items){
  return out.join('');
 }
 function closeMenus(){$$('.mwrap').forEach(function(w){w.classList.remove('open')})}
+function menuAction(id){
+ try{
+  if(id==='file-save'){save(true);toast('Saved','good');return}
+  if(id==='file-print'){window.print();return}
+  if(id==='file-import'){importDialog();return}
+  if(id==='file-export'){dl(((S.project.title||'script')+'.fountain').replace(/\s+/g,'_'),scriptFountain(),'text/plain');return}
+  if(id==='edit-find'){var q=window.prompt('Find','');if(!q)return;var els=$$('#paper .ln'),hit=null;
+   for(var i=0;i<els.length;i++){if((els[i].textContent||'').toLowerCase().indexOf(q.toLowerCase())>=0){hit=els[i];break}}
+   if(hit){hit.scrollIntoView({block:'center'});hit.focus()}else toast('Not found','bad');return}
+  if(id==='edit-select'){var p=$('#paper');if(!p)return;var f=p.querySelector('.ln');if(f)f.focus();
+   var r=document.createRange();r.selectNodeContents(p);var s2=window.getSelection();s2.removeAllRanges();s2.addRange(r);return}
+  if(id==='edit-reformat'){reformat();toast('Lines reformatted','good');return}
+  if(id.indexOf('view-')===0){var k=id.slice(5);S.view=S.view||{pgnum:true,contd:true,zoom:100};
+   if(k.charAt(0)==='z'){S.view.zoom=+k.slice(1);toast('Zoom '+S.view.zoom+'%','good')}
+   else{S.view[k]=!S.view[k];toast(k+' '+(S.view[k]?'on':'off'),'good')}
+   applyView();try{paginate()}catch(e){};try{syncMenu()}catch(e){};saveSoon();return}
+  if(id==='hist-take'){snapshot(true);return}
+  if(id==='hist-restore'){snapshot(false);return}
+  if(id==='hist-list'){S.snaps=S.snaps||[];
+   ask({title:'History',icon:'rev',ok:'Close',cancel:false,html:'<div class="db" style="padding:0">'+
+    (S.snaps.length?S.snaps.map(function(s,i){return '<div class="tiny" style="padding:5px 0;border-bottom:1px solid #1B2436">'+(i+1)+'. '+
+     new Date(s.at).toLocaleString()+' · '+s.lines.length+' lines</div>'}).join(''):'<p class="tiny muted">No snapshots yet.</p>')+'</div>'}).then(function(){});return}
+ }catch(e){toast('That item failed: '+e.message,'bad')}
+}
 function menuGo(id){
  try{
  if(id==='file-new'){setLines([{type:'SCENE_HEADING',text:'INT. LOCATION - DAY'},{type:'ACTION',text:''}]);toast('New script','good');return}
