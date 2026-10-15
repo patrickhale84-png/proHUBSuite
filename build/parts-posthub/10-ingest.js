@@ -224,4 +224,5 @@ POST.register({
   }
 });
 POST.openIngest = openDesk;
+POST.media = function () { return FILES.slice(); };
 POST.ingestFiles = ingestFiles;
