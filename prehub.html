@@ -221,6 +221,14 @@ dialog::backdrop{background:rgba(3,6,12,.82)}
 .scnrow b{font-family:var(--fm);color:var(--amber);font-size:12px}
 .scnh{font-size:12.5px;color:#C6D1DC;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .scn textarea{width:100%;font-size:12px;margin-top:4px}
+
+/* page furniture */
+#paper{position:relative}
+#paper[data-title]:before{content:attr(data-title) "\A\A" attr(data-byline);white-space:pre;display:block;text-align:center;font-weight:700;margin:0 0 26pt;line-height:1.5}
+#paper .ln[data-t="SCENE_HEADING"]{position:relative}
+#paper .ln[data-t="SCENE_HEADING"]:before{content:attr(data-sn);position:absolute;left:-.85in;top:0;font-weight:400;color:#111}
+#paper[data-foot]:after{content:attr(data-foot);position:absolute;bottom:1in;left:1.5in;font-size:10pt;color:#444;letter-spacing:.05em}
+@media print{#paper[data-foot]:after{position:fixed;bottom:0.6in}}
 </style>
 </head>
 <body>
@@ -293,7 +301,22 @@ function bind(el){el.addEventListener('focus',function(){var e=$('#curType');if(
 var st=null;function saveSoon(){clearTimeout(st);st=setTimeout(function(){save(true)},700)}
 function lines(){var p=$('#paper');if(!p)return (S.lines||[]).slice();return $$('#paper .ln').map(function(e){return {type:e.getAttribute('data-t'),text:e.textContent,rev:e.getAttribute('data-rev')||'',al:e.getAttribute('data-al')||'',ind:e.getAttribute('data-ind')||'',b:e.getAttribute('data-b')||'',i:e.getAttribute('data-i')||'',u:e.getAttribute('data-u')||'',note:e.getAttribute('data-note')||''}})}
 function setLines(a){S.lines=a||[];var p=$('#paper');if(!p){saveSoon();return}p.innerHTML='';a.forEach(function(l){addLine(l.type||'ACTION',l.text||'',null,l)});saveSoon();hud()}
+/* the furniture that makes a page read as a script: centred title block, scene numbers in the
+   margin, and a footer carrying the draft colour and page number. */
+function sheetFmt(){
+ var p=$('#paper'); if(!p) return;
+ var draft=(S.draft||'DRAFT 3');
+ if(!p.getAttribute('data-title')){
+  p.setAttribute('data-title',String(S.project.title||'').toUpperCase());
+  p.setAttribute('data-byline','Written by '+(S.project.writer||'')+(draft?(' \u2014 '+draft):''));
+ }
+ var foot=draft.toUpperCase()+' \u00b7 '+((S.rev||'A')==='A'?'BLUE':((S.rev==='B')?'PINK':'GREEN'));
+ if(p.getAttribute('data-foot')!==foot)p.setAttribute('data-foot',foot);
+ var n=0;
+ $$('#paper .ln[data-t="SCENE_HEADING"]').forEach(function(el){n++;if(el.getAttribute('data-sn')!==String(n))el.setAttribute('data-sn',String(n))});
+}
 function paginate(){
+ try{sheetFmt()}catch(e){}
  var p=$('#paper'); if(!p) return;
  var per=54,used=0,page=1,seen={};
  $$('#paper .ln').forEach(function(el){
@@ -336,7 +359,7 @@ function tok(raw){var out=[],prev=null;
   if(/^(FADE IN|FADE OUT|FADE TO|CUT TO|SMASH TO|SMASH CUT|MATCH CUT|DISSOLVE TO|HARD CUT)/i.test(t)||/\bTO:\s*$/.test(t)){out.push({type:'TRANSITION',text:t.toUpperCase()});prev='t';return}
   if(/^\(.*\)$/.test(t)){out.push({type:'PARENTHETICAL',text:t});prev='p';return}
   if(t===t.toUpperCase()&&t.length<44&&!/[.,!?]$/.test(t)&&!/[:;]/.test(t)&&!/^\s*(?:\d+[A-Za-z]?[.)]?\s+)?(?:INT|EXT|EST|I\/E|INT\.?\/EXT|EXT\.?\/INT)\b[.\s\/]/i.test(t)&&!/^(TITLE|SUPER|SCENE|WRITTEN BY|PRODUCTION|DRAFT|END|GOOD|CONTINUED)\b/.test(t)){out.push({type:'CHARACTER',text:t});prev='c';return}
-  if(prev==='c'||prev==='p'||prev==='d'){out.push({type:'DIALOGUE',text:t});prev='d';return}
+  if(prev==='c'||prev==='p'||prev==='d'){ var isAct=(prev==='d'&&/[.!?]$/.test(t)&&(t.split(/\s+/).length>6)&&!/^[(\-]/.test(t)); if(isAct){out.push({type:'ACTION',text:t});prev='a';return} out.push({type:'DIALOGUE',text:t});prev='d';return}
   out.push({type:'ACTION',text:t});prev='a'});
  return out}
 function loadPDF(){if(window.pdfjsLib)return Promise.resolve(1);return new Promise(function(res){var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';s.onload=function(){try{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'}catch(e){}res(1)};s.onerror=function(){res(0)};document.head.appendChild(s)})}
