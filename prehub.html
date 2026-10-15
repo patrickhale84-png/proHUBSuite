@@ -106,6 +106,32 @@ dialog::backdrop{background:rgba(3,6,12,.82)}
 #printArea{display:none}
 @media print{body{background:#fff!important}.noprint{display:none!important}#printArea{display:block!important;color:#000;background:#fff}#printArea .pid{font-family:'Courier New';font-size:12pt;line-height:1.25;white-space:pre-wrap;padding:0.5in}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---- the screenplay sheet ----
+   US Letter, 12pt Courier, 1.5in left and 1in elsewhere, which is the format a writer
+   expects to see their own pages in. Overrides the dark editor look; the app chrome stays
+   dark so the page reads as paper. */
+.paperwrap{background:#20242C;padding:24px 12px;overflow:auto;display:flex;justify-content:center}
+.paper{background:#FFFFFF;color:#111;width:8.5in;min-height:11in;margin:0 auto;padding:1in 1in 1in 1.5in;
+ font-family:'Courier Prime','Courier New',Courier,monospace;font-size:12pt;line-height:1.05;
+ box-shadow:0 14px 40px rgba(0,0,0,.55);border-radius:2px}
+.paper .ln{color:#111;background:none;padding:0;min-height:12pt;border-radius:0}
+.paper .ln:empty:before{color:#B6BEC9}
+.paper .ln:focus{background:rgba(240,163,10,.14);box-shadow:inset 2px 0 0 var(--amber)}
+.paper .t-head{margin:12pt 0 0;padding:0;border-top:0;font-weight:700;text-transform:uppercase}
+.paper .t-act{margin:12pt 0 0}
+.paper .t-char{margin:12pt 0 0 3.7in;font-weight:400;text-transform:uppercase}
+.paper .t-paren{margin:0 0 0 3.1in;font-style:normal;max-width:none}
+.paper .t-dial{margin:0 0 0 2.5in;max-width:3.5in}
+.paper .t-trans{margin:12pt 0 0;text-align:right;font-weight:400;text-transform:uppercase}
+@media (max-width:1200px){.paper{width:7.4in;padding:.8in .8in .8in 1.2in}}
+@page{size:letter;margin:0}
+@media print{
+ body>*{display:none!important}
+ .paperwrap{display:block!important;padding:0!important;background:#fff!important}
+ .paper{width:auto;min-height:0;box-shadow:none;margin:0;padding:1in 1in 1in 1.5in}
+ .paper .ln:focus{background:none!important;box-shadow:none!important}
+}
 </style>
 </head>
 <body>
