@@ -174,8 +174,7 @@ function hub() {
     '<button class="btn sm" id="tlRip">Ripple delete</button>' +
     '<button class="btn sm" id="tlStory">Build By Storyboard</button>' +
     '<button class="btn sm" id="tlEdl">EDL</button>' +
-    '<button class="btn sm" id="tlClose">Close</button></div></div>' +
-    ''+deskTabs('timeline')+''<div class="bd"><div id="tlBody"></div></div></div>';
+    '<button class="btn sm" id="tlClose">Close</button></div></div>' +deskTabs('timeline')+'<div class="bd"><div id="tlBody"></div></div></div>';
   document.body.appendChild(h);
   h.addEventListener('click', function (e) { if (e.target === h) h.classList.remove('on'); });
   h.querySelector('#tlClose').onclick = function () { h.classList.remove('on'); };
