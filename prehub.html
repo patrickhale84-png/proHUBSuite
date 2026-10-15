@@ -177,6 +177,25 @@ dialog::backdrop{background:rgba(3,6,12,.82)}
 .mbtn{display:inline-flex;align-items:center}
 .mbar{flex-wrap:wrap;row-gap:2px;gap:0}
 .mmenu{min-width:230px;z-index:40}
+
+.wtb{display:flex;align-items:center;gap:3px;flex-wrap:wrap;padding:5px 0 8px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:8px}
+.tbtn{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:26px;font-size:13px;color:#C6D1DC;background:#131A28;border:1px solid #26344E;border-radius:4px;cursor:pointer;padding:0 6px}
+.tbtn:hover{background:#1B2436;color:#fff}
+.tbtn.on{background:rgba(226,169,59,.2);border-color:var(--amber);color:#fff}
+.tic{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.tsep{width:1px;height:18px;background:#26344E;margin:0 4px}
+.tbsel{width:130px;height:26px;font-size:12px;padding:2px 6px}
+#paper .ln[data-b="1"]{font-weight:700}
+#paper .ln[data-i="1"]{font-style:italic}
+#paper .ln[data-u="1"]{text-decoration:underline}
+#paper .ln[data-al="c"]{text-align:center}
+#paper .ln[data-al="r"]{text-align:right}
+#paper .ln[data-ind="1"]{padding-left:.5in}
+#paper .ln[data-ind="2"]{padding-left:1in}
+#paper .ln[data-ind="3"]{padding-left:1.5in}
+#paper .ln[data-ind="4"]{padding-left:2in}
+#paper .ln[data-note]{position:relative}
+#paper .ln[data-note]:after{content:"\25CF";position:absolute;right:-13px;top:4px;font-size:7px;color:var(--amber)}
 </style>
 </head>
 <body>
@@ -234,7 +253,7 @@ function clip(t,l){function done(){toast((l||'Copied')+' to the clipboard','good
  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,fb);else fb()}
 function dl(name,text,mime){try{var b=new Blob([text],{type:(mime||'text/plain')+';charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);toast('Saved '+name,'good')}catch(e){clip(text,'Backup copied')}}
 function pr(html,title){var pa=$('#printArea');pa.innerHTML=html;var old=document.title;if(title)document.title=title;try{window.print()}catch(e){toast('Printing is blocked here - use Copy instead','bad')}setTimeout(function(){document.title=old},800)}
-function addLine(type,text,at){var p=$('#paper');if(!p)return;var d=document.createElement('div');d.className='ln '+(CLS[type]||'t-act');d.contentEditable='true';d.textContent=text||'';d.setAttribute('data-t',type);d.setAttribute('data-ph',PH[type]||'');
+function addLine(type,text,at,extra){var p=$('#paper');if(!p)return;var d=document.createElement('div');d.className='ln '+(CLS[type]||'t-act');d.contentEditable='true';d.textContent=text||'';d.setAttribute('data-t',type);d.setAttribute('data-ph',PH[type]||''); if(extra){['rev','al','ind','b','i','u','note'].forEach(function(k){if(extra[k])d.setAttribute('data-'+k,extra[k])})}
  if(at!=null&&p.children[at])p.insertBefore(d,p.children[at]);else p.appendChild(d);bind(d);hud();return d}
 function bind(el){el.addEventListener('focus',function(){var e=$('#curType');if(e)e.textContent=el.getAttribute('data-t').replace('_',' ')});
  el.addEventListener('input',function(){el.setAttribute('data-rev','1');clearTimeout(el._t);el._t=setTimeout(function(){saveSoon();hud()},500)});
@@ -247,8 +266,8 @@ function bind(el){el.addEventListener('focus',function(){var e=$('#curType');if(
   else if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='s'){e.preventDefault();save(true);toast('Saved','good')}
  })}
 var st=null;function saveSoon(){clearTimeout(st);st=setTimeout(function(){save(true)},700)}
-function lines(){var p=$('#paper');if(!p)return (S.lines||[]).slice();return $$('#paper .ln').map(function(e){return {type:e.getAttribute('data-t'),text:e.textContent}})}
-function setLines(a){S.lines=a||[];var p=$('#paper');if(!p){saveSoon();return}p.innerHTML='';a.forEach(function(l){addLine(l.type||'ACTION',l.text||'')});saveSoon();hud()}
+function lines(){var p=$('#paper');if(!p)return (S.lines||[]).slice();return $$('#paper .ln').map(function(e){return {type:e.getAttribute('data-t'),text:e.textContent,rev:e.getAttribute('data-rev')||'',al:e.getAttribute('data-al')||'',ind:e.getAttribute('data-ind')||'',b:e.getAttribute('data-b')||'',i:e.getAttribute('data-i')||'',u:e.getAttribute('data-u')||'',note:e.getAttribute('data-note')||''}})}
+function setLines(a){S.lines=a||[];var p=$('#paper');if(!p){saveSoon();return}p.innerHTML='';a.forEach(function(l){addLine(l.type||'ACTION',l.text||'',null,l)});saveSoon();hud()}
 function paginate(){
  var p=$('#paper'); if(!p) return;
  var per=54,used=0,page=1,seen={};
@@ -1163,7 +1182,8 @@ function deskBuild(){
  var ins=document.createElement('div');ins.className='dpane ins';
  ins.innerHTML='<div class="dph dtabbar"><button type="button" class="dtab on" data-rp="insp">Inspector</button><button type="button" class="dtab" data-rp="gram">Grammar</button><button type="button" class="dtab" data-rp="mark">Marks</button></div><div id="dinsp"></div><div id="dgram" class="dtabbody" style="display:none"></div><div id="dmark" class="dtabbody" style="display:none"></div>';
  var pw=$('.paperwrap',h);
- try{ if(pw&&pw.parentNode&&!document.getElementById('phMenu')){var mh=document.createElement('div');mh.id='phMenu';pw.parentNode.insertBefore(mh,pw);} }catch(e){}
+ try{ if(pw&&pw.parentNode&&!document.getElementById('phMenu')){var mh=document.createElement('div');mh.id='phMenu';pw.parentNode.insertBefore(mh,pw);
+  var th=document.createElement('div');th.id='wtb';pw.parentNode.insertBefore(th,pw);} }catch(e){}
 box.insertBefore(tb,body);body.innerHTML='';
  grid.appendChild(nv);grid.appendChild(ce);grid.appendChild(ins);
  if(pw)ce.appendChild(pw);body.appendChild(grid);
@@ -1195,6 +1215,82 @@ function palBind(){
   }
  }});
 }
+/* the formatting toolbar: element, emphasis, alignment, indent, comment. Everything it sets
+   lives on the line and travels with the draft, because lines() reads those attributes back. */
+function curLine(){
+ var el=document.activeElement;
+ if(el&&el.classList&&String(el.className).indexOf('ln')>=0)return el;
+ var els=$$('#paper .ln');return els.length?els[els.length-1]:null;
+}
+function tbSet(k,v){
+ var el=curLine();if(!el)return;
+ if(v===null)el.removeAttribute('data-'+k);else el.setAttribute('data-'+k,v);
+ saveSoon();tbSync();
+ var c=$('#curType');if(k==='t'&&c)c.textContent=String(v||'').replace('_',' ');
+}
+function buildToolbar(){
+ var host=$('#wtb');if(!host)return;
+ if(host.getAttribute('data-built')!=='1'){
+  host.setAttribute('data-built','1');
+  var TL=[['SCENE_HEADING','Scene'],['ACTION','Action'],['CHARACTER','Character'],['PARENTHETICAL','Parens'],['DIALOGUE','Dialogue'],['TRANSITION','Trans']];
+  var A='M4 6h16M4 12h10M4 18h16',C='M4 6h16M8 12h8M4 18h16',R='M4 6h16M10 12h10M4 18h16';
+  var OUT='M11 5H6a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-5',IN='M13 5h5a2 2 0 012 2v9a2 2 0 01-2 2h-9a2 2 0 01-2-2v-5';
+  var CMT='M21 12a8 8 0 01-8 8H7l-4 3V12a8 8 0 018-8h2a8 8 0 018 8z';
+  function svg(d){return '<svg viewBox="0 0 24 24" class="tic"><path d="'+d+'"/></svg>'}
+  host.innerHTML='<div class="wtb">'+
+   '<select id="tbType" class="tbsel">'+TL.map(function(x){return '<option value="'+x[0]+'">'+x[1]+'</option>'}).join('')+'</select>'+
+   '<span class="tsep"></span>'+
+   '<button type="button" class="tbtn" data-tb="b" title="Bold">B</button>'+
+   '<button type="button" class="tbtn" data-tb="i" title="Italic"><i>I</i></button>'+
+   '<button type="button" class="tbtn" data-tb="u" title="Underline"><u>U</u></button>'+
+   '<span class="tsep"></span>'+
+   '<button type="button" class="tbtn" data-tb="al:l" title="Align left">'+svg(A)+'</button>'+
+   '<button type="button" class="tbtn" data-tb="al:c" title="Centre">'+svg(C)+'</button>'+
+   '<button type="button" class="tbtn" data-tb="al:r" title="Align right">'+svg(R)+'</button>'+
+   '<span class="tsep"></span>'+
+   '<button type="button" class="tbtn" data-tb="ind:-" title="Less indent">'+svg(OUT)+'</button>'+
+   '<button type="button" class="tbtn" data-tb="ind:+" title="More indent">'+svg(IN)+'</button>'+
+   '<span class="tsep"></span>'+
+   '<button type="button" class="tbtn" data-tb="note" title="Note on this line">'+svg(CMT)+'</button>'+
+   '<span class="tsep"></span>'+
+   '<span class="tiny muted">Element: <b id="tType">-</b> &middot; Tab cycles</span>'+
+   '</div>';
+  var sel=$('#tbType');
+  if(sel){sel.onchange=function(){var el=curLine();if(!el)return;
+   var t=sel.value;el.className='ln '+(CLS[t]||'t-act');el.setAttribute('data-t',t);el.setAttribute('data-ph',PH[t]||'');
+   el.focus();saveSoon();tbSync()}}
+  $$('[data-tb]').forEach(function(b){b.onclick=function(){
+   var k=this.getAttribute('data-tb');
+   if(k==='note'){var el=curLine();if(!el)return;
+    var cur=el.getAttribute('data-note')||'';
+    ask({title:'Note on this line',icon:'tools',ok:'Save',fields:[{k:'n',label:'Note',value:cur}]}).then(function(r){
+     if(!r)return;if((r.n||'').trim())el.setAttribute('data-note',r.n.trim());else el.removeAttribute('data-note');saveSoon();toast('Note saved','good')});
+    return}
+   if(k.indexOf('al:')===0){var v=k.slice(3);var el2=curLine();if(!el2)return;
+    if(el2.getAttribute('data-al')===v)tbSet('al',null);else tbSet('al',v);return}
+   if(k.indexOf('ind:')===0){var el3=curLine();if(!el3)return;
+    var cur2=parseInt(el3.getAttribute('data-ind')||'0',10);
+    var nx=k.slice(4)==='+'?Math.min(4,cur2+1):Math.max(0,cur2-1);
+    tbSet('ind',nx?String(nx):null);return}
+   var el4=curLine();if(!el4)return;
+   if(el4.getAttribute('data-'+k)==='1')tbSet(k,null);else tbSet(k,'1');
+  }});
+ }
+ tbSync();
+}
+function tbSync(){
+ var el=curLine();if(!el)return;
+ var t=el.getAttribute('data-t')||'ACTION';
+ var sel=$('#tbType');if(sel)sel.value=t;
+ var tp=$('#tType');if(tp)tp.textContent=t.replace('_',' ');
+ $$('[data-tb]').forEach(function(b){
+  var k=b.getAttribute('data-tb'),on=false;
+  if(k==='b'||k==='i'||k==='u')on=(el.getAttribute('data-'+k)==='1');
+  else if(k.indexOf('al:')===0)on=(el.getAttribute('data-al')===k.slice(3));
+  else if(k==='note')on=!!el.getAttribute('data-note');
+  if(on)b.classList.add('on');else b.classList.remove('on');
+ });
+}
 function deskPanes(){
  var h=$('.hub.open')||document;
  var lp=$('.dpane.nv',h), rp=$('.dpane.ins',h);
@@ -1206,6 +1302,7 @@ function deskPanes(){
   if(dl)dl.style.display=(k==='scenes')?'':'none';
   if(ds){ds.style.display=(k==='doc')?'':'none';if(k==='doc')docPanel()}
  }});
+ var tb0=$('#wtb',h);if(tb0)try{buildToolbar()}catch(e){}
  var ph0=$('#dpal',h);if(ph0&&!ph0.innerHTML)ph0.innerHTML=palHTML();
  try{palBind()}catch(e){}
  $$('[data-rp]',h).forEach(function(b){b.onclick=function(){
