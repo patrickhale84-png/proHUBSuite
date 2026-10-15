@@ -848,7 +848,41 @@ function deskToolbar(){var h=$('#hub-write');if(!h)return;var tb=$('.dtb',h);if(
  '@media(max-width:860px){.dtb .grp>b{display:none}.dtb button.ib{min-width:36px}.dtb button.ib span{display:none}}';
  document.head.appendChild(s)})();
 
-window.preHUB={version:'1.0'}},sketch:sketchOf,stage:stage,paint:stagePaint,rooms:ROOMS,get state(){return S},lines:lines,setLines:setLines,tok:tok,transmit:transmit,reformat:reformat,pick:pick,save:function(){return save(true)},open:openHub,storageOk:function(){return OK}};
+
+(function(){
+ var s=document.createElement('style');
+ s.textContent=
+ ':root{--read:16px;--micro:13px}'+
+ 'body{font-size:16px}'+
+ '.btn{font-size:14px}'+
+ '.tile .tl{font-size:19px}.tile .ts{font-size:12.5px}'+
+ '.tile .tagx{font-size:11px}'+
+ '.tile .ic{width:37px!important;height:37px!important}'+
+ '.dtb button.ib span{font-size:12px}.dtb .grp>b{font-size:11px}'+
+ '.dtb button.ib svg{width:17px;height:17px}.dtb button.ib{min-width:56px}'+
+ '.dstatus{font-size:13px}.dstatus kbd{font-size:12px}'+
+ '#dtop .proj{font-size:18px}#dtop .brand{font-size:22px}'+
+ '#dtop .tagx{font-size:11px}#dtop .chipx{font-size:12.5px}'+
+ '#dtop .proj span{font-size:12.5px}'+
+ '.dsc .n{font-size:13px}.dsc .s{font-size:13px}.dsc .p{font-size:12.5px}'+
+ '.dph{font-size:12px}'+
+ '.dfield label{font-size:12px}.dfield .v{font-size:14.5px}'+
+ '.echip{font-size:12px}'+
+ '.pill{font-size:12px}'+
+ '.hubhead .ht{font-size:12px}.hubhead h2{font-size:24px}'+
+ '.box h3{font-size:14px}'+
+ 'label.fl{font-size:12px}'+
+ 'input,select,textarea{font-size:15px}'+
+ 'table.t{font-size:14.5px}table.t th{font-size:11.5px}'+
+ '.tiny{font-size:13px}.muted.tiny{font-size:13px}'+
+ '.toast{font-size:14px}'+
+ '.dlg .dh h3{font-size:17px}'+
+ '.kpi .k{font-size:11.5px}.kpi .v{font-size:22px}'+
+ '@media(max-width:900px){.tile .ic{width:35px!important;height:35px!important}}';
+ document.head.appendChild(s);
+})();
+
+window.preHUB={version:'1.0'}}},sketch:sketchOf,stage:stage,paint:stagePaint,rooms:ROOMS,get state(){return S},lines:lines,setLines:setLines,tok:tok,transmit:transmit,reformat:reformat,pick:pick,save:function(){return save(true)},open:openHub,storageOk:function(){return OK}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 </script>
