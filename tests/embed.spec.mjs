@@ -54,7 +54,10 @@ for (const t of TARGETS) {
   const errors = [];
   page.on('pageerror', e => errors.push(String(e).slice(0, 160)));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 160)); });
-  await page.route('**/harness', route => {
+  // Playwright globs match the WHOLE url, so '**/harness' never matched '/harness?f=...' -
+  // the harness page was never fulfilled, the request fell through to a 404, and there was
+  // no iframe on the page at all. A regex matches the query string too.
+  await page.route(/\/harness(\?|$)/, route => {
     const u = new URL(route.request().url());
     route.fulfill({ status: 200, contentType: 'text/html', body: harness(u.searchParams.get('f'), u.searchParams.get('s')) });
   });
@@ -70,6 +73,9 @@ for (const t of TARGETS) {
   // matching on the file name alone can select the HARNESS frame instead of the app.
   // Always exclude the main frame and match on the real path.
   const wanted = t.file;
+  try { const body = await page.content();
+    if (!/iframe/i.test(body)) record(t.label, 'harness page rendered', false, 'no iframe in the harness document');
+  } catch (e) {}
   let fr = null;
   for (let i = 0; i < 40 && !fr; i++) {
     await page.waitForTimeout(500);
