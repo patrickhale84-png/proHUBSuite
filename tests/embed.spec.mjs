@@ -125,6 +125,29 @@ for (const t of TARGETS) {
     record(t.label, 'camera angles and framing', angles === 3 && frames === 3, angles + ' angles / ' + frames + ' framings');
   }
 
+  if (t.api === 'postHUB') {
+    // the five desks must all be registered, and the tab bar must show them
+    const mods = await fr.evaluate('(function(){try{return Object.keys(POST.state().modules)}catch(e){return []}})()');
+    const want = ['ingest', 'timeline', 'notes', 'sync', 'deliverables'];
+    const missing = want.filter(m => mods.indexOf(m) < 0);
+    record(t.label, 'five desk modules registered', missing.length === 0,
+      missing.length ? 'missing: ' + missing.join(', ') : mods.join(', '));
+
+    const registry = await fr.evaluate('(function(){return ((window.POST && POST._desks) || []).map(function(d){return d.label})})()');
+    record(t.label, 'desk registry holds five desks', registry.length === 5, registry.join(', '));
+
+    // open a desk so its tab bar is in the DOM, then count that bar only
+    await fr.evaluate('(function(){try{POST.timeline.open()}catch(e){}})()');
+    await page.waitForTimeout(500);
+    const bar = await fr.$$eval('.pgh.on [data-desk], .tlh.on [data-desk], .nth.on [data-desk], .syh.on [data-desk], .dvh.on [data-desk]',
+      els => els.map(e => e.textContent.trim()));
+    record(t.label, 'tab bar renders five tabs', bar.length === 5, bar.join(', '));
+    const wantLabels = ['Ingest', 'Timeline', 'Notes', 'Sync', 'Deliverables'];
+    const badLabels = wantLabels.filter(l => bar.indexOf(l) < 0);
+    record(t.label, 'tab labels correct', badLabels.length === 0,
+      badLabels.length ? 'missing labels: ' + badLabels.join(', ') : bar.join(', '));
+  }
+
   record(t.label, 'no page or console errors', errors.length === 0, errors.slice(0, 2).join(' | ') || 'clean');
   } catch (e) {
     // a throw must never kill the run: record it and carry on, so the report always lands
