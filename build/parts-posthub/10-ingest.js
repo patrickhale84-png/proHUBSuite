@@ -202,7 +202,11 @@ function paint() {
   bin.innerHTML = '<table><thead><tr><th>File</th><th>Format</th><th>Duration</th><th>Frame</th><th>Size</th><th>Status</th></tr></thead><tbody>' + rows + ref + '</tbody></table>' +
     (REFUSED.length ? '<p class="note">Refused files have no decoder in any browser. Supply H.264 or WebM proxies alongside the camera originals and they will open here.</p>' : '');
 }
-function openDesk() { var h = hub(); h.classList.add('on'); paint(); }
+function closeOtherDesks() {   /* one desk at a time: a full-screen desk must not trap you */
+  var all = document.querySelectorAll('.pgh.on, .tlh.on');
+  for (var i = 0; i < all.length; i++) all[i].classList.remove('on');
+}
+function openDesk() { closeOtherDesks(); var h = hub(); h.classList.add('on'); paint(); }
 
 POST.register({
   id: 'ingest',
