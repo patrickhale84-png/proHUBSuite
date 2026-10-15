@@ -5,6 +5,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   embed:
     name: Boot every suite file inside a Wix-shaped embed
@@ -15,7 +18,7 @@ jobs:
         with:
           node-version: '20'
       - name: Assemble from parts
-        run: python3 build/build.py && python3 build/build.py
+        run: python3 build/build.py
       - name: Syntax-check the assembled script
         run: node --check build/out.js
       - name: Install test deps
@@ -23,4 +26,21 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Run embed compatibility suite
+        id: embed
+        continue-on-error: true
         run: npm test
+      - name: Publish the report
+        if: always()
+        run: |
+          git config user.name "prohub-ci"
+          git config user.email "ci@localhost"
+          if [ -f build/out/report.json ]; then
+            git add -f build/out/report.json
+            git commit -m "ci: embed compatibility report [skip ci]" || echo "nothing to commit"
+            git push || echo "push skipped"
+          else
+            echo "no report produced"
+          fi
+      - name: Fail the job if the suite failed
+        if: steps.embed.outcome == 'failure'
+        run: exit 1
