@@ -108,6 +108,23 @@ for (const t of TARGETS) {
       await page.keyboard.press('Escape'); await page.waitForTimeout(140);
     }
     record(t.label, 'all nine desks open', hubs === 9, hubs + '/9 built content');
+    // the chrome seam: a save must move the stamp and the dot, and chrome() must read them back.
+    // Format, not difference - two saves inside one second produce an identical string.
+    const c0 = await fr.evaluate('(function(){try{return window.proHUB.ops.chrome()}catch(e){return {err:String(e.message)}}})()');
+    record(t.label, 'ops.chrome() reads the header', !!(c0 && c0.title !== undefined && !c0.err), JSON.stringify(c0).slice(0, 72));
+    const didSave = await fr.evaluate('(function(){try{window.proHUB.save();return true}catch(e){return String(e.message)}})()');
+    await page.waitForTimeout(400);
+    const c1 = await fr.evaluate('(function(){try{return window.proHUB.ops.chrome()}catch(e){return {err:String(e.message)}}})()');
+    const stampOk = !!(c1 && c1.stamp && /^(saved|in memory only) \d\d:\d\d:\d\d$/.test(c1.stamp));
+    record(t.label, 'a save stamps the header', stampOk && didSave === true, (c1 && c1.stamp) || 'no stamp');
+    record(t.label, 'live dot reflects the save', !!(c1 && c1.dotBg && /emerald|rgb/.test(c1.dotBg)), (c1 && c1.dotBg) || 'no dot');
+    const setRes = await fr.evaluate('(function(){try{return JSON.stringify(window.proHUB.ops.setChrome({title:"CI PROBE",company:"CI CO"}))}catch(e){return String(e.message)}})()');
+    const c2 = await fr.evaluate('(function(){try{return window.proHUB.ops.chrome()}catch(e){return {err:String(e.message)}}})()');
+    record(t.label, 'setChrome writes title and company',
+      !!(c2 && c2.title === 'CI PROBE' && c2.company === 'CI CO'),
+      ((c2 && c2.title) || '?') + ' / ' + ((c2 && c2.company) || '?') + '  ' + String(setRes).slice(0, 40));
+
+
   }
 
   if (t.api === 'preHUB') {
