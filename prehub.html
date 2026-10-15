@@ -607,7 +607,7 @@ function sceneAnalysis(){
   s2.density=s2.lines?Math.round((s2.dlg/s2.lines)*100):0;
   s2.turn=(i===0)?'opens here':((s2.loc&&prev&&s2.loc!==prev)?'location change':'same location');
   prev=s2.loc||prev;
-  s2.read=(s2.lines<=3)?'fragment':(s2.lines>=26?'long - consider splitting'):(s2.density>=55?'dialogue-led':(s2.density<=15?'action-led':'balanced'));
+  s2.read=(s2.lines<=3)?'fragment':((s2.lines>=26)?'long - consider splitting':((s2.density>=55)?'dialogue-led':((s2.density<=15)?'action-led':'balanced')));
  });
  return out;
 }
