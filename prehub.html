@@ -144,7 +144,7 @@ var STORE='prehub_desk_v1';
 function blank(){return {project:{title:'UNTITLED PROJECT',writer:'WRITER'},lines:[{type:'SCENE_HEADING',text:'INT. LOCATION - DAY'},{type:'ACTION',text:''}],snaps:[],savedAt:0}}
 var S=blank(),OK=true;
 try{localStorage.setItem('__t','1');localStorage.removeItem('__t')}catch(e){OK=false}
-function save(q){try{S.savedAt=Date.now();localStorage.setItem(STORE,JSON.stringify(S));stamp(true)}catch(e){OK=false;warn()}return true}
+function save(q){var _pg=document.getElementById('paper');if(_pg)S.lines=lines();try{S.savedAt=Date.now();localStorage.setItem(STORE,JSON.stringify(S));stamp(true)}catch(e){OK=false;warn()}return true}
 function snap(l){S.snaps.unshift({t:Date.now(),label:l||'manual',data:JSON.stringify({lines:S.lines,project:S.project})});if(S.snaps.length>10)S.snaps=S.snaps.slice(0,10);save(true)}
 function stamp(ok){var e=$('#saveStamp');if(e)e.textContent=(ok?'saved ':'in memory only ')+new Date().toLocaleTimeString();var d=$('#liveDot');if(d)d.style.background=ok?'var(--lime)':'var(--red)'}
 function warn(){var w=$('#storageWarn');if(w&&w.classList.contains('hide')){w.classList.remove('hide');w.innerHTML=ic('warn')+'<span><b>This browser will not let the page keep your work.</b> Export the project file before you close the tab.</span>'}}
@@ -245,7 +245,7 @@ function importDialog(){ask({title:'Import a script',icon:'in',ok:'Use the paste
 function openHub(id){var h=$('#hub-'+id);
  if(!h){h=document.createElement('div');h.className='hub noprint';h.id='hub-'+id;
   h.innerHTML='<div class="hubbox"><div class="hubhead"><div>'+ic('pen')+'<div class="ht">SCREENWRITER</div><h2>Writing desk</h2></div><div class="ha"><button class="btn sm" id="btnRe">'+ic('undo')+' Reformat &amp; sync</button><button class="btn sm" id="btnIn">'+ic('in')+' Import</button><button class="btn sm" id="btnPr">'+ic('print')+' Print</button><button class="btn sm pri" id="btnTx">'+ic('rocket')+' Transmit to proHUB</button></div><button class="btn sm" id="btnX">'+ic('x')+' Close</button></div><div class="hubbody"><div class="tools"><span class="tiny muted">Line type:</span><span class="pill" id="curType">ACTION</span><span class="tiny muted">Tab cycles it - Enter starts the next line</span><span style="margin-left:auto"></span><span class="pill"><span id="sceneCount">0</span> scenes</span></div><div class="paperwrap"><div class="paper" id="paper"></div></div></div></div>';
-  h.addEventListener('click',function(e){if(e.target===h||e.target.closest('#btnX')){h.classList.remove('open');document.body.style.overflow=''}});
+  h.addEventListener('click',function(e){if(e.target===h||e.target.closest('#btnX')){save(true);h.classList.remove('open');document.body.style.overflow=''}});
   $('#hubs').appendChild(h);
   $('#btnRe',h).addEventListener('click',reformat);
   $('#btnIn',h).addEventListener('click',function(){pick()});
@@ -350,7 +350,7 @@ function hubShell(id,title,tag,color,actions,bodyHTML){var h=$('#hub-m-'+id);
   $('#hubs').appendChild(h);$('#mx-'+id,h).addEventListener('click',function(){close2(h)});
  }
  $('#mb-'+id).innerHTML=bodyHTML;h.classList.add('open');document.body.style.overflow='hidden';return h}
-function close2(h){h.classList.remove('open');document.body.style.overflow=''}
+function close2(h){save(true);h.classList.remove('open');document.body.style.overflow=''}
 function renderCov(){var a=analyse(),p=coverProse(a),lab={PREMISE:'Premise',PLOT:'Plot',CHARACTER:'Character',DIALOGUE:'Dialogue',SETTING:'Setting'};
  var cards=Object.keys(lab).map(function(k){var v=a.s[k],col=v>=7.5?'var(--lime)':v>=6.5?'var(--gold)':'var(--red)';
   return '<div class="kpi"><div class="k">'+lab[k]+'</div><div class="v">'+v+'<span class="tiny muted">/10</span></div><div style="height:4px;background:#0A0F1D;border-radius:9px;margin-top:6px"><div style="width:'+Math.min(100,v*10)+'%;height:100%;background:'+col+';border-radius:9px"></div></div></div>'}).join('');
