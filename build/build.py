@@ -23,7 +23,10 @@ APPS = {
     'posthub': {'parts': 'build/parts-posthub', 'anchor': '</script>'},
     # prohub is a shell with no modules yet: it joins the assembler so its 119 KB of script
     # gets node --check on every push, which is the gate the split needs before it starts.
-    'prohub':  {'parts': 'build/parts-prohub',   'anchor': '</script>'},
+    # prohub's parts land INSIDE the shell IIFE, immediately before the export line, so a
+    # part shares the shell's scope ($ , pad, S, renderTiles). Placed after the IIFE it
+    # would parse and do nothing - that is why this anchor differs from filmhub/posthub.
+    'prohub':  {'parts': 'build/parts-prohub',   'anchor': "window.proHUB={version:'1.0'"},
 }
 SHELL = '00-shell.html'
 
