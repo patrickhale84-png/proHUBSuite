@@ -256,9 +256,6 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 function slug(s){return String(s||'').toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'')}
 function toNum(v,d){var n=parseFloat(String(v).replace(/[^0-9.\-]/g,''));return isFinite(n)?n:(d||0)}
 function money(n){return (S.project.currency||'$')+Math.round(n||0).toLocaleString('en-US')}
-/* execution-order trace: the bridge skips silently if the part has not initialised,
-   so every bridge call records whether proHUBparts existed at that moment. */
-function traceIt(ev, extra){ try{ var T=window.proHUBtrace=window.proHUBtrace||[]; T.push(Object.assign({e:ev,t:Date.now()},extra||{})); if(T.length>200)T.shift(); }catch(e){} }
 function pad(n){return (n<10?'0':'')+n}
 function todayISO(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
 function dateFrom(iso,add){var d=iso?new Date(iso+'T12:00:00'):new Date();d.setDate(d.getDate()+(add||0));return d}
@@ -344,14 +341,17 @@ try{localStorage.setItem('__prohub_test','1');localStorage.removeItem('__prohub_
 /* ---------- storage ---------- */
 var saveTimer=null,lastSaved=0;
 function save(quiet){
- try{ S.meta.savedAt=Date.now(); localStorage.setItem(STORE,JSON.stringify(S)); lastSaved=Date.now(); traceIt('stamp',{parts:!!window.proHUBparts});if(window.proHUBparts)window.proHUBparts.stamp(true); }
- catch(e){ STORAGE_OK=false; showStorageWarn(); traceIt('stamp',{parts:!!window.proHUBparts});if(window.proHUBparts)window.proHUBparts.stamp(false); }
+ try{ S.meta.savedAt=Date.now(); localStorage.setItem(STORE,JSON.stringify(S)); lastSaved=Date.now(); stamp(true); }
+ catch(e){ STORAGE_OK=false; showStorageWarn(); stamp(false); }
  if(!quiet) return true;
  return true;
 }
 function saveSoon(){ clearTimeout(saveTimer); saveTimer=setTimeout(function(){save(true)},900) }
-
-
+function stamp(ok){
+ var t=new Date(), e=$('#saveStamp');
+ if(e) e.textContent=(ok?'saved ':'in memory only ')+pad(t.getHours())+':'+pad(t.getMinutes())+':'+pad(t.getSeconds());
+ var d=$('#liveDot'); if(d) d.style.background=ok?'var(--emerald)':'var(--red)';
+}
 function showStorageWarn(){
  var w=$('#storageWarn'); if(!w||!w.classList.contains('hide'))return;
  w.classList.remove('hide');
@@ -744,10 +744,14 @@ function projectDialog(){
   p.rateCast=toNum(r.rateCast,650); p.rateCrew=toNum(r.rateCrew,450); p.rateOps=toNum(r.rateOps,1200);
   p.postFlat=toNum(r.postFlat,25000); p.atlFlat=toNum(r.atlFlat,0);
   p.creditPct=toNum(r.creditPct,30); p.qualifiedPct=toNum(r.qualifiedPct,82);
-  traceIt('bindFields',{parts:!!window.proHUBparts});if(window.proHUBparts)window.proHUBparts.bindFields(); save(true); renderTiles(); refreshOpenHub(); toast('Settings saved','good');
+  bindFields(); save(true); renderTiles(); refreshOpenHub(); toast('Settings saved','good');
  });
 }
-
+function bindFields(){
+ var t=$('#fTitle'),c=$('#fCompany');
+ if(t){t.value=S.project.title||'';t.addEventListener('change',function(){S.project.title=t.value.toUpperCase();document.title=S.project.title+' | proHUB';saveSoon();renderTiles()})}
+ if(c){c.value=S.project.company||'';c.addEventListener('change',function(){S.project.company=c.value.toUpperCase();saveSoon()})}
+}
 
 /* ---------- clock + format ---------- */
 function bindChrome(){
@@ -968,7 +972,7 @@ function pullFromPrehub(){
  if(!lines.length){ toast('The preHUB hand-off had no script in it','bad'); return; }
  if(d.projectName) S.project.title=String(d.projectName).toUpperCase();
  if(d.writerName) S.project.lineProducer=d.writerName;
- traceIt('bindFields',{parts:!!window.proHUBparts});if(window.proHUBparts)window.proHUBparts.bindFields();
+ bindFields();
  var when=d.ts?new Date(d.ts).toLocaleString():'earlier';
  ask({title:'preHUB hand-off found',icon:'pull',okLabel:'Bring it in',html:
   '<p style="font-size:13px;color:#B9C4D2">Found <b>'+lines.length+' script elements</b> for <b>'+esc(d.projectName||'untitled')+'</b>, sent '+esc(when)+'. Bringing it in replaces the script and board currently on this desk.</p>'})
@@ -2007,7 +2011,7 @@ function openVault(){
    ============================================================ */
 function boot(){
  var how=load();
- traceIt('bindFields',{parts:!!window.proHUBparts});if(window.proHUBparts)window.proHUBparts.bindFields(); buildMenu(); bindChrome(); renderTiles(); tickClock();
+ bindFields(); buildMenu(); bindChrome(); renderTiles(); tickClock();
  setInterval(tickClock,1000);
  setInterval(function(){ save(true) },20000);
  if(!STORAGE_OK)showStorageWarn();
@@ -2081,146 +2085,9 @@ function boot(){
  document.head.appendChild(s);
 })();
 
-;
-/* module: 01-header.js */
-(function(){
-/* proHUB - 01-header
-   The header's two jobs: keep the save stamp and live dot honest, and bind the project title
-   and company fields. Lifted out of the shell, so it talks to the app only through the public
-   surface: proHUB.state, proHUB.save, proHUB.ops. It never reaches into shell internals.
-
-   The assembler wraps this in its own IIFE, so the two tiny helpers it needs are local. */
-(function () {
-  try { (window.proHUBtrace = window.proHUBtrace || []).push({ e: 'parts:init', t: Date.now() }); } catch (e) {}
-  function q(sel) { return document.querySelector(sel); }
-  function pad2(n) { return (n < 10 ? '0' : '') + n; }
-
-  function actChrome(o) {
-    var op = window.proHUB && window.proHUB.ops;
-    if (op && typeof op.setChrome === 'function') { try { return op.setChrome(o); } catch (e) {} }
-    if (o.stamp != null) { var e = q('#saveStamp'); if (e) e.textContent = o.stamp; }
-    if (o.dot != null) { var d = q('#liveDot'); if (d) d.style.background = o.dot ? 'var(--emerald)' : 'var(--red)'; }
-    return null;
-  }
-  function stamp(ok) {
-    var t = new Date();
-    actChrome({ stamp: (ok ? 'saved ' : 'in memory only ') + pad2(t.getHours()) + ':' + pad2(t.getMinutes()) + ':' + pad2(t.getSeconds()), dot: ok });
-  }
-  function bindFields() {
-    var t = q('#fTitle'), c = q('#fCompany');
-    if (t) {
-      t.value = (window.proHUB.state && window.proHUB.state.project && window.proHUB.state.project.title) || '';
-      t.addEventListener('change', function () {
-        var S = window.proHUB.state;
-        S.project.title = t.value.toUpperCase();
-        document.title = S.project.title + ' | proHUB';
-        if (window.proHUB.ops && window.proHUB.ops.saveSoon) window.proHUB.ops.saveSoon();
-        if (window.proHUB.ops && window.proHUB.ops.renderTiles) window.proHUB.ops.renderTiles();
-      });
-    }
-    if (c) {
-      c.value = (window.proHUB.state && window.proHUB.state.project && window.proHUB.state.project.company) || '';
-      c.addEventListener('change', function () {
-        var S = window.proHUB.state;
-        S.project.company = c.value.toUpperCase();
-        if (window.proHUB.ops && window.proHUB.ops.saveSoon) window.proHUB.ops.saveSoon();
-      });
-    }
-  }
-  window.proHUBparts = window.proHUBparts || {};
-  window.proHUBparts.stamp = stamp;
-  window.proHUBparts.bindFields = bindFields;
-  window.proHUBparts.actChrome = actChrome;
-})();
-})();
-window.proHUB={version:'1.0'},get state(){return S},set state(v){S=v},pull:pullFromPrehub,reload:function(){return load()},
+window.proHUB={version:'1.0',get state(){return S},set state(v){S=v},pull:pullFromPrehub,reload:function(){return load()},
  board:autoBoard,panels:buildPanels,dood:dood,budget:budgetTotals,sheet:sheetHTML,push:pushToPosthub,paint:paint,
  open:openHub,save:function(){return save(true)},apply:applyScript,lines:linesFromText,storageOk:function(){return STORAGE_OK}};
-/* prohub.ops - a deterministic surface for tests.
-   Reads the rendered document rather than internal names, so a test drives the app the way a
-   person does without a click walk: open a desk by id, read the header, list the controls.
-   Nothing here changes behaviour; it only exposes what is already on screen. */
-window.proHUB.ops = {
-  setChrome: function (o) {
-    o = o || {};
-    if (o.title != null) { var t = document.querySelector('#fTitle'); if (t) t.value = String(o.title).toUpperCase(); }
-    if (o.company != null) { var c = document.querySelector('#fCompany'); if (c) c.value = String(o.company).toUpperCase(); }
-    if (o.stamp != null) { var s = document.querySelector('#saveStamp'); if (s) s.textContent = String(o.stamp); }
-    if (o.dot != null) { var d = document.querySelector('#liveDot'); if (d) d.style.background = o.dot ? 'var(--emerald)' : 'var(--red)'; }
-    return { title: o.title != null, company: o.company != null, stamp: o.stamp != null, dot: o.dot != null };
-  },
-  chrome: function () {
-    var t = document.querySelector('#fTitle'), c = document.querySelector('#fCompany'),
-        s = document.querySelector('#saveStamp'), d = document.querySelector('#liveDot');
-    return { title: t ? t.value : null, company: c ? c.value : null,
-             stamp: s ? s.textContent : null, dotBg: d ? d.style.background : null };
-  },
-  renderTiles: function () { try { return renderTiles(); } catch (e) { return 'threw: ' + e.message; } },
-  saveSoon: function () { try { return saveSoon(); } catch (e) { return 'threw: ' + e.message; } },
-  trace: function () { return (window.proHUBtrace || []).slice(); },
-  ready: function () { return !!document.querySelector('.tile'); },
-  modules: function () {
-    return Array.prototype.slice.call(document.querySelectorAll('.tile[data-mod]'))
-      .map(function (t) { return t.getAttribute('data-mod'); });
-  },
-  tiles: function () { return document.querySelectorAll('.tile').length; },
-  openDesk: function (id) {
-    var t = document.querySelector('.tile[data-mod="' + id + '"]');
-    if (!t) return false;
-    t.click();
-    return true;
-  },
-  openDeskDirect: function (id) {
-    try { if (typeof window.proHUB.open === 'function') { window.proHUB.open(id); return true; } } catch (e) { return 'threw: ' + e.message; }
-    return false;
-  },
-  openHubId: function () { var h = document.querySelector('.hub.open'); return h ? h.id : null; },
-  closeAll: function () {
-    var hs = document.querySelectorAll('.hub.open');
-    for (var i = 0; i < hs.length; i++) hs[i].classList.remove('open');
-    return hs.length;
-  },
-  header: function () {
-    var p = document.querySelector('.proj');
-    return p ? p.textContent.replace(/\s+/g, ' ').trim().slice(0, 90) : null;
-  },
-  chips: function () {
-    return Array.prototype.slice.call(document.querySelectorAll('.chip, .pill'))
-      .map(function (c) { return c.textContent.replace(/\s+/g, ' ').trim(); }).slice(0, 12);
-  },
-  buttons: function () {
-    return Array.prototype.slice.call(document.querySelectorAll('button'))
-      .map(function (b) { return b.id || b.textContent.replace(/\s+/g, ' ').trim().slice(0, 20); }).slice(0, 26);
-  },
-  toolbar: function () {
-    var bar = document.querySelector('.topbar, .hd, header');
-    if (!bar) return [];
-    return Array.prototype.slice.call(bar.querySelectorAll('button, .chip'))
-      .map(function (e) { return e.id || e.textContent.replace(/\s+/g, ' ').trim().slice(0, 18); });
-  },
-  field: function (sel) {
-    var e = document.querySelector(sel);
-    return e ? String(e.value == null ? e.textContent : e.value).slice(0, 60) : null;
-  },
-  setField: function (sel, val) {
-    var e = document.querySelector(sel);
-    if (!e) return false;
-    e.value = val;
-    e.dispatchEvent(new Event('input', { bubbles: true }));
-    e.dispatchEvent(new Event('change', { bubbles: true }));
-    return true;
-  },
-  counts: function () {
-    return { tiles: document.querySelectorAll('.tile').length,
-             moduleTiles: document.querySelectorAll('.tile[data-mod]').length,
-             hubs: document.querySelectorAll('.hub').length,
-             openHubs: document.querySelectorAll('.hub.open').length,
-             buttons: document.querySelectorAll('button').length };
-  },
-  storageOk: function () { try { return window.proHUB.storageOk(); } catch (e) { return 'threw: ' + e.message; } },
-  stateKeys: function () { try { return Object.keys(window.proHUB.state || {}); } catch (e) { return 'threw: ' + e.message; } }
-};
-
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
 })();
 </script>
