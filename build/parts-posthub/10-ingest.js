@@ -170,17 +170,19 @@ function hub() {
     '<button class="btn sm pri" id="igPick">Choose a folder</button>' +
     '<button class="btn sm" id="igFiles">Choose files</button>' +
     '<button class="btn sm" id="igClose">Close</button></div></div>' +
-    '<div class="bd"><div id="igSource"></div><div id="igBin"></div></div></div>';
+    ''+deskTabs('ingest')+''<div class="bd"><div id="igSource"></div><div id="igBin"></div></div></div>';
   document.body.appendChild(h);
   h.addEventListener('click', function (e) { if (e.target === h) h.classList.remove('on'); });
   h.querySelector('#igClose').addEventListener('click', function () { h.classList.remove('on'); });
   h.querySelector('#igPick').addEventListener('click', pickFolder);
   h.querySelector('#igFiles').addEventListener('click', pickFiles);
+  bindDeskTabs(h, 'ingest');
   return h;
 }
 function paint() {
   var h = document.getElementById('posthub-ingest');
   if (!h) return;
+  bindDeskTabs(h, 'ingest');
   var src = h.querySelector('#igSource'), bin = h.querySelector('#igBin');
   var permText = DIR_HANDLE ? 'folder connected' : 'no folder connected yet';
   src.innerHTML = '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-family:var(--fm);font-size:13px;color:#8794A6">' +
@@ -206,12 +208,43 @@ function closeOtherDesks() {   /* one desk at a time: a full-screen desk must no
   var all = document.querySelectorAll('.pgh.on, .tlh.on');
   for (var i = 0; i < all.length; i++) all[i].classList.remove('on');
 }
+/* ---- desk tabs ----
+   A shared switcher so you never have to close a desk to reach another. Desks register
+   themselves on POST._desks; this renders and binds the bar. Deliberately duplicated in
+   each module rather than cross-imported, so either desk works if the other is absent. */
+function deskTabs(current) {
+  var desks = POST._desks || [], out = '';
+  for (var i = 0; i < desks.length; i++) {
+    var d = desks[i], on = (d.id === current);
+    out += '<button type="button" class="btn sm" data-desk="' + d.id + '"' +
+      (on ? ' style="border-color:#E2A93B;color:#fff"' : '') + '>' + POST.esc(d.label) + '</button>';
+  }
+  return '<div class="deskbar" style="display:flex;gap:6px;padding:8px 17px;border-bottom:1px solid #1B2436;background:#0A0F1A;flex-wrap:wrap">' +
+         (desks.length ? out : '<span style="font-size:13px;color:#8794A6">No other desks yet</span>') + '</div>';
+}
+function bindDeskTabs(root, current) {
+  var bs = root.querySelectorAll('[data-desk]');
+  for (var i = 0; i < bs.length; i++) {
+    bs[i].onclick = function () {
+      var id = this.getAttribute('data-desk'), desks = POST._desks || [];
+      for (var j = 0; j < desks.length; j++) { if (desks[j].id === id) { desks[j].open(); return; } }
+    };
+  }
+  var all = root.querySelectorAll('[data-desk]');
+  for (var k = 0; k < all.length; k++) {
+    var on = all[k].getAttribute('data-desk') === current;
+    all[k].style.borderColor = on ? '#E2A93B' : '';
+    all[k].style.color = on ? '#fff' : '';
+  }
+}
 function openDesk() { closeOtherDesks(); var h = hub(); h.classList.add('on'); paint(); }
 
 POST.register({
   id: 'ingest',
   mount: function () {
     hub(); MOUNTED = true;
+    var DS = POST._desks || (POST._desks = []);
+    DS.push({ id: 'ingest', label: 'Ingest', open: openDesk });
     POST.addTile({ id: 'ingest', title: 'Ingest', sub: 'Media from your drive', colour: '#7137C8', icon: 'in', tag: 'MEDIA', run: openDesk });
     getHandle().then(function (h) {
       if (!h) return;
