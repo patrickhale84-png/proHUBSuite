@@ -642,6 +642,7 @@ deskFill=function(){
   dc.textContent=r.scenes.length+' scenes · '+deskPages()+' pages · '+n+' elements · '+depts+' depts'}
 }
 function deskChips(i){
+ try{
  var box=$('#dinsp');if(!box)return;
  var r=deskTagScenes(),t=r.tags[i]||{};
  var rows=D8.map(function(d){var v=t[d[0]]||[];if(!v.length)return '';
@@ -651,8 +652,9 @@ function deskChips(i){
  host.className='dfield';
  host.innerHTML='<label>Elements read from the prose</label><div class="echips">'+(rows||'<span class="tiny muted">Nothing recognised in this scene yet.</span>')+'</div>';
  var anchor=$('#revsw',box);
- if(anchor&&anchor.parentElement)anchor.parentElement.insertBefore(host,anchor.parentElement);
+ if(anchor&&anchor.parentElement)box.insertBefore(host,anchor);
  else box.appendChild(host);
+ }catch(e){}
 }
 var _deskInsp=deskInsp;
 deskInsp=function(i){_deskInsp(i);deskChips(i)};
