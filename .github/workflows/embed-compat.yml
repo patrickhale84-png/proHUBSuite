@@ -38,6 +38,8 @@ jobs:
             node --check "$f" || fail=1
           done
           exit $fail
+      - name: Syntax-check the harness
+        run: node --check tests/embed.spec.mjs
       - name: Install test deps
         run: npm install
       - name: Install Chromium
@@ -53,14 +55,20 @@ jobs:
         run: |
           git config user.name "prohub-ci"
           git config user.email "ci@localhost"
+          ls -l build/out/ || true
           if [ -f build/out/report.json ]; then
+            echo "--- report being published ---"
+            head -c 300 build/out/report.json; echo
             cat build/out/report.json
-            git checkout -b ci-report >/dev/null 2>&1 || git checkout ci-report
+            # reset the branch every run: a persistent ci-report served a stale file for hours
+            git checkout -B main origin/main
+            git branch -D ci-report >/dev/null 2>&1 || true
+            git checkout -B ci-report
             git add -f build/out/report.json
             git commit -m "ci: embed compatibility report [skip ci]" || echo "nothing to commit"
             git push -f origin ci-report && echo "report pushed to ci-report" || echo "push skipped"
           else
-            echo "no report produced"
+            echo "no report produced - the suite did not reach its write step"
           fi
       - name: Promote if the suite proved the build
         if: always() && (github.event_name != 'workflow_dispatch' || github.event.inputs.promote == 'true')
