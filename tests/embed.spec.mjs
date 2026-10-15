@@ -94,8 +94,8 @@ for (const t of TARGETS) {
 
   if (t.api === 'proHUB') {
     const scenes = await fr.evaluate('window.proHUB.state.scenes.length');
-    const tiles = await fr.eval_on_selector_all('.tile', 'e => e.length');
-    const modules = await fr.eval_on_selector_all('.tile[data-mod]', 'e => e.length');
+    const tiles = await fr.$$eval('.tile', 'e => e.length');
+    const modules = await fr.$$eval('.tile[data-mod]', 'e => e.length');
     record(t.label, 'nine module tiles render', modules >= 9, modules + ' module tiles / ' + tiles + ' total');
     record(t.label, 'script state readable', scenes >= 0, scenes + ' scenes');
     const st = await fr.evaluate('(function(){try{localStorage.setItem("__t","1");localStorage.removeItem("__t");return "ok"}catch(e){return "BLOCKED"}})()');
@@ -111,15 +111,15 @@ for (const t of TARGETS) {
   }
 
   if (t.api === 'preHUB') {
-    const tiles = await fr.eval_on_selector_all('.tile', 'e => e.length');
+    const tiles = await fr.$$eval('.tile', 'e => e.length');
     record(t.label, 'nine tiles render', tiles >= 9, tiles + ' tiles');
     await fr.click('.tile[data-id="stage"]'); await page.waitForTimeout(700);
     const canvas = await fr.evaluate('!!document.getElementById("stagecv")');
     record(t.label, 'staging canvas opens', canvas, canvas ? 'stagecv present' : 'missing');
-    const lights = await fr.eval_on_selector_all('[data-lt]', 'e => e.length');
-    const poses = await fr.eval_on_selector_all('[data-ps]', 'e => e.length');
-    const angles = await fr.eval_on_selector_all('[data-ang]', 'e => e.length');
-    const frames = await fr.eval_on_selector_all('[data-fr]', 'e => e.length');
+    const lights = await fr.$$eval('[data-lt]', 'e => e.length');
+    const poses = await fr.$$eval('[data-ps]', 'e => e.length');
+    const angles = await fr.$$eval('[data-ang]', 'e => e.length');
+    const frames = await fr.$$eval('[data-fr]', 'e => e.length');
     record(t.label, 'lighting rigs in the panel', lights === 5, lights + ' rigs');
     record(t.label, 'poses in the panel', poses === 6, poses + ' poses');
     record(t.label, 'camera angles and framing', angles === 3 && frames === 3, angles + ' angles / ' + frames + ' framings');
