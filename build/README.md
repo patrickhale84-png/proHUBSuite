@@ -40,3 +40,4 @@ CI does all three, then boots the assembled file inside a Wix-shaped embed.
 3. Push — CI assembles, syntax-checks and boots it
 
 No module ever edits another. Nothing is inserted by hand.
+<!-- ci trigger 08:59:35 -->
