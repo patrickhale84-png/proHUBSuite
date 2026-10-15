@@ -132,6 +132,18 @@ dialog::backdrop{background:rgba(3,6,12,.82)}
  .paper{width:auto;min-height:0;box-shadow:none;margin:0;padding:1in 1in 1in 1.5in}
  .paper .ln:focus{background:none!important;box-shadow:none!important}
 }
+
+.mbar{display:flex;gap:2px;padding:2px 0 8px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:8px;position:relative;z-index:5}
+.mwrap{position:relative}
+.mbtn{font-size:12.5px;color:#C6D1DC;background:none;border:0;padding:5px 10px;border-radius:4px;cursor:pointer;font-weight:600}
+.mbtn:hover{background:rgba(255,255,255,.07)}
+.mmenu{display:none;position:absolute;top:100%;left:0;min-width:210px;background:#0C1320;border:1px solid #26344E;border-radius:6px;padding:4px;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+.mwrap.open .mmenu{display:block}
+.mi{display:block;width:100%;text-align:left;font-size:12.5px;color:#C6D1DC;background:none;border:0;padding:6px 9px;border-radius:4px;cursor:pointer}
+.mi:hover{background:rgba(255,255,255,.08)}
+.mi.on:before{content:"\2713  ";color:var(--lime)}
+#paper[data-opt-pgnum="0"] .ln[data-pg]:before{content:none}
+#paper[data-opt-contd="0"] .ln[data-contd]:after{content:none}
 </style>
 </head>
 <body>
@@ -204,7 +216,29 @@ function bind(el){el.addEventListener('focus',function(){var e=$('#curType');if(
 var st=null;function saveSoon(){clearTimeout(st);st=setTimeout(function(){save(true)},700)}
 function lines(){var p=$('#paper');if(!p)return (S.lines||[]).slice();return $$('#paper .ln').map(function(e){return {type:e.getAttribute('data-t'),text:e.textContent}})}
 function setLines(a){S.lines=a||[];var p=$('#paper');if(!p){saveSoon();return}p.innerHTML='';a.forEach(function(l){addLine(l.type||'ACTION',l.text||'')});saveSoon();hud()}
-function hud(){var L=lines(),sc=L.filter(function(l){return l.type==='SCENE_HEADING'}).length,g=$('#pagePill');if(g)g.textContent=L.length+' lines / '+Math.max(1,Math.ceil(L.length/22))+' page'+(Math.ceil(L.length/22)>1?'s':'');var n=$('#sceneCount');if(n)n.textContent=sc}
+function paginate(){
+ var p=$('#paper'); if(!p) return;
+ var per=54,used=0,page=1,seen={};
+ $$('#paper .ln').forEach(function(el){
+  var t=el.getAttribute('data-t')||'ACTION';
+  var h=(t==='DIALOGUE'||t==='PARENTHETICAL')?1:2;
+  if(t==='SCENE_HEADING'){seen={}}
+  if(el.hasAttribute('data-pg')) el.removeAttribute('data-pg');
+  if(el.hasAttribute('data-pgnum')) el.removeAttribute('data-pgnum');
+  if(el.hasAttribute('data-contd')) el.removeAttribute('data-contd');
+  if(used+h>per&&used>0){page++;used=0;el.setAttribute('data-pg','1');el.setAttribute('data-pgnum',page+'.')}
+  used+=h;
+  if(t==='CHARACTER'){
+   var nm=(el.textContent||'').trim().toUpperCase();
+   if(nm&&seen[nm]) el.setAttribute('data-contd','1');
+   if(nm) seen[nm]=1;
+  }
+ });
+ var g=$('#pagePill'); if(g) g.textContent=$$('#paper .ln').length+' lines / '+page+' page'+(page===1?'':'s');
+}
+function hud(){
+ try{paginate()}catch(e){}
+ try{buildMenu()}catch(e){}var L=lines(),sc=L.filter(function(l){return l.type==='SCENE_HEADING'}).length,g=$('#pagePill');if(g)g.textContent=L.length+' lines / '+Math.max(1,Math.ceil(L.length/22))+' page'+(Math.ceil(L.length/22)>1?'s':'');var n=$('#sceneCount');if(n)n.textContent=sc}
 function reformat(){$$('#paper .ln').forEach(function(e){var t=e.textContent.trim();if(!t)return;var k='ACTION';
  if(/^\s*(?:\d+[A-Za-z]?[.)]?\s+)?(?:INT|EXT|EST|I\/E|INT\.?\/EXT|EXT\.?\/INT)\b[.\s\/]/i.test(t))k='SCENE_HEADING';
  else if(/^(FADE IN|FADE OUT|CUT TO|SMASH TO|MATCH CUT|DISSOLVE TO|HARD CUT)/i.test(t)||/\bTO:\s*$/.test(t))k='TRANSITION';
@@ -270,7 +304,7 @@ function importDialog(){ask({title:'Import a script',icon:'in',ok:'Use the paste
  setTimeout(function(){var b=$('#pickFile');if(b)b.addEventListener('click',function(){var d=$('dialog[open]');if(d)d.close();pick()})},60)}
 function openHub(id){var h=$('#hub-'+id);
  if(!h){h=document.createElement('div');h.className='hub noprint';h.id='hub-'+id;
-  h.innerHTML='<div class="hubbox"><div class="hubhead"><div>'+ic('pen')+'<div class="ht">SCREENWRITER</div><h2>Writing desk</h2></div><div class="ha"><button class="btn sm" id="btnRe">'+ic('undo')+' Reformat &amp; sync</button><button class="btn sm" id="btnIn">'+ic('in')+' Import</button><button class="btn sm" id="btnPr">'+ic('print')+' Print</button><button class="btn sm pri" id="btnTx">'+ic('rocket')+' Transmit to proHUB</button></div><button class="btn sm" id="btnX">'+ic('x')+' Close</button></div><div class="hubbody"><div class="tools"><span class="tiny muted">Line type:</span><span class="pill" id="curType">ACTION</span><span class="tiny muted">Tab cycles it - Enter starts the next line</span><span style="margin-left:auto"></span><span class="pill"><span id="sceneCount">0</span> scenes</span></div><div class="paperwrap"><div class="paper" id="paper"></div></div></div></div>';
+  h.innerHTML='<div class="hubbox"><div class="hubhead"><div>'+ic('pen')+'<div class="ht">SCREENWRITER</div><h2>Writing desk</h2></div><div class="ha"><button class="btn sm" id="btnRe">'+ic('undo')+' Reformat &amp; sync</button><button class="btn sm" id="btnIn">'+ic('in')+' Import</button><button class="btn sm" id="btnPr">'+ic('print')+' Print</button><button class="btn sm pri" id="btnTx">'+ic('rocket')+' Transmit to proHUB</button></div><button class="btn sm" id="btnX">'+ic('x')+' Close</button></div><div class="hubbody"><div class="tools"><span class="tiny muted">Line type:</span><span class="pill" id="curType">ACTION</span><span class="tiny muted">Tab cycles it - Enter starts the next line</span><span style="margin-left:auto"></span><span class="pill"><span id="sceneCount">0</span> scenes</span></div><div id="phMenu"></div><div class="paperwrap"><div class="paper" id="paper"></div></div></div></div>';
   h.addEventListener('click',function(e){if(e.target===h||e.target.closest('#btnX')){save(true);h.classList.remove('open');document.body.style.overflow=''}});
   $('#hubs').appendChild(h);
   $('#btnRe',h).addEventListener('click',reformat);
