@@ -125,4 +125,21 @@ fs.writeFileSync(REPORT, JSON.stringify(report, null, 2));
 console.log('\nreport written to build/out/report.json');
 console.log(report.summary.passed + '/' + report.summary.total + ' checks passed' + (missing.length ? ' | missing: ' + missing.join(', ') : ''));
 console.log('verdict: ' + report.verdict);
+
+// also surface the verdict where a human will actually see it: the run Summary panel
+const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+if (summaryPath) {
+  const md = [];
+  md.push('## Embed compatibility');
+  md.push('');
+  md.push('**Verdict: ' + report.verdict + '** - ' + report.summary.passed + '/' + report.summary.total + ' checks passed' + (missing.length ? ' | missing: ' + missing.join(', ') : ''));
+  md.push('');
+  md.push('| Result | File | Check | Detail |');
+  md.push('| --- | --- | --- | --- |');
+  for (const r of results) {
+    md.push('| ' + (r.ok ? 'PASS' : 'FAIL') + ' | ' + r.file + ' | ' + r.check + ' | ' + String(r.detail).replace(/\|/g, '/') + ' |');
+  }
+  try { fs.appendFileSync(summaryPath, md.join('\n') + '\n'); } catch (e) { console.log('summary write failed: ' + e.message); }
+}
+
 process.exit(hardFails.length === 0 ? 0 : 1);
