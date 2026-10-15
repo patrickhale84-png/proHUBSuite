@@ -67,6 +67,84 @@ function importEdl(text) {
   return added;
 }
 
+/* ---- Build By Storyboard ----
+   Reads the storyboard left in this browser by preHUB or proHUB, lays the panels on the
+   timeline in scene order, and lets each one be swapped for its shot with a single click.
+   Tolerant about shape: frames keyed 'sc0','sc1'... plus scene headings, or an array of
+   scenes carrying an image. Anything it cannot find is said plainly, not guessed at. */
+var STORY_KEYS = ['prehub_desk_v1', 'prehub_master_v1', 'prohub_staged_payload_v1', 'posthub_staged_payload_v1'];
+function jread(k) { try { var r = localStorage.getItem(k); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+function fmt(sec) { var s = Math.round(sec || 0), m = Math.floor(s / 60), r = s % 60; return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r; }
+
+function readShots() {
+  for (var i = 0; i < STORY_KEYS.length; i++) {
+    var d = jread(STORY_KEYS[i]);
+    if (!d) continue;
+    var heads = [];
+    if (d.lines && d.lines.length) { for (var j = 0; j < d.lines.length; j++) { if (d.lines[j].type === 'SCENE_HEADING') heads.push(d.lines[j].text); } }
+    var frames = d.frames || d.panels || null;
+    if (frames && typeof frames === 'object' && !(frames instanceof Array)) {
+      var keys = Object.keys(frames).filter(function (k) { return /^sc\d+$/.test(k); })
+        .sort(function (a, b) { return (parseInt(a.slice(2), 10) - parseInt(b.slice(2), 10)); });
+      if (keys.length) {
+        return keys.map(function (k) {
+          var n = parseInt(k.slice(2), 10);
+          return { n: n, heading: heads[n] || ('SCENE ' + (n + 1)), image: frames[k] };
+        });
+      }
+    }
+    var arr = d.scenes || d.shots || d.boards || null;
+    if (arr && arr.length) {
+      return arr.map(function (s, ix) {
+        return { n: ix, heading: s.heading || s.slug || s.name || ('SCENE ' + (ix + 1)),
+                 image: s.image || s.frame || s.dataUrl || null };
+      });
+    }
+  }
+  return [];
+}
+function buildByStoryboard(force) {
+  var shots = readShots();
+  if (!shots.length) { POST.toast('No storyboard found in this browser - make one in preHUB or proHUB first', 'bad'); return 0; }
+  function lay() {
+    CUTS = shots.map(function (s) {
+      return { name: s.heading, reel: 'SB', srcIn: 0, srcOut: 5, image: s.image || null, sb: true, scene: s.n, replaced: false };
+    });
+    SELECTED = -1; ripple(); paint();
+    POST.toast(shots.length + ' storyboard panels on the timeline', 'good');
+    return shots.length;
+  }
+  if (CUTS.length && !force) {
+    POST.ask({ title: 'Replace the cut list?', icon: 'warn', ok: 'Replace it', cancel: true,
+      html: '<p style="margin:0;font-size:14px;color:#B9C4D2">The timeline already has ' + CUTS.length +
+            ' cuts. Building from the storyboard will replace them.</p>' }).then(function (r) { if (r) lay(); });
+    return -1;
+  }
+  return lay();
+}
+function replaceCut(i) {
+  var media = (typeof POST.media === 'function') ? POST.media() : [];
+  if (!media.length) { POST.toast('Ingest the shots first - the bin is empty', 'bad'); return false; }
+  var opts = media.map(function (f, ix) {
+    return '<option value="' + ix + '">' + POST.esc(f.name) + '   ' + fmt(f.duration) + '</option>';
+  }).join('');
+  var cur = CUTS[i] ? CUTS[i].name : '';
+  POST.ask({ title: 'Replace with the shot', icon: 'film', ok: 'Replace',
+    html: '<label class="fl">Using ' + POST.esc(cur) + '</label><select data-k="clip">' + opts + '</select>' +
+          '<p style="margin:10px 0 0;font-size:13px;color:#8794A6">The storyboard panel stays with the cut as a reference frame.</p>' })
+  .then(function (r) {
+    if (!r) return;
+    var f = media[parseInt(r.clip, 10) || 0];
+    if (!f) return;
+    CUTS[i].name = f.name; CUTS[i].reel = 'AX';
+    CUTS[i].srcIn = 0; CUTS[i].srcOut = f.duration || 5;
+    CUTS[i].replaced = true;
+    ripple(); paint();
+    POST.toast('Replaced with ' + f.name, 'good');
+  });
+  return true;
+}
+
 /* ---- the desk ---- */
 function style() {
   if (document.getElementById('tlStyle')) return;
@@ -94,6 +172,7 @@ function hub() {
     '<button class="btn sm pri" id="tlAdd">Add cut</button>' +
     '<button class="btn sm" id="tlFromBin">From bin</button>' +
     '<button class="btn sm" id="tlRip">Ripple delete</button>' +
+    '<button class="btn sm" id="tlStory">Build By Storyboard</button>' +
     '<button class="btn sm" id="tlEdl">EDL</button>' +
     '<button class="btn sm" id="tlClose">Close</button></div></div>' +
     '<div class="bd"><div id="tlBody"></div></div></div>';
@@ -120,6 +199,7 @@ function hub() {
     media.forEach(function (f) { add({ name: f.name, reel: 'AX', srcIn: 0, srcOut: f.duration || 5 }); });
     POST.toast(media.length + ' clips added from the bin', 'good');
   };
+  h.querySelector('#tlStory').onclick = function () { buildByStoryboard(); };
   h.querySelector('#tlEdl').onclick = function () { openEdl(); };
   return h;
 }
@@ -142,12 +222,17 @@ function paint() {
   var b = h.querySelector('#tlBody');
   if (!CUTS.length) { b.innerHTML = '<div class="note">No cuts yet. Add one by hand, pull the bin in, or import an EDL.</div>'; return; }
   var rows = CUTS.map(function (k, i) {
-    return '<tr data-i="' + i + '"' + (i === SELECTED ? ' class="sel"' : '') + '><td class="n">' + pad(i + 1) + '</td><td>' + POST.esc(k.name) + '</td>' +
+    var thumb = k.image ? '<img src="' + k.image + '" alt="" style="height:34px;border-radius:3px;display:block">' : '<span style="color:#4B5563">-</span>';
+    var act = '<button type="button" class="btn xs" data-rep="' + i + '" style="min-height:28px">replace</button>';
+    return '<tr data-i="' + i + '"' + (i === SELECTED ? ' class="sel"' : '') + '><td class="n">' + pad(i + 1) + '</td><td>' + thumb + '</td>' +
+      '<td>' + POST.esc(k.name) + (k.replaced ? ' <span style="color:#88C13F;font-size:11px">shot</span>' : (k.sb ? ' <span style="color:#E2A93B;font-size:11px">board</span>' : '')) + '</td>' +
       '<td class="n">' + POST.esc(k.reel) + '</td><td class="n">' + tcf(k.srcIn) + '</td><td class="n">' + tcf(k.srcOut) + '</td>' +
-      '<td class="n">' + tcf(k.duration) + '</td><td class="n">' + tcf(k.recIn) + '</td><td class="n">' + tcf(k.recOut) + '</td></tr>';
+      '<td class="n">' + tcf(k.duration) + '</td><td class="n">' + tcf(k.recIn) + '</td><td class="n">' + tcf(k.recOut) + '</td><td>' + act + '</td></tr>';
   }).join('');
-  b.innerHTML = '<table><thead><tr><th>#</th><th>Clip</th><th>Reel</th><th>Src in</th><th>Src out</th><th>Dur</th><th>Rec in</th><th>Rec out</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+  b.innerHTML = '<table><thead><tr><th>#</th><th>Board</th><th>Clip</th><th>Reel</th><th>Src in</th><th>Src out</th><th>Dur</th><th>Rec in</th><th>Rec out</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>' +
     '<p class="note">' + CUTS.length + ' cuts · sequence ' + tcf(total()) + ' · ' + FPS + ' fps</p>';
+  var reps = b.querySelectorAll('[data-rep]');
+  for (var r2 = 0; r2 < reps.length; r2++) reps[r2].onclick = function (ev) { ev.stopPropagation(); replaceCut(parseInt(this.getAttribute('data-rep'), 10)); };
   var trs = b.querySelectorAll('tr[data-i]');
   for (var i = 0; i < trs.length; i++) trs[i].onclick = function () { SELECTED = +this.getAttribute('data-i'); paint(); };
 }
@@ -164,9 +249,12 @@ POST.register({
     POST.addTile({ id: 'timeline', title: 'Timeline', sub: 'Cut list · EDL in and out', colour: '#00ABA9', icon: 'list', tag: 'EDIT', run: openDesk });
   },
   state: function () {
-    return { cuts: CUTS.length, selected: SELECTED, total: Math.round(total() * 100) / 100,
+    var shots = readShots();
+    return { shotsFound: shots.length, boards: CUTS.filter(function (k) { return !!k.sb; }).length,
+             replaced: CUTS.filter(function (k) { return !!k.replaced; }).length,
+             cuts: CUTS.length, selected: SELECTED, total: Math.round(total() * 100) / 100,
              fps: FPS, sequence: tcf(total()),
              first: CUTS.length ? CUTS[0].name : null, edlLines: edl().split('\n').length };
   }
 });
-POST.timeline = { add: add, ripple: rippleDelete, edl: edl, importEdl: importEdl, cuts: function () { return CUTS.slice(); }, total: total, open: openDesk };
+POST.timeline = { add: add, ripple: rippleDelete, buildByStoryboard: buildByStoryboard, replace: replaceCut, shots: readShots, edl: edl, importEdl: importEdl, cuts: function () { return CUTS.slice(); }, total: total, open: openDesk };
