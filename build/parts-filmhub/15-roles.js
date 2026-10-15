@@ -130,6 +130,20 @@ FILM.register({
              chosen: !!r };
   }
 });
+/* every tile the suite defines, deduped by destination, so anything can be added ad hoc */
+FILM.catalogue = function () {
+  var seen = {}, out = [];
+  for (var i = 0; i < ROLES.length; i++) {
+    for (var j = 0; j < ROLES[i].tiles.length; j++) {
+      var t = ROLES[i].tiles[j], k = t.title + '|' + t.url;
+      if (seen[k]) { seen[k].roles.push(ROLES[i].label); continue; }
+      var copy = { id: t.id, title: t.title, sub: t.sub, colour: t.colour, icon: t.icon, url: t.url, roles: [ROLES[i].label] };
+      seen[k] = copy; out.push(copy);
+    }
+  }
+  return out;
+};
+FILM.roleTileById = function (id) { var cat = FILM.catalogue(); for (var i = 0; i < cat.length; i++) if (cat[i].id === id) return cat[i]; return null; };
 FILM.roles = function () { return ROLES.map(function (r) { return { id: r.id, label: r.label, tiles: r.tiles.length }; }); };
 FILM.setRole = setRole;
 FILM.chooseRole = chooser;
