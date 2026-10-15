@@ -14,6 +14,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Assemble from parts
+        run: python3 build/build.py --check
+      - name: Syntax-check the assembled script
+        run: node --check build/out.js
       - name: Install test deps
         run: npm install
       - name: Install Chromium
