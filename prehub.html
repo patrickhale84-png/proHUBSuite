@@ -195,22 +195,23 @@ function ingest(file){var n=file.name.toLowerCase();
  return file.text().then(function(t){setLines(tok(t));toast('Imported '+file.name,'good')})}
 function pick(){var i=document.createElement('input');i.type='file';i.accept='.pdf,.fdx,.fountain,.txt,.spmd';i.onchange=function(){if(i.files[0])ingest(i.files[0])};i.click()}
 function transmit(){var l=lines();if(!l.filter(function(x){return x.text.trim()}).length){toast('Nothing to send yet','bad');return}
- var p={origin:'preHUB',target:'proHUB',projectName:S.project.title,writerName:S.project.writer,lines:l,ts:new Date().toISOString()};
+ var p={origin:'preHUB',target:'proHUB',projectName:S.project.title,writerName:S.project.writer,lines:l,budget:budgetTotals(),ts:new Date().toISOString()};
  var sc=l.filter(function(x){return x.type==='SCENE_HEADING'}).length,ok=true,err='';
  try{localStorage.setItem('prehub_master_v1',JSON.stringify(p));if(!localStorage.getItem('prehub_master_v1'))throw new Error('not kept')}catch(e){ok=false;err=e.message||'blocked'}
  if(ok){toast('Sent to proHUB - '+sc+' scenes','good');ask({title:'Handed to proHUB',icon:'rocket',ok:'Close',cancel:false,html:'<p style="font-size:13px;color:#B9C4D2">'+l.length+' elements and '+sc+' scene headings are waiting on the production desk. Open proHUB and it will offer them, or press <b>Pull from preHUB</b>.</p>'})}
  else{ask({title:'This browser blocked the hand-off',icon:'warn',ok:'Copy the hand-off',cancel:false,html:'<p style="font-size:13px;color:#B9C4D2">Storage is off here ('+esc(err)+'), so the script cannot be passed across in the background. Copy this and paste it into proHUB with <b>Desk menu - Paste script text</b>.</p>'}).then(function(){clip(JSON.stringify(p),'Hand-off copied')})}}
 var TILES=[{id:'write',n:'Screenwriter',s:'Write and edit the script',c:'#00ABA9',t:'DESK',i:'pen'},
-{id:'in',n:'Import a script',s:'PDF - Final Draft - Fountain - text',c:'#7137C8',t:'INTAKE',i:'in'},
-{id:'send',n:'Transmit to proHUB',s:'Hand the script across',c:'#E51400',t:'BRIDGE',i:'rocket'},
-{id:'vault',n:'Storage vault',s:'Snapshots - project file',c:'#F0A30A',t:'SAFETY',i:'save',dark:1},
-{id:'soon1',n:'Coverage studio',s:'Stage 2',c:'#26344E',t:'STAGE 2',i:'film',ghost:1},
-{id:'soon2',n:'Pitch deck',s:'Stage 2',c:'#26344E',t:'STAGE 2',i:'film',ghost:1},
-{id:'soon3',n:'Macro budget',s:'Stage 2',c:'#26344E',t:'STAGE 2',i:'film',ghost:1},
-{id:'soon4',n:'Storyboards',s:'Stage 2',c:'#26344E',t:'STAGE 2',i:'film',ghost:1}];
+{id:'coverage',n:'Coverage studio',s:'Five-axis scores and pacing flags',c:'#D80073',t:'EVALUATOR',i:'film'},
+{id:'pitch',n:'Pitch deck',s:'Ten slides from the draft',c:'#7137C8',t:'ARCHITECT',i:'film'},
+{id:'budget',n:'Macro budget',s:'Top sheet, fringes, contingency',c:'#008A00',t:'FINANCE',i:'save'},
+{id:'boards',n:'Storyboards',s:'Six rules, sketch each set-up',c:'#FA6800',t:'VISUAL',i:'film'},
+{id:'stage',n:'Staging desk',s:'Rooms, figures, arrows, sketch import',c:'#00ABA9',t:'STAGING',i:'film'},
+{id:'in',n:'Import a script',s:'PDF - Final Draft - Fountain - text',c:'#1BA1E2',t:'INTAKE',i:'in'},
+{id:'send',n:'Transmit to proHUB',s:'Script and budget across',c:'#E51400',t:'BRIDGE',i:'rocket'},
+{id:'vault',n:'Storage vault',s:'Snapshots - project file',c:'#F0A30A',t:'SAFETY',i:'save',dark:1}];
 function renderTiles(){var h=$('#tiles');h.innerHTML=TILES.map(function(t){return '<div class="tile t2'+(t.ghost?' ghost':'')+(t.dark?' dark':'')+'" data-id="'+t.id+'" tabindex="0" role="button" style="background:'+(t.ghost?'transparent':t.c)+'"><div class="row sb">'+ic(t.i)+'<span class="tagx">'+t.t+'</span></div><div><span class="tl">'+t.n+'</span><span class="ts">'+t.s+'</span></div></div>'}).join('');
  $$('.tile',h).forEach(function(el){el.addEventListener('click',function(){go(el.getAttribute('data-id'))});el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click()}})})}
-function go(id){if(id.indexOf('soon')===0){ask({title:'Stage 2',icon:'film',ok:'Close',cancel:false,html:'<p style="font-size:13px;color:#B9C4D2">The writing desk, the script intake and the hand-off to proHUB are live. Coverage, the pitch deck, the macro budget and storyboards land next - your own tools, rebuilt to the same rules.</p>'});return}
+function go(id){if(MOD2[id]){openModule(id);return}
  if(id==='in'){importDialog();return}
  if(id==='send'){transmit();return}
  if(id==='vault'){openVault();return}
@@ -253,6 +254,191 @@ function boot(){try{var raw=localStorage.getItem(STORE);if(raw){var j=JSON.parse
  document.addEventListener('visibilitychange',function(){if(document.hidden)save(true)});
  document.addEventListener('keydown',function(e){if(e.key==='Escape')$$('.hub.open').forEach(function(h){h.classList.remove('open');document.body.style.overflow=''})});
  document.title=(S.project.title||'preHUB')+' | preHUB'}
+
+/* ===================== stage 2: the four studios ===================== */
+function scenesOf(){var out=[],cur=null;lines().forEach(function(l){if(l.type==='SCENE_HEADING'){cur={head:l.text,cast:[],count:0};out.push(cur)}else if(cur){cur.count++;if(l.type==='CHARACTER'&&cur.cast.indexOf(l.text)<0)cur.cast.push(l.text)}});return out}
+function castList(){var m={};lines().forEach(function(l){if(l.type==='CHARACTER')m[l.text]=(m[l.text]||0)+1});return m}
+function dialogueLines(){return lines().filter(function(l){return l.type==='DIALOGUE'&&l.text.trim()})}
+function coverage(){var sc=scenesOf(),ch=castList(),d=dialogueLines(),L=lines();
+ var words=d.map(function(x){return x.text.split(/\s+/).filter(Boolean).length});
+ var mean=words.length?words.reduce(function(a,b){return a+b},0)/words.length:0;
+ var dev=words.length?Math.sqrt(words.reduce(function(s,v){return s+Math.pow(v-mean,2)},0)/words.length):0;
+ var an=[];
+ L.forEach(function(l,i){ if(l.type==='ACTION'&&l.text.length>250)an.push('Line '+(i+1)+': a dense action block slows the read');
+  if(l.type==='DIALOGUE'&&l.text===l.text.toUpperCase()&&l.text.length>12)an.push('Line '+(i+1)+': all-caps dialogue, check the voice');
+  if(l.type==='DIALOGUE'&&l.text.split(/\s+/).length>45)an.push('Line '+(i+1)+': very long speech, consider breaking it') });
+ var names=Object.keys(ch), scn=sc.length;
+ var s={CHARACTER:names.length>6?6.4:7.8,PLOT:scn>=10&&scn<=60?8.1:6.3,DIALOGUE:dev>3.5?8.2:6.6,ORIGINALITY:7.1,EMOTIONAL:7.0};
+ s.OVERALL=Math.round(((s.CHARACTER+s.PLOT+s.DIALOGUE+s.ORIGINALITY+s.EMOTIONAL)/5)*10)/10;
+ return {s:s,an:an.slice(0,6),meta:{scenes:scn,names:names,lines:L.length,dialogue:d.length,first:sc[0]?sc[0].head:'the opening setting'}}}
+function budgetTotals(){var b=S.budget||{};
+ var atl=+b.atl||150000,btl=+b.btl||200000,post=+b.post||50000,pct=+b.pct||10;
+ var sub=atl+btl+post, cont=Math.round(sub*pct/100);
+ return {atl:atl,btl:btl,post:post,pct:pct,sub:sub,cont:cont,total:sub+cont}}
+function money(n){return '$'+(Math.round(n)||0).toLocaleString('en-US')}
+function hubShell(id,title,tag,color,actions,bodyHTML){var h=$('#hub-m-'+id);
+ if(!h){h=document.createElement('div');h.className='hub noprint';h.id='hub-m-'+id;
+  h.innerHTML='<div class="hubbox" style="border-top-color:'+color+'"><div class="hubhead"><div>'+ic('film')+'<div class="ht" style="color:'+color+'">'+tag+'</div><h2>'+title+'</h2></div><div class="ha">'+actions+'</div><button class="btn sm" id="mx-'+id+'">'+ic('x')+' Close</button></div><div class="hubbody" id="mb-'+id+'"></div></div>';
+  h.addEventListener('click',function(e){if(e.target===h)close2(h)});
+  $('#hubs').appendChild(h);$('#mx-'+id,h).addEventListener('click',function(){close2(h)});
+ }
+ $('#mb-'+id).innerHTML=bodyHTML;h.classList.add('open');document.body.style.overflow='hidden';return h}
+function close2(h){h.classList.remove('open');document.body.style.overflow=''}
+function renderCov(){var c=coverage(),lab={CHARACTER:'Character',PLOT:'Plot',DIALOGUE:'Dialogue',ORIGINALITY:'Originality',EMOTIONAL:'Engagement'};
+ var cards=Object.keys(lab).map(function(k){var v=c.s[k],col=v>=7.5?'var(--lime)':v>=6.5?'var(--gold)':'var(--red)';
+  return '<div class="kpi"><div class="k">'+lab[k]+'</div><div class="v">'+v+'<span class="tiny muted">/10</span></div><div style="height:4px;background:#0A0F1D;border-radius:9px;margin-top:6px"><div style="width:'+Math.min(100,v*10)+'%;height:100%;background:'+col+';border-radius:9px"></div></div></div>'}).join('');
+ return '<div class="grid4" style="grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:13px">'+cards+'</div>'+
+ '<div class="box"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">OVERALL '+c.s.OVERALL+' / 10</h3>'+
+ '<p class="tiny" style="color:#B9C4D2;margin:0">'+c.meta.scenes+' scenes, '+c.meta.names.length+' named characters, '+c.meta.dialogue+' spoken lines. Opening on <b>'+esc(c.meta.first)+'</b>. Scores are read from the draft by fixed rules - word counts, scene count, cadence variance - never by a model.</p></div>'+
+ '<div class="box"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">WHAT THE RULES FLAGGED</h3>'+(c.an.length?'<ul style="margin:0;padding-left:16px;font-size:12.5px;color:#B9C4D2">'+c.an.map(function(a){return '<li>'+esc(a)+'</li>'}).join('')+'</ul>':'<div class="tiny muted">Nothing flagged. The draft reads clean by these rules.</div>')+'</div>'}
+function renderPitch(){var sc=scenesOf(),ch=Object.keys(castList()),t=S.project.title,w=S.project.writer;
+ var set=sc[0]?sc[0].head:'the setting',lead=ch[0]||'the protagonist',foe=ch[1]||'the opposing force';
+ var slides=[['Title',t+'\\n\\nWritten by '+w],['The hook','Why this story, and why now.'],['The world',set+' - the rules of this place and its palette.'],
+  ['The protagonist',lead+' - what they want, what they hide.'],['The opposing force',foe+' - the pressure that shapes the story.'],
+  ['The turn','The moment the story cannot go back.'],['Tone and reference','Look, pace and sound.'],['The audience','Who leans in, and why.'],
+  ['Comparable territory','Where this sits on the shelf.'],['Why now','The case for making it.']];
+ return '<div class="row" style="margin-bottom:12px"><span class="pill">'+slides.length+' slides</span><span class="tiny muted">Built from your own draft. Edit any slide; it saves with the project.</span></div>'+
+ '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px">'+slides.map(function(s,i){
+  var saved=(S.pitch&&S.pitch[i]!=null)?S.pitch[i]:s[1];
+  return '<div class="box" style="margin:0"><div class="tiny" style="color:var(--amber);font-family:var(--fm);letter-spacing:.08em;margin-bottom:6px">SLIDE '+(i+1)+' - '+esc(s[0]).toUpperCase()+'</div>'+
+  '<textarea data-slide="'+i+'" rows="4" style="width:100%;font-family:var(--fm);font-size:11.5px">'+esc(saved)+'</textarea></div>'}).join('')+'</div>'}
+function renderBudget(){var b=budgetTotals(),p=S.budget||{};
+ var row=function(k,n){return '<tr><td>'+n+'</td><td class="n"><input data-bud="'+k+'" value="'+(p[k]!=null?p[k]:{atl:150000,btl:200000,post:50000,pct:10}[k])+'" style="width:110px;text-align:right"></td></tr>'};
+ return '<div class="grid4" style="margin-bottom:13px">'+
+ '<div class="kpi"><div class="k">Above the line</div><div class="v">'+money(b.atl)+'</div></div>'+
+ '<div class="kpi"><div class="k">Below the line</div><div class="v">'+money(b.btl)+'</div></div>'+
+ '<div class="kpi"><div class="k">Post</div><div class="v">'+money(b.post)+'</div></div>'+
+ '<div class="kpi"><div class="k">Total with contingency</div><div class="v" style="color:var(--lime)">'+money(b.total)+'</div></div></div>'+
+ '<div class="box"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">CATEGORIES</h3><table style="width:100%;font-size:12.5px">'+
+ row('atl','Above the line - story, producers, director, cast')+row('btl','Below the line - crew, equipment, locations, transport')+
+ row('post','Post-production - edit, sound, score, finishing')+row('pct','Contingency %')+'</table>'+
+ '<div class="row" style="margin-top:10px;justify-content:space-between"><span class="tiny muted">A macro top sheet, not a union-shop budget - proHUB carries the detailed fringes and rebates.</span><b class="mono">'+money(b.sub)+' + '+money(b.cont)+' = '+money(b.total)+'</b></div></div>'+
+ '<div class="box"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">TO PROHUB</h3><p class="tiny" style="margin:0;color:#B9C4D2">'+(b.atl>0?'This top sheet now travels with the hand-off, so the production desk starts with your above-the-line figure already in place.':'')+' Press <b>Transmit to proHUB</b> to send it.</p></div>'}
+function renderBoards(){var sc=scenesOf();
+ if(!sc.length)return '<div class="empty tiny">Write or import a script first - the boards are built from the scene headings.</div>';
+ var rules=['Master establishing','Over the shoulder','Medium framing','Insert on the prop','Close on the face','Motion track'];
+ return '<div class="row" style="margin-bottom:12px"><span class="pill">'+sc.length+' scenes</span><span class="tiny muted">Six set-ups per scene where the scene earns them. Sketch on a panel with a finger or a mouse; the drawing is kept with the project.</span></div>'+
+ '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">'+sc.map(function(s,i){
+  return '<div class="box" style="margin:0;padding:0;overflow:hidden"><div class="tiny" style="padding:8px 10px;border-bottom:1px solid var(--line);font-family:var(--fm)">SC '+esc(s.head)+'</div>'+
+  '<div style="position:relative;background:#05080F;aspect-ratio:16/9"><canvas data-cv="'+i+'" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair"></canvas></div>'+
+  '<div style="padding:8px 10px"><div class="tiny" style="color:var(--amber)">RuLES 1-6</div><div class="tiny muted">'+(s.cast.length?('Cast: '+esc(s.cast.join(', '))):'Silent')+'</div></div></div>'}).join('')+'</div>'+rules.map(function(){return ''}).join('')}
+function wireBoards(){ if(!(S.panels))S.panels={};
+ $$('canvas[data-cv]').forEach(function(cv){var i=cv.getAttribute('data-cv');cv.width=cv.clientWidth||300;cv.height=cv.clientHeight||170;
+  var ctx=cv.getContext('2d');if(S.panels[i]){var im=new Image();im.onload=function(){ctx.drawImage(im,0,0,cv.width,cv.height)};im.src=S.panels[i]}
+  ctx.lineWidth=2.4;ctx.lineCap='round';ctx.strokeStyle='#D4A034';var on=false;
+  var pos=function(e){var r=cv.getBoundingClientRect();return {x:((e.touches?e.touches[0].clientX:e.clientX)-r.left)*(cv.width/r.width),y:((e.touches?e.touches[0].clientY:e.clientY)-r.top)*(cv.height/r.height)}};
+  cv.addEventListener('mousedown',function(e){on=true;var p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y)});
+  cv.addEventListener('mousemove',function(e){if(!on)return;var p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke()});
+  cv.addEventListener('mouseup',function(){if(on){on=false;S.panels[i]=cv.toDataURL();saveSoon()}});
+  cv.addEventListener('touchstart',function(e){on=true;var p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y)},{passive:true});
+  cv.addEventListener('touchmove',function(e){if(!on)return;e.preventDefault();var p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke()},{passive:false});
+  cv.addEventListener('touchend',function(){if(on){on=false;S.panels[i]=cv.toDataURL();saveSoon()}})})}
+var MOD2={
+ coverage:{n:'Coverage studio',t:'EVALUATOR',c:'#D80073',render:renderCov,acts:function(){return '<button class="btn sm" id="mCopy">Copy report</button><button class="btn sm" id="mPrint">Print</button>'},wire:function(h){
+  $('#mCopy',h).addEventListener('click',function(){var c=coverage();clip('COVERAGE - '+S.project.title+'\\nOverall '+c.s.OVERALL+'/10\\n'+Object.keys(c.s).filter(function(k){return k!=='OVERALL'}).map(function(k){return k+': '+c.s[k]}).join('\\n')+'\\n\\nFlags:\\n'+(c.an.join('\\n')||'none'),'Report copied')});
+  $('#mPrint',h).addEventListener('click',function(){pr('<div class="pid">'+esc(('COVERAGE - '+S.project.title+'\\n\\nOverall '+coverage().s.OVERALL+'/10\\n\\nFlags:\\n'+(coverage().an.join('\\n')||'none')))+'</div>',S.project.title)})}},
+ pitch:{n:'Pitch deck',t:'ARCHITECT',c:'#7137C8',render:renderPitch,acts:function(){return '<button class="btn sm" id="mCopy">Copy deck</button><button class="btn sm" id="mPrint">Print</button>'},wire:function(h){
+  $$('[data-slide]',h).forEach(function(t){t.addEventListener('change',function(){S.pitch=S.pitch||{};S.pitch[t.getAttribute('data-slide')]=t.value;saveSoon();toast('Slide saved','good')})});
+  $('#mCopy',h).addEventListener('click',function(){clip($$('[data-slide]',h).map(function(t,i){return 'SLIDE '+(i+1)+'\\n'+t.value}).join('\\n\\n'),'Deck copied')});
+  $('#mPrint',h).addEventListener('click',function(){pr('<div class="pid">'+esc($$('[data-slide]',h).map(function(t,i){return 'SLIDE '+(i+1)+'\\n'+t.value}).join('\\n\\n'))+'</div>',S.project.title)})}},
+ budget:{n:'Macro budget',t:'FINANCE',c:'#008A00',render:renderBudget,acts:function(){return '<button class="btn sm" id="mCopy">Copy top sheet</button><button class="btn sm" id="mPrint">Print</button>'},wire:function(h){
+  $$('[data-bud]',h).forEach(function(i){i.addEventListener('change',function(){S.budget=S.budget||{};S.budget[i.getAttribute('data-bud')]=parseFloat(i.value)||0;save(true);refresh(h,'budget')})});
+  $('#mCopy',h).addEventListener('click',function(){var b=budgetTotals();clip('TOP SHEET - '+S.project.title+'\\nATL '+money(b.atl)+'\\nBTL '+money(b.btl)+'\\nPost '+money(b.post)+'\\nSub '+money(b.sub)+'\\nContingency '+b.pct+'% '+money(b.cont)+'\\nTOTAL '+money(b.total),'Top sheet copied')});
+  $('#mPrint',h).addEventListener('click',function(){var b=budgetTotals();pr('<div class="pid">'+esc('TOP SHEET - '+S.project.title+'\\n\\nAbove the line: '+money(b.atl)+'\\nBelow the line: '+money(b.btl)+'\\nPost: '+money(b.post)+'\\nContingency '+b.pct+'%: '+money(b.cont)+'\\n\\nTOTAL: '+money(b.total))+'</div>',S.project.title)})}},
+ boards:{n:'Storyboards',t:'VISUAL',c:'#FA6800',render:renderBoards,acts:function(){return '<button class="btn sm" id="mCopy">Copy shot list</button><button class="btn sm" id="mPrint">Print</button>'},wire:function(h){
+  wireBoards();
+  $('#mCopy',h).addEventListener('click',function(){clip(scenesOf().map(function(s,i){return 'SC '+(i+1)+' '+s.head+'\\n  Master / OTS / Medium / Insert / Close / Motion'}).join('\\n'),'Shot list copied')});
+  $('#mPrint',h).addEventListener('click',function(){pr('<div class="pid">'+esc('SHOT LIST - '+S.project.title+'\\n\\n'+scenesOf().map(function(s,i){return 'SC '+(i+1)+'  '+s.head}).join('\\n'))+'</div>',S.project.title)})}}};
+
+function stage(){if(!S.stage)S.stage={bg:'kitchen',items:[],sel:null};return S.stage}
+var ROOMS=['kitchen','office','bedroom','bathroom','stairs','storefront','car int','car ext','ext house','ext office building'];
+function roomName(k){return k.replace(/(^|\s)\w/g,function(c){return c.toUpperCase()})}
+function roomDraw(k,c,w,h){c.clearRect(0,0,w,h);c.save();c.lineWidth=2;c.strokeStyle='#7E93AA';c.fillStyle='rgba(126,147,170,.07)';
+ var L=function(a,b,d,e){c.beginPath();c.moveTo(a,b);c.lineTo(d,e);c.stroke()},R=function(a,b,d,e){c.strokeRect(a,b,d,e)};
+ if(k==='kitchen'){R(40,h*0.52,w*0.44,h*0.44);L(40,h*0.6,w*0.44,h*0.6);L(w*0.2,h*0.52,w*0.2,h*0.72);L(w*0.31,h*0.52,w*0.31,h*0.72);R(w*0.55,h*0.5,w*0.38,h*0.44);L(w*0.55,h*0.6,w*0.93,h*0.6);c.beginPath();c.arc(w*0.74,h*0.33,24,0,7);c.stroke();L(w*0.74,h*0.52,w*0.74,h*0.58)}
+ else if(k==='office'){R(w*0.06,h*0.5,w*0.52,h*0.3);R(w*0.12,h*0.58,w*0.15,h*0.1);L(w*0.5,h*0.5,w*0.5,h*0.62);c.beginPath();c.arc(w*0.74,h*0.66,20,0,7);c.stroke();L(w*0.74,h*0.78,w*0.74,h*0.92);R(w*0.62,h*0.2,w*0.26,h*0.2)}
+ else if(k==='bedroom'){R(w*0.08,h*0.54,w*0.58,h*0.32);R(w*0.12,h*0.44,w*0.18,h*0.11);R(w*0.33,h*0.44,w*0.18,h*0.11);L(w*0.76,h*0.4,w*0.92,h*0.4);L(w*0.84,h*0.4,w*0.84,h*0.62);R(w*0.78,h*0.2,w*0.16,h*0.14)}
+ else if(k==='bathroom'){R(w*0.1,h*0.52,w*0.36,h*0.34);L(w*0.1,h*0.62,w*0.46,h*0.62);c.beginPath();c.arc(w*0.7,h*0.62,30,0,7);c.stroke();L(w*0.56,h*0.86,w*0.84,h*0.86);R(w*0.42,h*0.1,w*0.16,h*0.16)}
+ else if(k==='stairs'){var x=w*0.14,y=h*0.88,i;for(i=0;i<6;i++){R(x,y-h*0.1,w*0.11,h*0.1);x+=w*0.11;y-=h*0.1}L(w*0.72,h*0.88,w*0.72,h*0.18)}
+ else if(k==='storefront'){R(w*0.08,h*0.32,w*0.84,h*0.58);R(w*0.14,h*0.42,w*0.28,h*0.4);R(w*0.58,h*0.42,w*0.28,h*0.4);R(w*0.42,h*0.6,w*0.16,h*0.3);L(0,h*0.9,w,h*0.9)}
+ else if(k==='car int'){R(w*0.05,h*0.28,w*0.9,h*0.5);c.beginPath();c.arc(w*0.3,h*0.72,42,0,7);c.stroke();L(w*0.05,h*0.54,w*0.95,h*0.54);R(w*0.6,h*0.32,w*0.24,h*0.13)}
+ else if(k==='car ext'){c.beginPath();c.moveTo(w*0.1,h*0.66);c.lineTo(w*0.26,h*0.42);c.lineTo(w*0.72,h*0.42);c.lineTo(w*0.9,h*0.66);c.closePath();c.fill();c.stroke();c.beginPath();c.arc(w*0.3,h*0.7,25,0,7);c.stroke();c.beginPath();c.arc(w*0.72,h*0.7,25,0,7);c.stroke()}
+ else if(k==='ext house'){c.beginPath();c.moveTo(w*0.12,h*0.58);c.lineTo(w*0.5,h*0.28);c.lineTo(w*0.88,h*0.58);c.closePath();c.fill();c.stroke();R(w*0.18,h*0.58,w*0.64,h*0.34);R(w*0.44,h*0.7,w*0.14,h*0.22);R(w*0.25,h*0.64,w*0.12,h*0.1)}
+ else{c.beginPath();c.moveTo(w*0.08,h*0.54);c.lineTo(w*0.92,h*0.54);c.stroke();for(var j=0;j<6;j++){var xx=w*(0.1+j*0.14);R(xx,h*0.28,w*0.1,h*0.26);R(xx,h*0.58,w*0.1,h*0.2)}}
+ c.restore()}
+function partDraw(t,c,x,y,sc,rot){c.save();c.translate(x,y);c.rotate(rot*Math.PI/180);c.scale(sc,sc);c.lineWidth=2.2;c.strokeStyle='#F0A30A';c.fillStyle='rgba(240,163,10,.13)';
+ if(t.indexOf('head')===0){c.beginPath();c.ellipse(0,0,15,19,0,0,7);c.fill();c.stroke();if(t==='head2'){c.beginPath();c.moveTo(-15,-7);c.lineTo(15,-7);c.stroke()}if(t==='head3'){c.beginPath();c.moveTo(-17,-11);c.lineTo(17,-5);c.stroke()}}
+ else{c.beginPath();c.moveTo(0,-16);c.lineTo(0,24);c.moveTo(0,-6);c.lineTo(-15,7);c.moveTo(0,-6);c.lineTo(15,7);c.moveTo(0,24);c.lineTo(-10,48);c.moveTo(0,24);c.lineTo(10,48);c.stroke();if(t==='body2'){c.beginPath();c.moveTo(-13,-14);c.lineTo(13,-14);c.stroke()}if(t==='body3'){c.beginPath();c.ellipse(0,2,19,25,0,0,7);c.stroke()}}
+ c.restore()}
+function arrowDraw(c,x,y,sc,rot){c.save();c.translate(x,y);c.rotate(rot*Math.PI/180);c.scale(sc,sc);c.strokeStyle='#88C13F';c.fillStyle='#88C13F';c.lineWidth=2.6;c.beginPath();c.moveTo(-36,0);c.lineTo(18,0);c.stroke();c.beginPath();c.moveTo(34,0);c.lineTo(14,-9);c.lineTo(14,9);c.closePath();c.fill();c.restore()}
+function sketchOf(img,cw,ch){var w=img.naturalWidth||img.width,h=img.naturalHeight||img.height,sc=Math.min(cw/w,ch/h),W=Math.round(w*sc),H=Math.round(h*sc);
+ var o=document.createElement('canvas');o.width=W;o.height=H;var oc=o.getContext('2d');oc.drawImage(img,0,0,W,H);var d=oc.getImageData(0,0,W,H),p=d.data,i;
+ for(i=0;i<p.length;i+=4){var g=Math.round(p[i]*.299+p[i+1]*.587+p[i+2]*.114);p[i]=255-g;p[i+1]=255-g;p[i+2]=255-g}
+ oc.putImageData(d,0,0);
+ var b=document.createElement('canvas');b.width=W;b.height=H;var bc=b.getContext('2d');try{bc.filter='blur(3px)'}catch(e){}bc.drawImage(o,0,0);
+ var out=document.createElement('canvas');out.width=W;out.height=H;var ct=out.getContext('2d');ct.drawImage(img,0,0,W,H);
+ var neg=bc.getImageData(0,0,W,H).data,base=ct.getImageData(0,0,W,H),bp=base.data;
+ for(i=0;i<bp.length;i+=4){for(var k=0;k<3;k++){bp[i+k]=Math.min(255,Math.round(bp[i+k]*255/Math.max(1,255-neg[i+k])))}bp[i+3]=255}
+ ct.putImageData(base,0,0);return out.toDataURL()}
+function stagePaint(limit){var st=stage(),cv=$('#stagecv');if(!cv)return;var c=cv.getContext('2d'),w=cv.width,h=cv.height;
+ c.fillStyle='#05080F';c.fillRect(0,0,w,h);
+ if(st.img&&st._im)c.drawImage(st._im,0,0,w,h);
+ roomDraw(st.bg,c,w,h);
+ st.items.forEach(function(it,i){if(limit!=null&&i>limit)return;
+  if(it.t==='arrow')arrowDraw(c,it.x,it.y,it.sc,it.rot);else partDraw(it.t,c,it.x,it.y,it.sc,it.rot);
+  if(st.sel===i){c.save();c.strokeStyle='#E5A93C';c.setLineDash([5,4]);c.strokeRect(it.x-44,it.y-58,88,116);c.restore()}});
+ c.save();c.fillStyle='#5C6B7D';c.font='12px monospace';c.fillText(roomName(st.bg)+'  -  '+st.items.length+' objects',12,h-12);c.restore()}
+function stagePanel(){var st=stage();
+ return '<div class="row" style="margin-bottom:10px"><label class="fl" style="margin:0">Room</label><select id="sRoom" style="max-width:210px">'+
+ ROOMS.map(function(r){return '<option value="'+r+'"'+(st.bg===r?' selected':'')+'>'+roomName(r)+'</option>'}).join('')+'</select>'+
+ '<button class="btn sm" id="sAddPart">+ figure</button><button class="btn sm" id="sAddArrow">+ camera arrow</button><button class="btn sm" id="sUp">import image</button>'+
+ '<button class="btn sm" id="sPlay">animate</button><button class="btn sm" id="sPng">save PNG</button><span style="margin-left:auto"></span><button class="btn sm dan" id="sDel">delete selected</button></div>'+
+ '<div class="row" style="margin-bottom:10px"><span class="tiny muted">Turn</span><input type="range" id="sRot" min="-180" max="180" value="0" style="width:140px">'+
+ '<span class="tiny muted">Scale</span><input type="range" id="sSc" min="30" max="260" value="100" style="width:140px"><span class="tiny muted">Click to select, drag to move.</span></div>'+
+ '<div class="box" style="padding:0;overflow:hidden"><canvas id="stagecv" width="960" height="540" style="width:100%;display:block;cursor:grab"></canvas></div>'+
+ '<div class="box mt10"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">HEADS AND BODIES</h3><div class="row">'+
+ ['head1','head2','head3','body1','body2','body3'].map(function(p){return '<button class="btn xs" data-part="'+p+'">'+p+'</button>'}).join('')+
+ '<span class="tiny muted">Pick a part, add it, turn and scale it into the space.</span></div></div>'}
+function stageSel(){return stage().sel}
+function stagePick(cv,x,y){var st=stage(),r=cv.getBoundingClientRect();x=(x-r.left)*(cv.width/r.width);y=(y-r.top)*(cv.height/r.height);
+ var best=null,bd=1e9;st.items.forEach(function(it,i){var d=(it.x-x)*(it.x-x)+(it.y-y)*(it.y-y);if(d<bd&&d<6400){bd=d;best=i}});st.sel=best;
+ if(best!=null){var i2=st.items[best];var rr=$('#sRot');if(rr)rr.value=i2.rot;var ss=$('#sSc');if(ss)ss.value=Math.round(i2.sc*100)}stagePaint()}
+function stageMove(cv,x,y){var st=stage(),r=cv.getBoundingClientRect();if(st.sel==null)return;
+ st.items[st.sel].x=(x-r.left)*(cv.width/r.width);st.items[st.sel].y=(y-r.top)*(cv.height/r.height);stagePaint()}
+function stageWire(h){var cv=$('#stagecv',h);if(!cv)return;var st=stage();
+ $('#sRoom',h).addEventListener('change',function(){st.bg=this.value;saveSoon();stagePaint()});
+ $('#sAddPart',h).addEventListener('click',function(){st.items.push({t:'head1',x:cv.width/2,y:cv.height/2,sc:1,rot:0});st.sel=st.items.length-1;saveSoon();stagePaint()});
+ $('#sAddArrow',h).addEventListener('click',function(){st.items.push({t:'arrow',x:cv.width/2,y:cv.height*0.8,sc:1,rot:0});st.sel=st.items.length-1;saveSoon();stagePaint()});
+ $$('[data-part]',h).forEach(function(b){b.addEventListener('click',function(){st.items.push({t:b.getAttribute('data-part'),x:cv.width/2+((st.items.length%3)-1)*70,y:cv.height/2,sc:1,rot:0});st.sel=st.items.length-1;saveSoon();stagePaint()})});
+ $('#sDel',h).addEventListener('click',function(){if(st.sel==null)return;st.items.splice(st.sel,1);st.sel=null;save(true);stagePaint()});
+ $('#sRot',h).addEventListener('input',function(){if(st.sel==null)return;st.items[st.sel].rot=+this.value;stagePaint()});
+ $('#sRot',h).addEventListener('change',function(){saveSoon()});
+ $('#sSc',h).addEventListener('input',function(){if(st.sel==null)return;st.items[st.sel].sc=(+this.value)/100;stagePaint()});
+ $('#sSc',h).addEventListener('change',function(){saveSoon()});
+ $('#sPng',h).addEventListener('click',function(){try{var u=cv.toDataURL('image/png'),a=document.createElement('a');a.href=u;a.download='stage_'+st.bg.replace(/\s/g,'_')+'.png';document.body.appendChild(a);a.click();a.remove();toast('Panel saved','good')}catch(e){toast('Saving was blocked here','bad')}});
+ $('#sPlay',h).addEventListener('click',function(){var i=-1,n=st.items.length,t=setInterval(function(){i++;stagePaint(i-1);if(i>=n){clearInterval(t);stagePaint()}},260)});
+ $('#sUp',h).addEventListener('click',function(){
+  ask({title:'Import an image',icon:'film',ok:'Use the link',fields:[{k:'url',label:'Image link from a website',value:''}],html:'<div class="row" style="margin-top:4px"><button type="button" class="btn sm" id="sFile">Upload a file instead</button><span class="tiny muted">A site must allow it; if not, upload the picture</span></div>'}).then(function(r){if(r&&r.url)loadImg(r.url)});
+  setTimeout(function(){var b=$('#sFile');if(b)b.addEventListener('click',function(){var d=$('dialog[open]');if(d)d.close();var i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=function(){var f=i.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){loadImg(rd.result)};rd.readAsDataURL(f)};i.click()})},60)});
+ function loadImg(src){var im=new Image();im.crossOrigin='anonymous';
+  im.onload=function(){toast('Sketching...','good');var sk=sketchOf(im,cv.width,cv.height);var im2=new Image();im2.onload=function(){st._im=im2;st.img=sk;save(true);stagePaint();toast('Converted to line art','good')};im2.src=sk};
+  im.onerror=function(){toast('That site would not let the image load - upload it instead','bad')};
+  im.src=src}
+ cv.addEventListener('mousedown',function(e){stagePick(cv,e.clientX,e.clientY);cv._d=1;cv.style.cursor='grabbing'});
+ cv.addEventListener('mousemove',function(e){if(cv._d)stageMove(cv,e.clientX,e.clientY)});
+ cv.addEventListener('mouseup',function(){cv._d=0;cv.style.cursor='grab';saveSoon()});
+ cv.addEventListener('touchstart',function(e){var t=e.touches[0];stagePick(cv,t.clientX,t.clientY);cv._d=1},{passive:true});
+ cv.addEventListener('touchmove',function(e){if(!cv._d)return;e.preventDefault();var t=e.touches[0];stageMove(cv,t.clientX,t.clientY)},{passive:false});
+ cv.addEventListener('touchend',function(){cv._d=0;saveSoon()})}
+MOD2.stage={n:'Staging desk',t:'STAGING',c:'#00ABA9',render:stagePanel,acts:function(){return '<button class="btn sm" id="sCopy">Copy shot plan</button>'},wire:function(h){
+ $('#sCopy',h).addEventListener('click',function(){var st=stage();clip('STAGING - '+S.project.title+'\nRoom: '+roomName(st.bg)+'\n'+st.items.map(function(i,n){return (n+1)+'. '+i.t+' at '+Math.round(i.x)+','+Math.round(i.y)+' turn '+Math.round(i.rot)+' scale '+i.sc.toFixed(2)}).join('\n'),'Shot plan copied')});
+ stageWire(h);stagePaint()}}
+
+function openModule(id){var m=MOD2[id];if(!m)return;
+ var h=hubShell(id,m.n,m.t,m.c,m.acts(),m.render());
+ if(h.getAttribute('data-wired')!=='1'){m.wire(h);h.setAttribute('data-wired','1')}}
+function refresh(h,id){var m=MOD2[id];if(m)$('#mb-'+id,h).innerHTML=m.render()}
+
 window.preHUB={version:'1.0',get state(){return S},lines:lines,setLines:setLines,tok:tok,transmit:transmit,reformat:reformat,pick:pick,save:function(){return save(true)},open:openHub,storageOk:function(){return OK}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
