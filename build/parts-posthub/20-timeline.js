@@ -175,7 +175,7 @@ function hub() {
     '<button class="btn sm" id="tlStory">Build By Storyboard</button>' +
     '<button class="btn sm" id="tlEdl">EDL</button>' +
     '<button class="btn sm" id="tlClose">Close</button></div></div>' +
-    '<div class="bd"><div id="tlBody"></div></div></div>';
+    ''+deskTabs('timeline')+''<div class="bd"><div id="tlBody"></div></div></div>';
   document.body.appendChild(h);
   h.addEventListener('click', function (e) { if (e.target === h) h.classList.remove('on'); });
   h.querySelector('#tlClose').onclick = function () { h.classList.remove('on'); };
@@ -201,6 +201,7 @@ function hub() {
   };
   h.querySelector('#tlStory').onclick = function () { buildByStoryboard(); };
   h.querySelector('#tlEdl').onclick = function () { openEdl(); };
+  bindDeskTabs(h, 'timeline');
   return h;
 }
 function openEdl() {
@@ -219,6 +220,7 @@ function openEdl() {
 }
 function paint() {
   var h = document.getElementById('posthub-timeline'); if (!h) return;
+  bindDeskTabs(h, 'timeline');
   var b = h.querySelector('#tlBody');
   if (!CUTS.length) { b.innerHTML = '<div class="note">No cuts yet. Add one by hand, pull the bin in, or import an EDL.</div>'; return; }
   var rows = CUTS.map(function (k, i) {
@@ -240,12 +242,43 @@ function closeOtherDesks() {   /* one desk at a time: a full-screen desk must no
   var all = document.querySelectorAll('.pgh.on, .tlh.on');
   for (var i = 0; i < all.length; i++) all[i].classList.remove('on');
 }
+/* ---- desk tabs ----
+   A shared switcher so you never have to close a desk to reach another. Desks register
+   themselves on POST._desks; this renders and binds the bar. Deliberately duplicated in
+   each module rather than cross-imported, so either desk works if the other is absent. */
+function deskTabs(current) {
+  var desks = POST._desks || [], out = '';
+  for (var i = 0; i < desks.length; i++) {
+    var d = desks[i], on = (d.id === current);
+    out += '<button type="button" class="btn sm" data-desk="' + d.id + '"' +
+      (on ? ' style="border-color:#E2A93B;color:#fff"' : '') + '>' + POST.esc(d.label) + '</button>';
+  }
+  return '<div class="deskbar" style="display:flex;gap:6px;padding:8px 17px;border-bottom:1px solid #1B2436;background:#0A0F1A;flex-wrap:wrap">' +
+         (desks.length ? out : '<span style="font-size:13px;color:#8794A6">No other desks yet</span>') + '</div>';
+}
+function bindDeskTabs(root, current) {
+  var bs = root.querySelectorAll('[data-desk]');
+  for (var i = 0; i < bs.length; i++) {
+    bs[i].onclick = function () {
+      var id = this.getAttribute('data-desk'), desks = POST._desks || [];
+      for (var j = 0; j < desks.length; j++) { if (desks[j].id === id) { desks[j].open(); return; } }
+    };
+  }
+  var all = root.querySelectorAll('[data-desk]');
+  for (var k = 0; k < all.length; k++) {
+    var on = all[k].getAttribute('data-desk') === current;
+    all[k].style.borderColor = on ? '#E2A93B' : '';
+    all[k].style.color = on ? '#fff' : '';
+  }
+}
 function openDesk() { closeOtherDesks(); var h = hub(); h.classList.add('on'); paint(); }
 
 POST.register({
   id: 'timeline',
   mount: function () {
     hub();
+    var DS2 = POST._desks || (POST._desks = []);
+    DS2.push({ id: 'timeline', label: 'Timeline', open: openDesk });
     POST.addTile({ id: 'timeline', title: 'Timeline', sub: 'Cut list · EDL in and out', colour: '#00ABA9', icon: 'list', tag: 'EDIT', run: openDesk });
   },
   state: function () {
