@@ -341,25 +341,14 @@ try{localStorage.setItem('__prohub_test','1');localStorage.removeItem('__prohub_
 /* ---------- storage ---------- */
 var saveTimer=null,lastSaved=0;
 function save(quiet){
- try{ S.meta.savedAt=Date.now(); localStorage.setItem(STORE,JSON.stringify(S)); lastSaved=Date.now(); stamp(true); }
- catch(e){ STORAGE_OK=false; showStorageWarn(); stamp(false); }
+ try{ S.meta.savedAt=Date.now(); localStorage.setItem(STORE,JSON.stringify(S)); lastSaved=Date.now(); if(window.proHUBparts)window.proHUBparts.stamp(true); }
+ catch(e){ STORAGE_OK=false; showStorageWarn(); if(window.proHUBparts)window.proHUBparts.stamp(false); }
  if(!quiet) return true;
  return true;
 }
 function saveSoon(){ clearTimeout(saveTimer); saveTimer=setTimeout(function(){save(true)},900) }
-/* the chrome seam: header writes go through ONE place.
-   Falls back to the old direct writes if the ops surface is ever absent, so this cannot throw. */
-function actChrome(o){
- var op=window.proHUB&&window.proHUB.ops;
- if(op&&typeof op.setChrome==='function'){ try{ return op.setChrome(o); }catch(e){} }
- if(o.stamp!=null){ var e=$('#saveStamp'); if(e) e.textContent=o.stamp; }
- if(o.dot!=null){ var d=$('#liveDot'); if(d) d.style.background=o.dot?'var(--emerald)':'var(--red)'; }
- return null;
-}
-function stamp(ok){
- var t=new Date();
- actChrome({ stamp:(ok?'saved ':'in memory only ')+pad(t.getHours())+':'+pad(t.getMinutes())+':'+pad(t.getSeconds()), dot:ok });
-}
+
+
 function showStorageWarn(){
  var w=$('#storageWarn'); if(!w||!w.classList.contains('hide'))return;
  w.classList.remove('hide');
@@ -752,14 +741,10 @@ function projectDialog(){
   p.rateCast=toNum(r.rateCast,650); p.rateCrew=toNum(r.rateCrew,450); p.rateOps=toNum(r.rateOps,1200);
   p.postFlat=toNum(r.postFlat,25000); p.atlFlat=toNum(r.atlFlat,0);
   p.creditPct=toNum(r.creditPct,30); p.qualifiedPct=toNum(r.qualifiedPct,82);
-  bindFields(); save(true); renderTiles(); refreshOpenHub(); toast('Settings saved','good');
+  if(window.proHUBparts)window.proHUBparts.bindFields(); save(true); renderTiles(); refreshOpenHub(); toast('Settings saved','good');
  });
 }
-function bindFields(){
- var t=$('#fTitle'),c=$('#fCompany');
- if(t){t.value=S.project.title||'';t.addEventListener('change',function(){S.project.title=t.value.toUpperCase();document.title=S.project.title+' | proHUB';saveSoon();renderTiles()})}
- if(c){c.value=S.project.company||'';c.addEventListener('change',function(){S.project.company=c.value.toUpperCase();saveSoon()})}
-}
+
 
 /* ---------- clock + format ---------- */
 function bindChrome(){
@@ -980,7 +965,7 @@ function pullFromPrehub(){
  if(!lines.length){ toast('The preHUB hand-off had no script in it','bad'); return; }
  if(d.projectName) S.project.title=String(d.projectName).toUpperCase();
  if(d.writerName) S.project.lineProducer=d.writerName;
- bindFields();
+ if(window.proHUBparts)window.proHUBparts.bindFields();
  var when=d.ts?new Date(d.ts).toLocaleString():'earlier';
  ask({title:'preHUB hand-off found',icon:'pull',okLabel:'Bring it in',html:
   '<p style="font-size:13px;color:#B9C4D2">Found <b>'+lines.length+' script elements</b> for <b>'+esc(d.projectName||'untitled')+'</b>, sent '+esc(when)+'. Bringing it in replaces the script and board currently on this desk.</p>'})
@@ -2019,7 +2004,7 @@ function openVault(){
    ============================================================ */
 function boot(){
  var how=load();
- bindFields(); buildMenu(); bindChrome(); renderTiles(); tickClock();
+ if(window.proHUBparts)window.proHUBparts.bindFields(); buildMenu(); bindChrome(); renderTiles(); tickClock();
  setInterval(tickClock,1000);
  setInterval(function(){ save(true) },20000);
  if(!STORAGE_OK)showStorageWarn();
@@ -2093,6 +2078,57 @@ function boot(){
  document.head.appendChild(s);
 })();
 
+;
+/* module: 01-header.js */
+(function(){
+/* proHUB - 01-header
+   The header's two jobs: keep the save stamp and live dot honest, and bind the project title
+   and company fields. Lifted out of the shell, so it talks to the app only through the public
+   surface: proHUB.state, proHUB.save, proHUB.ops. It never reaches into shell internals.
+
+   The assembler wraps this in its own IIFE, so the two tiny helpers it needs are local. */
+(function () {
+  function q(sel) { return document.querySelector(sel); }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+  function actChrome(o) {
+    var op = window.proHUB && window.proHUB.ops;
+    if (op && typeof op.setChrome === 'function') { try { return op.setChrome(o); } catch (e) {} }
+    if (o.stamp != null) { var e = q('#saveStamp'); if (e) e.textContent = o.stamp; }
+    if (o.dot != null) { var d = q('#liveDot'); if (d) d.style.background = o.dot ? 'var(--emerald)' : 'var(--red)'; }
+    return null;
+  }
+  function stamp(ok) {
+    var t = new Date();
+    actChrome({ stamp: (ok ? 'saved ' : 'in memory only ') + pad2(t.getHours()) + ':' + pad2(t.getMinutes()) + ':' + pad2(t.getSeconds()), dot: ok });
+  }
+  function bindFields() {
+    var t = q('#fTitle'), c = q('#fCompany');
+    if (t) {
+      t.value = (window.proHUB.state && window.proHUB.state.project && window.proHUB.state.project.title) || '';
+      t.addEventListener('change', function () {
+        var S = window.proHUB.state;
+        S.project.title = t.value.toUpperCase();
+        document.title = S.project.title + ' | proHUB';
+        if (window.proHUB.ops && window.proHUB.ops.saveSoon) window.proHUB.ops.saveSoon();
+        if (window.proHUB.ops && window.proHUB.ops.renderTiles) window.proHUB.ops.renderTiles();
+      });
+    }
+    if (c) {
+      c.value = (window.proHUB.state && window.proHUB.state.project && window.proHUB.state.project.company) || '';
+      c.addEventListener('change', function () {
+        var S = window.proHUB.state;
+        S.project.company = c.value.toUpperCase();
+        if (window.proHUB.ops && window.proHUB.ops.saveSoon) window.proHUB.ops.saveSoon();
+      });
+    }
+  }
+  window.proHUBparts = window.proHUBparts || {};
+  window.proHUBparts.stamp = stamp;
+  window.proHUBparts.bindFields = bindFields;
+  window.proHUBparts.actChrome = actChrome;
+})();
+})();
 window.proHUB={version:'1.0',get state(){return S},set state(v){S=v},pull:pullFromPrehub,reload:function(){return load()},
  board:autoBoard,panels:buildPanels,dood:dood,budget:budgetTotals,sheet:sheetHTML,push:pushToPosthub,paint:paint,
  open:openHub,save:function(){return save(true)},apply:applyScript,lines:linesFromText,storageOk:function(){return STORAGE_OK}};
@@ -2115,6 +2151,8 @@ window.proHUB.ops = {
     return { title: t ? t.value : null, company: c ? c.value : null,
              stamp: s ? s.textContent : null, dotBg: d ? d.style.background : null };
   },
+  renderTiles: function () { try { return renderTiles(); } catch (e) { return 'threw: ' + e.message; } },
+  saveSoon: function () { try { return saveSoon(); } catch (e) { return 'threw: ' + e.message; } },
   ready: function () { return !!document.querySelector('.tile'); },
   modules: function () {
     return Array.prototype.slice.call(document.querySelectorAll('.tile[data-mod]'))
