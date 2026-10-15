@@ -2022,7 +2022,27 @@ function boot(){
  document.addEventListener('visibilitychange',function(){ if(!document.hidden)setTimeout(function(){ maybeOfferPrehub(); },400) });
 }
 /* a small handle so power users (and my own tests) can read and drive the desk */
-window.proHUB={version:'1.0',get state(){return S},set state(v){S=v},pull:pullFromPrehub,reload:function(){return load()},
+
+(function(){
+ var s=document.createElement('style');
+ s.textContent=':root{--read:16px}'+
+ 'body{font-size:16px}'+
+ '.tile .tl{font-size:19px}.tile .ts{font-size:12.5px}.tile .tagx{font-size:11px}'+
+ '.tile .ic{width:37px!important;height:37px!important}'+
+ '.hubhead h2{font-size:24px}.hubhead .ht{font-size:12px}'+
+ '.pill{font-size:12px}.chip{font-size:13px}'+
+ 'table.t{font-size:14.5px}table.t th{font-size:11.5px}'+
+ '.kpi .k{font-size:11.5px}.kpi .v{font-size:22px}'+
+ 'label.fl{font-size:12px}input,select,textarea{font-size:15px}'+
+ '.tiny{font-size:13px}.muted{font-size:14px}'+
+ '.btn{font-size:13.5px}.btn.sm{font-size:13px}.btn.xs{font-size:12px}'+
+ '.toast{font-size:14px}.menu button{font-size:14px}'+
+ '.strip{font-size:13px}.daybar{font-size:13px}'+
+ '.sheet table{font-size:12px}.sheet td,.sheet th{font-size:12px}'+
+ '@media(max-width:900px){.tile .ic{width:35px!important;height:35px!important}}';
+ document.head.appendChild(s)})();
+
+window.proHUB={version:'1.0'},get state(){return S},set state(v){S=v},pull:pullFromPrehub,reload:function(){return load()},
  board:autoBoard,panels:buildPanels,dood:dood,budget:budgetTotals,sheet:sheetHTML,push:pushToPosthub,paint:paint,
  open:openHub,save:function(){return save(true)},apply:applyScript,lines:linesFromText,storageOk:function(){return STORAGE_OK}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
