@@ -105,11 +105,6 @@ for (const t of TARGETS) {
 await browser.close();
 server.close();
 
-const failed = results.filter(r => !r.ok && !missing.some(m => r.file && resolveLabel(m) === r.file));
-function resolveLabel(file) {
-  const t = TARGETS.find(x => x.file === file);
-  return t ? t.label : file;
-}
 const hardFails = results.filter(r => !r.ok && !/present in repo/.test(r.check));
 const report = {
   generated: new Date().toISOString(),
