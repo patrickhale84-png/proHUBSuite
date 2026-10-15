@@ -187,6 +187,21 @@ window.POST=window.postHUB={version:'1.0',register:register,modules:function(){r
  state:function(){return {project:S.project,tc:S.tc,staged:!!staged(),modules:moduleState(),tiles:TILES.map(function(t){return t.id})}},
  storageOk:function(){return OK},payload:staged,save:save,paint:paint,ask:ask,toast:toast,ic:ic,esc:esc,dl:dl,
  clock:function(){return $('#tcChip')?$('#tcChip').textContent:null}};
+/* deep link: posthub.html#timeline opens that desk on load. */
+(function () {
+  function go() {
+    var id = String(location.hash || '').replace(/^#/, '');
+    if (!id) return;
+    var fn = null;
+    if (id === 'ingest') fn = (window.POST && POST.openIngest) || null;
+    else if (window.POST && POST[id] && typeof POST[id].open === 'function') fn = POST[id].open;
+    if (fn) { try { fn(); } catch (e) {} }
+  }
+  window.addEventListener('hashchange', go);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(go, 300); });
+  else setTimeout(go, 300);
+})();
+
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 </script>
