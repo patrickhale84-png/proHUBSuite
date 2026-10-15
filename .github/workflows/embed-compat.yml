@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: '20'
       - name: Assemble from parts
-        run: python3 build/build.py --check
+        run: python3 build/build.py && python3 build/build.py --check
       - name: Syntax-check the assembled script
         run: node --check build/out.js
       - name: Install test deps
