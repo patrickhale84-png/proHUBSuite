@@ -47,7 +47,10 @@ for (const t of TARGETS) {
   const abs = path.join(ROOT, t.file);
   if (!fs.existsSync(abs)) { missing.push(t.file); record(t.label, 'present in repo', false, 'not committed yet'); continue; }
 
-  const page = await ctx.newPage();
+  let page;
+  try {
+  page = await ctx.newPage();
+  page.setDefaultTimeout(8000);
   const errors = [];
   page.on('pageerror', e => errors.push(String(e).slice(0, 160)));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 160)); });
@@ -99,7 +102,11 @@ for (const t of TARGETS) {
   }
 
   record(t.label, 'no page or console errors', errors.length === 0, errors.slice(0, 2).join(' | ') || 'clean');
-  await page.close();
+  } catch (e) {
+    // a throw must never kill the run: record it and carry on, so the report always lands
+    record(t.label, 'target completed', false, 'threw: ' + String(e && e.message ? e.message : e).slice(0, 140));
+  }
+  if (page) { try { await page.close(); } catch (e) {} }
 }
 
 await browser.close();
