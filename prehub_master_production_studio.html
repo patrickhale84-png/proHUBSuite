@@ -1,1368 +1,1372 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>preHUB // Master Pre-Production Studio Engine</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>preHUB | Writing Desk</title>
+<style>
+:root{
+  --ink:#060911;--bar:#070C15;--line:#1B2436;--line2:#26344E;--tx:#E6EBF2;--mu:#8B9FB1;
+  --lime:#88C13F;--gold:#E5A93C;--amber:#F0A30A;--red:#E51400;--cyan:#00ABA9;
+  --fd:'Impact','Haettenschweiler','Arial Narrow Bold','Franklin Gothic Medium',sans-serif;
+  --fb:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
+  --fm:'Courier Prime','Courier New',Courier,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--tx);font-family:var(--fb);font-size:13.5px;line-height:1.5}
+#grain{position:fixed;inset:0;pointer-events:none;opacity:.05;z-index:400;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E")}
+.ic{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto;vertical-align:-2px}
+h1,h2,h3{margin:0;font-family:var(--fd);text-transform:uppercase;letter-spacing:.02em;font-weight:400}
+.topbar{position:sticky;top:0;z-index:300;display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:56px;padding:7px 14px;background:var(--bar);border-bottom:1px solid var(--line)}
+.brand{font-family:var(--fd);font-size:26px;letter-spacing:.06em;line-height:1}
+.brand .l{color:var(--lime)}.brand .h{color:#fff}
+.brand .bg{font-family:var(--fm);font-size:8px;letter-spacing:.12em;color:var(--amber);border:1px solid rgba(240,163,10,.45);background:rgba(240,163,10,.1);padding:2px 5px;border-radius:3px;margin-left:6px;vertical-align:4px}
+.projline{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.projline input{background:transparent;border:0;border-bottom:1px solid transparent;font-family:var(--fd);font-size:16px;letter-spacing:.05em;color:var(--gold);outline:none;max-width:220px;padding:1px 2px}
+.projline input.sec{color:var(--mu);font-size:12.5px;max-width:180px}
+.projline input:focus{border-bottom-color:var(--gold)}
+.topright{display:flex;gap:7px;align-items:center;margin-left:auto;flex-wrap:wrap}
+.pillbox{display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:10.5px;color:var(--mu);background:#0A0F1D;border:1px solid var(--line);padding:4px 8px;border-radius:5px;white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--lime)}
+.btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--fb);font-size:12px;font-weight:600;color:var(--tx);background:#131A28;border:1px solid var(--line2);padding:7px 11px;border-radius:6px;cursor:pointer;transition:.14s;white-space:nowrap}
+.btn:hover{background:#1B2436}.btn.pri{background:linear-gradient(135deg,var(--amber),#C98708);color:#0A0D12;border-color:transparent;font-weight:700}
+.btn.sm{padding:4px 8px;font-size:11px}.btn.xs{padding:3px 6px;font-size:10px}
+input,textarea,select{font-family:var(--fb);font-size:12.5px;color:var(--tx);background:#0A0F1D;border:1px solid var(--line2);border-radius:6px;padding:6px 9px;outline:none;max-width:100%}
+input:focus,textarea:focus,select:focus{border-color:var(--gold)}
+.tiny{font-size:11px}.muted{color:var(--mu)}.mono{font-family:var(--fm)}
+.box{background:#0D1421;border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px}
+.row{display:flex;gap:8px;align-items:center}
+.row.sb{justify-content:space-between}
+.pill{display:inline-flex;gap:5px;font-family:var(--fm);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:99px;border:1px solid var(--line2);color:var(--mu)}
+.kpi{background:#0A0F1D;border:1px solid var(--line);border-radius:6px;padding:10px;text-align:center}
+.kpi .k{font-family:var(--fm);font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.08em}
+.kpi .v{font-size:18px;font-family:var(--fd);color:#fff;margin-top:2px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 
-  <!-- Typography, Tailwind CSS & System Icons -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:wght@400;500;600;700;800;900&family=Segoe+UI:wght@400;600;700;900&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Client-side PDF.js for True Screenplay PDF Ingestion -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+/* metro launchpad */
+.tiles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:112px;gap:12px;padding:16px;max-width:1340px;margin:0 auto 50px}
+@media(max-width:900px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{position:relative;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:13px;border-radius:4px;color:#fff;box-shadow:0 5px 14px rgba(0,0,0,.55);transition:transform .16s;user-select:none;outline:none}
+.tile:hover{transform:translateY(-2px);filter:brightness(1.07)}
+.tile:focus-visible{box-shadow:0 0 0 3px rgba(240,163,10,.75)}
+.t2{grid-column:span 2;grid-row:span 2}
+.tile .tl{font-family:var(--fd);font-size:16px;text-transform:uppercase;line-height:1.05}
+.tile .ts{font-family:var(--fm);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;opacity:.85;display:block;margin-top:4px}
+.tile .tagx{font-family:var(--fm);font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border-radius:3px;background:rgba(0,0,0,.35)}
+.tile.ghost{background:transparent!important;border:2px dashed var(--line2);color:var(--mu);box-shadow:none}
+.tile.dark{color:#0A0D12}
 
-  <style>
-    :root {
-      --site-dark: #070B12;
-      --site-navy: #0B111E;
-      --site-card: #131822;
-      --site-border: #1F2937;
-      --hub-lime: #A3E635;
-      --hub-gold: #F0A30A;
-      
-      /* Metro High-Impact Palette matching the provided design */
-      --metro-teal: #00ABA9;
-      --metro-green: #008A00;
-      --metro-orange: #FA6800;
-      --metro-red: #E51400;
-      --metro-gold: #F0A30A;
-      --metro-purple: #7137C8;
-    }
+/* hubs modal architecture */
+.hub{position:fixed;inset:0;z-index:500;background:rgba(3,6,12,.94);backdrop-filter:blur(7px);display:none;height:100vh;overflow:hidden}
+.hub.open{display:flex;flex-direction:column}
+.hubbox{width:100%;max-width:100%;height:100%;margin:0 auto;background:#0A101B;display:flex;flex-direction:column;overflow:hidden}
+.hubhead{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:10px 17px;border-bottom:1px solid var(--line);background:#0C1320;z-index:20}
+.hubhead .ht{font-family:var(--fm);font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:#00ABA9}
+.hubhead h2{font-size:18px;color:#fff;margin:0}
+.hubhead .ha{margin-left:auto;display:flex;gap:7px;align-items:center}
+.hubbody{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:0}
 
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    input, textarea, select, [contenteditable="true"] { user-select: text; }
+/* top menu & toolbar */
+.mbar{flex:0 0 auto;display:flex;gap:2px;padding:3px 14px;background:#0A0F1D;border-bottom:1px solid var(--line);z-index:30}
+.mwrap{position:relative}
+.mbtn{font-size:12px;color:#C6D1DC;background:none;border:0;padding:4px 8px;border-radius:4px;cursor:pointer;font-weight:600}
+.mbtn:hover{background:rgba(255,255,255,.07)}
+.mmenu{display:none;position:absolute;top:100%;left:0;min-width:210px;background:#0C1320;border:1px solid #26344E;border-radius:6px;padding:4px;box-shadow:0 12px 30px rgba(0,0,0,.5);z-index:100}
+.mwrap.open .mmenu{display:block}
+.mi{display:block;width:100%;text-align:left;font-size:12px;color:#C6D1DC;background:none;border:0;padding:6px 9px;border-radius:4px;cursor:pointer}
+.mi:hover{background:rgba(255,255,255,.08)}
 
-    body {
-      background-color: var(--site-dark);
-      color: #E2E8F0;
-      font-family: 'Montserrat', sans-serif;
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      overflow-x: hidden;
-      display: flex;
-      flex-direction: column;
-    }
+.wtb{flex:0 0 auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:6px 14px;background:#0A0F1A;border-bottom:1px solid var(--line);z-index:25}
+.cur-badge{display:inline-flex;align-items:center;font-family:var(--fm);font-size:11px;letter-spacing:.08em;color:var(--gold);background:#131B2B;border:1px solid var(--gold);padding:3px 8px;border-radius:4px;cursor:pointer}
+.cur-badge:hover{background:rgba(229,169,60,.2)}
 
-    .font-script { font-family: 'Courier Prime', monospace; }
-    .font-metro { font-family: 'Segoe UI', 'Montserrat', sans-serif; }
+/* 3-pane flex workspace */
+.dgrid{flex:1 1 auto;min-height:0;display:flex;width:100%;overflow:hidden;position:relative}
+.dpane{width:270px;flex:0 0 270px;background:#080D17;border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;transition:width .2s, flex-basis .2s;z-index:15}
+.dpane.ins{border-right:0;border-left:1px solid var(--line);width:290px;flex:0 0 290px}
+.dpane.collapsed{width:0!important;flex:0 0 0!important;border:none!important;overflow:hidden!important}
+.dph{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);background:#0C1320;font-family:var(--fm);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu)}
+.dpbody{flex:1 1 auto;overflow-y:auto;padding:10px}
 
-    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-    .custom-scroll::-webkit-scrollbar-track { background: #070B12; }
-    .custom-scroll::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 3px; }
-    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #475569; }
+.dcenter{flex:1 1 0;min-width:0;width:100%;background:#04070D;overflow-y:auto;overflow-x:auto;padding:24px 16px 80px;display:flex;flex-direction:column;align-items:center}
 
-    /* Metro Grid & Tiles */
-    .metro-card-tile {
-      position: relative;
-      cursor: pointer;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      border-radius: 6px;
-      padding: 20px 22px;
-      transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.18s ease;
-      user-select: none;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      min-height: 220px;
-    }
-    .metro-card-tile:hover {
-      transform: translateY(-3px) scale(0.995);
-      filter: brightness(1.06);
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65);
-    }
-    .metro-card-tile:active { transform: scale(0.975); }
+/* screenplay sheet stack */
+.paperstack{display:flex;flex-direction:column;gap:36px;align-items:center;max-width:100%}
+.page-sheet{
+  width:8.5in;min-width:8.5in;box-sizing:border-box;
+  background:#FFFFFF;color:#111111;
+  padding:1.0in 1.0in 1.0in 1.5in;
+  font-family:var(--fm);font-size:12pt;
+  box-shadow:0 14px 40px rgba(0,0,0,.65);border-radius:2px;
+  position:relative;
+  display:block;
+  user-select:text!important;-webkit-user-select:text!important;
+}
+.page-num{
+  text-align:right;
+  font-family:var(--fm);
+  font-size:11pt;
+  color:#111;
+  margin-bottom:12pt;
+  padding-right:0.2in;
+}
+.page-content{
+  display:block;
+  min-height:8.8in;
+  outline:none;
+}
 
-    .metro-badge-tag {
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      font-family: 'Courier Prime', monospace;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 3px 7px;
-      border-radius: 3px;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
+/* screenplay elements */
+.ln{
+  display:block;
+  color:#111111;
+  line-height:1.25;
+  outline:none;
+  white-space:pre-wrap;
+  word-wrap:break-word;
+  position:relative;
+  clear:both;
+  font-family:var(--fm);
+  font-size:12pt;
+  min-height:1.25em;
+  padding:0;
+  margin:0;
+}
+.ln:focus{background:rgba(229,169,60,.12);box-shadow:inset 2px 0 0 var(--amber)}
 
-    /* Screenwriter 8.5" x 11" Paper Standards */
-    .paper-sheet-container {
-      width: 8.5in;
-      min-height: 11in;
-      background-color: #0E131F;
-      border: 1px solid #1E293B;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-      padding-top: 1.0in;
-      padding-bottom: 1.0in;
-      padding-left: 1.5in; /* 1.5 inch left margin for binding */
-      padding-right: 1.0in; /* 1.0 inch right margin */
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      box-sizing: border-box;
-    }
+/* standardized offsets relative to 1.5in paper padding */
+.t-head{margin-top:16pt;margin-bottom:4pt;font-weight:700;text-transform:uppercase;margin-left:0;max-width:6.0in}
+.t-act{margin-top:10pt;margin-bottom:2pt;font-weight:400;margin-left:0;max-width:6.0in}
+.t-char{margin-top:14pt;margin-bottom:0;text-transform:uppercase;font-weight:400;margin-left:2.0in;max-width:3.8in}
+.t-paren{margin-top:0;margin-bottom:0;font-style:normal;margin-left:1.4in;max-width:2.4in}
+.t-dial{margin-top:0;margin-bottom:2pt;margin-left:1.0in;max-width:3.5in}
+.t-trans{margin-top:14pt;margin-bottom:4pt;text-align:right;font-weight:400;text-transform:uppercase;max-width:6.0in}
 
-    .script-line-row {
-      position: relative;
-      width: 100%;
-      margin: 0;
-      padding: 0;
-      display: block;
-    }
+.ln[data-al="l"]{text-align:left!important}
+.ln[data-al="c"]{text-align:center!important}
+.ln[data-al="r"]{text-align:right!important}
 
-    .line-editable-box {
-      font-size: 12pt;
-      line-height: 100%;
-      outline: none;
-      width: 100%;
-      display: block;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      word-break: break-word;
-      min-height: 1.25rem;
-      color: #F8FAFC;
-      box-sizing: border-box;
-      font-family: 'Courier Prime', monospace;
-    }
-    .line-editable-box:empty:before {
-      content: attr(data-placeholder);
-      color: #334155;
-      pointer-events: none;
-      display: block;
-    }
+/* scene list */
+.dsc{display:grid;grid-template-columns:22px 1fr auto;gap:7px;padding:7px 10px;border-bottom:1px solid rgba(27,36,54,.6);cursor:pointer}
+.dsc:hover{background:#101827}
+.dsc.on{background:#12202E;border-left:3px solid var(--gold)}
+.dsc .n{color:var(--gold);font-family:var(--fm);font-size:10px}
+.dsc .s{color:#CBD6E2;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dsc .p{color:var(--mu);font-size:10px}
 
-    /* Industry Screenplay Margin Offsets */
-    .element-scene-heading { text-transform: uppercase; font-weight: bold; margin-top: 24pt; margin-bottom: 12pt; }
-    .element-action { text-transform: none; font-weight: normal; margin-top: 12pt; margin-bottom: 12pt; line-height: 140%; }
-    .element-character { text-transform: uppercase; font-weight: bold; margin-top: 12pt; margin-bottom: 0; padding-left: 2.2in; }
-    .element-parenthetical { text-transform: none; font-weight: normal; margin-top: 0; margin-bottom: 0; padding-left: 1.6in; padding-right: 1.6in; font-style: italic; }
-    .element-dialogue { text-transform: none; font-weight: normal; margin-top: 0; margin-bottom: 4pt; padding-left: 1.0in; padding-right: 1.5in; line-height: 130%; }
-    .element-transition { text-transform: uppercase; font-weight: bold; margin-top: 12pt; margin-bottom: 12pt; text-align: right; }
-
-    /* Dual Dialogue */
-    .dual-dialogue-wrapper { display: flex; width: 100%; gap: 0.35in; margin-top: 12pt; margin-bottom: 6pt; }
-    .dual-dialogue-col { flex: 1; min-width: 0; }
-    .dual-dialogue-col .element-character { padding-left: 0.6in !important; text-align: left; }
-    .dual-dialogue-col .element-parenthetical { padding-left: 0.3in !important; padding-right: 0.2in !important; }
-    .dual-dialogue-col .element-dialogue { padding-left: 0 !important; padding-right: 0 !important; }
-
-    /* Fullscreen Modal Engine */
-    .metro-app-modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(4, 7, 14, 0.95);
-      backdrop-filter: blur(10px);
-      z-index: 90;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .metro-app-modal.active { display: flex; }
-
-    @media print {
-      body { background-color: #FFFFFF !important; color: #000000 !important; }
-      header, footer, .no-print, #quick-action-ribbon, #coverage-alert-sidebar-pane { display: none !important; }
-      .paper-sheet-container { border: none !important; box-shadow: none !important; background-color: #FFFFFF !important; color: #000000 !important; width: 100% !important; padding: 0.5in !important; }
-      .line-editable-box { color: #000000 !important; }
-    }
-  </style>
+/* dialogs & toasts */
+dialog{border:0;padding:0;background:transparent}
+dialog::backdrop{background:rgba(3,6,12,.82)}
+.dlg{width:100%;max-width:520px;background:#0D1421;border:1px solid var(--line2);border-top:3px solid var(--gold);border-radius:10px;overflow:hidden}
+.dlg .dh{padding:13px 15px;border-bottom:1px solid var(--line);background:#0A0F1D;display:flex;gap:9px;align-items:center}
+.dlg .dh h3{font-size:14px;color:#fff}
+.dlg .db{padding:15px;max-height:64vh;overflow-y:auto}
+.dlg .df{padding:12px 15px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;background:#0A0F1D}
+#toasts{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:900;display:flex;flex-direction:column;gap:7px;pointer-events:none;width:92%;max-width:400px}
+.toast{background:rgba(8,13,20,.97);border:1px solid var(--gold);color:#F2D9A4;padding:9px 14px;border-radius:9px;font-size:12px;font-weight:600;text-align:center}
+.toast.good{border-color:var(--lime);color:#DFF6C6}.toast.bad{border-color:var(--red);color:#FFC9C2}
+.warnbar{background:#3A1210;border-bottom:1px solid #7A2A22;color:#FFC9C2;font-size:12px;padding:8px 14px;display:flex;gap:9px;align-items:center}
+.hide{display:none!important}
+@media print{
+  body>*{display:none!important}
+  #hub-write{display:block!important;position:static;height:auto}
+  .hubhead,.mbar,.wtb,.dpane,#printArea{display:none!important}
+  .dcenter{padding:0!important;background:#fff!important;overflow:visible!important}
+  .page-sheet{box-shadow:none!important;margin:0!important;page-break-after:always}
+}
+</style>
 </head>
-<body class="flex flex-col custom-scroll h-screen select-none">
+<body>
+<div id="grain"></div>
+<div id="storageWarn" class="warnbar hide"></div>
 
-  <!-- MASTER TOP SYSTEM BAR -->
-  <header class="bg-[#0A0E17] border-b border-slate-900 px-4 py-2 flex items-center justify-between shrink-0 z-40 select-none">
-    <div class="flex items-center gap-6">
-      <!-- preHUB Bauhaus Brand Vector Logo -->
-      <div class="h-6 w-24 flex items-center justify-start cursor-pointer" onclick="closeAllModals()">
-        <svg viewBox="0 0 130 36" class="h-full w-full" xmlns="http://www.w3.org/2000/svg">
-          <text x="2" y="27" font-family="'Century Gothic', 'Futura', 'Montserrat', sans-serif" font-weight="800" font-size="26" fill="#A3E635" letter-spacing="-1.5">pre</text>
-          <text x="44" y="27" font-family="'Century Gothic', 'Futura', 'Montserrat', sans-serif" font-weight="900" font-size="26" fill="#FFFFFF" letter-spacing="-0.5">HUB</text>
-        </svg>
-      </div>
-
-      <!-- Project Name & Writer Inputs -->
-      <div class="hidden sm:flex items-center gap-2 border-l border-slate-800 pl-4 font-mono text-xs">
-        <input type="text" id="master-project-title-input" value="STELLAR NURSERY" onchange="syncProjectMetadata()" class="bg-transparent text-white font-bold uppercase tracking-wider outline-none border-b border-transparent focus:border-amber-400 w-44 px-1 py-0.5 truncate" placeholder="PROJECT TITLE">
-        <span class="text-slate-600">//</span>
-        <input type="text" id="master-project-author-input" value="PATRICK HALE & PETER COLTER" onchange="syncProjectMetadata()" class="bg-transparent text-slate-400 uppercase outline-none border-b border-transparent focus:border-amber-400 w-48 px-1 py-0.5 truncate text-[11px]" placeholder="WRITER NAME">
-      </div>
-    </div>
-
-    <!-- Right Controls: Google Account Sync, Autosave Timer & JSON Backup -->
-    <div class="flex items-center gap-3">
-      <!-- Autosave Interval Selector & Countdown -->
-      <div class="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1 rounded border border-slate-800 text-[11px] font-mono">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span class="text-slate-400 hidden md:inline">Save:</span>
-        <span id="ui-autosave-counter" class="text-emerald-400 font-bold">02:00</span>
-        <select id="select-autosave-interval" onchange="updateAutosaveInterval(this.value)" class="bg-slate-900 text-slate-300 rounded border border-slate-700 px-1 py-0.5 ml-1 text-[10px] outline-none cursor-pointer">
-          <option value="2" selected>2m</option>
-          <option value="10">10m</option>
-          <option value="30">30m</option>
-        </select>
-      </div>
-
-      <!-- Google Account Auth Badge (Memory Path Link) -->
-      <button id="btn-google-auth-sync" onclick="handleGoogleSignInToggle()" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded text-xs font-mono font-bold flex items-center gap-2 transition">
-        <i class="fa-brands fa-google text-red-400"></i>
-        <span id="txt-google-user-name" class="text-slate-300">Google Sync</span>
-      </button>
-
-      <!-- Quick Session JSON Export/Import -->
-      <div class="flex items-center gap-1">
-        <button onclick="downloadSessionJSON()" title="Export Master JSON Project File" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-800 text-xs font-mono font-bold flex items-center gap-1.5 transition">
-          <i class="fa-solid fa-file-export text-purple-400 text-[11px]"></i> JSON
-        </button>
-        <label class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-800 text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer" title="Load Session JSON">
-          <i class="fa-solid fa-file-import text-blue-400 text-[11px]"></i>
-          <input type="file" id="input-session-file-loader" accept=".json" onchange="loadSessionJSON(event)" class="hidden">
-        </label>
-      </div>
-    </div>
-  </header>
-
-  <!-- MASTER DASHBOARD: METRO BOXES VIEW (MATCHING PROVIDED SCREENSHOT) -->
-  <main class="flex-1 overflow-y-auto custom-scroll p-4 md:p-8 flex items-center justify-center" id="master-metro-viewport">
-    <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-
-      <!-- BOX 1: SCREENPLAY STUDIO (TEAL) -->
-      <div class="metro-card-tile bg-[#00ABA9] text-white" onclick="openStudioModal('modal-screenwriter')">
-        <div class="flex justify-between items-start w-full">
-          <div class="w-12 h-12 flex items-center justify-center">
-            <svg class="w-10 h-10 fill-current" viewBox="0 0 24 24">
-              <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
-            </svg>
-          </div>
-          <span class="metro-badge-tag">AST PARSER <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i></span>
-        </div>
-        <div class="mt-8">
-          <h2 class="text-xl font-black uppercase tracking-wider font-metro">SCREENPLAY STUDIO</h2>
-          <p class="text-xs text-white/90 font-medium mt-1">AST Clean & Normalizer</p>
-        </div>
-      </div>
-
-      <!-- BOX 2: DEPT HEADS (EMERALD GREEN) -->
-      <div class="metro-card-tile bg-[#008A00] text-white" onclick="openStudioModal('modal-evaluator')">
-        <div class="flex justify-between items-start w-full">
-          <div class="w-12 h-12 flex items-center justify-center">
-            <i class="fa-solid fa-users-gear text-4xl"></i>
-          </div>
-          <span class="metro-badge-tag">DIRECTORY <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i></span>
-        </div>
-        <div class="mt-8">
-          <h2 class="text-xl font-black uppercase tracking-wider font-metro">EVALUATOR & DEPT HEADS</h2>
-          <p class="text-xs text-white/90 font-medium mt-1" id="tile-eval-sub-desc">5-Axis Coverage & Metric Diagnostics</p>
-        </div>
-      </div>
-
-      <!-- BOX 3: CALL SHEETS (TEAL) -->
-      <div class="metro-card-tile bg-[#00ABA9] text-white" onclick="openStudioModal('modal-callsheet')">
-        <div class="flex justify-between items-start w-full">
-          <div class="w-12 h-12 flex items-center justify-center">
-            <i class="fa-solid fa-clipboard-list text-4xl"></i>
-          </div>
-          <span class="metro-badge-tag">PACKET <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i></span>
-        </div>
-        <div class="mt-8">
-          <h2 class="text-xl font-black uppercase tracking-wider font-metro">CALL SHEETS</h2>
-          <p class="text-xs text-white/90 font-medium mt-1">Sides, Moves & Requirements</p>
-        </div>
-      </div>
-
-      <!-- BOX 4: STORYBOARDS (VIBRANT ORANGE) -->
-      <div class="metro-card-tile bg-[#FA6800] text-white" onclick="openStudioModal('modal-storyboards')">
-        <div class="flex justify-between items-start w-full">
-          <div class="w-12 h-12 flex items-center justify-center">
-            <i class="fa-solid fa-images text-4xl"></i>
-          </div>
-          <span class="metro-badge-tag">6-RULE <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i></span>
-        </div>
-        <div class="mt-8">
-          <h2 class="text-xl font-black uppercase tracking-wider font-metro">STORYBOARDS</h2>
-          <p class="text-xs text-white/90 font-medium mt-1">Setups & Camera Angles</p>
-        </div>
-      </div>
-
-      <!-- BOX 5: 1ST AD DESK (RED) -->
-      <div class="metro-card-tile bg-[#E51400] text-white" onclick="openStudioModal('modal-radar')">
-        <div class="flex justify-between items-start w-full">
-          <div class="w-12 h-12 flex items-center justify-center font-black text-2xl font-mono">
-            <div class="grid grid-cols-2 gap-1 w-8 h-8">
-              <div class="border-2 border-white rounded-sm"></div>
-              <div class="border-2 border-white rounded-sm"></div>
-              <div class="border-2 border-white rounded-sm"></div>
-              <div class="border-2 border-white rounded-sm"></div>
-            </div>
-          </div>
-          <span class="metro-badge-tag">ALL SAFE <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i></span>
-        </div>
-        <div class="mt-8">
-          <h2 class="text-xl font-black uppercase tracking-wider font-metro">1ST AD DESK</h2>
-          <p class="text-xs text-white/90 font-medium mt-1">Attendance & Check-in Pass</p>
-        </div>
-      </div>
-
-      <!-- BOX 6: BUDGET (GOLD / AMBER) -->
-      <div class="metro-card-tile bg-[#F0A30A] text-slate-950 font-bold" onclick="openStudioModal('modal-budget')">
-        <div class="flex justify-between items-start w-full">
-          <div class="w-12 h-12 flex items-center justify-center text-slate-950">
-            <i class="fa-solid fa-receipt text-4xl"></i>
-          </div>
-          <span class="metro-badge-tag !border-slate-900 !text-slate-950 font-bold">LOCKED <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i></span>
-        </div>
-        <div class="mt-8">
-          <h2 class="text-xl font-black uppercase tracking-wider font-metro text-slate-950">BUDGET</h2>
-          <p class="text-xs text-slate-900 font-semibold mt-1">Bids & Disbursals ($9K Cap)</p>
-        </div>
-      </div>
-
-    </div>
-  </main>
-
-  <!-- ========================================================================= -->
-  <!-- MODAL 1: SCREENPLAY STUDIO WORKSPACE                                      -->
-  <!-- ========================================================================= -->
-  <div id="modal-screenwriter" class="metro-app-modal">
-    <!-- Studio Header Bar -->
-    <div class="bg-[#0A0E17] border-b border-slate-900 px-4 py-2 flex items-center justify-between shrink-0">
-      <div class="flex items-center gap-3">
-        <button onclick="closeAllModals()" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-800 text-xs font-mono font-bold transition flex items-center gap-1.5">
-          <i class="fa-solid fa-arrow-left"></i> Dashboard
-        </button>
-        <div class="h-4 w-px bg-slate-800"></div>
-        <span class="text-xs font-bold uppercase tracking-wider text-[#00ABA9] font-mono flex items-center gap-2">
-          <i class="fa-solid fa-feather-pointed"></i> Screenplay Studio Workspace
-        </span>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <button onclick="triggerUniversalScriptIngest()" class="px-3 py-1 bg-[#00ABA9]/20 hover:bg-[#00ABA9]/30 text-[#00ABA9] border border-[#00ABA9]/40 rounded text-xs font-mono font-bold flex items-center gap-1.5 transition">
-          <i class="fa-solid fa-cloud-arrow-up"></i> Ingest Script (PDF/FDX/JSON/TXT)
-        </button>
-        <button onclick="executeQuickPdfPrint()" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded text-xs font-mono font-bold flex items-center gap-1.5 transition shadow">
-          <i class="fa-solid fa-file-pdf"></i> Quick PDF
-        </button>
-      </div>
-    </div>
-
-    <!-- Script Editing Ribbon -->
-    <div class="bg-[#0B0F19] border-b border-slate-800/80 px-4 py-1.5 flex items-center justify-between shrink-0 text-xs text-slate-300 gap-4 overflow-x-auto custom-scroll">
-      <div class="flex items-center gap-1 shrink-0">
-        <button onclick="executeSelectAllScript()" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono flex items-center gap-1">
-          <i class="fa-solid fa-object-ungroup text-purple-400"></i> Select All
-        </button>
-        <button onclick="executeCopyScript()" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono flex items-center gap-1">
-          <i class="fa-solid fa-copy text-slate-400"></i> Copy
-        </button>
-        <button onclick="executePasteScript()" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono flex items-center gap-1">
-          <i class="fa-solid fa-paste text-slate-400"></i> Paste
-        </button>
-      </div>
-
-      <div class="h-4 w-px bg-slate-800 shrink-0"></div>
-
-      <!-- Alignments -->
-      <div class="flex items-center gap-1 shrink-0">
-        <button onclick="applyScriptJustification('left')" class="w-7 h-7 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-300" title="Align Left"><i class="fa-solid fa-align-left text-xs"></i></button>
-        <button onclick="applyScriptJustification('center')" class="w-7 h-7 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-300" title="Align Center"><i class="fa-solid fa-align-center text-xs"></i></button>
-        <button onclick="applyScriptJustification('right')" class="w-7 h-7 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-300" title="Align Right"><i class="fa-solid fa-align-right text-xs"></i></button>
-      </div>
-
-      <div class="h-4 w-px bg-slate-800 shrink-0"></div>
-
-      <div class="flex items-center gap-2 shrink-0">
-        <button onclick="toggleDualDialogueSetup()" class="px-3 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-emerald-400 font-mono text-[11px] flex items-center gap-1">
-          <i class="fa-solid fa-columns"></i> Dual Dialogue
-        </button>
-        <button onclick="executeReformatAndSyncScript()" class="px-3 py-1 rounded bg-purple-600 hover:bg-purple-500 text-white font-mono font-bold text-[11px] flex items-center gap-1.5 shadow">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> Reformat / Sync (⌘R)
-        </button>
-        <button onclick="runScriptSpellAndLintSweep(true)" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-amber-400 font-mono text-[11px] flex items-center gap-1">
-          <i class="fa-solid fa-spell-check"></i> Spell Check (F7)
-        </button>
-      </div>
-
-      <div class="ml-auto text-[11px] font-mono text-slate-400 shrink-0">
-        Element: <span id="ui-screenplay-element-badge" class="text-white font-bold uppercase">ACTION</span>
-      </div>
-    </div>
-
-    <!-- Script Desk Viewport Area -->
-    <div class="flex-1 overflow-y-auto custom-scroll p-6 flex flex-col items-center bg-[#070B12]" id="script-desk-viewport">
-      <div id="screenplay-paper-sheet" class="paper-sheet-container justify-between shrink-0 mb-20">
-        <div class="w-full flex-1">
-          <div id="script-editable-node-rows-stack" class="w-full overflow-hidden">
-            <!-- Dynamic Screenplay Rows Materialize Here -->
-          </div>
-        </div>
-        <div class="w-full text-center pt-8 text-xs text-slate-600 font-mono tracking-widest mt-16 border-t border-slate-900/40">
-          — SCRIPT PAGE <span id="ui-script-page-count" class="text-slate-400 font-bold">1</span> —
-        </div>
-      </div>
-    </div>
+<header class="topbar">
+  <div class="brand"><span class="l">pre</span><span class="h">HUB</span><span class="bg">WRITING DESK</span></div>
+  <div class="projline">
+    <input id="fTitle" value="UNTITLED PROJECT" title="Production title">
+    <input id="fWriter" class="sec" value="WRITER" title="Writer">
   </div>
-
-  <!-- ========================================================================= -->
-  <!-- MODAL 2: EVALUATOR & COVERAGE CORE                                       -->
-  <!-- ========================================================================= -->
-  <div id="modal-evaluator" class="metro-app-modal">
-    <div class="bg-[#0A0E17] border-b border-slate-900 px-4 py-2 flex items-center justify-between shrink-0">
-      <div class="flex items-center gap-3">
-        <button onclick="closeAllModals()" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-800 text-xs font-mono font-bold transition flex items-center gap-1.5">
-          <i class="fa-solid fa-arrow-left"></i> Dashboard
-        </button>
-        <span class="text-xs font-bold uppercase tracking-wider text-[#008A00] font-mono flex items-center gap-2">
-          <i class="fa-solid fa-brain"></i> Halion Heuristic Evaluator Engine
-        </span>
-      </div>
-      <button onclick="runHeuristicCoverageSweep()" class="px-4 py-1.5 bg-[#008A00] hover:bg-emerald-600 text-white rounded text-xs font-mono font-bold flex items-center gap-1.5 shadow">
-        <i class="fa-solid fa-play"></i> Re-Calculate Coverage Scores
-      </button>
-    </div>
-
-    <div class="flex-1 overflow-y-auto custom-scroll p-6 max-w-5xl mx-auto w-full space-y-6">
-      <!-- 5-Axis Score Cards -->
-      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3" id="evaluator-scores-grid">
-        <!-- Injected via JavaScript -->
-      </div>
-
-      <!-- Narrative Analysis -->
-      <div class="bg-slate-950 p-5 rounded-lg border border-slate-800 space-y-4">
-        <div class="flex justify-between items-center border-b border-slate-800/80 pb-3">
-          <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 font-mono">
-            <i class="fa-solid fa-microchip text-emerald-400"></i> Narrative Heuristic Report
-          </h3>
-          <span class="text-xs font-mono text-emerald-400 font-bold" id="eval-aggregate-stamp">RECOMMEND // 92%</span>
-        </div>
-        <div id="evaluator-report-prose" class="text-xs leading-relaxed text-slate-300 space-y-3 font-sans">
-          <!-- Populated from Active Script -->
-        </div>
-      </div>
-    </div>
+  <div class="topright">
+    <div class="pillbox"><span class="dot" id="liveDot"></span><span id="saveStamp">ready</span></div>
+    <div class="pillbox" id="pagePill">page 1</div>
+    <button class="btn sm" id="vaultBtn">Vault</button>
   </div>
+</header>
+<main id="tiles" class="tiles"></main>
+<div id="hubs"></div>
+<div id="toasts"></div>
+<div id="printArea" style="display:none"></div>
 
-  <!-- ========================================================================= -->
-  <!-- MODAL 3: STORYBOARD CREATOR STUDIO                                        -->
-  <!-- ========================================================================= -->
-  <div id="modal-storyboards" class="metro-app-modal">
-    <div class="bg-[#0A0E17] border-b border-slate-900 px-4 py-2 flex items-center justify-between shrink-0">
-      <div class="flex items-center gap-3">
-        <button onclick="closeAllModals()" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-800 text-xs font-mono font-bold transition flex items-center gap-1.5">
-          <i class="fa-solid fa-arrow-left"></i> Dashboard
-        </button>
-        <span class="text-xs font-bold uppercase tracking-wider text-[#FA6800] font-mono flex items-center gap-2">
-          <i class="fa-solid fa-camera"></i> 6-Rule Storyboard Studio
-        </span>
-      </div>
+<script>
+(function(){
+'use strict';
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 
-      <div class="flex items-center gap-2">
-        <button onclick="generateStoryboardsFromActiveScript()" class="px-3 py-1 bg-[#FA6800] hover:bg-orange-500 text-white rounded text-xs font-mono font-bold flex items-center gap-1.5 shadow">
-          <i class="fa-solid fa-arrows-rotate"></i> Auto-Generate from Script
-        </button>
-        <button onclick="addNewBlankStoryboardCard()" class="px-3 py-1 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded text-xs font-mono font-bold">
-          + Add Frame
-        </button>
-      </div>
-    </div>
+var P={
+  pen:'<path d="M4 20l4-1 10-10-3-3L5 16z"/><path d="M14 6l3 3"/>',
+  in:'<path d="M12 4v11m0 0l-4-4m4 4l4-4"/><path d="M5 20h14"/>',
+  out:'<path d="M12 20V9m0 0L8 13m4-4l4 4"/><path d="M5 4h14"/>',
+  save:'<path d="M5 4h11l3 3v13H5z"/><path d="M9 4h6v4H9z"/>',
+  print:'<path d="M7 9V4h10v5"/><path d="M5 9h14v8h-3"/><path d="M7 14h10v6H7z"/>',
+  x:'<path d="M6 6l12 12M18 6L6 18"/>',
+  warn:'<path d="M12 4l8 15H4z"/><path d="M12 10v4M12 17h.01"/>',
+  film:'<path d="M4 5h16v14H4z"/><path d="M8 5v14M16 5v14M4 9h4M4 15h4M16 9h4M16 15h4"/>',
+  rocket:'<path d="M12 3c3 2 5 6 5 10l-5 3-5-3c0-4 2-8 5-10z"/><path d="M9 18l3 3 3-3"/>',
+  undo:'<path d="M9 8H4v-5"/><path d="M4 8a8 8 0 1115 3"/>',
+  redo:'<path d="M15 8h5v-5"/><path d="M20 8a8 8 0 10-15 3"/>'
+};
+function ic(n){return '<svg viewBox="0 0 24 24" class="ic">'+(P[n]||'')+'</svg>'}
 
-    <!-- Storyboard Matrix Grid Container -->
-    <div class="flex-1 overflow-y-auto custom-scroll p-6 max-w-6xl mx-auto w-full">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="storyboard-frames-matrix-grid">
-        <!-- Injected Cards -->
-      </div>
-    </div>
-  </div>
+var TYPES=['SCENE_HEADING','ACTION','CHARACTER','PARENTHETICAL','DIALOGUE','TRANSITION'];
+var CLS={SCENE_HEADING:'t-head',ACTION:'t-act',CHARACTER:'t-char',PARENTHETICAL:'t-paren',DIALOGUE:'t-dial',TRANSITION:'t-trans'};
+var NX={SCENE_HEADING:'ACTION',ACTION:'ACTION',CHARACTER:'DIALOGUE',PARENTHETICAL:'DIALOGUE',DIALOGUE:'ACTION',TRANSITION:'SCENE_HEADING'};
 
-  <!-- MODAL 4: CALL SHEETS -->
-  <div id="modal-callsheet" class="metro-app-modal">
-    <div class="bg-[#0A0E17] border-b border-slate-900 px-4 py-2 flex items-center justify-between shrink-0">
-      <button onclick="closeAllModals()" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-800 text-xs font-mono font-bold transition flex items-center gap-1.5">
-        <i class="fa-solid fa-arrow-left"></i> Dashboard
-      </button>
-      <div class="flex items-center gap-2">
-        <button onclick="switchCallSheetDay(1)" id="btn-cs-day1" class="px-3 py-1 rounded text-xs font-mono font-bold bg-[#00ABA9] text-black">Day 1</button>
-        <button onclick="switchCallSheetDay(2)" id="btn-cs-day2" class="px-3 py-1 rounded text-xs font-mono font-bold bg-slate-900 text-slate-300">Day 2</button>
-        <button onclick="window.print()" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded text-xs font-mono font-bold">Print PDF</button>
-      </div>
-    </div>
-    <div class="flex-1 overflow-y-auto custom-scroll p-6 max-w-4xl mx-auto w-full space-y-4" id="callsheet-content-pane">
-      <!-- Call sheet data -->
-    </div>
-  </div>
+var STORE='prehub_desk_v1';
+function blank(){
+  return {
+    project:{title:'UNTITLED PROJECT',writer:'WRITER'},
+    lines:[{type:'SCENE_HEADING',text:'INT. LOCATION - DAY'},{type:'ACTION',text:''}],
+    snaps:[],
+    savedAt:0,
+    budget:{atl:150000,btl:200000,post:50000,pct:10},
+    pitch:{},
+    sbCap:{},
+    sbOrder:{},
+    frames:{}
+  };
+}
+var S=blank(), OK=true;
+try{localStorage.setItem('__t','1');localStorage.removeItem('__t')}catch(e){OK=false}
 
-  <!-- MODAL 5: 1ST AD RADAR CHECK-IN -->
-  <div id="modal-radar" class="metro-app-modal">
-    <div class="bg-[#0A0E17] border-b border-slate-900 px-4 py-2 flex items-center justify-between shrink-0">
-      <button onclick="closeAllModals()" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-800 text-xs font-mono font-bold transition flex items-center gap-1.5">
-        <i class="fa-solid fa-arrow-left"></i> Dashboard
-      </button>
-      <span class="text-xs font-bold uppercase tracking-wider text-[#E51400] font-mono">1st AD Security Pass & Attendance Radar</span>
-      <span class="text-xs font-mono bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded font-bold">RADAR ALL SAFE</span>
-    </div>
-    <div class="flex-1 overflow-y-auto custom-scroll p-6 max-w-4xl mx-auto w-full space-y-4">
-      <div class="bg-slate-950 p-4 rounded-lg border border-slate-800">
-        <table class="w-full text-left text-xs font-mono">
-          <thead class="text-slate-500 border-b border-slate-800 uppercase text-[10px]">
-            <tr><th class="p-2">Badge ID</th><th class="p-2">Name</th><th class="p-2">Role</th><th class="p-2">Call</th><th class="p-2">In-Time</th><th class="p-2 text-center">Status</th></tr>
-          </thead>
-          <tbody id="radar-crew-tbody" class="divide-y divide-slate-900 text-slate-300"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+function save(q){
+  try{
+    S.savedAt=Date.now();
+    localStorage.setItem(STORE,JSON.stringify(S));
+    stamp(true);
+  }catch(e){
+    OK=false;warn();
+  }
+  return true;
+}
+function stamp(ok){
+  var e=$('#saveStamp');if(e)e.textContent=(ok?'saved ':'in memory ')+new Date().toLocaleTimeString();
+  var d=$('#liveDot');if(d)d.style.background=ok?'var(--lime)':'var(--red)';
+}
+function warn(){
+  var w=$('#storageWarn');
+  if(w&&w.classList.contains('hide')){
+    w.classList.remove('hide');
+    w.innerHTML=ic('warn')+'<span>Storage refused. Export project before closing tab.</span>';
+  }
+}
+function toast(m,k){
+  var c=$('#toasts'),d=document.createElement('div');
+  d.className='toast'+(k?' '+k:'');
+  d.textContent=m;
+  c.appendChild(d);
+  setTimeout(function(){d.remove()},2500);
+}
 
-  <!-- MODAL 6: BUDGET -->
-  <div id="modal-budget" class="metro-app-modal">
-    <div class="bg-[#0A0E17] border-b border-slate-900 px-4 py-2 flex items-center justify-between shrink-0">
-      <button onclick="closeAllModals()" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded border border-slate-800 text-xs font-mono font-bold transition flex items-center gap-1.5">
-        <i class="fa-solid fa-arrow-left"></i> Dashboard
-      </button>
-      <span class="text-xs font-bold uppercase tracking-wider text-[#F0A30A] font-mono">Macro Production Budget ($9,000 Cap)</span>
-      <button onclick="promptUnlockBudget()" class="px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded text-xs font-mono font-bold">Passphrase: fidelio</button>
-    </div>
-    <div class="flex-1 overflow-y-auto custom-scroll p-6 max-w-4xl mx-auto w-full space-y-4">
-      <div class="bg-slate-950 p-5 rounded-lg border border-slate-800 space-y-4">
-        <div class="grid grid-cols-4 gap-2 text-center text-xs font-mono">
-          <div class="bg-slate-900 p-2.5 rounded border border-slate-800"><span class="text-slate-500 text-[10px] block">Cap</span><strong class="text-white text-sm">$9,000.00</strong></div>
-          <div class="bg-slate-900 p-2.5 rounded border border-slate-800"><span class="text-slate-500 text-[10px] block">Allocated</span><strong class="text-amber-400 text-sm">$7,100.00</strong></div>
-          <div class="bg-slate-900 p-2.5 rounded border border-slate-800"><span class="text-slate-500 text-[10px] block">Paid</span><strong class="text-emerald-400 text-sm">$3,450.00</strong></div>
-          <div class="bg-slate-900 p-2.5 rounded border border-slate-800"><span class="text-slate-500 text-[10px] block">Contingency</span><strong class="text-purple-400 text-sm">$1,900.00</strong></div>
-        </div>
-        <table class="w-full text-left text-xs font-mono">
-          <thead class="text-slate-500 border-b border-slate-800 uppercase text-[10px]">
-            <tr><th class="p-2">Line Item</th><th class="p-2">Cost</th><th class="p-2 text-center">Status</th></tr>
-          </thead>
-          <tbody id="budget-items-tbody" class="divide-y divide-slate-900 text-slate-300"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+function ask(o){
+  return new Promise(function(res){
+    var d=document.createElement('dialog'), b='<div class="db">';
+    (o.fields||[]).forEach(function(f){
+      b+='<div style="margin-bottom:11px"><label style="display:block;font-size:11px;color:var(--mu);margin-bottom:4px">'+esc(f.label||f.k)+'</label>';
+      if(f.type==='textarea') b+='<textarea data-k="'+f.k+'" rows="'+(f.rows||7)+'" style="width:100%">'+esc(f.value||'')+'</textarea>';
+      else b+='<input data-k="'+f.k+'" value="'+esc(f.value==null?'':f.value)+'" style="width:100%">';
+      b+='</div>';
+    });
+    if(o.html) b+=o.html;
+    b+='</div>';
+    d.innerHTML='<form class="dlg" method="dialog"><div class="dh">'+ic(o.icon||'pen')+'<h3>'+esc(o.title||'')+'</h3></div>'+b+
+      '<div class="df">'+(o.cancel===false?'':'<button class="btn" value="cancel" type="submit">Cancel</button>')+
+      '<button class="btn pri" value="ok" type="submit">'+esc(o.ok||'Save')+'</button></div></form>';
+    document.body.appendChild(d);
+    d.addEventListener('close',function(){
+      var out=null;
+      if(d.returnValue==='ok'){
+        out={};
+        $$('[data-k]',d).forEach(function(i){out[i.getAttribute('data-k')]=i.value});
+      }
+      d.remove();
+      res(out);
+    });
+    d.showModal();
+    setTimeout(function(){var f=$('input,textarea',d);if(f)f.focus()},40);
+  });
+}
 
-  <!-- Universal File Ingestion Input -->
-  <input type="file" id="universal-file-picker-input" accept=".pdf,.fdx,.json,.txt,.fountain" class="hidden">
+function dl(name,text,mime){
+  try{
+    var b=new Blob([text],{type:(mime||'text/plain')+';charset=utf-8'}), u=URL.createObjectURL(b), a=document.createElement('a');
+    a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){URL.revokeObjectURL(u)},4000);
+    toast('Saved '+name,'good');
+  }catch(e){toast('Download failed','bad')}
+}
 
-  <!-- Toast Notification Portal -->
-  <div id="toast-portal-rack" class="fixed bottom-6 left-6 z-50 flex flex-col gap-2 pointer-events-none font-mono"></div>
+/* undo & redo engine */
+var undoStack=[], redoStack=[];
+function pushUndo(){
+  undoStack.push(JSON.stringify(S.lines));
+  if(undoStack.length>60) undoStack.shift();
+  redoStack=[];
+}
+function doUndo(){
+  if(!undoStack.length){toast('Nothing to undo','bad');return}
+  redoStack.push(JSON.stringify(S.lines));
+  S.lines=JSON.parse(undoStack.pop());
+  renderPages();
+  toast('Undo','good');
+}
+function doRedo(){
+  if(!redoStack.length){toast('Nothing to redo','bad');return}
+  undoStack.push(JSON.stringify(S.lines));
+  S.lines=JSON.parse(redoStack.pop());
+  renderPages();
+  toast('Redo','good');
+}
 
-  <script>
-    /* ========================================================================= */
-    /* MASTER PRODUCTION APPLICATION STATE                                      */
-    /* ========================================================================= */
-    const MASTER_SAMPLE_SCRIPT = `1 EXT. HOUSE / CARPORT - NIGHT 1
+/* multi-format parsing & ingestion */
+function tok(raw){
+  var out=[], prev=null;
+  raw.replace(/\r/g,'').split('\n').forEach(function(line){
+    var t=line.replace(/[\t ]+/g,' ').trim();
+    if(!t){prev=null;return}
+    if(/^\s*(?:\d+[A-Za-z]?[.)]?\s+)?(?:INT|EXT|EST|I\/E|INT\.?\/EXT|EXT\.?\/INT)\b[.\s\/]/i.test(t)){
+      var m=t.match(/^((?:INT\.|EXT\.|INT\/EXT\.|I\/E\.)\s*[^-]{2,70}?)\s*[-\u2013]\s*((?:DAY|NIGHT|DUSK|DAWN|MORNING|AFTERNOON|EVENING|CONTINUOUS|LATER|MOMENTS LATER|SAME TIME|MAGIC HOUR)(?:\s*[-\u2013]\s*[A-Z ]{3,20})?)/i);
+      var h=(m?(m[1]+' - '+m[2]).replace(/\s+\d{1,3}$/,'').trim():t.replace(/(\d{1,3})\s+\d{1,3}$/,'').trim()).replace(/^\s*\d+[A-Za-z]?[.)]?\s+/,'');
+      out.push({type:'SCENE_HEADING',text:h.toUpperCase()});
+      if(m&&t.length>m[0].length+2){
+        var rest=t.slice(m[0].length).replace(/^[\s\d.\-\u2013]+/,'').trim();
+        if(rest) out.push({type:'ACTION',text:rest});
+      }
+      prev='h';return;
+    }
+    if(/^(FADE IN|FADE OUT|FADE TO|CUT TO|SMASH TO|SMASH CUT|MATCH CUT|DISSOLVE TO|HARD CUT)/i.test(t)||/\bTO:\s*$/.test(t)){
+      out.push({type:'TRANSITION',text:t.toUpperCase()});
+      prev='t';return;
+    }
+    if(/^\(.*\)$/.test(t)){
+      out.push({type:'PARENTHETICAL',text:t});
+      prev='p';return;
+    }
+    if(t===t.toUpperCase()&&t.length<44&&!/[.,!?]$/.test(t)&&!/[:;]/.test(t)&&!/^\s*(?:\d+[A-Za-z]?[.)]?\s+)?(?:INT|EXT|EST|I\/E|INT\.?\/EXT|EXT\.?\/INT)\b[.\s\/]/i.test(t)&&!/^(TITLE|SUPER|SCENE|WRITTEN BY|PRODUCTION|DRAFT|END|GOOD|CONTINUED)\b/.test(t)){
+      out.push({type:'CHARACTER',text:t});
+      prev='c';return;
+    }
+    if(prev==='c'||prev==='p'||prev==='d'){
+      var isAct=(prev==='d'&&/[.!?]$/.test(t)&&(t.split(/\s+/).length>6)&&!/^[(\-]/.test(t));
+      if(isAct){out.push({type:'ACTION',text:t});prev='a';return}
+      out.push({type:'DIALOGUE',text:t});
+      prev='d';return;
+    }
+    out.push({type:'ACTION',text:t});
+    prev='a';
+  });
+  return out;
+}
 
-Sweeping searchlights spin across the yard. In the distance, the dog loops.
-INGRID charges off the porch, heavy steel butcher cleaver raised high.
-
-INGRID
-(whispering)
-Lotus, stay with me.
-
-2 INT. 1989 FORD MUSTANG - CONTINUOUS 2
-
-Ingrid dives inside the passenger compartment.
-She twists the ignition key. The V8 ENGINE ROARS to life.
-She throws it in reverse!`;
-
-    let activeCallSheetDay = 1;
-    let autosaveTimerDurationSeconds = 120; // Default 2 minutes
-    let autosaveRemainingSeconds = 120;
-
-    let projectState = {
-      projectTitle: "STELLAR NURSERY",
-      authorName: "PATRICK HALE & PETER COLTER",
-      versionTag: "v1.0-ORIGINAL",
-      googleUser: {
-        isSignedIn: false,
-        email: "",
-        name: "Guest"
-      },
-      scriptLines: [],
-      storyboardCards: [
-        { id: 1, scene: "EXT. HOUSE / CARPORT - NIGHT", shot: "WIDE ESTABLISHING", rule: "Rule 1: Master Establishing", desc: "Establishing setup. Ingrid isolated on violet tarmac under searchlights." },
-        { id: 2, scene: "EXT. PORCH - CONTINUOUS", shot: "MEDIUM CLOSE-UP", rule: "Rule 2: Kinetic Motion", desc: "Ingrid rushes off wooden steps wielding heavy steel butcher cleaver." },
-        { id: 3, scene: "INT. 1989 MUSTANG - NIGHT", shot: "OVER-THE-SHOULDER", rule: "Rule 4: Spatial Geography", desc: "Key ignition twists. Melted NASA mirror badge spins in the darkness." }
-      ],
-      crewRoster: [
-        { id: "CR-01", name: "Anna DiGiovanni", role: "Lead Actress (Ingrid)", call: "09:00 AM", inTime: "09:00 AM", status: "ALL SAFE" },
-        { id: "CR-02", name: "Patrick Hale", role: "Director / Producer", call: "08:30 AM", inTime: "08:30 AM", status: "ALL SAFE" },
-        { id: "CR-03", name: "Mira Celik", role: "1st AD", call: "08:00 AM", inTime: "08:00 AM", status: "ALL SAFE" },
-        { id: "CR-04", name: "Shaun Schroth", role: "Director of Photography", call: "08:30 AM", inTime: "08:30 AM", status: "ALL SAFE" },
-        { id: "CR-05", name: "Chase Gorman", role: "Production Sound", call: "08:45 AM", inTime: "08:45 AM", status: "ALL SAFE" }
-      ],
-      budgetLines: [
-        { item: "Director of Photography Package", cost: 2000, status: "Under Contract" },
-        { item: "1st Assistant Director", cost: 1000, status: "Under Contract" },
-        { item: "Lead Actress (Anna DiGiovanni)", cost: 1250, status: "Half Paid" },
-        { item: "Studio & Lodging Stay", cost: 700, status: "Confirmed" },
-        { item: "Lycra Membrane & Props", cost: 750, status: "Purchased" }
-      ]
+function loadPDF(){
+  if(window.pdfjsLib) return Promise.resolve(1);
+  return new Promise(function(res){
+    var s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload=function(){
+      try{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'}catch(e){}
+      res(1);
     };
+    s.onerror=function(){res(0)};
+    document.head.appendChild(s);
+  });
+}
 
-    /* ========================================================================= */
-    /* MODAL WINDOW SYSTEM                                                       */
-    /* ========================================================================= */
-    function openStudioModal(modalId) {
-      document.querySelectorAll('.metro-app-modal').forEach(m => m.classList.remove('active'));
-      const target = document.getElementById(modalId);
-      if (target) {
-        target.classList.add('active');
-        document.body.style.overflow = 'hidden';
+function ingest(file){
+  var n=file.name.toLowerCase();
+  if(/\.pdf$/.test(n)){
+    return loadPDF().then(function(ok){
+      if(!ok) throw new Error('PDF reader unreachable');
+      return file.arrayBuffer();
+    }).then(function(b){
+      return pdfjsLib.getDocument({data:b}).promise;
+    }).then(function(pdf){
+      var chain=Promise.resolve(), all=[];
+      for(var i=1;i<=pdf.numPages;i++){
+        (function(pg){
+          chain=chain.then(function(){return pdf.getPage(pg)}).then(function(p){
+            return p.getTextContent().then(function(tc){
+              var rows={};
+              (tc.items||[]).forEach(function(it){
+                if(!it.str||!it.str.trim()) return;
+                var y=Math.round(it.transform[5]), k=null;
+                Object.keys(rows).forEach(function(kk){if(Math.abs(kk-y)<4&&k===null)k=kk});
+                if(k===null){k=y;rows[k]=[]}
+                rows[k].push({x:it.transform[4],s:it.str});
+              });
+              Object.keys(rows).map(Number).sort(function(a,b){return b-a}).forEach(function(y){
+                var tx=rows[y].sort(function(a,b){return a.x-b.x}).map(function(t){return t.s}).join(' ').replace(/\s+/g,' ').trim();
+                if(tx&&!/^\d{1,3}\.?\s*$/.test(tx)) all.push(tx);
+              });
+              all.push('');
+            });
+          });
+        })(i);
       }
-    }
-
-    function closeAllModals() {
-      document.querySelectorAll('.metro-app-modal').forEach(m => m.classList.remove('active'));
-      document.body.style.overflow = 'auto';
-    }
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeAllModals();
+      return chain.then(function(){return all.join('\n')});
+    }).then(function(txt){
+      pushUndo();
+      S.lines=tok(txt);
+      renderPages();
+      toast('Imported '+file.name,'good');
+      openWriter();
+    }).catch(function(e){
+      toast('PDF read failed: '+e.message,'bad');
     });
-
-    /* ========================================================================= */
-    /* GOOGLE SIGN IN & PERSISTENCE ENGINE                                       */
-    /* ========================================================================= */
-    function handleGoogleSignInToggle() {
-      if (projectState.googleUser.isSignedIn) {
-        projectState.googleUser.isSignedIn = false;
-        projectState.googleUser.email = "";
-        projectState.googleUser.name = "Guest";
-        showToast("Disconnected Google cloud memory path.");
-      } else {
-        const email = prompt("Enter Google Account email to bind memory path:", "screenwriter@carrioncreek.com");
-        if (!email) return;
-        projectState.googleUser.isSignedIn = true;
-        projectState.googleUser.email = email.trim();
-        projectState.googleUser.name = email.split('@')[0];
-        showToast(`Google memory path bound: [${projectState.googleUser.email}]`);
-        saveLocalProductionState();
+  }
+  if(/\.fdx$/.test(n)){
+    return file.text().then(function(x){
+      var d=new DOMParser().parseFromString(x,'text/xml'), ps=d.getElementsByTagName('Paragraph'), out=[];
+      for(var i=0;i<ps.length;i++){
+        var ty=(ps[i].getAttribute('Type')||'Action'), ts=ps[i].getElementsByTagName('Text'), s='';
+        for(var j=0;j<ts.length;j++) s+=ts[j].textContent;
+        s=s.replace(/\s+/g,' ').trim();
+        if(!s) continue;
+        var map={SceneHeading:'SCENE_HEADING',Character:'CHARACTER',Parenthetical:'PARENTHETICAL',Dialogue:'DIALOGUE',Transition:'TRANSITION',Action:'ACTION'};
+        out.push({type:map[ty.replace(/\s+/g,'')]||'ACTION',text:s});
       }
-      updateAuthUIState();
-    }
+      pushUndo();
+      S.lines=out;
+      renderPages();
+      toast('Imported '+file.name,'good');
+      openWriter();
+    });
+  }
+  return file.text().then(function(t){
+    pushUndo();
+    S.lines=tok(t);
+    renderPages();
+    toast('Imported '+file.name,'good');
+    openWriter();
+  });
+}
 
-    function updateAuthUIState() {
-      const label = document.getElementById('txt-google-user-name');
-      const btn = document.getElementById('btn-google-auth-sync');
-      if (projectState.googleUser.isSignedIn) {
-        label.textContent = projectState.googleUser.name;
-        btn.classList.add('border-emerald-600', 'text-emerald-400');
-      } else {
-        label.textContent = "Google Sync";
-        btn.classList.remove('border-emerald-600', 'text-emerald-400');
-      }
-    }
+function pickFile(){
+  var i=document.createElement('input');
+  i.type='file';
+  i.accept='.pdf,.fdx,.fountain,.txt';
+  i.onchange=function(){if(i.files[0])ingest(i.files[0])};
+  i.click();
+}
 
-    function updateAutosaveInterval(minutesStr) {
-      const mins = parseInt(minutesStr, 10) || 2;
-      autosaveTimerDurationSeconds = mins * 60;
-      autosaveRemainingSeconds = autosaveTimerDurationSeconds;
-      showToast(`Autosave interval configured to ${mins} minutes.`);
-    }
-
-    function saveLocalProductionState(silent = false) {
-      syncScriptNodesToState();
-      const storageKey = projectState.googleUser.isSignedIn 
-        ? `prehub_state_user_${projectState.googleUser.email}` 
-        : `prehub_state_default`;
-      
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(projectState));
-        if (!silent) showToast("Production state preserved in memory.");
-      } catch (err) {
-        console.warn("Storage quota fallback:", err);
-      }
-    }
-
-    function loadLocalProductionState() {
-      const storageKey = projectState.googleUser.isSignedIn 
-        ? `prehub_state_user_${projectState.googleUser.email}` 
-        : `prehub_state_default`;
-      
-      const raw = localStorage.getItem(storageKey);
-      if (raw) {
-        try {
-          projectState = JSON.parse(raw);
-          document.getElementById('master-project-title-input').value = projectState.projectTitle || "STELLAR NURSERY";
-          document.getElementById('master-project-author-input').value = projectState.authorName || "PATRICK HALE";
-          updateAuthUIState();
-        } catch (e) {
-          console.warn("Parsing storage failure");
-        }
-      }
-    }
-
-    function downloadSessionJSON() {
-      saveLocalProductionState(true);
-      const jsonStr = JSON.stringify(projectState, null, 2);
-      const blob = new Blob([jsonStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${projectState.projectTitle.replace(/\s+/g, '_')}_MasterSession_${Date.now()}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast("Downloaded session JSON backup.");
-    }
-
-    function loadSessionJSON(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const parsed = JSON.parse(e.target.result);
-          projectState = parsed;
-          document.getElementById('master-project-title-input').value = projectState.projectTitle;
-          document.getElementById('master-project-author-input').value = projectState.authorName;
-          hydrateScreenwriterFromState();
-          renderStoryboardsCards();
-          renderEvaluatorReport();
-          renderCallSheets();
-          renderRadar();
-          renderBudget();
-          updateAuthUIState();
-          showToast("Session JSON hydrated successfully!");
-        } catch (err) {
-          showToast("Invalid JSON file provided.", true);
-        }
+function importDialog(){
+  ask({
+    title:'Import a script',
+    icon:'in',
+    ok:'Use pasted script',
+    fields:[{k:'txt',label:'Paste Fountain, FDX or plain text',type:'textarea',rows:10}],
+    html:'<div style="margin-top:6px;display:flex;gap:8px;align-items:center"><button type="button" class="btn sm" id="pickImportFile">Choose file from disk (.pdf, .fdx, .fountain)</button><span class="tiny muted">Auto-parsed</span></div>'
+  }).then(function(r){
+    if(!r||!r.txt||!r.txt.trim()) return;
+    pushUndo();
+    S.lines=tok(r.txt);
+    renderPages();
+    toast('Script imported','good');
+    openWriter();
+  });
+  setTimeout(function(){
+    var b=$('#pickImportFile');
+    if(b){
+      b.onclick=function(){
+        var d=$('dialog[open]');
+        if(d) d.close();
+        pickFile();
       };
-      reader.readAsText(file);
-      event.target.value = "";
     }
+  },60);
+}
 
-    function syncProjectMetadata() {
-      projectState.projectTitle = document.getElementById('master-project-title-input').value.trim() || "UNTITLED PROJECT";
-      projectState.authorName = document.getElementById('master-project-author-input').value.trim() || "AUTHOR";
-      saveLocalProductionState(true);
+/* screenplay layout and pagination */
+function renderPages(){
+  var stack=$('#paperStack');
+  if(!stack) return;
+  var cursorIdx=getCursorIndex();
+  stack.innerHTML='';
+  
+  var pages=[], curPg=[], units=0, MAX=44;
+  (S.lines||[]).forEach(function(l,idx){
+    var u=1;
+    if(l.type==='SCENE_HEADING') u=3;
+    else if(l.type==='CHARACTER') u=2;
+    else if(l.type==='ACTION') u=Math.max(1,Math.ceil((l.text||'').length/58));
+    else if(l.type==='DIALOGUE') u=Math.max(1,Math.ceil((l.text||'').length/35));
+    
+    if(units+u>MAX && curPg.length>0){
+      pages.push(curPg);
+      curPg=[];
+      units=0;
     }
-
-    /* ========================================================================= */
-    /* SCREENWRITER CORE ENGINE (TILE 1)                                         */
-    /* ========================================================================= */
-    const SCRIPT_ELEMENT_SEQUENCES = ["ACTION", "SCENE_HEADING", "CHARACTER", "PARENTHETICAL", "DIALOGUE", "TRANSITION"];
-
-    function hydrateScreenwriterFromState() {
-      const container = document.getElementById('script-editable-node-rows-stack');
-      container.innerHTML = "";
-      if (!projectState.scriptLines || projectState.scriptLines.length === 0) {
-        parsePlaintextIntoEditor(MASTER_SAMPLE_SCRIPT);
-        return;
-      }
-      projectState.scriptLines.forEach(line => {
-        injectScriptRowNode(line.type, line.text);
-      });
-      recalculateScriptPageCounters();
-    }
-
-    function parsePlaintextIntoEditor(textBlob) {
-      const container = document.getElementById('script-editable-node-rows-stack');
-      container.innerHTML = "";
-      const rawLines = textBlob.split('\n');
-      let speakerActive = false;
-
-      rawLines.forEach(l => {
-        const t = l.trim();
-        if (!t) {
-          speakerActive = false;
-          return;
-        }
-
-        let type = "ACTION";
-        if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(t)) {
-          type = "SCENE_HEADING";
-          speakerActive = false;
-        } else if (/^(FADE IN:|FADE OUT\.|CUT TO:|SMASH CUT TO:|DISSOLVE TO:)/i.test(t) || t.endsWith(" TO:")) {
-          type = "TRANSITION";
-          speakerActive = false;
-        } else if (t.startsWith("(") && t.endsWith(")")) {
-          type = "PARENTHETICAL";
-        } else if (t === t.toUpperCase() && t.length < 35 && !t.endsWith(":") && !/^\d+$/.test(t)) {
-          type = "CHARACTER";
-          speakerActive = true;
-        } else if (speakerActive) {
-          type = "DIALOGUE";
-        } else {
-          type = "ACTION";
-          speakerActive = false;
-        }
-
-        injectScriptRowNode(type, t);
-      });
-
-      syncScriptNodesToState();
-      recalculateScriptPageCounters();
-    }
-
-    function injectScriptRowNode(elementType, textContent = "", insertIndex = null) {
-      const container = document.getElementById('script-editable-node-rows-stack');
-      const row = document.createElement('div');
-      row.className = "script-line-row group";
-
-      const box = document.createElement('div');
-      box.contentEditable = "true";
-      box.className = `line-editable-box ${getStyleClassForElementType(elementType)}`;
-      box.innerText = textContent;
-      box.setAttribute('data-element-type', elementType);
-      box.setAttribute('data-placeholder', getPlaceholderForType(elementType));
-
-      row.appendChild(box);
-
-      box.addEventListener('keydown', (e) => handleScriptKeyboardRules(e, row, box));
-      box.addEventListener('input', () => {
-        recalculateScriptPageCounters();
-      });
-      box.addEventListener('focus', () => {
-        document.getElementById('ui-screenplay-element-badge').textContent = box.getAttribute('data-element-type');
-      });
-
-      if (insertIndex !== null && container.children[insertIndex]) {
-        container.insertBefore(row, container.children[insertIndex]);
-      } else {
-        container.appendChild(row);
-      }
-      return box;
-    }
-
-    function getStyleClassForElementType(type) {
-      switch (type) {
-        case "SCENE_HEADING": return "element-scene-heading";
-        case "ACTION": return "element-action";
-        case "CHARACTER": return "element-character";
-        case "PARENTHETICAL": return "element-parenthetical";
-        case "DIALOGUE": return "element-dialogue";
-        case "TRANSITION": return "element-transition";
-        default: return "element-action";
-      }
-    }
-
-    function getPlaceholderForType(type) {
-      switch (type) {
-        case "SCENE_HEADING": return "INT. LOCATION - DAY";
-        case "CHARACTER": return "CHARACTER NAME";
-        case "PARENTHETICAL": return "(whispering)";
-        case "DIALOGUE": return "Spoken dialogue line...";
-        case "TRANSITION": return "CUT TO:";
-        default: return "Action and physical description...";
-      }
-    }
-
-    function handleScriptKeyboardRules(event, row, box) {
-      const currentType = box.getAttribute('data-element-type') || "ACTION";
-      const container = document.getElementById('script-editable-node-rows-stack');
-      const currentIndex = Array.from(container.children).indexOf(row);
-
-      if (event.key === "Tab") {
-        event.preventDefault();
-        const step = event.shiftKey ? -1 : 1;
-        let nextIdx = (SCRIPT_ELEMENT_SEQUENCES.indexOf(currentType) + step + SCRIPT_ELEMENT_SEQUENCES.length) % SCRIPT_ELEMENT_SEQUENCES.length;
-        let nextType = SCRIPT_ELEMENT_SEQUENCES[nextIdx];
-
-        box.className = `line-editable-box ${getStyleClassForElementType(nextType)}`;
-        box.setAttribute('data-element-type', nextType);
-        box.setAttribute('data-placeholder', getPlaceholderForType(nextType));
-        document.getElementById('ui-screenplay-element-badge').textContent = nextType;
-        return;
-      }
-
-      if (event.key === "Enter") {
-        event.preventDefault();
-        let nextType = "ACTION";
-        if (currentType === "CHARACTER") nextType = "DIALOGUE";
-        else if (currentType === "DIALOGUE") nextType = "ACTION";
-        else if (currentType === "SCENE_HEADING") nextType = "ACTION";
-        else if (currentType === "PARENTHETICAL") nextType = "DIALOGUE";
-
-        const newBox = injectScriptRowNode(nextType, "", currentIndex + 1);
-        if (newBox) newBox.focus();
-        recalculateScriptPageCounters();
-        return;
-      }
-
-      if (event.key === "Backspace" && box.textContent.length === 0) {
-        event.preventDefault();
-        if (container.children.length > 1 && currentIndex > 0) {
-          const prevRow = container.children[currentIndex - 1];
-          row.remove();
-          recalculateScriptPageCounters();
-          if (prevRow) {
-            const prevBox = prevRow.querySelector('.line-editable-box');
-            if (prevBox) prevBox.focus();
-          }
-        }
-      }
-    }
-
-    function syncScriptNodesToState() {
-      const container = document.getElementById('script-editable-node-rows-stack');
-      const lines = [];
-      Array.from(container.children).forEach(row => {
-        const box = row.querySelector('.line-editable-box');
-        if (box) {
-          lines.push({
-            type: box.getAttribute('data-element-type') || "ACTION",
-            text: box.innerText.trim()
-          });
-        }
-      });
-      projectState.scriptLines = lines;
-    }
-
-    function recalculateScriptPageCounters() {
-      const container = document.getElementById('script-editable-node-rows-stack');
-      const count = container.children.length;
-      const pageCount = Math.max(1, Math.ceil(count / 24));
-      document.getElementById('ui-script-page-count').textContent = pageCount;
-    }
-
-    function executeSelectAllScript() {
-      const container = document.getElementById('script-editable-node-rows-stack');
-      const range = document.createRange();
-      range.selectNodeContents(container);
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-      showToast("Selected all screenplay lines.");
-    }
-
-    function executeCopyScript() {
-      const sel = window.getSelection();
-      const txt = sel.toString();
-      if (txt) {
-        copyTextViaFallback(txt);
-        showToast("Copied selection to clipboard!");
-      } else {
-        syncScriptNodesToState();
-        const full = projectState.scriptLines.map(l => l.text).join('\n\n');
-        copyTextViaFallback(full);
-        showToast("Copied full screenplay to clipboard!");
-      }
-    }
-
-    function copyTextViaFallback(str) {
-      const ta = document.createElement("textarea");
-      ta.value = str;
-      ta.style.position = "fixed";
-      ta.style.left = "-9999px";
-      document.body.appendChild(ta);
-      ta.focus();
-      ta.select();
-      try { document.execCommand('copy'); } catch(e) {}
-      document.body.removeChild(ta);
-    }
-
-    function executePasteScript() {
-      const pasteText = prompt("Paste raw screenplay lines to append:");
-      if (pasteText && pasteText.trim()) {
-        const lines = pasteText.split('\n').filter(l => l.trim());
-        lines.forEach(l => injectScriptRowNode("ACTION", l.trim()));
-        recalculateScriptPageCounters();
-        showToast(`Pasted ${lines.length} script elements.`);
-      }
-    }
-
-    function applyScriptJustification(alignCode) {
-      const sel = window.getSelection();
-      let box = null;
-      if (sel && sel.anchorNode) {
-        box = sel.anchorNode.nodeType === 1 
-          ? sel.anchorNode.closest('.line-editable-box')
-          : sel.anchorNode.parentElement.closest('.line-editable-box');
-      }
-      if (box) {
-        box.style.textAlign = alignCode;
-        showToast(`Element alignment set to: ${alignCode.toUpperCase()}`);
-      } else {
-        document.getElementById('script-editable-node-rows-stack').style.textAlign = alignCode;
-        showToast(`Full script set to: ${alignCode.toUpperCase()}`);
-      }
-    }
-
-    function toggleDualDialogueSetup() {
-      const container = document.getElementById('script-editable-node-rows-stack');
-      const rows = Array.from(container.children);
-      if (rows.length < 2) return showToast("Select or create at least two lines for dual dialogue.", true);
-
-      const wrapper = document.createElement('div');
-      wrapper.className = "dual-dialogue-wrapper";
-      const colL = document.createElement('div');
-      colL.className = "dual-dialogue-col";
-      const colR = document.createElement('div');
-      colR.className = "dual-dialogue-col";
-
-      const r1 = rows[0];
-      const r2 = rows[1];
-      container.insertBefore(wrapper, r1);
-      colL.appendChild(r1);
-      colR.appendChild(r2);
-      wrapper.appendChild(colL);
-      wrapper.appendChild(colR);
-      showToast("Formatted dual dialogue block.");
-    }
-
-    function executeReformatAndSyncScript() {
-      syncScriptNodesToState();
-      const compiled = projectState.scriptLines.map(l => l.text).join('\n');
-      parsePlaintextIntoEditor(compiled);
-      showToast("Screenplay reformatted and synced to AST rules!");
-    }
-
-    function runScriptSpellAndLintSweep(force = false) {
-      showToast("Grammar and syntax sweep verified clean.");
-    }
-
-    function executeQuickPdfPrint() {
-      showToast("Generating production PDF...");
-      setTimeout(() => window.print(), 150);
-    }
-
-    /* ========================================================================= */
-    /* UNIVERSAL SCRIPT INGESTION ENGINE (PDF / FDX / JSON / TXT)                */
-    /* ========================================================================= */
-    function triggerUniversalScriptIngest() {
-      document.getElementById('universal-file-picker-input').click();
-    }
-
-    document.getElementById('universal-file-picker-input').addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      showToast(`Ingesting ${file.name}...`);
-
-      const name = file.name.toLowerCase();
-      if (name.endsWith('.pdf')) {
-        await parsePdfScript(file);
-      } else if (name.endsWith('.fdx')) {
-        await parseFdxScript(file);
-      } else if (name.endsWith('.json')) {
-        await parseJsonScript(file);
-      } else {
-        const text = await file.text();
-        parsePlaintextIntoEditor(text);
-        showToast(`Ingested plain text screenplay: ${file.name}`);
-      }
-      e.target.value = "";
+    curPg.push({l:l,idx:idx});
+    units+=u;
+  });
+  if(curPg.length||!pages.length) pages.push(curPg);
+  
+  pages.forEach(function(pgLines,pnum){
+    var sheet=document.createElement('div');
+    sheet.className='page-sheet';
+    sheet.innerHTML='<div class="page-num">'+(pnum>0?(pnum+1)+'.':'')+'</div><div class="page-content" data-p="'+pnum+'"></div>';
+    var pc=sheet.querySelector('.page-content');
+    
+    pgLines.forEach(function(item){
+      var el=document.createElement('div');
+      el.className='ln '+(CLS[item.l.type]||'t-act');
+      el.contentEditable='true';
+      el.textContent=item.l.text||'';
+      el.setAttribute('data-idx',item.idx);
+      el.setAttribute('data-t',item.l.type);
+      if(item.l.al) el.setAttribute('data-al',item.l.al);
+      wireLine(el);
+      pc.appendChild(el);
     });
+    stack.appendChild(sheet);
+  });
+  
+  restoreCursor(cursorIdx);
+  updateBadge();
+  buildSceneList();
+}
 
-    async function parsePdfScript(file) {
-      try {
-        const buffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-        let extractedTokens = [];
+function getCursorIndex(){
+  var sel=window.getSelection();
+  if(!sel||!sel.rangeCount) return null;
+  var el=sel.anchorNode;
+  while(el&&(!el.classList||!el.classList.contains('ln'))) el=el.parentNode;
+  if(el&&el.hasAttribute('data-idx')) return {idx:+el.getAttribute('data-idx'),offset:sel.anchorOffset};
+  return null;
+}
 
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const content = await page.getTextContent();
-          content.items.forEach(item => {
-            if (item.str && item.str.trim()) {
-              extractedTokens.push(item.str.trim());
-            }
-          });
-        }
-        parsePlaintextIntoEditor(extractedTokens.join('\n'));
-        showToast(`Ingested PDF (${pdf.numPages} pages)`);
-      } catch (err) {
-        showToast("Error extracting PDF text stream.", true);
+function restoreCursor(info){
+  if(!info) return;
+  var target=$('.ln[data-idx="'+info.idx+'"]');
+  if(target){
+    try{
+      var r=document.createRange(), s=window.getSelection();
+      var node=target.firstChild||target;
+      var max=(node.nodeValue||'').length;
+      r.setStart(node,Math.min(info.offset,max));
+      r.collapse(true);
+      s.removeAllRanges();
+      s.addRange(r);
+    }catch(e){}
+  }
+}
+
+function wireLine(el){
+  el.addEventListener('focus',function(){updateBadge()});
+  el.addEventListener('input',function(){
+    var idx=+el.getAttribute('data-idx');
+    if(S.lines[idx]){
+      S.lines[idx].text=el.textContent;
+      saveSoon();
+    }
+  });
+  el.addEventListener('keydown',function(e){
+    var idx=+el.getAttribute('data-idx');
+    if(e.key==='Tab'){
+      e.preventDefault();
+      pushUndo();
+      var cur=S.lines[idx].type;
+      var nxt=TYPES[(TYPES.indexOf(cur)+(e.shiftKey?-1:1)+TYPES.length)%TYPES.length];
+      S.lines[idx].type=nxt;
+      if(nxt==='SCENE_HEADING'||nxt==='CHARACTER'||nxt==='TRANSITION') S.lines[idx].text=S.lines[idx].text.toUpperCase();
+      renderPages();
+    }else if(e.key==='Enter'){
+      e.preventDefault();
+      pushUndo();
+      var curT=S.lines[idx].type, nxT=NX[curT]||'ACTION';
+      var sel=window.getSelection(), carry='';
+      if(sel&&sel.rangeCount){
+        var full=el.textContent, offset=sel.getRangeAt(0).endOffset;
+        carry=full.slice(offset);
+        S.lines[idx].text=full.slice(0,offset);
       }
-    }
-
-    async function parseFdxScript(file) {
-      try {
-        const text = await file.text();
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(text, "text/xml");
-        const paragraphs = xml.getElementsByTagName("Paragraph");
-        let scriptLines = [];
-
-        for (let i = 0; i < paragraphs.length; i++) {
-          const p = paragraphs[i];
-          const textNodes = p.getElementsByTagName("Text");
-          let lineText = "";
-          for (let j = 0; j < textNodes.length; j++) {
-            lineText += textNodes[j].textContent;
-          }
-          if (lineText.trim()) scriptLines.push(lineText.trim());
-        }
-        parsePlaintextIntoEditor(scriptLines.join('\n'));
-        showToast(`Ingested Final Draft XML (${paragraphs.length} paragraphs)`);
-      } catch (err) {
-        showToast("Error parsing FDX document.", true);
+      S.lines.splice(idx+1,0,{type:nxT,text:carry});
+      renderPages();
+      var nextEl=$('.ln[data-idx="'+(idx+1)+'"]');
+      if(nextEl){
+        nextEl.focus();
+        var r=document.createRange(), s=window.getSelection();
+        r.setStart(nextEl,0);r.collapse(true);
+        s.removeAllRanges();s.addRange(r);
       }
-    }
-
-    async function parseJsonScript(file) {
-      try {
-        const text = await file.text();
-        const data = JSON.parse(text);
-        let extractedLines = [];
-
-        if (data.script && Array.isArray(data.script.lines)) {
-          data.script.lines.forEach(l => extractedLines.push(l.value || l.text || ""));
-        } else if (Array.isArray(data.lines)) {
-          data.lines.forEach(l => extractedLines.push(l.text || l.value || ""));
-        } else if (Array.isArray(data.scriptLines)) {
-          data.scriptLines.forEach(l => extractedLines.push(l.text || ""));
-        }
-        parsePlaintextIntoEditor(extractedLines.join('\n'));
-        showToast(`Ingested WriterDuet JSON`);
-      } catch (err) {
-        showToast("Error parsing JSON script.", true);
+    }else if(e.key==='Backspace'&&el.textContent.length===0&&S.lines.length>1&&idx>0){
+      e.preventDefault();
+      pushUndo();
+      S.lines.splice(idx,1);
+      renderPages();
+      var prevEl=$('.ln[data-idx="'+(idx-1)+'"]');
+      if(prevEl){
+        prevEl.focus();
+        var r2=document.createRange(), s2=window.getSelection();
+        r2.selectNodeContents(prevEl);r2.collapse(false);
+        s2.removeAllRanges();s2.addRange(r2);
       }
+    }else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){
+      e.preventDefault();
+      if(e.shiftKey) doRedo(); else doUndo();
+    }else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){
+      e.preventDefault();
+      doRedo();
     }
+  });
+}
 
-    /* ========================================================================= */
-    /* EVALUATOR STUDIO ENGINE (TILE 2)                                          */
-    /* ========================================================================= */
-    function renderEvaluatorReport() {
-      const scoresGrid = document.getElementById('evaluator-scores-grid');
-      const prose = document.getElementById('evaluator-report-prose');
-      syncScriptNodesToState();
+function updateBadge(){
+  var el=document.activeElement;
+  while(el&&(!el.classList||!el.classList.contains('ln'))) el=el.parentNode;
+  var b=$('#curBadge');
+  if(b){
+    var t=el?el.getAttribute('data-t'):'ACTION';
+    b.textContent='ELEMENT: '+(t||'ACTION').replace('_',' ');
+  }
+}
 
-      const totalLines = projectState.scriptLines.length || 12;
-      const headings = projectState.scriptLines.filter(l => l.type === "SCENE_HEADING").length || 2;
-      const characters = projectState.scriptLines.filter(l => l.type === "CHARACTER").length || 2;
+function cycleElement(){
+  var el=document.activeElement;
+  while(el&&(!el.classList||!el.classList.contains('ln'))) el=el.parentNode;
+  if(!el){var all=$$('.ln');el=all.length?all[all.length-1]:null}
+  if(el){
+    var idx=+el.getAttribute('data-idx');
+    pushUndo();
+    var cur=S.lines[idx].type, nxt=TYPES[(TYPES.indexOf(cur)+1)%TYPES.length];
+    S.lines[idx].type=nxt;
+    if(nxt==='SCENE_HEADING'||nxt==='CHARACTER'||nxt==='TRANSITION') S.lines[idx].text=S.lines[idx].text.toUpperCase();
+    renderPages();
+  }
+}
 
-      const scores = [
-        { label: "CHARACTER", val: 8.5 },
-        { label: "PLOT", val: headings > 5 ? 7.8 : 8.8 },
-        { label: "DIALOGUE", val: 8.2 },
-        { label: "ORIGINALITY", val: 9.0 },
-        { label: "ENGAGEMENT", val: 8.9 }
-      ];
+function alignActive(al){
+  var el=document.activeElement;
+  while(el&&(!el.classList||!el.classList.contains('ln'))) el=el.parentNode;
+  if(el){
+    var idx=+el.getAttribute('data-idx');
+    pushUndo();
+    S.lines[idx].al=al;
+    renderPages();
+  }
+}
 
-      scoresGrid.innerHTML = scores.map(s => `
-        <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 text-center space-y-1">
-          <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider font-mono">${s.label}</span>
-          <div class="text-xl font-extrabold text-white">${s.val}<span class="text-[10px] text-slate-600 font-normal">/10</span></div>
-          <div class="w-full bg-slate-950 h-1 rounded-full overflow-hidden">
-            <div class="bg-emerald-500 h-full" style="width: ${s.val * 10}%"></div>
-          </div>
-        </div>
-      `).join('');
+function transformCase(mode){
+  var el=document.activeElement;
+  while(el&&(!el.classList||!el.classList.contains('ln'))) el=el.parentNode;
+  if(el){
+    var idx=+el.getAttribute('data-idx');
+    pushUndo();
+    S.lines[idx].text=mode==='up'?S.lines[idx].text.toUpperCase():S.lines[idx].text.toLowerCase();
+    renderPages();
+  }
+}
 
-      prose.innerHTML = `
-        <p><strong>Script Geometry:</strong> The screenplay features <strong>${headings} verified scene headings</strong> and <strong>${characters} vocal characters</strong>. Scene execution velocity is optimized for immediate cinematic production.</p>
-        <p><strong>Environmental Grounding:</strong> Scene environments sustain dramatic momentum without over-elaborate stage directions. Tone balances psychological dread with forward narrative tension.</p>
-      `;
+var st=null;
+function saveSoon(){
+  clearTimeout(st);
+  st=setTimeout(function(){save(true)},600);
+}
+
+function buildSceneList(){
+  var host=$('#dlist');
+  if(!host) return;
+  var sc=[];
+  S.lines.forEach(function(l,i){if(l.type==='SCENE_HEADING')sc.push({idx:i,head:l.text})});
+  host.innerHTML=sc.map(function(s,i){
+    return '<div class="dsc" data-go="'+s.idx+'"><span class="n">'+(i+1)+'</span><span class="s">'+esc(s.head)+'</span></div>';
+  }).join('')||'<div class="dsc"><span class="s">No scenes yet</span></div>';
+  $$('[data-go]',host).forEach(function(el){
+    el.onclick=function(){
+      var idx=+this.getAttribute('data-go');
+      var target=$('.ln[data-idx="'+idx+'"]');
+      if(target){target.scrollIntoView({block:'center'});target.focus()}
+    };
+  });
+  var p=$('#pagePill');
+  if(p) p.textContent=$$('.page-sheet').length+' page'+($$('.page-sheet').length===1?'':'s');
+}
+
+function togglePane(id){
+  var p=$(id);
+  if(!p) return;
+  p.classList.toggle('collapsed');
+}
+/* menubar commands */
+function buildMenu(){
+  var host=$('#phMenu');
+  if(!host||host.children.length) return;
+  var menus=[
+    ['File',[['Save','file-save'],['Import a script...','file-import'],['Export Fountain','file-export'],['Print / PDF','file-print'],['Close','file-close']]],
+    ['Edit',[['Undo (Ctrl+Z)','edit-undo'],['Redo (Ctrl+Y)','edit-redo'],['UPPERCASE','edit-up'],['lowercase','edit-low']]],
+    ['Format',[['Scene Heading','fmt-SCENE_HEADING'],['Action','fmt-ACTION'],['Character','fmt-CHARACTER'],['Parenthetical','fmt-PARENTHETICAL'],['Dialogue','fmt-DIALOGUE'],['Transition','fmt-TRANSITION']]],
+    ['View',[['Toggle Scenes (F2)','view-scenes'],['Toggle Breakdown (F3)','view-breakdown'],['Zen Mode (F4)','view-zen']]],
+    ['Tools',[['Grammar & Formatting Scan','tools-gram'],['Reset Panels','tools-reset']]],
+    ['Production',[['Transmit to proHUB','prod-transmit']]]
+  ];
+  host.innerHTML='<div class="mbar">'+menus.map(function(m){
+    return '<div class="mwrap"><button type="button" class="mbtn" data-m="'+m[0]+'">'+m[0]+'</button><div class="mmenu">'+
+      m[1].map(function(it){return '<button type="button" class="mi" data-act="'+it[1]+'">'+it[0]+'</button>'}).join('')+'</div></div>';
+  }).join('')+'</div>';
+  
+  $$('.mbtn',host).forEach(function(b){
+    b.onclick=function(e){
+      e.stopPropagation();
+      var w=b.parentNode, o=w.classList.contains('open');
+      $$('.mwrap').forEach(function(x){x.classList.remove('open')});
+      if(!o) w.classList.add('open');
+    };
+  });
+  $$('.mi',host).forEach(function(mi){
+    mi.onclick=function(){
+      menuAction(mi.getAttribute('data-act'));
+      $$('.mwrap').forEach(function(x){x.classList.remove('open')});
+    };
+  });
+  document.addEventListener('click',function(){$$('.mwrap').forEach(function(x){x.classList.remove('open')})});
+}
+
+function menuAction(act){
+  if(act==='file-save'){save(true);toast('Saved','good')}
+  else if(act==='file-import'){importDialog()}
+  else if(act==='file-export'){dl(((S.project.title||'script')+'.fountain').replace(/\s+/g,'_'),scriptFountain(),'text/plain')}
+  else if(act==='file-print'){window.print()}
+  else if(act==='file-close'){$('#btnX').click()}
+  else if(act==='edit-undo'){doUndo()}
+  else if(act==='edit-redo'){doRedo()}
+  else if(act==='edit-up'){transformCase('up')}
+  else if(act==='edit-low'){transformCase('low')}
+  else if(act.indexOf('fmt-')===0){
+    var t=act.slice(4);
+    var el=document.activeElement;
+    while(el&&(!el.classList||!el.classList.contains('ln'))) el=el.parentNode;
+    if(el){
+      var idx=+el.getAttribute('data-idx');
+      pushUndo();
+      S.lines[idx].type=t;
+      renderPages();
     }
+  }
+  else if(act==='view-scenes'){togglePane('#dpaneLeft')}
+  else if(act==='view-breakdown'){togglePane('#dpaneRight')}
+  else if(act==='view-zen'){
+    var l=$('#dpaneLeft'), r=$('#dpaneRight');
+    var both=l.classList.contains('collapsed')&&r.classList.contains('collapsed');
+    if(both){l.classList.remove('collapsed');r.classList.remove('collapsed')}
+    else{l.classList.add('collapsed');r.classList.add('collapsed')}
+  }
+  else if(act==='tools-gram'){
+    var p=$('#dpaneRight');
+    if(p) p.classList.remove('collapsed');
+    runGrammarScan();
+  }
+  else if(act==='tools-reset'){
+    var l2=$('#dpaneLeft'), r2=$('#dpaneRight');
+    if(l2) l2.classList.add('collapsed');
+    if(r2) r2.classList.add('collapsed');
+    toast('Panels reset to default hidden','good');
+  }
+  else if(act==='prod-transmit'){transmit()}
+}
 
-    function runHeuristicCoverageSweep() {
-      renderEvaluatorReport();
-      showToast("Re-computed 5-axis coverage heuristics.");
-    }
+function scriptFountain(){
+  return (S.lines||[]).map(function(l){
+    if(l.type==='SCENE_HEADING') return '\n'+l.text.toUpperCase()+'\n';
+    if(l.type==='CHARACTER') return '\n'+l.text.toUpperCase();
+    if(l.type==='PARENTHETICAL') return '('+l.text.replace(/^\(|\)$/g,'')+')';
+    if(l.type==='TRANSITION') return '\n'+l.text.toUpperCase()+'\n';
+    return l.text;
+  }).join('\n');
+}
 
-    /* ========================================================================= */
-    /* STORYBOARD STUDIO (TILE 4)                                                */
-    /* ========================================================================= */
-    function generateStoryboardsFromActiveScript() {
-      syncScriptNodesToState();
-      const headings = projectState.scriptLines.filter(l => l.type === "SCENE_HEADING");
-      
-      let newCards = [];
-      let count = 1;
-      headings.forEach(h => {
-        newCards.push({
-          id: count++,
-          scene: h.text,
-          shot: "WIDE ESTABLISHING",
-          rule: "Rule 1: Master Establishing",
-          desc: `Establish geographic layout of ${h.text}`
-        });
-        newCards.push({
-          id: count++,
-          scene: h.text,
-          shot: "MEDIUM CLOSE-UP",
-          rule: "Rule 2: Kinetic Motion",
-          desc: `Primary character engagement beat in ${h.text}`
-        });
+function transmit(){
+  var p={
+    origin:'preHUB',
+    target:'proHUB',
+    projectName:S.project.title,
+    writerName:S.project.writer,
+    lines:S.lines,
+    budget:S.budget,
+    ts:new Date().toISOString()
+  };
+  try{localStorage.setItem('prehub_master_v1',JSON.stringify(p))}catch(e){}
+  toast('Handed off to proHUB','good');
+}
+
+/* grammar & punctuation scan */
+function runGrammarScan(){
+  var box=$('#dinsp');
+  if(!box) return;
+  var L=S.lines||[], hits=[];
+  for(var i=0;i<L.length;i++){
+    var t=L[i].text||'', ty=L[i].type;
+    if(/\b([A-Za-z']+)\s+\1\b/i.test(t)) hits.push({i:i,rule:'Repeated word',t:t});
+    if(/  +/.test(t)) hits.push({i:i,rule:'Double space',t:t});
+    if(/[.,!?](?=[A-Za-z])/.test(t)) hits.push({i:i,rule:'Missing space after punctuation',t:t});
+    if(ty==='ACTION'&&/(^|[.!?]\s+)[a-z]/.test(t)) hits.push({i:i,rule:'Sentence starts lowercase',t:t});
+    if(ty==='SCENE_HEADING'&&!/\s[-\u2013]\s*(DAY|NIGHT|DUSK|DAWN|MORNING|AFTERNOON|EVENING|CONTINUOUS|LATER|SAME TIME)/i.test(t)) hits.push({i:i,rule:'No time of day',t:t});
+    if(ty==='CHARACTER'&&!(L[i+1]&&(L[i+1].type==='DIALOGUE'||L[i+1].type==='PARENTHETICAL'))) hits.push({i:i,rule:'Cue without dialogue',t:t});
+    if(ty==='DIALOGUE'&&/\(.*\)/.test(t)) hits.push({i:i,rule:'Dialogue contains parens',t:t});
+  }
+  
+  box.innerHTML='<div style="font-family:var(--fm);font-size:11px;color:var(--gold);margin-bottom:8px">GRAMMAR &amp; FORMATTING SCAN</div>'+
+    '<div class="tiny muted" style="margin-bottom:8px">'+hits.length+' potential issue'+(hits.length===1?'':'s')+' flagged</div>'+
+    (hits.length?hits.map(function(h){
+      return '<div style="padding:6px 0;border-bottom:1px solid rgba(27,36,54,.7);cursor:pointer" data-hit="'+h.i+'">'+
+        '<b style="color:var(--amber);font-size:11px">'+esc(h.rule)+'</b>'+
+        '<span style="display:block;font-size:11px;color:#C6D1DC;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(h.t)+'</span>'+
+        '</div>';
+    }).join(''):'<p class="tiny muted">No formatting issues detected.</p>');
+    
+  $$('[data-hit]',box).forEach(function(el){
+    el.onclick=function(){
+      var idx=+this.getAttribute('data-hit');
+      var target=$('.ln[data-idx="'+idx+'"]');
+      if(target){target.scrollIntoView({block:'center'});target.focus()}
+    };
+  });
+}
+
+/* breakdown asset tagger */
+var T_ASSETS={
+  props:['gun','knife','cleaver','phone','badge','bottle','keys','glass','mirror','wallet','notebook'],
+  sound:['slam','crash','bang','whisper','whir','screech','thud','boom','engine','knock'],
+  wardrobe:['coat','jacket','blazer','gloves','boots','dress','suit','uniform','hat','scarf']
+};
+function runBreakdownTag(){
+  var box=$('#dinsp');
+  if(!box) return;
+  var counts={props:{},sound:{},wardrobe:{}};
+  (S.lines||[]).forEach(function(l){
+    var s=(l.text||'').toLowerCase();
+    Object.keys(T_ASSETS).forEach(function(cat){
+      T_ASSETS[cat].forEach(function(word){
+        var rx=new RegExp('\\b'+word+'\\b','i');
+        if(rx.test(s)) counts[cat][word]=(counts[cat][word]||0)+1;
       });
-
-      if (newCards.length > 0) {
-        projectState.storyboardCards = newCards;
-      }
-      renderStoryboardsCards();
-      showToast(`Generated ${projectState.storyboardCards.length} 6-Rule storyboard setups.`);
-    }
-
-    function renderStoryboardsCards() {
-      const grid = document.getElementById('storyboard-frames-matrix-grid');
-      if (!grid) return;
-      grid.innerHTML = projectState.storyboardCards.map(c => `
-        <div class="bg-slate-950 border border-slate-800 rounded-lg overflow-hidden flex flex-col justify-between shadow-xl">
-          <div class="p-2.5 bg-slate-900 border-b border-slate-800 flex justify-between items-center text-xs font-mono">
-            <span class="text-orange-400 font-bold">FRAME #${c.id.toString().padStart(2, '0')}</span>
-            <span class="text-[10px] bg-orange-950/60 text-orange-300 border border-orange-800/60 px-2 py-0.5 rounded font-bold uppercase">${c.shot}</span>
-          </div>
-          <div class="w-full aspect-video bg-black relative flex items-center justify-center border-b border-slate-900">
-            <canvas class="w-full h-full cursor-crosshair" id="canvas-card-${c.id}" width="380" height="214"></canvas>
-            <div class="absolute bottom-2 right-2 flex gap-1">
-              <button onclick="clearCardCanvas(${c.id})" class="px-2 py-0.5 bg-slate-900/80 hover:bg-slate-800 text-slate-400 text-[10px] rounded border border-slate-700">Clear</button>
-            </div>
-          </div>
-          <div class="p-3 text-xs space-y-1.5 font-mono">
-            <div class="text-[10px] text-amber-400 font-bold uppercase">${c.rule}</div>
-            <div class="text-white font-bold truncate">${c.scene}</div>
-            <p class="text-slate-400 text-[11px] leading-relaxed font-sans">${c.desc}</p>
-          </div>
-        </div>
-      `).join('');
-
-      initCanvasDrawers();
-    }
-
-    function initCanvasDrawers() {
-      projectState.storyboardCards.forEach(c => {
-        const cv = document.getElementById(`canvas-card-${c.id}`);
-        if (!cv) return;
-        const ctx = cv.getContext('2d');
-        let drawing = false;
-
-        cv.onmousedown = (e) => { drawing = true; ctx.beginPath(); ctx.moveTo(e.offsetX, e.offsetY); };
-        cv.onmousemove = (e) => { if (!drawing) return; ctx.lineTo(e.offsetX, e.offsetY); ctx.strokeStyle = "#FA6800"; ctx.lineWidth = 2; ctx.stroke(); };
-        cv.onmouseup = () => drawing = false;
-      });
-    }
-
-    function clearCardCanvas(id) {
-      const cv = document.getElementById(`canvas-card-${id}`);
-      if (cv) {
-        const ctx = cv.getContext('2d');
-        ctx.clearRect(0, 0, cv.width, cv.height);
-      }
-    }
-
-    function addNewBlankStoryboardCard() {
-      const nextId = projectState.storyboardCards.length + 1;
-      projectState.storyboardCards.push({
-        id: nextId,
-        scene: "NEW SCENE SETUP",
-        shot: "CLOSE-UP",
-        rule: "Rule 5: Emotional Focus",
-        desc: "Custom director framing setup."
-      });
-      renderStoryboardsCards();
-    }
-
-    /* ========================================================================= */
-    /* CALL SHEETS & SUPPORTING MODALS                                           */
-    /* ========================================================================= */
-    function renderCallSheets() {
-      const pane = document.getElementById('callsheet-content-pane');
-      pane.innerHTML = `
-        <div class="bg-black/60 border border-slate-800 p-4 rounded-lg flex justify-between items-center font-mono">
-          <div>
-            <div class="text-xs text-emerald-400 font-bold">CARRION CREEK PRODUCTIONS // CALL SHEET</div>
-            <h2 class="text-xl font-black text-white">DAY ${activeCallSheetDay} OF 2 // ${projectState.projectTitle}</h2>
-          </div>
-          <div class="text-right text-xs">
-            <span class="text-amber-400 font-bold">CALL: 09:00 AM</span>
-          </div>
-        </div>
-        <div class="bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono text-xs">
-          <h4 class="text-slate-400 font-bold uppercase mb-2">Crew Call Times</h4>
-          ${projectState.crewRoster.map(c => `<div class="flex justify-between py-1 border-b border-slate-900"><span>${c.name} (${c.role})</span><strong class="text-white">${c.call}</strong></div>`).join('')}
-        </div>
-      `;
-    }
-
-    function switchCallSheetDay(day) {
-      activeCallSheetDay = day;
-      document.getElementById('btn-cs-day1').className = day === 1 ? "px-3 py-1 rounded text-xs font-mono font-bold bg-[#00ABA9] text-black" : "px-3 py-1 rounded text-xs font-mono font-bold bg-slate-900 text-slate-300";
-      document.getElementById('btn-cs-day2').className = day === 2 ? "px-3 py-1 rounded text-xs font-mono font-bold bg-[#00ABA9] text-black" : "px-3 py-1 rounded text-xs font-mono font-bold bg-slate-900 text-slate-300";
-      renderCallSheets();
-    }
-
-    function renderRadar() {
-      const tbody = document.getElementById('radar-crew-tbody');
-      tbody.innerHTML = projectState.crewRoster.map(c => `
-        <tr class="hover:bg-slate-900/50">
-          <td class="p-2 text-amber-400 font-bold">${c.id}</td>
-          <td class="p-2 text-white font-bold">${c.name}</td>
-          <td class="p-2 text-slate-400">${c.role}</td>
-          <td class="p-2 text-slate-300">${c.call}</td>
-          <td class="p-2 text-emerald-400 font-bold">${c.inTime}</td>
-          <td class="p-2 text-center text-emerald-400 font-bold">${c.status}</td>
-        </tr>
-      `).join('');
-    }
-
-    function renderBudget() {
-      const tbody = document.getElementById('budget-items-tbody');
-      tbody.innerHTML = projectState.budgetLines.map(b => `
-        <tr>
-          <td class="p-2 text-white font-bold">${b.item}</td>
-          <td class="p-2 text-emerald-400 font-mono font-bold">$${b.cost.toLocaleString()}.00</td>
-          <td class="p-2 text-center text-amber-400">${b.status}</td>
-        </tr>
-      `).join('');
-    }
-
-    function promptUnlockBudget() {
-      const pass = prompt("Enter financial passphrase:", "fidelio");
-      if (pass && pass.toLowerCase() === "fidelio") {
-        showToast("Budget access verified.");
-      } else {
-        showToast("Access Denied.", true);
-      }
-    }
-
-    /* ========================================================================= */
-    /* NOTIFICATIONS & TIMERS                                                    */
-    /* ========================================================================= */
-    function showToast(message, isError = false) {
-      const portal = document.getElementById('toast-portal-rack');
-      if (!portal) return;
-      const card = document.createElement('div');
-      card.className = `p-3 rounded-md shadow-2xl text-xs font-mono border transition-all duration-300 flex items-center gap-2 pointer-events-auto ${
-        isError ? 'bg-rose-950/95 border-rose-800 text-rose-200' : 'bg-slate-950/95 border-slate-800 text-slate-100'
-      }`;
-      card.innerHTML = `<i class="${isError ? 'fa-solid fa-circle-exclamation text-rose-500' : 'fa-solid fa-circle-check text-emerald-400'}"></i><span>${message}</span>`;
-      portal.appendChild(card);
-      setTimeout(() => {
-        card.style.opacity = '0';
-        setTimeout(() => card.remove(), 300);
-      }, 3200);
-    }
-
-    function startMasterAutosaveClock() {
-      setInterval(() => {
-        autosaveRemainingSeconds--;
-        const mins = Math.floor(autosaveRemainingSeconds / 60);
-        const secs = autosaveRemainingSeconds % 60;
-        const counter = document.getElementById('ui-autosave-counter');
-        if (counter) {
-          counter.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-        if (autosaveRemainingSeconds <= 0) {
-          saveLocalProductionState(true);
-          showToast(`Autosave executed to ${projectState.googleUser.isSignedIn ? projectState.googleUser.email : 'local storage vault'}.`);
-          autosaveRemainingSeconds = autosaveTimerDurationSeconds;
-        }
-      }, 1000);
-    }
-
-    /* ========================================================================= */
-    /* BOOTSTRAP INITIALIZATION                                                  */
-    /* ========================================================================= */
-    window.addEventListener('DOMContentLoaded', () => {
-      loadLocalProductionState();
-      hydrateScreenwriterFromState();
-      renderStoryboardsCards();
-      renderEvaluatorReport();
-      renderCallSheets();
-      renderRadar();
-      renderBudget();
-      startMasterAutosaveClock();
     });
-  </script>
+  });
+  
+  function renderGroup(title,obj,col){
+    var keys=Object.keys(obj);
+    if(!keys.length) return '';
+    return '<div style="margin-bottom:10px"><span style="font-family:var(--fm);font-size:9.5px;color:'+col+';letter-spacing:.08em;text-transform:uppercase">'+title+'</span>'+
+      '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">'+
+      keys.map(function(k){return '<span class="pill" style="border-color:'+col+';color:#fff">'+esc(k)+' ('+obj[k]+')</span>'}).join('')+
+      '</div></div>';
+  }
+  
+  box.innerHTML='<div style="font-family:var(--fm);font-size:11px;color:var(--gold);margin-bottom:8px">SCRIPT BREAKDOWN</div>'+
+    renderGroup('Props',counts.props,'var(--amber)')+
+    renderGroup('Sound Cues',counts.sound,'var(--cyan)')+
+    renderGroup('Wardrobe',counts.wardrobe,'var(--lime)')+
+    '<div style="margin-top:12px"><button type="button" class="btn xs" id="btnRunGram">Check Grammar &amp; Rules</button></div>';
+    
+  var bg=$('#btnRunGram');
+  if(bg) bg.onclick=runGrammarScan;
+}
+
+/* writing desk hub builder */
+function openWriter(){
+  var h=$('#hub-write');
+  if(!h){
+    h=document.createElement('div');
+    h.className='hub';
+    h.id='hub-write';
+    h.innerHTML='<div class="hubbox">'+
+      '<div class="hubhead">'+
+        '<div><div class="ht">SCREENWRITER</div><h2>WRITING DESK</h2></div>'+
+        '<div class="ha">'+
+          '<button class="btn sm" id="btnPaneL">Scenes</button>'+
+          '<button class="btn sm" id="btnPaneR">Breakdown</button>'+
+          '<button class="btn sm" id="btnZen">Zen Mode</button>'+
+          '<button class="btn sm pri" id="btnTx">Transmit</button>'+
+          '<button class="btn sm" id="btnX">Close</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="hubbody">'+
+        '<div id="phMenu"></div>'+
+        '<div class="wtb">'+
+          '<span class="cur-badge" id="curBadge">ELEMENT: ACTION</span>'+
+          '<button class="btn xs" id="tbUndo">Undo</button>'+
+          '<button class="btn xs" id="tbRedo">Redo</button>'+
+          '<span style="width:1px;height:16px;background:var(--line2)"></span>'+
+          '<button class="btn xs" id="tbAlL">Left</button>'+
+          '<button class="btn xs" id="tbAlC">Center</button>'+
+          '<button class="btn xs" id="tbAlR">Right</button>'+
+          '<span style="width:1px;height:16px;background:var(--line2)"></span>'+
+          '<button class="btn xs" id="tbUp">UPPER</button>'+
+          '<button class="btn xs" id="tbLow">lower</button>'+
+        '</div>'+
+        '<div class="dgrid">'+
+          '<div class="dpane collapsed" id="dpaneLeft">'+
+            '<div class="dph"><span>Scenes</span><button class="btn xs" id="hideL">&larr; Hide</button></div>'+
+            '<div class="dpbody" id="dlist"></div>'+
+          '</div>'+
+          '<div class="dcenter" id="dcenter">'+
+            '<div class="paperstack" id="paperStack"></div>'+
+          '</div>'+
+          '<div class="dpane ins collapsed" id="dpaneRight">'+
+            '<div class="dph"><span>Breakdown</span><button class="btn xs" id="hideR">Hide &rarr;</button></div>'+
+            '<div class="dpbody" id="dinsp"></div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+    $('#hubs').appendChild(h);
+    
+    $('#btnX',h).onclick=function(){h.classList.remove('open');document.body.style.overflow=''};
+    $('#btnTx',h).onclick=transmit;
+    $('#btnPaneL',h).onclick=function(){togglePane('#dpaneLeft')};
+    $('#btnPaneR',h).onclick=function(){
+      togglePane('#dpaneRight');
+      if(!$('#dpaneRight').classList.contains('collapsed')) runBreakdownTag();
+    };
+    $('#btnZen',h).onclick=function(){menuAction('view-zen')};
+    $('#hideL',h).onclick=function(){togglePane('#dpaneLeft')};
+    $('#hideR',h).onclick=function(){togglePane('#dpaneRight')};
+    
+    $('#curBadge',h).onclick=cycleElement;
+    $('#tbUndo',h).onclick=doUndo;
+    $('#tbRedo',h).onclick=doRedo;
+    $('#tbAlL',h).onclick=function(){alignActive('l')};
+    $('#tbAlC',h).onclick=function(){alignActive('c')};
+    $('#tbAlR',h).onclick=function(){alignActive('r')};
+    $('#tbUp',h).onclick=function(){transformCase('up')};
+    $('#tbLow',h).onclick=function(){transformCase('low')};
+    
+    buildMenu();
+  }
+  h.classList.add('open');
+  document.body.style.overflow='hidden';
+  renderPages();
+}
+
+/* evaluator / coverage studio */
+function analyseScript(){
+  var L=S.lines||[], sc=[], dl=[], al=[], chars={}, total=L.length||1;
+  L.forEach(function(l){
+    if(l.type==='SCENE_HEADING') sc.push(l.text);
+    if(l.type==='CHARACTER') chars[l.text]=(chars[l.text]||0)+1;
+    if(l.type==='DIALOGUE') dl.push((l.text||'').split(/\s+/).filter(Boolean).length);
+    if(l.type==='ACTION') al.push((l.text||'').length);
+  });
+  var mean=dl.length?dl.reduce(function(a,b){return a+b},0)/dl.length:0;
+  var dRatio=dl.length/total;
+  var clamp=function(n){return Math.max(1,Math.min(10,Math.round(n*10)/10))};
+  var s={};
+  s.SETTING=clamp(5+Math.min(3,sc.length*0.2));
+  s.DIALOGUE=clamp(5+(mean>=5&&mean<=25?2:0)+(dRatio>0.35?1.5:0));
+  s.CHARACTER=clamp(4.5+Math.min(3,Object.keys(chars).length*0.4));
+  s.PLOT=clamp(5+(sc.length>=6?2:0));
+  s.PREMISE=clamp(6+(sc.length>10?1.5:0));
+  var avg=(s.SETTING+s.DIALOGUE+s.CHARACTER+s.PLOT+s.PREMISE)/5;
+  s.OVERALL=Math.round(avg*10)/10;
+  var rating=s.OVERALL>=7.5?'RECOMMEND':(s.OVERALL>=6.0?'CONSIDER':'PASS');
+  return {s:s,rating:rating,scenes:sc.length,chars:Object.keys(chars).length,mean:mean.toFixed(1)};
+}
+
+function openCoverage(){
+  var a=analyseScript();
+  var h=$('#hub-cov');
+  if(!h){
+    h=document.createElement('div');
+    h.className='hub';
+    h.id='hub-cov';
+    h.innerHTML='<div class="hubbox">'+
+      '<div class="hubhead">'+
+        '<div><div class="ht" style="color:#D80073">EVALUATOR</div><h2>COVERAGE STUDIO</h2></div>'+
+        '<div class="ha"><button class="btn sm" id="covX">Close</button></div>'+
+      '</div>'+
+      '<div class="hubbody" style="padding:20px;overflow-y:auto" id="covBody"></div>'+
+    '</div>';
+    $('#hubs').appendChild(h);
+    $('#covX',h).onclick=function(){h.classList.remove('open');document.body.style.overflow=''};
+  }
+  var lab={PREMISE:'Premise',PLOT:'Plot',CHARACTER:'Character',DIALOGUE:'Dialogue',SETTING:'Setting'};
+  var cards=Object.keys(lab).map(function(k){
+    var v=a.s[k], col=v>=7.5?'var(--lime)':(v>=6?'var(--gold)':'var(--red)');
+    return '<div class="kpi"><div class="k">'+lab[k]+'</div><div class="v" style="color:'+col+'">'+v+'</div></div>';
+  }).join('');
+  
+  $('#covBody',h).innerHTML=
+    '<div class="grid4" style="grid-template-columns:repeat(5,1fr);margin-bottom:14px">'+cards+'</div>'+
+    '<div class="row" style="margin-bottom:14px">'+
+      '<span class="pill" style="border-color:var(--gold)">OVERALL '+a.s.OVERALL+' / 10</span>'+
+      '<span class="pill" style="border-color:var(--lime)">'+a.rating+'</span>'+
+      '<span class="tiny muted">'+a.scenes+' scenes &middot; '+a.chars+' speaking roles &middot; avg speech '+a.mean+' words</span>'+
+    '</div>'+
+    '<div class="box"><h3 style="font-size:12px;color:var(--mu);margin-bottom:6px">ANALYSIS SUMMARY</h3>'+
+      '<p style="font-size:12.5px;color:#C6D1DC;line-height:1.6">'+
+      'The script reads with '+a.scenes+' discrete scene headings and '+a.chars+' distinct character cues. '+
+      'Dialogue represents a consistent cadence averaging '+a.mean+' words per line. Evaluated via five-axis algorithmic metric.'+
+      '</p></div>';
+  h.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+/* pitch deck studio */
+function openPitch(){
+  var L=S.lines||[], scenes=[], cur=null;
+  L.forEach(function(l){
+    if(l.type==='SCENE_HEADING'){cur={head:l.text,act:[],dlg:[]};scenes.push(cur)}
+    else if(cur&&l.type==='ACTION'&&l.text&&cur.act.length<2){cur.act.push(l.text)}
+    else if(cur&&l.type==='DIALOGUE'&&l.text&&cur.dlg.length<2){cur.dlg.push(l.text)}
+  });
+  var first=scenes[0]||{head:'SCENE 1',act:['Opening visual beat.'],dlg:['"Opening line."']};
+  var mid=scenes[Math.floor(scenes.length/2)]||first;
+  var last=scenes[scenes.length-1]||first;
+  
+  var slides=[
+    {t:'1. The Hook',d:first.head+'\n\n'+first.act.join(' ')+'\n\n'+first.dlg.join('\n')},
+    {t:'2. The World',d:'Primary Setting: '+first.head+'\n\nAtmosphere & Tone established early.'},
+    {t:'3. Protagonist',d:'Lead Character introduction\n\n'+(first.dlg[0]||'Defining speech excerpt.')},
+    {t:'4. The Conflict',d:'The pressure mounting on the characters.\n\n'+(mid.act[0]||'Conflict beat.')},
+    {t:'5. The Midpoint Turn',d:mid.head+'\n\n'+mid.act.join(' ')+'\n\n'+mid.dlg.join('\n')},
+    {t:'6. The Climax',d:last.head+'\n\n'+last.act.join(' ')+'\n\n'+last.dlg.join('\n')}
+  ];
+  
+  var h=$('#hub-pitch');
+  if(!h){
+    h=document.createElement('div');
+    h.className='hub';
+    h.id='hub-pitch';
+    h.innerHTML='<div class="hubbox">'+
+      '<div class="hubhead">'+
+        '<div><div class="ht" style="color:#7137C8">ARCHITECT</div><h2>PITCH DECK STUDIO</h2></div>'+
+        '<div class="ha"><button class="btn sm" id="pitchX">Close</button></div>'+
+      '</div>'+
+      '<div class="hubbody" style="padding:20px;overflow-y:auto" id="pitchBody"></div>'+
+    '</div>';
+    $('#hubs').appendChild(h);
+    $('#pitchX',h).onclick=function(){h.classList.remove('open');document.body.style.overflow=''};
+  }
+  
+  $('#pitchBody',h).innerHTML=
+    '<div class="row" style="margin-bottom:12px"><span class="pill" style="border-color:var(--gold)">Script-Derived Slide Cards</span><span class="tiny muted">Generated from parsed draft beats and dialogue</span></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">'+
+    slides.map(function(s,i){
+      var saved=(S.pitch&&S.pitch[i])||s.d;
+      return '<div class="box"><div style="font-family:var(--fm);font-size:11px;color:var(--gold);margin-bottom:6px">'+s.t+'</div>'+
+        '<textarea data-pcard="'+i+'" rows="6" style="width:100%">'+esc(saved)+'</textarea></div>';
+    }).join('')+
+    '</div>';
+    
+  $$('[data-pcard]',h).forEach(function(ta){
+    ta.onchange=function(){
+      S.pitch=S.pitch||{};
+      S.pitch[+this.getAttribute('data-pcard')]=this.value;
+      saveSoon();
+    };
+  });
+  
+  h.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+/* macro budget */
+function openBudget(){
+  var b=S.budget||{atl:150000,btl:200000,post:50000,pct:10};
+  var sub=b.atl+b.btl+b.post;
+  var cont=Math.round(sub*(b.pct/100));
+  var total=sub+cont;
+  
+  var h=$('#hub-bud');
+  if(!h){
+    h=document.createElement('div');
+    h.className='hub';
+    h.id='hub-bud';
+    h.innerHTML='<div class="hubbox">'+
+      '<div class="hubhead">'+
+        '<div><div class="ht" style="color:#008A00">FINANCE</div><h2>MACRO BUDGET</h2></div>'+
+        '<div class="ha"><button class="btn sm" id="budX">Close</button></div>'+
+      '</div>'+
+      '<div class="hubbody" style="padding:20px;overflow-y:auto" id="budBody"></div>'+
+    '</div>';
+    $('#hubs').appendChild(h);
+    $('#budX',h).onclick=function(){h.classList.remove('open');document.body.style.overflow=''};
+  }
+  
+  function money(n){return '$'+(Math.round(n)||0).toLocaleString('en-US')}
+  
+  $('#budBody',h).innerHTML=
+    '<div class="grid4" style="margin-bottom:14px">'+
+      '<div class="kpi"><div class="k">Above The Line</div><div class="v">'+money(b.atl)+'</div></div>'+
+      '<div class="kpi"><div class="k">Below The Line</div><div class="v">'+money(b.btl)+'</div></div>'+
+      '<div class="kpi"><div class="k">Post Production</div><div class="v">'+money(b.post)+'</div></div>'+
+      '<div class="kpi"><div class="k">Total Budget</div><div class="v" style="color:var(--lime)">'+money(total)+'</div></div>'+
+    '</div>'+
+    '<div class="box"><table style="width:100%;font-size:12.5px">'+
+      '<tr><td>Above The Line (Story, Cast, Director)</td><td style="text-align:right"><input id="bAtl" value="'+b.atl+'" style="width:110px"></td></tr>'+
+      '<tr><td>Below The Line (Crew, Gear, Locations)</td><td style="text-align:right"><input id="bBtl" value="'+b.btl+'" style="width:110px"></td></tr>'+
+      '<tr><td>Post Production (Edit, Sound, Finishing)</td><td style="text-align:right"><input id="bPost" value="'+b.post+'" style="width:110px"></td></tr>'+
+      '<tr><td>Contingency (%)</td><td style="text-align:right"><input id="bPct" value="'+b.pct+'" style="width:110px"></td></tr>'+
+    '</table></div>';
+    
+  function wireInput(id,key){
+    var el=$('#'+id,h);
+    if(el) el.onchange=function(){
+      S.budget=S.budget||{};
+      S.budget[key]=+this.value||0;
+      saveSoon();
+      openBudget();
+    };
+  }
+  wireInput('bAtl','atl');
+  wireInput('bBtl','btl');
+  wireInput('bPost','post');
+  wireInput('bPct','pct');
+  
+  h.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+/* storyboards studio */
+function openBoards(){
+  var L=S.lines||[], sc=[];
+  L.forEach(function(l){if(l.type==='SCENE_HEADING')sc.push(l.text)});
+  if(!sc.length) sc=['SCENE 1: OPENING'];
+  
+  var h=$('#hub-boards');
+  if(!h){
+    h=document.createElement('div');
+    h.className='hub';
+    h.id='hub-boards';
+    h.innerHTML='<div class="hubbox">'+
+      '<div class="hubhead">'+
+        '<div><div class="ht" style="color:#FA6800">VISUAL</div><h2>STORYBOARDS STUDIO</h2></div>'+
+        '<div class="ha"><button class="btn sm" id="boardsX">Close</button></div>'+
+      '</div>'+
+      '<div class="hubbody" style="padding:20px;overflow-y:auto" id="boardsBody"></div>'+
+    '</div>';
+    $('#hubs').appendChild(h);
+    $('#boardsX',h).onclick=function(){h.classList.remove('open');document.body.style.overflow=''};
+  }
+  
+  $('#boardsBody',h).innerHTML=
+    '<div class="row" style="margin-bottom:12px"><span class="pill" style="border-color:var(--amber)">Storyboard Panels</span><span class="tiny muted">Draw on canvases or take shot notes</span></div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px">'+
+    sc.slice(0,6).map(function(s,i){
+      var cap=(S.sbCap&&S.sbCap[i])||'';
+      return '<div class="box">'+
+        '<div style="font-family:var(--fm);font-size:11px;color:var(--gold);margin-bottom:6px">'+esc(s)+'</div>'+
+        '<canvas data-cv="'+i+'" width="300" height="170" style="width:100%;background:#05080F;border:1px dashed var(--line2);border-radius:4px;cursor:crosshair;display:block"></canvas>'+
+        '<input data-sbcap="'+i+'" value="'+esc(cap)+'" placeholder="Framing / Shot note" style="margin-top:6px;width:100%">'+
+        '</div>';
+    }).join('')+
+    '</div>';
+    
+  $$('canvas[data-cv]',h).forEach(function(cv){
+    var idx=cv.getAttribute('data-cv'), ctx=cv.getContext('2d'), drawing=false, last=null;
+    ctx.lineWidth=2.4; ctx.strokeStyle='#E5A93C'; ctx.lineCap='round';
+    if(S.frames&&S.frames['sb'+idx]){
+      var im=new Image();
+      im.onload=function(){ctx.drawImage(im,0,0,cv.width,cv.height)};
+      im.src=S.frames['sb'+idx];
+    }
+    function pos(e){
+      var r=cv.getBoundingClientRect();
+      return {x:(e.clientX-r.left)*(cv.width/r.width),y:(e.clientY-r.top)*(cv.height/r.height)};
+    }
+    cv.onmousedown=function(e){drawing=true;last=pos(e)};
+    cv.onmousemove=function(e){
+      if(!drawing) return;
+      var p=pos(e);
+      ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();
+      last=p;
+    };
+    cv.onmouseup=function(){
+      if(drawing){
+        drawing=false;
+        S.frames=S.frames||{};
+        S.frames['sb'+idx]=cv.toDataURL();
+        saveSoon();
+      }
+    };
+  });
+  
+  $$('[data-sbcap]',h).forEach(function(inp){
+    inp.onchange=function(){
+      S.sbCap=S.sbCap||{};
+      S.sbCap[+this.getAttribute('data-sbcap')]=this.value;
+      saveSoon();
+    };
+  });
+  
+  h.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+/* 2D staging desk */
+function openStage(){
+  var h=$('#hub-stage');
+  if(!h){
+    h=document.createElement('div');
+    h.className='hub';
+    h.id='hub-stage';
+    h.innerHTML='<div class="hubbox">'+
+      '<div class="hubhead">'+
+        '<div><div class="ht" style="color:#00ABA9">STAGING</div><h2>STAGING DESK</h2></div>'+
+        '<div class="ha"><button class="btn sm" id="stageX">Close</button></div>'+
+      '</div>'+
+      '<div class="hubbody" style="padding:20px;overflow-y:auto" id="stageBody"></div>'+
+    '</div>';
+    $('#hubs').appendChild(h);
+    $('#stageX',h).onclick=function(){h.classList.remove('open');document.body.style.overflow=''};
+  }
+  
+  $('#stageBody',h).innerHTML=
+    '<div class="row" style="margin-bottom:12px">'+
+      '<button class="btn sm" id="sAddFig">+ Figure</button>'+
+      '<button class="btn sm" id="sAddCam">+ Camera Vector</button>'+
+      '<button class="btn sm" id="sClear">Clear</button>'+
+    '</div>'+
+    '<div class="box" style="padding:0;overflow:hidden">'+
+      '<canvas id="stageMainCv" width="900" height="480" style="width:100%;display:block;background:#05080E;cursor:crosshair"></canvas>'+
+    '</div>';
+    
+  var cv=$('#stageMainCv',h), ctx=cv.getContext('2d');
+  S.stageItems=S.stageItems||[{t:'fig',x:200,y:240},{t:'cam',x:600,y:240}];
+  
+  function paintStage(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ctx.strokeStyle='#1B2436';ctx.strokeRect(40,40,cv.width-80,cv.height-80);
+    ctx.fillStyle='#8B9FB1';ctx.font='11px monospace';ctx.fillText('TOP-DOWN FLOOR PLAN GRID',50,60);
+    
+    (S.stageItems||[]).forEach(function(it,i){
+      if(it.t==='fig'){
+        ctx.fillStyle='#E5A93C';ctx.beginPath();ctx.arc(it.x,it.y,16,0,7);ctx.fill();
+        ctx.fillStyle='#060911';ctx.font='10px sans-serif';ctx.fillText('FIG '+(i+1),it.x-12,it.y+4);
+      }else{
+        ctx.strokeStyle='#88C13F';ctx.lineWidth=2;
+        ctx.strokeRect(it.x-14,it.y-10,28,20);
+        ctx.beginPath();ctx.moveTo(it.x-6,it.y);ctx.lineTo(it.x-24,it.y-8);ctx.lineTo(it.x-24,it.y+8);ctx.closePath();ctx.stroke();
+      }
+    });
+  }
+  
+  $('#sAddFig',h).onclick=function(){S.stageItems.push({t:'fig',x:250+Math.random()*200,y:200+Math.random()*100});paintStage();saveSoon()};
+  $('#sAddCam',h).onclick=function(){S.stageItems.push({t:'cam',x:400+Math.random()*200,y:250});paintStage();saveSoon()};
+  $('#sClear',h).onclick=function(){S.stageItems=[];paintStage();saveSoon()};
+  
+  paintStage();
+  h.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+/* storage vault */
+function openVault(){
+  ask({
+    title:'Storage Vault',
+    icon:'save',
+    ok:'Close',
+    cancel:false,
+    html:'<div class="box"><h3 style="font-size:12px;color:var(--mu);margin-bottom:6px">PROJECT PERSISTENCE</h3>'+
+      '<p class="tiny muted" style="margin:0 0 10px">'+(OK?'Saved in browser local storage. Export a project file for physical safekeeping.':'Browser storage restricted. Always export your project file.')+'</p>'+
+      '<div style="display:flex;gap:8px">'+
+        '<button type="button" class="btn sm" id="vExport">Export Project File (.json)</button>'+
+        '<button type="button" class="btn sm" id="vRestore">Restore Project File</button>'+
+      '</div></div>'
+  }).then(function(){});
+  
+  setTimeout(function(){
+    var d=$('dialog[open]');
+    if(!d) return;
+    var ex=$('#vExport',d), im=$('#vRestore',d);
+    if(ex) ex.onclick=function(){
+      dl('preHUB_'+String(S.project.title||'script').replace(/\s+/g,'_')+'.json',JSON.stringify(S,null,1),'application/json');
+    };
+    if(im) im.onclick=function(){
+      var i=document.createElement('input');i.type='file';i.accept='.json';
+      i.onchange=function(){
+        var f=i.files[0];if(!f) return;
+        var r=new FileReader();
+        r.onload=function(){
+          try{
+            var j=JSON.parse(r.result);
+            S=Object.assign(blank(),j);
+            save(true);
+            toast('Project Restored','good');
+            renderPages();
+            d.close();
+          }catch(e){toast('Could not read project file','bad')}
+        };
+        r.readAsText(f);
+      };
+      i.click();
+    };
+  },60);
+}
+
+/* metro tile launch router */
+var TILES=[
+  {id:'write',n:'Screenwriter',s:'Write and edit the script',c:'#00ABA9',t:'DESK',i:'pen'},
+  {id:'coverage',n:'Coverage studio',s:'Five-axis scores and pacing flags',c:'#D80073',t:'EVALUATOR',i:'film'},
+  {id:'pitch',n:'Pitch deck',s:'Ten slides from the draft',c:'#7137C8',t:'ARCHITECT',i:'film'},
+  {id:'budget',n:'Macro budget',s:'Top sheet, fringes, contingency',c:'#008A00',t:'FINANCE',i:'save'},
+  {id:'boards',n:'Storyboards',s:'Six rules, sketch each set-up',c:'#FA6800',t:'VISUAL',i:'film'},
+  {id:'stage',n:'Staging desk',s:'Rooms, figures, arrows, sketch import',c:'#00ABA9',t:'STAGING',i:'film'},
+  {id:'in',n:'Import a script',s:'PDF - Final Draft - Fountain - text',c:'#1BA1E2',t:'INTAKE',i:'in'},
+  {id:'send',n:'Transmit to proHUB',s:'Script and budget across',c:'#E51400',t:'BRIDGE',i:'rocket'},
+  {id:'vault',n:'Storage vault',s:'Snapshots - project file',c:'#F0A30A',t:'SAFETY',i:'save',dark:1}
+];
+
+function renderTiles(){
+  var h=$('#tiles');
+  if(!h) return;
+  h.innerHTML=TILES.map(function(t){
+    return '<div class="tile t2'+(t.dark?' dark':'')+'" data-id="'+t.id+'" tabindex="0" role="button" style="background:'+t.c+'">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+ic(t.i)+'<span class="tagx">'+t.t+'</span></div>'+
+      '<div><span class="tl">'+t.n+'</span><span class="ts">'+t.s+'</span></div></div>';
+  }).join('');
+  $$('.tile',h).forEach(function(el){
+    el.onclick=function(){go(el.getAttribute('data-id'))};
+  });
+}
+
+function go(id){
+  if(id==='write') openWriter();
+  else if(id==='coverage') openCoverage();
+  else if(id==='pitch') openPitch();
+  else if(id==='budget') openBudget();
+  else if(id==='boards') openBoards();
+  else if(id==='stage') openStage();
+  else if(id==='in') importDialog();
+  else if(id==='send') transmit();
+  else if(id==='vault') openVault();
+}
+
+function boot(){
+  try{
+    var raw=localStorage.getItem(STORE);
+    if(raw) S=Object.assign(blank(),JSON.parse(raw));
+  }catch(e){}
+  renderTiles();
+  $('#vaultBtn').onclick=openVault;
+  var ft=$('#fTitle'), fw=$('#fWriter');
+  if(ft){
+    ft.value=S.project.title||'';
+    ft.onchange=function(){S.project.title=ft.value.toUpperCase();save(true)};
+  }
+  if(fw){
+    fw.value=S.project.writer||'';
+    fw.onchange=function(){S.project.writer=fw.value.toUpperCase();save(true)};
+  }
+}
+
+window.addEventListener('keydown',function(e){
+  if(e.key==='F2'){e.preventDefault();togglePane('#dpaneLeft')}
+  else if(e.key==='F3'){e.preventDefault();togglePane('#dpaneRight')}
+  else if(e.key==='F4'){e.preventDefault();menuAction('view-zen')}
+});
+
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+})();
+</script>
 </body>
 </html>
