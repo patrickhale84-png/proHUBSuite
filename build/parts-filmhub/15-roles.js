@@ -57,7 +57,7 @@ function openUrl(u) {
 }
 function toTile(t) {
   return { id: t.id, title: t.title, sub: t.sub, colour: t.colour, icon: t.icon, tag: 'ROLE',
-           run: function () { openUrl(t.url); } };
+           run: function () { openUrl((window.FILM && FILM.resolve) ? FILM.resolve(t.url) : t.url); } };
 }
 function clearRoleTiles() {
   var all = FILM.tiles() || [];

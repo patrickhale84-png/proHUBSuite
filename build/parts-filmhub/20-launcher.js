@@ -14,7 +14,9 @@ var APPS = [
 ];
 
 function readEP() { try { var r = localStorage.getItem(EP_KEY); return r ? JSON.parse(r) : {}; } catch (e) { return {}; } }
-function urlFor(a) { var ep = readEP(); return ep[a.id] || a.file; }
+function urlFor(a) { var ep = readEP(); var raw = ep[a.id] || a.file;
+  try { if (window.FILM && FILM.resolve) return FILM.resolve(raw); } catch (e) {}
+  return raw; }
 function embedded() { try { return window.self !== window.top; } catch (e) { return true; } }
 
 function launch(a) {

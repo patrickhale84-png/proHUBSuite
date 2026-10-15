@@ -11,7 +11,7 @@ function ids() { return eread(); }
 function tileId(catId) { return 'extra-' + catId; }
 function tileFrom(cat) {
   return { id: tileId(cat.id), title: cat.title, sub: cat.sub + ' · added', colour: cat.colour, icon: cat.icon, tag: 'EXTRA',
-           run: function () { var u = cat.url, emb = false; try { emb = window.self !== window.top; } catch (e) { emb = true; }
+           run: function () { var u = (window.FILM && FILM.resolve) ? FILM.resolve(cat.url) : cat.url, emb = false; try { emb = window.self !== window.top; } catch (e) { emb = true; }
              if (emb) { var w = null; try { w = window.open(u, '_blank'); } catch (e) { w = null; } if (w) return;
                         try { window.top.location.href = u; return; } catch (e) {} }
              try { location.href = u; } catch (e) {} } };
