@@ -673,18 +673,19 @@ var _db=deskBuild;deskBuild=function(){_db();deskChrome()};
 function deskChrome(){var h=$('#hub-write');if(!h)return;var b=$('.hubbody',h);
  if(!$('#dtop',h)){var t=document.createElement('div');t.id='dtop';t.className='dtop';b.insertBefore(t,b.firstChild)}
  if(!$('#dstatus',h)){var s=document.createElement('div');s.id='dstatus';s.className='dstatus';b.appendChild(s)}
- deskTop();deskStatus();applyTheme();deskToolbar()}
+ deskTop();deskStatus();applyTheme();deskToolbar();applyZoom()}
 function deskTop(){var t=$('#dtop');if(!t)return;var rev=S.rev||0;var th=S.pageTheme||'white';
  t.innerHTML='<div class="brand"><b>pre</b>HUB</div><span class="tagx">WRITING DESK</span>'+
  '<div class="proj">'+esc(S.project.title||'UNTITLED PROJECT')+'<span>'+lines().filter(function(l){return l.type==='SCENE_HEADING'}).length+' SCENES &#183; '+deskPages()+' PAGES</span></div>'+
  '<div class="tright">'+
- '<span class="chipx" id="themeChips">'+['white','dark','dim'].map(function(k){
+ '<span class="chipx" title="Page zoom">ZOOM <input type="range" id="zoomRange" min="80" max="200" step="5" value="'+(S.pageZoom||100)+'" style="width:86px;vertical-align:middle;accent-color:#E2A93B"> <b id="zoomVal" style="color:#fff">'+(S.pageZoom||100)+'%</b></span>'+'<span class="chipx" id="themeChips">'+['white','dark','dim'].map(function(k){
    return '<i data-th="'+k+'" style="cursor:pointer;font-style:normal;padding:0 4px'+(th===k?';color:#fff;font-weight:600':'')+'">'+k.charAt(0).toUpperCase()+k.slice(1)+'</i>'}).join('<span style="opacity:.4">|</span>')+'</span>'+
  '<span class="chipx">DRAFT '+(S.draft||1)+'</span>'+
  '<span class="chipx" id="revChip" style="border-color:'+REVC[rev]+';color:'+REVC[rev]+'">REVISION &#183; '+REVN[rev]+'</span>'+
  '<span class="chipx">'+lines().length+' LINES</span><span class="chipx"><span class="dot"></span>SAVED</span></div>';
  var tc=$('#themeChips',t);
  if(tc)$$('[data-th]',tc).forEach(function(ch){ch.addEventListener('click',function(){setPageTheme(ch.getAttribute('data-th'))})})}
+ var zr=$('#zoomRange',t);if(zr)zr.addEventListener('input',function(){setPageZoom(+this.value)})}
 function deskStatus(){var s=$('#dstatus');if(!s)return;var L=lines();
  var w=L.map(function(l){return l.text}).join(' ').split(/\s+/).filter(Boolean).length;
  s.innerHTML='<span>ELEMENT <b>ACTION</b></span><span>PAGE <b>'+deskPages()+'</b></span><span>WORDS <b>'+w.toLocaleString('en-US')+'</b></span><span><kbd>Tab</kbd> cycles element</span><span><kbd>Enter</kbd> next line</span><span style="margin-left:auto"><span class="dot"></span> saved in this browser &#183; nothing uploaded</span>'}
@@ -918,7 +919,31 @@ var s=document.createElement('style');s.textContent=
  document.head.appendChild(s);
 })();
 
-window.preHUB={version:'1.0'}}},sketch:sketchOf,stage:stage,paint:stagePaint,rooms:ROOMS,get state(){return S},lines:lines,setLines:setLines,tok:tok,transmit:transmit,reformat:reformat,pick:pick,save:function(){return save(true)},open:openHub,storageOk:function(){return OK}};
+
+function pageZoom(){var z=parseInt(S.pageZoom||100,10);if(!(z>=80&&z<=200))z=100;return z}
+function applyZoom(){
+ var d=$('.dcenter');if(!d)return;
+ d.style.setProperty('--zoom',(pageZoom()/100));
+ var lv=document.getElementById('zoomVal');if(lv)lv.textContent=pageZoom()+'%'
+}
+function setPageZoom(v){v=Math.max(80,Math.min(200,parseInt(v,10)||100));
+ S.pageZoom=v;saveSoon();applyZoom();
+ var zr=document.getElementById('zoomRange');if(zr&&+zr.value!==v)zr.value=v;
+ var lv=document.getElementById('zoomVal');if(lv)lv.textContent=v+'%'}
+(function(){
+ var s=document.createElement('style');
+ s.textContent=
+ '#hub-write .dcenter{overflow:auto}'+
+ '#hub-write #paper,#hub-write #pagefoot{zoom:var(--zoom,1)}'+
+ '#zoomRange{height:14px}'+
+ '@media print{#hub-write #paper,#hub-write #pagefoot{zoom:1!important}}'+
+ '@media(max-width:760px){#hub-write .dcenter{overflow:auto}#hub-write #paper{max-width:none}}';
+ document.head.appendChild(s);
+ window.addEventListener('beforeprint',function(){var d=$('.dcenter');if(d)d.style.setProperty('--zoom',1)});
+ window.addEventListener('afterprint',function(){applyZoom()});
+})();
+
+window.preHUB={version:'1.0'}}}},sketch:sketchOf,stage:stage,paint:stagePaint,rooms:ROOMS,get state(){return S},lines:lines,setLines:setLines,tok:tok,transmit:transmit,reformat:reformat,pick:pick,save:function(){return save(true)},open:openHub,storageOk:function(){return OK}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 </script>
