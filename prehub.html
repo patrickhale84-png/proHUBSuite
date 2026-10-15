@@ -342,7 +342,7 @@ var MOD2={
   $('#mCopy',h).addEventListener('click',function(){clip($$('[data-slide]',h).map(function(t,i){return 'SLIDE '+(i+1)+'\\n'+t.value}).join('\\n\\n'),'Deck copied')});
   $('#mPrint',h).addEventListener('click',function(){pr('<div class="pid">'+esc($$('[data-slide]',h).map(function(t,i){return 'SLIDE '+(i+1)+'\\n'+t.value}).join('\\n\\n'))+'</div>',S.project.title)})}},
  budget:{n:'Macro budget',t:'FINANCE',c:'#008A00',render:renderBudget,acts:function(){return '<button class="btn sm" id="mCopy">Copy top sheet</button><button class="btn sm" id="mPrint">Print</button>'},wire:function(h){
-  $$('[data-bud]',h).forEach(function(i){i.addEventListener('change',function(){S.budget=S.budget||{};S.budget[i.getAttribute('data-bud')]=parseFloat(i.value)||0;save(true);refresh(h,'budget')})});
+  $$('[data-bud]',h).forEach(function(i){i.addEventListener('change',function(){S.budget=S.budget||{};S.budget[i.getAttribute('data-bud')]=parseFloat(i.value)||0;save(true);refresh(h,'budget');MOD2.budget.wire(h)})});
   $('#mCopy',h).addEventListener('click',function(){var b=budgetTotals();clip('TOP SHEET - '+S.project.title+'\\nATL '+money(b.atl)+'\\nBTL '+money(b.btl)+'\\nPost '+money(b.post)+'\\nSub '+money(b.sub)+'\\nContingency '+b.pct+'% '+money(b.cont)+'\\nTOTAL '+money(b.total),'Top sheet copied')});
   $('#mPrint',h).addEventListener('click',function(){var b=budgetTotals();pr('<div class="pid">'+esc('TOP SHEET - '+S.project.title+'\\n\\nAbove the line: '+money(b.atl)+'\\nBelow the line: '+money(b.btl)+'\\nPost: '+money(b.post)+'\\nContingency '+b.pct+'%: '+money(b.cont)+'\\n\\nTOTAL: '+money(b.total))+'</div>',S.project.title)})}},
  boards:{n:'Storyboards',t:'VISUAL',c:'#FA6800',render:renderBoards,acts:function(){return '<button class="btn sm" id="mCopy">Copy shot list</button><button class="btn sm" id="mPrint">Print</button>'},wire:function(h){
@@ -446,7 +446,7 @@ function openModule(id){var m=MOD2[id];if(!m)return;
  if(h.getAttribute('data-wired')!=='1'){m.wire(h);h.setAttribute('data-wired','1')}}
 function refresh(h,id){var m=MOD2[id];if(m)$('#mb-'+id,h).innerHTML=m.render()}
 
-window.preHUB={version:'1.0',get state(){return S},lines:lines,setLines:setLines,tok:tok,transmit:transmit,reformat:reformat,pick:pick,save:function(){return save(true)},open:openHub,storageOk:function(){return OK}};
+window.preHUB={version:'1.0',sketch:sketchOf,stage:stage,paint:stagePaint,rooms:ROOMS,get state(){return S},lines:lines,setLines:setLines,tok:tok,transmit:transmit,reformat:reformat,pick:pick,save:function(){return save(true)},open:openHub,storageOk:function(){return OK}};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 </script>
