@@ -201,6 +201,14 @@ dialog::backdrop{background:rgba(3,6,12,.82)}
 #phMenu,#wtb{flex:0 0 auto}
 .dgrid{flex:1 1 auto;min-width:0}
 .dcenter{overflow:auto}
+
+/* the collapsed panes must release their track, or the page is squeezed into what is left */
+.dgrid.two{grid-template-columns:1fr 300px}
+.dgrid.twoR{grid-template-columns:280px 1fr}
+.dgrid.one{grid-template-columns:1fr}
+.dgrid{display:grid;grid-template-columns:280px 1fr 300px}
+.dcenter{flex:1 1 auto;min-width:0;overflow:auto}
+.dpane.collapsed{display:none}
 </style>
 </head>
 <body>
@@ -1177,8 +1185,8 @@ function deskBuild(){
  var pb=document.createElement('b');pb.textContent='Panels';pg.appendChild(pb);
  var blp=document.createElement('button');blp.type='button';blp.className='btn xs';blp.textContent='Scenes';
  var brp=document.createElement('button');brp.type='button';brp.className='btn xs';brp.textContent='Tools';
- blp.onclick=function(){var p=$('.dpane.nv',h);if(p)p.classList.toggle('collapsed')};
- brp.onclick=function(){var p=$('.dpane.ins',h);if(p)p.classList.toggle('collapsed')};
+ blp.onclick=function(){var p=$('.dpane.nv',h);if(p)p.classList.toggle('collapsed');dgridSync()};
+ brp.onclick=function(){var p=$('.dpane.ins',h);if(p)p.classList.toggle('collapsed');dgridSync()};
  pg.appendChild(blp);pg.appendChild(brp);tb.appendChild(pg);
  var grid=document.createElement('div');grid.id='dgrid';grid.className='dgrid';
  var nv=document.createElement('div');nv.className='dpane nv';
@@ -1300,11 +1308,20 @@ function tbSync(){
   if(on)b.classList.add('on');else b.classList.remove('on');
  });
 }
+function dgridSync(){
+ var g=document.querySelector('.dgrid');if(!g)return;
+ var l=g.querySelector('.dpane.nv'),r=g.querySelector('.dpane.ins');
+ var lc=l&&l.classList.contains('collapsed'),rc=r&&r.classList.contains('collapsed');
+ g.classList.toggle('two',!lc&&rc);
+ g.classList.toggle('twoR',lc&&!rc);
+ g.classList.toggle('one',!!(lc&&rc));
+}
 function deskPanes(){
  var h=$('.hub.open')||document;
  var lp=$('.dpane.nv',h), rp=$('.dpane.ins',h);
  if(lp)lp.classList.add('collapsed');
  if(rp)rp.classList.add('collapsed');
+ setTimeout(dgridSync,30);
  $$('[data-lp]',h).forEach(function(b){b.onclick=function(){
   $$('[data-lp]',h).forEach(function(x){x.classList.remove('on')});this.classList.add('on');
   var k=this.getAttribute('data-lp'),dl=$('#dlist',h),ds=$('#dset',h);
