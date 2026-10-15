@@ -365,17 +365,60 @@ function renderCov(){var a=analyse(),p=coverProse(a),lab={PREMISE:'Premise',PLOT
  blk('STRENGTHS',p.Strengths)+blk('WEAKNESSES',p.Weaknesses)+blk('PROSPECTS',p.Prospects)+
  '<div class="box"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">HOW THIS IS GRADED</h3><p class="tiny" style="margin:0;color:#B9C4D2">Six axes measured from the draft itself: scene and location count, dialogue cadence and share, action length, cast size, era markers, genre signals. The Black List band is the same reading minus 0.7, matching the spread between your two reference reports. Bands and the pass / consider / recommend rating follow WeScreenplay published rates. No model is involved, so treat the prose as a first pass to edit.</p></div>'}
 
-function renderPitch(){var sc=scenesOf(),ch=Object.keys(castList()),t=S.project.title,w=S.project.writer;
- var set=sc[0]?sc[0].head:'the setting',lead=ch[0]||'the protagonist',foe=ch[1]||'the opposing force';
- var slides=[['Title',t+'\\n\\nWritten by '+w],['The hook','Why this story, and why now.'],['The world',set+' - the rules of this place and its palette.'],
-  ['The protagonist',lead+' - what they want, what they hide.'],['The opposing force',foe+' - the pressure that shapes the story.'],
-  ['The turn','The moment the story cannot go back.'],['Tone and reference','Look, pace and sound.'],['The audience','Who leans in, and why.'],
-  ['Comparable territory','Where this sits on the shelf.'],['Why now','The case for making it.']];
- return '<div class="row" style="margin-bottom:12px"><span class="pill">'+slides.length+' slides</span><span class="tiny muted">Built from your own draft. Edit any slide; it saves with the project.</span></div>'+
- '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px">'+slides.map(function(s,i){
-  var saved=(S.pitch&&S.pitch[i]!=null)?S.pitch[i]:s[1];
-  return '<div class="box" style="margin:0">'+((S.frames&&S.frames['slide'+i])?'<img src="'+S.frames['slide'+i]+'" style="width:100%;border-radius:6px;margin-bottom:7px">':'')+'<div class="tiny" style="color:var(--amber);font-family:var(--fm);letter-spacing:.08em;margin-bottom:6px">SLIDE '+(i+1)+' - '+esc(s[0]).toUpperCase()+'</div>'+
-  '<textarea data-slide="'+i+'" rows="4" style="width:100%;font-family:var(--fm);font-size:11.5px">'+esc(saved)+'</textarea></div>'}).join('')+'</div>'}
+function renderPitch(){
+ var L=lines()||[],scenes=[],cur=null;
+ L.forEach(function(l){
+  if(l.type==='SCENE_HEADING'){cur={head:l.text,cast:[],act:[],lines:0};scenes.push(cur);}
+  else if(cur){cur.lines++;if(l.type==='CHARACTER'&&cur.cast.indexOf(l.text)<0)cur.cast.push(l.text);if(l.type==='ACTION'&&l.text&&cur.act.length<2)cur.act.push(l.text);}
+ });
+ var locs={},tod={},cast={};
+ scenes.forEach(function(s){
+  var m=/^(INT|EXT|INT\/EXT|EST)[.\s\/]*\s*([^-\u2013]+?)(?:\s*[-\u2013]\s*(.+))?$/i.exec(s.head||'');
+  var place=(m&&m[2]?m[2]:s.head||'location').trim(),time=(m&&m[3]?m[3]:'').trim();
+  if(place)locs[place]=(locs[place]||0)+1;
+  if(time)tod[time]=(tod[time]||0)+1;
+  s.cast.forEach(function(x){cast[x]=(cast[x]||0)+1;});
+ });
+ var locTop=Object.keys(locs).sort(function(a,b){return locs[b]-locs[a]});
+ var todTop=Object.keys(tod).sort(function(a,b){return tod[b]-tod[a]});
+ var castTop=Object.keys(cast).sort(function(a,b){return cast[b]-cast[a]});
+ var mid=scenes.length?scenes[Math.max(0,Math.floor(scenes.length/2))]:null;
+ var first=scenes[0]||null, last=scenes[scenes.length-1]||null;
+ var noct=0,dayc=0;Object.keys(tod).forEach(function(k){if(/NIGHT|DUSK|DAWN/i.test(k))noct+=tod[k];else dayc+=tod[k];});
+ var nothing=!scenes.length;
+ var slides=[
+  {t:'Title',d:S.project.title+'\n\nWritten by '+S.project.writer,src:'project settings'},
+  {t:'The hook',d:first?((first.head||'')+'\n\n'+(first.act[0]||'The opening image says what the film is.')):'',src:'first scene'},
+  {t:'The world',d:locTop.length?locTop.slice(0,4).map(function(x){return x+' ('+locs[x]+')'}).join(' \u00b7 ')+(todTop.length?'\n\nMostly '+todTop.slice(0,2).join(' and ').toLowerCase()+'.':''):'',src:'locations named in your scenes'},
+  {t:'The protagonist',d:castTop[0]?(castTop[0]+' - in '+cast[castTop[0]]+' scene'+(cast[castTop[0]]===1?'':'s')+'. What they want, what they hide.'):'',src:'cast presence'},
+  {t:'The opposing force',d:castTop[1]?(castTop[1]+' - in '+cast[castTop[1]]+' scene'+(cast[castTop[1]]===1?'':'s')+'. The pressure that shapes the story.'):'',src:'cast presence'},
+  {t:'The turn',d:mid?((mid.head||'')+'\n\n'+(mid.act[0]||'The scene where the story cannot go back.')):'',src:'midpoint scene'},
+  {t:'The shape',d:scenes.length?(scenes.length+' scenes \u00b7 '+locTop.length+' locations \u00b7 '+castTop.length+' speaking roles'):'',src:'counted from the draft'},
+  {t:'Tone and reference',d:(dayc||noct)?(dayc+' day scenes, '+noct+' night. Look, pace and sound.'):'',src:'day and night split'},
+  {t:'The audience',d:'',src:'your words',typed:true},
+  {t:'Why now',d:'',src:'your words',typed:true}
+ ];
+ var rows=[],edits=0,derived=0,typed=0;
+ slides.forEach(function(s,i){
+  var saved=(S.pitch&&S.pitch[i]!=null)?S.pitch[i]:null;
+  var body=(saved!=null?saved:s.d);
+  var isEdited=(saved!=null);
+  var tag=isEdited?'edited by you':(s.typed?'your words':'derived');
+  if(isEdited)edits++;else if(s.typed)typed++;else derived++;
+  var img=(S.frames&&S.frames['slide'+i])?'<img src="'+S.frames['slide'+i]+'" style="width:100%;border-radius:6px;margin-bottom:7px">':'';
+  var dot=isEdited?'var(--gold)':(s.typed?'var(--mu)':'var(--lime)');
+  rows.push('<div class="box" style="margin:0">'+img+
+   '<div class="tiny" style="color:var(--amber);font-family:var(--fm);letter-spacing:.08em;margin-bottom:5px">'+String(i+1).padStart(2,'0')+' \u00b7 '+esc(s.t).toUpperCase()+
+   ' <span style="color:'+dot+'">\u25cf '+tag.toUpperCase()+'</span></div>'+
+   '<div class="tiny muted" style="margin-bottom:5px">'+(s.src?('from '+esc(s.src)):'')+'</div>'+
+   '<textarea data-pitch="'+i+'" rows="4" style="width:100%;font-size:13px">'+esc(body)+'</textarea></div>');
+ });
+ return '<div class="row" style="margin-bottom:12px;flex-wrap:wrap;gap:8px"><span class="pill">'+slides.length+' slides</span>'+
+  '<span class="tiny muted">'+derived+' derived from the script \u00b7 '+typed+' need your words \u00b7 '+edits+' edited</span>'+
+  (nothing?'<span class="tiny" style="color:var(--red)">no scenes parsed - import a script first</span>':'')+'</div>'+
+  '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px">'+rows.join('')+'</div>';
+}
+function bindPitch(){$$('[data-pitch]').forEach(function(t){t.addEventListener('change',function(){S.pitch=S.pitch||{};S.pitch[+t.getAttribute('data-pitch')]=t.value;saveSoon()})})}
 function renderBudget(){var b=budgetTotals(),p=S.budget||{};
  var row=function(k,n){return '<tr><td>'+n+'</td><td class="n"><input data-bud="'+k+'" value="'+(p[k]!=null?p[k]:{atl:150000,btl:200000,post:50000,pct:10}[k])+'" style="width:110px;text-align:right"></td></tr>'};
  return '<div class="grid4" style="margin-bottom:13px">'+
