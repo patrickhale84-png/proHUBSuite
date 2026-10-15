@@ -168,6 +168,10 @@ dialog::backdrop{background:rgba(3,6,12,.82)}
 .evl{font-family:var(--fm);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:#C6D1DC}
 .evrow select{width:78px}
 .box textarea{width:100%;font-size:12.5px;margin-bottom:6px}
+
+.dpal{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px}
+.pal{font-family:var(--fm);font-size:10.5px;letter-spacing:.06em;color:#C6D1DC;background:#131A28;border:1px solid #26344E;border-radius:4px;padding:6px 4px;cursor:pointer;text-align:left}
+.pal:hover{background:#1B2436;color:#fff}
 </style>
 </head>
 <body>
@@ -1052,7 +1056,7 @@ function deskBuild(){
  pg.appendChild(blp);pg.appendChild(brp);tb.appendChild(pg);
  var grid=document.createElement('div');grid.id='dgrid';grid.className='dgrid';
  var nv=document.createElement('div');nv.className='dpane nv';
- nv.innerHTML='<div class="dph dtabbar"><button type="button" class="dtab on" data-lp="scenes">Scenes</button><button type="button" class="dtab" data-lp="doc">Document</button><span style="margin-left:auto" id="dcount"></span></div><div id="dlist"></div><div id="dset" class="dtabbody" style="display:none"></div>';
+ nv.innerHTML='<div id="dpal"></div><div class="dph dtabbar"><button type="button" class="dtab on" data-lp="scenes">Scenes</button><button type="button" class="dtab" data-lp="doc">Document</button><span style="margin-left:auto" id="dcount"></span></div><div id="dlist"></div><div id="dset" class="dtabbody" style="display:none"></div>';
  var ce=document.createElement('div');ce.className='dcenter';
  var ins=document.createElement('div');ins.className='dpane ins';
  ins.innerHTML='<div class="dph dtabbar"><button type="button" class="dtab on" data-rp="insp">Inspector</button><button type="button" class="dtab" data-rp="gram">Grammar</button><button type="button" class="dtab" data-rp="mark">Marks</button></div><div id="dinsp"></div><div id="dgram" class="dtabbody" style="display:none"></div><div id="dmark" class="dtabbody" style="display:none"></div>';
@@ -1066,6 +1070,29 @@ box.insertBefore(tb,body);body.innerHTML='';
 /* the two side panels: tabs, collapsible, hidden until asked for.
    Left holds the scenes and the document settings; right holds the inspector, the grammar
    and punctuation check, and the revision marks. Rules, not AI. */
+/* the element palette, as in WriterDuet: the six element types we actually have, one
+   click from any line. Tab on a line cycles the same list. */
+function palHTML(){
+ var items=[['SCENE','SCENE_HEADING','#E2A93B'],['ACTION','ACTION','#8794A6'],['CHARACTER','CHARACTER','#C6D1DC'],
+            ['PARENS','PARENTHETICAL','#8794A6'],['DIALOGUE','DIALOGUE','#C6D1DC'],['TRANS','TRANSITION','#E2A93B']];
+ return '<div class="dpal">'+items.map(function(x){
+   return '<button type="button" class="pal" data-pal="'+x[1]+'" style="border-left:3px solid '+x[2]+'">'+x[0]+'</button>'}).join('')+
+  '</div><div class="tiny muted" style="margin:4px 0 9px">Tab on a line cycles the element type</div>';
+}
+function palBind(){
+ $$('[data-pal]').forEach(function(b){b.onclick=function(){
+  var t=this.getAttribute('data-pal'),el=document.activeElement;
+  if(!el||!el.classList||String(el.className).indexOf('ln')<0){
+   var els=$$('#paper .ln');el=els.length?els[els.length-1]:null;
+   if(!el){try{el=addLine(t,'')}catch(e){}}
+  }
+  if(el&&el.setAttribute){
+   el.className='ln '+(CLS[t]||'t-act');el.setAttribute('data-t',t);el.setAttribute('data-ph',PH[t]||'');
+   try{el.focus()}catch(e){}saveSoon();hud();
+   var c=$('#curType');if(c)c.textContent=t.replace('_',' ');
+  }
+ }});
+}
 function deskPanes(){
  var h=$('.hub.open')||document;
  var lp=$('.dpane.nv',h), rp=$('.dpane.ins',h);
@@ -1077,6 +1104,8 @@ function deskPanes(){
   if(dl)dl.style.display=(k==='scenes')?'':'none';
   if(ds){ds.style.display=(k==='doc')?'':'none';if(k==='doc')docPanel()}
  }});
+ var ph0=$('#dpal',h);if(ph0&&!ph0.innerHTML)ph0.innerHTML=palHTML();
+ try{palBind()}catch(e){}
  $$('[data-rp]',h).forEach(function(b){b.onclick=function(){
   $$('[data-rp]',h).forEach(function(x){x.classList.remove('on')});this.classList.add('on');
   var k=this.getAttribute('data-rp'),di=$('#dinsp',h),gr=$('#dgram',h),mk=$('#dmark',h);
@@ -1120,14 +1149,30 @@ function grammarScan(){
   if(ty==='DIALOGUE'&&!(L[i-1]&&(L[i-1].type==='CHARACTER'||L[i-1].type==='PARENTHETICAL'))) add(i,'Dialogue with no cue above it',bare);
   if(/^\(.*\)$/.test(bare)===false&&ty==='PARENTHETICAL') add(i,'Parenthetical without brackets',bare);
  }
+ // rules WriterDuet's Check Formatting also carries
+ for(var i2=0;i2<L.length;i2++){
+  var t2=L[i2].text||'',ty2=L[i2].type;
+  if(ty2==='CHARACTER'&&/:\s*$/.test(t2)) add(i2,'Character cue ends with a colon',t2);
+  if(ty2==='DIALOGUE'&&/\(.*\)/.test(t2)) add(i2,'Dialogue containing ()',t2);
+  if(ty2==='ACTION'&&t2&&t2.length>360) add(i2,'Action longer than four lines',t2);
+ }
+ var names={};L.forEach(function(x){if(x.type==='CHARACTER'){var n=(x.text||'').trim().toUpperCase().replace(/\(.*\)/,'').trim();if(n)names[n]=1}});
+ var keys=Object.keys(names);
+ for(var q=0;q<keys.length;q++)for(var w=q+1;w<keys.length;w++){
+  var A=keys[q],B=keys[w];
+  if(A===B)continue;
+  if(A.slice(0,4)===B.slice(0,4)||(A.length>3&&B.indexOf(A)===0)||(B.length>3&&A.indexOf(B)===0))
+   add(0,'Similar names: '+A+' / '+B,'');
+ }
  var byRule={};hits.forEach(function(x){byRule[x.rule]=(byRule[x.rule]||0)+1});
- host.innerHTML='<div class="tiny muted" style="margin-bottom:7px">'+hits.length+' notes across '+L.length+' lines \u00b7 rules, not AI</div>'+
+ host.innerHTML='<div class="row" style="gap:6px;align-items:center;margin-bottom:7px"><button type="button" class="btn xs" id="grFind">Find errors</button>'+'<span class="tiny muted">'+hits.length+' notes \u00b7 '+L.length+' lines \u00b7 rules, not AI</span></div>'+
   (hits.length?Object.keys(byRule).map(function(r){return '<div class="tiny" style="color:#8794A6;margin:2px 0">'+esc(r)+' <b style="color:#C6D1DC">'+byRule[r]+'</b></div>'}).join('')+
    '<div style="margin-top:8px">'+hits.slice(0,60).map(function(x){return '<div class="gitem" data-go="'+x.i+'"><b>'+esc(x.rule)+'</b><span>'+esc(x.t.slice(0,60))+'</span></div>'}).join('')+'</div>'
    :'<p class="tiny muted">Nothing flagged.</p>');
  $$('[data-go]',host).forEach(function(el){el.onclick=function(){
   var i=+this.getAttribute('data-go'),els=$$('#paper .ln');
   if(els[i]){els[i].scrollIntoView({block:'center'});els[i].focus()}}});
+ var gf=$('#grFind');if(gf)gf.onclick=function(){var it=host.querySelector('[data-go]');if(it)it.click();else toast('Nothing flagged','good')};
 }
 function marksList(){
  var host=$('#dmark'); if(!host) return;
