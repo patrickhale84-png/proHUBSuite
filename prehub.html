@@ -144,6 +144,19 @@ dialog::backdrop{background:rgba(3,6,12,.82)}
 .mi.on:before{content:"\2713  ";color:var(--lime)}
 #paper[data-opt-pgnum="0"] .ln[data-pg]:before{content:none}
 #paper[data-opt-contd="0"] .ln[data-contd]:after{content:none}
+
+.dtabbar{gap:4px}
+.dtab{font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:#8794A6;background:none;border:0;border-bottom:2px solid transparent;padding:3px 6px;cursor:pointer;font-family:var(--fm)}
+.dtab.on{color:#fff;border-bottom-color:var(--amber)}
+.dtabbody{padding:8px 0}
+.dpane.collapsed{display:none}
+.drow{display:block;margin-bottom:7px}
+.drow span{display:block;font-family:var(--fm);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8794A6;margin-bottom:2px}
+.drow input,.drow select{width:100%}
+.gitem{padding:6px 0;border-bottom:1px solid rgba(27,36,54,.7);cursor:pointer}
+.gitem b{display:block;font-size:11.5px;color:#E2A93B;font-weight:600}
+.gitem span{display:block;font-size:11.5px;color:#8794A6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mkrow{padding:5px 0;border-bottom:1px solid rgba(27,36,54,.7);font-size:12px;color:#C6D1DC;cursor:pointer}
 </style>
 </head>
 <body>
@@ -939,19 +952,118 @@ function deskBuild(){
   var b=document.createElement('b');b.textContent=g[0];d.appendChild(b);
   g[1].forEach(function(id){var el=$('#'+id,h);if(el)d.appendChild(el)});
   tb.appendChild(d)});
+ var pg=document.createElement('div');pg.className='grp';
+ var pb=document.createElement('b');pb.textContent='Panels';pg.appendChild(pb);
+ var blp=document.createElement('button');blp.type='button';blp.className='btn xs';blp.textContent='Scenes';
+ var brp=document.createElement('button');brp.type='button';brp.className='btn xs';brp.textContent='Tools';
+ blp.onclick=function(){var p=$('.dpane.nv',h);if(p)p.classList.toggle('collapsed')};
+ brp.onclick=function(){var p=$('.dpane.ins',h);if(p)p.classList.toggle('collapsed')};
+ pg.appendChild(blp);pg.appendChild(brp);tb.appendChild(pg);
  var grid=document.createElement('div');grid.id='dgrid';grid.className='dgrid';
  var nv=document.createElement('div');nv.className='dpane nv';
- nv.innerHTML='<div class="dph">Scene navigator <span style="margin-left:auto" id="dcount"></span></div><div id="dlist"></div>';
+ nv.innerHTML='<div class="dph dtabbar"><button type="button" class="dtab on" data-lp="scenes">Scenes</button><button type="button" class="dtab" data-lp="doc">Document</button><span style="margin-left:auto" id="dcount"></span></div><div id="dlist"></div><div id="dset" class="dtabbody" style="display:none"></div>';
  var ce=document.createElement('div');ce.className='dcenter';
  var ins=document.createElement('div');ins.className='dpane ins';
- ins.innerHTML='<div class="dph">Inspector</div><div id="dinsp"></div>';
+ ins.innerHTML='<div class="dph dtabbar"><button type="button" class="dtab on" data-rp="insp">Inspector</button><button type="button" class="dtab" data-rp="gram">Grammar</button><button type="button" class="dtab" data-rp="mark">Marks</button></div><div id="dinsp"></div><div id="dgram" class="dtabbody" style="display:none"></div><div id="dmark" class="dtabbody" style="display:none"></div>';
  var pw=$('.paperwrap',h);
  try{ if(pw&&pw.parentNode&&!document.getElementById('phMenu')){var mh=document.createElement('div');mh.id='phMenu';pw.parentNode.insertBefore(mh,pw);} }catch(e){}
 box.insertBefore(tb,body);body.innerHTML='';
  grid.appendChild(nv);grid.appendChild(ce);grid.appendChild(ins);
  if(pw)ce.appendChild(pw);body.appendChild(grid);
  body.style.padding='0';
- deskFill()}
+ try{deskPanes()}catch(e){} deskFill()}
+/* the two side panels: tabs, collapsible, hidden until asked for.
+   Left holds the scenes and the document settings; right holds the inspector, the grammar
+   and punctuation check, and the revision marks. Rules, not AI. */
+function deskPanes(){
+ var h=$('.hub.open')||document;
+ var lp=$('.dpane.nv',h), rp=$('.dpane.ins',h);
+ if(lp)lp.classList.add('collapsed');
+ if(rp)rp.classList.add('collapsed');
+ $$('[data-lp]',h).forEach(function(b){b.onclick=function(){
+  $$('[data-lp]',h).forEach(function(x){x.classList.remove('on')});this.classList.add('on');
+  var k=this.getAttribute('data-lp'),dl=$('#dlist',h),ds=$('#dset',h);
+  if(dl)dl.style.display=(k==='scenes')?'':'none';
+  if(ds){ds.style.display=(k==='doc')?'':'none';if(k==='doc')docPanel()}
+ }});
+ $$('[data-rp]',h).forEach(function(b){b.onclick=function(){
+  $$('[data-rp]',h).forEach(function(x){x.classList.remove('on')});this.classList.add('on');
+  var k=this.getAttribute('data-rp'),di=$('#dinsp',h),gr=$('#dgram',h),mk=$('#dmark',h);
+  if(di)di.style.display=(k==='insp')?'':'none';
+  if(gr){gr.style.display=(k==='gram')?'':'none';if(k==='gram')grammarScan()}
+  if(mk){mk.style.display=(k==='mark')?'':'none';if(k==='mark')marksList()}
+ }});
+}
+function docPanel(){
+ var host=$('#dset'); if(!host) return;
+ S.doc=S.doc||{size:'letter',orient:'portrait',lines:54};
+ function row(label,el){return '<label class="drow"><span>'+label+'</span>'+el+'</label>'}
+ host.innerHTML=row('Title','<input id="dTitle" value="'+esc(S.project.title||'')+'">')+
+  row('Written by','<input id="dWriter" value="'+esc(S.project.writer||'')+'">')+
+  row('Page size','<select id="dSize"><option value="letter"'+(S.doc.size==='letter'?' selected':'')+'>US Letter</option><option value="a4"'+(S.doc.size==='a4'?' selected':'')+'>A4</option></select>')+
+  row('Orientation','<select id="dOrient"><option value="portrait"'+(S.doc.orient==='portrait'?' selected':'')+'>Portrait</option><option value="landscape"'+(S.doc.orient==='landscape'?' selected':'')+'>Landscape</option></select>')+
+  row('Lines per page','<input id="dLines" type="number" min="30" max="70" value="'+(S.doc.lines||54)+'">')+
+  '<div class="tiny muted" style="margin-top:8px">Page furniture lives in the View menu.</div>';
+ var t=$('#dTitle'),w=$('#dWriter');
+ if(t)t.onchange=function(){S.project.title=t.value.toUpperCase();saveSoon();setLines(lines())};
+ if(w)w.onchange=function(){S.project.writer=w.value;saveSoon()};
+ var s=$('#dSize');if(s)s.onchange=function(){S.doc.size=s.value;saveSoon()};
+ var o=$('#dOrient');if(o)o.onchange=function(){S.doc.orient=o.value;saveSoon()};
+ var n=$('#dLines');if(n)n.onchange=function(){S.doc.lines=+n.value||54;saveSoon();paginate()};
+}
+function grammarScan(){
+ var host=$('#dgram'); if(!host) return;
+ var L=lines(),hits=[];
+ function add(i,rule,t){hits.push({i:i,rule:rule,t:String(t||'')})}
+ for(var i=0;i<L.length;i++){
+  var t=L[i].text||'',ty=L[i].type;
+  var bare=t.replace(/<\/?[^>]+>/g,'');
+  if(/\b([A-Za-z']+)\s+\1\b/i.test(bare)) add(i,'Repeated word',bare);
+  if(/  +/.test(bare)) add(i,'Double space',bare);
+  if(/[.,!?](?=[A-Za-z])/.test(bare)) add(i,'Missing space after punctuation',bare);
+  if(ty==='ACTION'&&/(^|[.!?]\s+)[a-z]/.test(bare)) add(i,'Sentence starts lowercase',bare);
+  if(/"/.test(bare)) add(i,'Straight quotes \u2014 use \u201c \u201d',bare);
+  if(ty==='SCENE_HEADING'&&!/\s[-\u2013]\s*(DAY|NIGHT|DUSK|DAWN|MORNING|AFTERNOON|EVENING|CONTINUOUS|LATER|MOMENTS LATER|SAME TIME|MAGIC HOUR)/i.test(bare)) add(i,'Scene heading has no time of day',bare);
+  if(ty==='SCENE_HEADING'&&/[a-z]/.test(bare.replace(/[^A-Za-z]/g,''))) add(i,'Scene heading not uppercase',bare);
+  if(ty==='CHARACTER'&&!(L[i+1]&&(L[i+1].type==='DIALOGUE'||L[i+1].type==='PARENTHETICAL'))) add(i,'Cue with no dialogue under it',bare);
+  if(ty==='DIALOGUE'&&!(L[i-1]&&(L[i-1].type==='CHARACTER'||L[i-1].type==='PARENTHETICAL'))) add(i,'Dialogue with no cue above it',bare);
+  if(/^\(.*\)$/.test(bare)===false&&ty==='PARENTHETICAL') add(i,'Parenthetical without brackets',bare);
+ }
+ var byRule={};hits.forEach(function(x){byRule[x.rule]=(byRule[x.rule]||0)+1});
+ host.innerHTML='<div class="tiny muted" style="margin-bottom:7px">'+hits.length+' notes across '+L.length+' lines \u00b7 rules, not AI</div>'+
+  (hits.length?Object.keys(byRule).map(function(r){return '<div class="tiny" style="color:#8794A6;margin:2px 0">'+esc(r)+' <b style="color:#C6D1DC">'+byRule[r]+'</b></div>'}).join('')+
+   '<div style="margin-top:8px">'+hits.slice(0,60).map(function(x){return '<div class="gitem" data-go="'+x.i+'"><b>'+esc(x.rule)+'</b><span>'+esc(x.t.slice(0,60))+'</span></div>'}).join('')+'</div>'
+   :'<p class="tiny muted">Nothing flagged.</p>');
+ $$('[data-go]',host).forEach(function(el){el.onclick=function(){
+  var i=+this.getAttribute('data-go'),els=$$('#paper .ln');
+  if(els[i]){els[i].scrollIntoView({block:'center'});els[i].focus()}}});
+}
+function marksList(){
+ var host=$('#dmark'); if(!host) return;
+ var L=lines(),marked=[];
+ $$('#paper .ln').forEach(function(e,i){if(e.getAttribute('data-rev')==='1')marked.push(i)});
+ S.rev=S.rev||'A';
+ host.innerHTML='<div class="tiny muted" style="margin-bottom:7px">'+marked.length+' marked \u00b7 revision '+esc(S.rev)+'</div>'+
+  '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+
+  ['A','B','C'].map(function(k){return '<button class="btn xs'+(S.rev===k?' pri':'')+'" data-revk="'+k+'">'+(k==='A'?'Blue':k==='B'?'Pink':'Green')+'</button>'}).join('')+
+  '<button class="btn xs" id="mkOn">Mark this line</button><button class="btn xs" id="mkOff">Clear all marks</button></div>'+
+  (marked.length?marked.map(function(i){return '<div class="mkrow" data-go="'+i+'">'+esc(String(L[i]?L[i].text:'').slice(0,70))+'</div>'}).join(''):'<p class="tiny muted">No marks yet.</p>');
+ $$('[data-revk]',host).forEach(function(b){b.onclick=function(){
+  S.rev=this.getAttribute('data-revk');saveSoon();
+  $$('#paper .ln[data-rev="1"]').forEach(function(l){l.style.borderBottomColor=(typeof REVC!=='undefined'&&REVC[S.rev])||'#F0A6C0'});
+  marksList()}});
+ var on=$('#mkOn');if(on)on.onclick=function(){
+  var sel=document.getSelection(),node=sel&&sel.anchorNode?sel.anchorNode:null;
+  var el=node?((node.nodeType===1)?node:node.parentNode):null;
+  while(el&&el.className&&String(el.className).indexOf('ln')<0)el=el.parentNode;
+  if(el&&el.className&&String(el.className).indexOf('ln')>=0){el.setAttribute('data-rev','1');el.style.borderBottomColor=(typeof REVC!=='undefined'&&REVC[S.rev])||'#F0A6C0';saveSoon();marksList();toast('Marked revision '+S.rev,'good')}
+  else toast('Put the cursor on a line first','bad')};
+ var off=$('#mkOff');if(off)off.onclick=function(){
+  $$('#paper .ln[data-rev]').forEach(function(l){l.removeAttribute('data-rev')});saveSoon();marksList();toast('Marks cleared','good')};
+ $$('[data-go]',host).forEach(function(el){el.onclick=function(){
+  var i=+this.getAttribute('data-go'),els=$$('#paper .ln');
+  if(els[i]){els[i].scrollIntoView({block:'center'});els[i].focus()}}});
+}
 function deskFill(){
  var list=$('#dlist'),sc=deskScenes(),L=lines();
  var dc=$('#dcount');if(dc)dc.textContent=sc.length+' scenes · '+deskPages()+' pages';
