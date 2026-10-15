@@ -348,6 +348,7 @@ function save(quiet){
 }
 function saveSoon(){ clearTimeout(saveTimer); saveTimer=setTimeout(function(){save(true)},900) }
 
+
 function showStorageWarn(){
  var w=$('#storageWarn'); if(!w||!w.classList.contains('hide'))return;
  w.classList.remove('hide');
@@ -2085,6 +2086,20 @@ window.proHUB={version:'1.0',get state(){return S},set state(v){S=v},pull:pullFr
    person does without a click walk: open a desk by id, read the header, list the controls.
    Nothing here changes behaviour; it only exposes what is already on screen. */
 window.proHUB.ops = {
+  setChrome: function (o) {
+    o = o || {};
+    if (o.title != null) { var t = document.querySelector('#fTitle'); if (t) t.value = String(o.title).toUpperCase(); }
+    if (o.company != null) { var c = document.querySelector('#fCompany'); if (c) c.value = String(o.company).toUpperCase(); }
+    if (o.stamp != null) { var s = document.querySelector('#saveStamp'); if (s) s.textContent = String(o.stamp); }
+    if (o.dot != null) { var d = document.querySelector('#liveDot'); if (d) d.style.background = o.dot ? 'var(--emerald)' : 'var(--red)'; }
+    return { title: o.title != null, company: o.company != null, stamp: o.stamp != null, dot: o.dot != null };
+  },
+  chrome: function () {
+    var t = document.querySelector('#fTitle'), c = document.querySelector('#fCompany'),
+        s = document.querySelector('#saveStamp'), d = document.querySelector('#liveDot');
+    return { title: t ? t.value : null, company: c ? c.value : null,
+             stamp: s ? s.textContent : null, dotBg: d ? d.style.background : null };
+  },
   renderTiles: function () { try { return renderTiles(); } catch (e) { return 'threw: ' + e.message; } },
   saveSoon: function () { try { return saveSoon(); } catch (e) { return 'threw: ' + e.message; } },
   ready: function () { return !!document.querySelector('.tile'); },
