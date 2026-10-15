@@ -169,8 +169,7 @@ function hub() {
     '<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">' +
     '<button class="btn sm pri" id="igPick">Choose a folder</button>' +
     '<button class="btn sm" id="igFiles">Choose files</button>' +
-    '<button class="btn sm" id="igClose">Close</button></div></div>' +
-    ''+deskTabs('ingest')+''<div class="bd"><div id="igSource"></div><div id="igBin"></div></div></div>';
+    '<button class="btn sm" id="igClose">Close</button></div></div>' +deskTabs('ingest')+'<div class="bd"><div id="igSource"></div><div id="igBin"></div></div></div>';
   document.body.appendChild(h);
   h.addEventListener('click', function (e) { if (e.target === h) h.classList.remove('on'); });
   h.querySelector('#igClose').addEventListener('click', function () { h.classList.remove('on'); });
