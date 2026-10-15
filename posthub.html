@@ -182,7 +182,7 @@ function boot(){
  document.addEventListener('visibilitychange',function(){if(document.hidden)save()});
  setInterval(save,20000);
 }
-window.POST={version:'1.0',register:register,modules:function(){return MODULES.map(function(m){return m.id})},
+window.POST=window.postHUB={version:'1.0',register:register,modules:function(){return MODULES.map(function(m){return m.id})},
  addTile:addTile,removeTile:removeTile,tiles:function(){return TILES.slice()},
  state:function(){return {project:S.project,tc:S.tc,staged:!!staged(),modules:moduleState(),tiles:TILES.map(function(t){return t.id})}},
  storageOk:function(){return OK},payload:staged,save:save,paint:paint,ask:ask,toast:toast,ic:ic,esc:esc,dl:dl,
