@@ -2088,6 +2088,35 @@ function boot(){
 window.proHUB={version:'1.0',get state(){return S},set state(v){S=v},pull:pullFromPrehub,reload:function(){return load()},
  board:autoBoard,panels:buildPanels,dood:dood,budget:budgetTotals,sheet:sheetHTML,push:pushToPosthub,paint:paint,
  open:openHub,save:function(){return save(true)},apply:applyScript,lines:linesFromText,storageOk:function(){return STORAGE_OK}};
+/* prohub.ops - a small deterministic surface for tests and for the console.
+   Reads the rendered document rather than internal names, so it drives the app the way a
+   person does. Added at the export/boot region deliberately: an earlier attempt anchored
+   inside the body and broke the parse.
+   ops.trace() reads window.proHUBtrace; it stays empty until call sites are instrumented. */
+window.proHUB.ops = {
+  chrome: function () {
+    var t = document.querySelector('#fTitle'), c = document.querySelector('#fCompany'),
+        s = document.querySelector('#saveStamp'), d = document.querySelector('#liveDot');
+    return { title: t ? t.value : null, company: c ? c.value : null,
+             stamp: s ? s.textContent : null, dotBg: d ? d.style.background : null };
+  },
+  setChrome: function (o) {
+    o = o || {};
+    if (o.title != null) { var t = document.querySelector('#fTitle'); if (t) t.value = String(o.title).toUpperCase(); }
+    if (o.company != null) { var c = document.querySelector('#fCompany'); if (c) c.value = String(o.company).toUpperCase(); }
+    if (o.stamp != null) { var s = document.querySelector('#saveStamp'); if (s) s.textContent = String(o.stamp); }
+    if (o.dot != null) { var d = document.querySelector('#liveDot'); if (d) d.style.background = o.dot ? 'var(--emerald)' : 'var(--red)'; }
+    return this.chrome();
+  },
+  trace: function () { return (window.proHUBtrace || []).slice(); },
+  models: function () { return Array.prototype.slice.call(document.querySelectorAll('.tile[data-mod]')).map(function (t) { return t.getAttribute('data-mod'); }); },
+  tiles: function () { return document.querySelectorAll('.tile').length; },
+  openDesk: function (id) { var t = document.querySelector('.tile[data-mod="' + id + '"]'); if (!t) return false; t.click(); return true; },
+  openHubId: function () { var h = document.querySelector('.hub.open'); return h ? h.id : null; },
+  counts: function () { return { tiles: document.querySelectorAll('.tile').length, moduleTiles: document.querySelectorAll('.tile[data-mod]').length, hubs: document.querySelectorAll('.hub').length }; },
+  storageOk: function () { try { return window.proHUB.storageOk(); } catch (e) { return 'threw: ' + e.message; } }
+};
+
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot); else boot();
 })();
 </script>
