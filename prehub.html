@@ -564,7 +564,7 @@ function deskFill(){
    var i=+r.getAttribute('data-sc');var els=$$('#paper .ln');var t=sc[i]&&els[sc[i].i];
    if(t){t.scrollIntoView({block:'center'});t.focus()}})});
  deskInsp(0)}
-function deskInsp(i){
+function deskInsp(i){S.selScene=i;
  var box=$('#dinsp');if(!box)return;var sc=deskScenes(),s=sc[i]||{head:'-',cast:[],lines:0,eighth:0,pg:0};
  var rev=S.rev||0;
  S.notes=S.notes||{};
@@ -770,7 +770,7 @@ var ICONS={
  prt:'<path d="M7 9V4h10v5"/><path d="M5 9h14v7h-3"/><path d="M7 13h10v7H7z"/>',
  rok:'<path d="M12 3c3 2 5 6 5 10l-5 3-5-3c0-4 2-8 5-10z"/><path d="M9 18l3 3 3-3"/>',
  x:'<path d="M6 6l12 12M18 6L6 18"/>'};
-function ib(ic,label,id,act){return '<button class="ib" '+(id?'id="'+id+'" ':'')+'title="'+label+'"><svg viewBox="0 0 24 24">'+ICONS[ic]+'</svg><span>'+label+'</span></button>'}
+function ib(ic,label,act,t){return '<button class="ib" data-act="'+act+'"'+(t?' data-t="'+t+'"':'')+' title="'+label+'"><svg viewBox="0 0 24 24">'+ICONS[ic]+'</svg><span>'+label+'</span></button>'}
 function curLine(){var a=document.activeElement;
  if(a&&a.classList&&a.classList.contains('ln'))return a;
  return document.querySelector('#paper .ln')}
@@ -806,36 +806,29 @@ function deskToolbar(){var h=$('#hub-write');if(!h)return;var tb=$('.dtb',h);if(
   ['btnIn','btnRe','btnPr','btnTx','btnX'].forEach(function(id){var el=$('#'+id,h);if(el)st.appendChild(el)});
   h.appendChild(st)}
  tb.innerHTML=
-  '<div class="grp"><b>File</b>'+ib('imp','Import','','pick')+ib('paste','Paste','','pasteSmall')+ib('save','Export','','exportProject')+'</div>'+
-  '<div class="grp"><b>Edit</b>'+ib('wand','Reformat','','reformat')+ib('dup','Duplicate','','dupeLine')+ib('cut','Clear','','clearLine')+'</div>'+
-  '<div class="grp"><b>Element</b>'+ib('scn','Scene','','el:SCENE_HEADING')+ib('act','Action','','el:ACTION')+ib('chr','Char','','el:CHARACTER')+ib('par','Paren','','el:PARENTHETICAL')+ib('dia','Dialogue','','el:DIALOGUE')+ib('tra','Trans','','el:TRANSITION')+'</div>'+
-  '<div class="grp"><b>Insert</b>'+ib('add','Scene','','new:SCENE_HEADING')+ib('add','Char','','new:CHARACTER')+ib('add','Trans','','new:TRANSITION')+'</div>'+
-  '<div class="grp"><b>Reports</b>'+ib('rep','Scenes','','copyScenes')+ib('chr','Cast','','copyCast')+ib('prt','Sides','','printScene')+'</div>'+
-  '<div class="right">'+ib('prt','Print','','prall')+ib('rok','Transmit','','btnTx')+ib('x','Close','','btnX')+'</div>';
+  '<div class="grp"><b>File</b>'+ib('imp','Import','pick')+ib('paste','Paste','paste')+ib('save','Export','export')+'</div>'+
+  '<div class="grp"><b>Edit</b>'+ib('wand','Reformat','reformat')+ib('dup','Duplicate','dupe')+ib('cut','Clear','clear')+'</div>'+
+  '<div class="grp"><b>Element</b>'+
+    ib('scn','Scene','el','SCENE_HEADING')+ib('act','Action','el','ACTION')+ib('chr','Char','el','CHARACTER')+
+    ib('par','Paren','el','PARENTHETICAL')+ib('dia','Dialogue','el','DIALOGUE')+ib('tra','Trans','el','TRANSITION')+'</div>'+
+  '<div class="grp"><b>Insert</b>'+
+    ib('add','Scene','new','SCENE_HEADING')+ib('add','Char','new','CHARACTER')+ib('add','Trans','new','TRANSITION')+'</div>'+
+  '<div class="grp"><b>Reports</b>'+ib('rep','Scenes','scenes')+ib('chr','Cast','cast')+ib('prt','Sides','sides')+'</div>'+
+  '<div class="right">'+ib('prt','Print','print')+ib('rok','Transmit','transmit')+ib('x','Close','close')+'</div>';
  tb.setAttribute('data-icons','1');
- var acts={pick:function(){pick()},pasteSmall:pasteSmall,exportProject:exportProject,reformat:function(){reformat()},
-  dupeLine:dupeLine,clearLine:clearLine,copyScenes:copyScenes,copyCast:copyCast,printScene:printScene,
-  prall:function(){$('#btnPr',h).click()},btnTx:function(){$('#btnTx',h).click()},btnX:function(){$('#btnX',h).click()}};
+ var RUN={pick:function(){pick()},paste:pasteSmall,export:exportProject,
+  reformat:function(){reformat()},dupe:dupeLine,clear:clearLine,
+  scenes:copyScenes,cast:copyCast,sides:printScene,
+  print:function(){$('#btnPr',h).click()},transmit:function(){$('#btnTx',h).click()},
+  close:function(){$('#btnX',h).click()}};
  $$('.ib',tb).forEach(function(b){
-  var t=b.getAttribute('title');
-  b.addEventListener('click',function(){
-   if(acts[t])return acts[t]();
-   if(t.indexOf(' el:')>0)return;
-   if(t.charAt(0)&&acts[t])return})});
- $$('.ib',tb).forEach(function(b,i){
-  var names=['pick','pasteSmall','exportProject','reformat','dupeLine','clearLine',
-   'el','el','el','el','el','el','new','new','new','copyScenes','copyCast','printScene','prall','btnTx','btnX'];
-  var kind=names[i]; if(!kind)return;
-  b.onclick=null;
   b.addEventListener('click',function(e){
    e.preventDefault();
-   if(kind==='el')setLineType(b.getAttribute('title')==='Scene'?'SCENE_HEADING':b.getAttribute('title')==='Action'?'ACTION':b.getAttribute('title')==='Char'?'CHARACTER':b.getAttribute('title')==='Paren'?'PARENTHETICAL':b.getAttribute('title')==='Dialogue'?'DIALOGUE':'TRANSITION');
-   else if(kind==='new')newLineOfType(b.getAttribute('title')==='Scene'?'SCENE_HEADING':b.getAttribute('title')==='Char'?'CHARACTER':'TRANSITION');
-   else if(kind==='prall')$('#btnPr',h).click();
-   else if(kind==='btnTx')$('#btnTx',h).click();
-   else if(kind==='btnX')$('#btnX',h).click();
-   else if(acts[kind])acts[kind]()})})}
-(function(){var s=document.createElement('style');s.textContent=
+   var act=b.getAttribute('data-act'),t=b.getAttribute('data-t');
+   if(act==='el'){setLineType(t);return}
+   if(act==='new'){newLineOfType(t);return}
+   if(RUN[act])RUN[act]()})})}
+var s=document.createElement('style');s.textContent=
  '.dtb{display:flex;flex-wrap:wrap;align-items:center;gap:0;background:#0A0F1A;border-bottom:1px solid var(--line)}'+
  '.dtb .grp{display:flex;align-items:center;gap:2px;padding:5px 8px;border-right:1px solid var(--line)}'+
  '.dtb .grp>b{font-family:var(--fm);font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:600;margin-right:6px}'+
