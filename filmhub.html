@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>filmHUB | Production Front Desk</title>
+<style>
+:root{--ink:#060911;--bar:#070C15;--panel:#0B111E;--line:#1B2436;--line2:#26344E;--tx:#E6EBF2;--mu:#8794A6;
+--lime:#88C13F;--gold:#E5A93C;--amber:#F0A30A;--cyan:#00ABA9;--red:#E51400;--purple:#7137C8;
+--fd:'Barlow Condensed','Impact','Haettenschweiler','Franklin Gothic Medium',sans-serif;
+--fb:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
+--fm:'IBM Plex Mono','Courier New',Courier,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--tx);font-family:var(--fb);font-size:16px;line-height:1.5}
+#grain{position:fixed;inset:0;pointer-events:none;opacity:.05;z-index:400;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E")}
+.ic{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+h1,h2,h3{margin:0;font-family:var(--fd);text-transform:uppercase;letter-spacing:.02em;font-weight:400}
+.topbar{position:sticky;top:0;z-index:300;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+ padding:calc(7px + env(safe-area-inset-top)) 14px 7px;background:var(--bar);border-bottom:1px solid var(--line)}
+.brand{font-family:var(--fd);font-size:26px;letter-spacing:.05em;line-height:1}
+.brand b{color:var(--gold);font-weight:400}.brand i{font-style:normal;color:#fff}
+.tagx{font-family:var(--fm);font-size:11px;letter-spacing:.12em;color:var(--amber);border:1px solid rgba(240,163,10,.45);background:rgba(240,163,10,.1);padding:2px 6px;border-radius:3px}
+.proj{font-family:var(--fd);font-size:17px;color:var(--gold);letter-spacing:.06em;text-transform:uppercase}
+.proj span{color:var(--mu);font-family:var(--fm);font-size:12px;letter-spacing:.06em;margin-left:8px}
+.tright{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chip{font-family:var(--fm);font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--line2);color:var(--mu);background:#0A0F1A;padding:4px 8px;border-radius:4px;white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--lime);display:inline-block;margin-right:5px}
+.btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--fb);font-size:14px;font-weight:600;color:var(--tx);
+ background:#131A28;border:1px solid var(--line2);padding:8px 12px;border-radius:6px;cursor:pointer;min-height:44px}
+.btn:hover{background:#1B2436}
+.btn.pri{background:linear-gradient(135deg,var(--amber),#C98708);color:#0A0D12;border-color:transparent;font-weight:700}
+.btn.sm{padding:6px 10px;font-size:13px;min-height:38px}
+/* banner strip: shell owns the clock and the slots, the banner module fills the slots */
+.banner{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 16px;background:#0A0F1A;border-bottom:1px solid var(--line)}
+.clock{font-family:var(--fm);font-size:34px;font-weight:600;color:#fff;letter-spacing:.04em;line-height:1}
+.bclock{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);display:block;margin-bottom:3px}
+.slot{min-width:150px;padding-left:16px;border-left:1px solid var(--line)}
+.slot .k{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu);display:block;margin-bottom:3px}
+.slot .v{font-family:var(--fm);font-size:17px;color:#C6D1DC}
+.slot .v.hot{color:var(--amber)}.slot .v.over{color:#FF9E9E}
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;padding:16px;max-width:1340px;margin:0 auto 40px}
+.tile{position:relative;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;
+ min-height:132px;padding:14px;border-radius:4px;color:#fff;box-shadow:0 5px 14px rgba(0,0,0,.55);transition:transform .16s;user-select:none;outline:none}
+.tile:hover{transform:translateY(-2px);filter:brightness(1.07)}
+.tile:focus-visible{box-shadow:0 0 0 3px rgba(240,163,10,.75)}
+.tile .tl{font-family:var(--fd);font-size:19px;text-transform:uppercase;line-height:1.05}
+.tile .ts{font-family:var(--fm);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;opacity:.9;display:block;margin-top:4px}
+.tile .ic{width:37px;height:37px}
+.tile .tagx2{font-family:var(--fm);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border-radius:3px;background:rgba(0,0,0,.35)}
+.empty{grid-column:1/-1;border:2px dashed var(--line2);border-radius:8px;padding:28px;text-align:center;color:var(--mu)}
+/* dialogs, toasts, warnings */
+dialog{border:0;padding:0;background:transparent;max-width:100vw}
+dialog::backdrop{background:rgba(3,6,12,.82)}
+.dlg{width:100%;max-width:520px;background:var(--panel);border:1px solid var(--line2);border-top:3px solid var(--gold);border-radius:10px;overflow:hidden}
+.dlg .dh{padding:13px 15px;border-bottom:1px solid var(--line);background:#0A0F1D;display:flex;gap:9px;align-items:center}
+.dlg .dh h3{font-size:17px;color:#fff}
+.dlg .db{padding:15px;max-height:calc(100dvh - 180px);overflow-y:auto}
+.dlg .df{padding:12px 15px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;background:#0A0F1D}
+label.fl{display:block;font-family:var(--fm);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin-bottom:4px}
+input,select,textarea{font-family:var(--fb);font-size:16px;color:var(--tx);background:#0A0F1D;border:1px solid var(--line2);border-radius:6px;padding:8px 10px;outline:none;max-width:100%;width:100%}
+input:focus,textarea:focus{border-color:var(--gold)}
+#toasts{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:900;display:flex;flex-direction:column;gap:7px;pointer-events:none;width:92%;max-width:420px}
+.toast{background:rgba(8,13,20,.97);border:1px solid var(--gold);color:#F2D9A4;padding:10px 14px;border-radius:9px;font-size:14px;font-weight:600;text-align:center}
+.toast.good{border-color:var(--lime);color:#DFF6C6}.toast.bad{border-color:var(--red);color:#FFC9C2}
+.warnbar{background:#3A1210;border-bottom:1px solid #7A2A22;color:#FFC9C2;font-size:14px;padding:9px 14px;display:flex;gap:9px;align-items:center}
+.hide{display:none!important}
+@media(max-width:700px){
+ .banner{gap:10px}.clock{font-size:28px}.slot{min-width:120px;padding-left:10px}
+ .tiles{grid-template-columns:1fr;padding:10px}.brand{font-size:22px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="grain"></div>
+<div id="storageWarn" class="warnbar hide"></div>
+
+<header class="topbar">
+  <div class="brand"><b>film</b><i>HUB</i></div>
+  <span class="tagx">FRONT DESK</span>
+  <div class="proj" id="projName">UNTITLED PRODUCTION<span id="projMeta"></span></div>
+  <div class="tright">
+    <span class="chip"><span class="dot" id="liveDot"></span><span id="saveStamp">ready</span></span>
+    <button class="btn sm" id="setProj">Production</button>
+    <button class="btn sm" id="btnVault">Vault</button>
+  </div>
+</header>
+
+<section class="banner" id="banner">
+  <div>
+    <span class="bclock">Master clock</span>
+    <span class="clock" id="clock">--:--:--</span>
+  </div>
+  <div class="slot"><span class="k">Current call</span><span class="v" id="bnCall">not set</span></div>
+  <div class="slot"><span class="k">Next set-up</span><span class="v" id="bnNext">not set</span></div>
+  <div class="slot"><span class="k">Countdown</span><span class="v" id="bnCount">--</span></div>
+  <div class="slot"><span class="k">Day</span><span class="v" id="bnDay">--</span></div>
+  <div class="tright"><span class="chip" id="bnMove">NO COMPANY MOVE</span></div>
+</section>
+
+<main class="tiles" id="tiles"></main>
+<div id="toasts"></div>
+
+<script>
+(function(){
+'use strict';
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+var ICONS={
+ clock:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
+ out:'<path d="M12 20V9m0 0L8 13m4-4l4 4"/><path d="M5 4h14"/>',
+ in:'<path d="M12 4v11m0 0l-4-4m4 4l4-4"/><path d="M5 20h14"/>',
+ warn:'<path d="M12 4l8 15H4z"/><path d="M12 10v4M12 17h.01"/>',
+ save:'<path d="M5 4h11l3 3v13H5z"/><path d="M9 4h6v4H9z"/>',
+ play:'<path d="M8 5l11 7-11 7z"/>',
+ grid:'<path d="M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v7H4zM13 14h7v7h-7z"/>',
+ rocket:'<path d="M12 3c3 2 5 6 5 10l-5 3-5-3c0-4 2-8 5-10z"/><path d="M9 18l3 3 3-3"/>'};
+function ic(n){return '<svg viewBox="0 0 24 24" class="ic">'+(ICONS[n]||'')+'</svg>'}
+
+/* ---------- state + storage ---------- */
+var STORE='filmhub_v1';
+function blank(){return {project:{name:'UNTITLED PRODUCTION',code:''},day:0,move:false,call:'',next:'',tiles:[],stamp:0}}
+var S=blank(), STORAGE_OK=true;
+try{localStorage.setItem('__t','1');localStorage.removeItem('__t')}catch(e){STORAGE_OK=false}
+function save(){try{S.stamp=Date.now();localStorage.setItem(STORE,JSON.stringify(S));stamp(true)}catch(e){STORAGE_OK=false;warn()}return true}
+function stamp(ok){var e=$('#saveStamp');if(e)e.textContent=(ok?'saved ':'memory only ')+new Date().toLocaleTimeString();var d=$('#liveDot');if(d)d.style.background=ok?'var(--lime)':'var(--red)'}
+function warn(){var w=$('#storageWarn');if(w&&w.classList.contains('hide')){w.classList.remove('hide');w.innerHTML=ic('warn')+'<span><b>This browser will not keep your work.</b> Export the project file before you close the tab.</span>'}}
+function toast(m,k){var t=document.createElement('div');t.className='toast'+(k?' '+k:'');t.textContent=m;$('#toasts').appendChild(t);setTimeout(function(){t.remove()},2600)}
+function ask(o){return new Promise(function(res){var d=document.createElement('dialog'),b='<div class="db">';
+ (o.fields||[]).forEach(function(f){b+='<div style="margin-bottom:11px"><label class="fl">'+esc(f.label||f.k)+'</label>';
+  b+=f.type==='textarea'?'<textarea data-k="'+f.k+'" rows="'+(f.rows||6)+'">'+esc(f.value||'')+'</textarea>':'<input data-k="'+f.k+'" value="'+esc(f.value==null?'':f.value)+'">';b+='</div>'});
+ if(o.html)b+=o.html;b+='</div>';
+ d.innerHTML='<form class="dlg" method="dialog"><div class="dh">'+ic(o.icon||'grid')+'<h3>'+esc(o.title||'')+'</h3></div>'+b+
+ '<div class="df">'+(o.cancel===false?'':'<button class="btn" value="cancel" type="submit">Cancel</button>')+'<button class="btn pri" value="ok" type="submit">'+esc(o.ok||'Save')+'</button></div></form>';
+ document.body.appendChild(d);
+ d.addEventListener('close',function(){var out=null;if(d.returnValue==='ok'){out={};$$('[data-k]',d).forEach(function(i){out[i.getAttribute('data-k')]=i.value})}d.remove();res(out)});
+ d.showModal();setTimeout(function(){var f=$('input,textarea',d);if(f)f.focus()},40)})}
+function dl(name,text,mime){try{var b=new Blob([text],{type:(mime||'text/plain')+';charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');
+ a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);toast('Saved '+name,'good')}
+ catch(e){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(x){}ta.remove();toast('Copied instead of downloading','good')}}
+
+/* ---------- the module contract ----------
+   Modules are contributors, not patches. They never wrap each other and never reach
+   into one another. The shell owns the runtime: one interval that ticks every module
+   inside its own try/catch, so a broken module cannot stop the clock. */
+var MODULES=[],TILES=[];
+function register(mod){
+ if(!mod||!mod.id)throw new Error('FILM.register needs an id');
+ MODULES=MODULES.filter(function(m){return m.id!==mod.id});MODULES.push(mod);
+ if(typeof mod.mount==='function'){try{mod.mount(document)}catch(e){console.error('module '+mod.id+' mount failed',e);toast('Module '+mod.id+' failed to start','bad')}}
+ renderTiles();
+ return mod.id;
+}
+function moduleState(){var o={};MODULES.forEach(function(m){try{o[m.id]=typeof m.state==='function'?m.state():null}catch(e){o[m.id]='state() threw: '+e.message}});return o}
+function addTile(t){if(!t||!t.id)return;TILES=TILES.filter(function(x){return x.id!==t.id});TILES.push(t);renderTiles()}
+function removeTile(id){TILES=TILES.filter(function(x){return x.id!==id});renderTiles()}
+function renderTiles(){
+ var h=$('#tiles');if(!h)return;
+ if(!TILES.length){h.innerHTML='<div class="empty">No tiles yet. The launcher module adds them - preHUB, proHUB, postHUB - and the tile manager lets you add your own.</div>';return}
+ h.innerHTML=TILES.map(function(t,i){
+  return '<div class="tile" data-tile="'+esc(t.id)+'" tabindex="0" role="button" style="background:'+esc(t.colour||'#26344E')+'">'+
+   '<div class="row" style="display:flex;justify-content:space-between;align-items:flex-start">'+ic(t.icon||'grid')+
+   '<span class="tagx2">'+esc(t.tag||'')+'</span></div>'+
+   '<div><span class="tl">'+esc(t.title)+'</span><span class="ts">'+esc(t.sub||'')+'</span></div></div>'}).join('');
+ $$('[data-tile]',h).forEach(function(el){
+  var id=el.getAttribute('data-tile');
+  function fire(){var t=TILES.filter(function(x){return x.id===id})[0];if(t&&typeof t.run==='function'){try{t.run()}catch(e){toast('That tile failed: '+e.message,'bad')}}}
+  el.addEventListener('click',fire);
+  el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();fire()}});
+ })
+}
+
+/* ---------- the clock: one interval, every module ticked safely ---------- */
+function pad(n){return (n<10?'0':'')+n}
+function hhmmss(d){return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())}
+function tick(){
+ var now=new Date();
+ var cl=$('#clock');if(cl)cl.textContent=hhmmss(now);
+ for(var i=0;i<MODULES.length;i++){
+  var m=MODULES[i];
+  if(typeof m.tick!=='function')continue;
+  try{m.tick(now)}catch(e){if(!m._tickFailed){m._tickFailed=true;console.error('module '+m.id+' tick failed',e)}}
+ }
+}
+
+/* ---------- vault ---------- */
+function openVault(){
+ ask({title:'Storage vault',icon:'save',ok:'Close',cancel:false,html:
+  '<div class="db" style="padding:0"><p style="margin:0 0 10px;font-size:14px;color:#B9C4D2">'+
+  (STORAGE_OK?'Saved in this browser, on this device. Nothing is uploaded and there is no account.':'This browser is refusing to keep your work - export before you close the tab.')+
+  '</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm" id="vEx">'+ic('out')+' Export project file</button>'+
+  '<button type="button" class="btn sm" id="vIm">'+ic('in')+' Restore project file</button></div>'+
+  '<p style="margin:12px 0 0;font-size:13px;color:#8794A6">Modules loaded: '+(MODULES.length?MODULES.map(function(m){return esc(m.id)}).join(', '):'none yet')+'</p></div>'}).then(function(){});
+ setTimeout(function(){var d=$('dialog[open]');if(!d)return;
+  $('#vEx',d).addEventListener('click',function(){dl('filmHUB_'+String(S.project.name||'project').replace(/\s+/g,'_')+'.json',JSON.stringify(S,null,1),'application/json')});
+  $('#vIm',d).addEventListener('click',function(){var i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=function(){var f=i.files[0];if(!f)return;var r=new FileReader();
+   r.onload=function(){try{var j=JSON.parse(r.result);S=Object.assign(blank(),j);S.project=Object.assign(blank().project,j.project||{});save();paint();toast('Project restored','good')}catch(e){toast('That file could not be read','bad')}};r.readAsText(f)};i.click()})},60);
+}
+function paint(){
+ var p=$('#projName');if(p)p.firstChild.nodeValue=S.project.name||'UNTITLED PRODUCTION';
+ var m=$('#projMeta');if(m)m.textContent=(S.project.code?'  '+S.project.code:'');
+ var d=$('#bnDay');if(d)d.textContent=S.day?('DAY '+S.day):'--';
+ var mv=$('#bnMove');if(mv){mv.textContent=S.move?'COMPANY MOVE':'NO COMPANY MOVE';mv.style.borderColor=S.move?'var(--amber)':'';mv.style.color=S.move?'var(--amber)':''}
+ document.title=(S.project.name||'filmHUB')+' | filmHUB';
+}
+
+/* ---------- boot ---------- */
+function boot(){
+ try{var raw=localStorage.getItem(STORE);if(raw){var j=JSON.parse(raw);S=Object.assign(blank(),j);S.project=Object.assign(blank().project,j.project||{})}}catch(e){}
+ paint();renderTiles();if(!STORAGE_OK)warn();tick();
+ setInterval(tick,1000);
+ $('#btnVault').addEventListener('click',openVault);
+ $('#setProj').addEventListener('click',function(){
+  ask({title:'Production',icon:'grid',fields:[{k:'name',label:'Production name',value:S.project.name},{k:'code',label:'Code or job number',value:S.project.code},
+   {k:'day',label:'Shoot day',value:S.day||''}],html:'<label class="fl">Company move today?</label><label style="display:flex;gap:8px;align-items:center;font-size:15px"><input type="checkbox" id="mv" style="width:auto"'+(S.move?' checked':'')+'> Yes, moving location</label>'})
+  .then(function(r){if(!r)return;S.project.name=(r.name||'').toUpperCase();S.project.code=(r.code||'').toUpperCase();S.day=parseInt(r.day,10)||0;
+   var mv=$('#mv');S.move=false;save();paint();toast('Production saved','good')})});
+ document.addEventListener('keydown',function(e){if(e.key==='Escape'){var d=$('dialog[open]');if(d)d.close()}});
+ document.addEventListener('visibilitychange',function(){if(document.hidden)save()});
+ setInterval(save,20000);
+}
+
+window.FILM={version:'1.0',register:register,modules:function(){return MODULES.map(function(m){return m.id})},
+ addTile:addTile,removeTile:removeTile,tiles:function(){return TILES.slice()},
+ state:function(){return {project:S.project,day:S.day,move:S.move,modules:moduleStatesafe(),tiles:TILES.map(function(t){return t.id})}},
+ storageOk:function(){return STORAGE_OK},storageKey:STORE,save:save,paint:paint,ask:ask,toast:toast,ic:ic,esc:esc,dl:dl,
+ clock:function(){return $('#clock')?$('#clock').textContent:null}};
+function moduleStatesafe(){try{return moduleState()}catch(e){return 'error'}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+;
+/* module: 10-banner.js */
+(function(){
+/* filmHUB - live banner
+   Reads a staged call sheet if one is in the browser, otherwise takes manual entry.
+   Registers as a contribution, not a patch: the shell ticks it, it never reaches into
+   another module, and every write is defensive so a missing element cannot throw. */
+var BANNER_KEY = 'filmhub_banner_v1';
+var STAGED_KEYS = ['prohub_staged_payload_v1', 'posthub_staged_payload_v1', 'prehub_master_v1'];
+var SOON_MINUTES = 15;
+
+var B = { call: '', next: '', day: 0, move: false, source: 'manual' };
+
+function readJSON(k) { try { var r = localStorage.getItem(k); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+function pad2(n) { return (n < 10 ? '0' : '') + n; }
+function el(id) { return document.getElementById(id); }
+
+function parseHM(s) {
+  if (!s) return null;
+  var m = String(s).match(/(\d{1,2})[:.](\d{2})/);
+  if (!m) return null;
+  var h = parseInt(m[1], 10), mi = parseInt(m[2], 10);
+  if (h > 23 || mi > 59) return null;
+  return { h: h, m: mi };
+}
+function atToday(hm) { if (!hm) return null; var d = new Date(); d.setHours(hm.h, hm.m, 0, 0); return d; }
+
+/* look for a call sheet staged by another app, without depending on one being there */
+function findStaged() {
+  for (var i = 0; i < STAGED_KEYS.length; i++) {
+    var p = readJSON(STAGED_KEYS[i]);
+    if (!p) continue;
+    var sheets = p.sheets || p.callSheets || [];
+    if (!sheets.length) continue;
+    var day = p.day || 1;
+    var sheet = null;
+    for (var j = 0; j < sheets.length; j++) { if ((sheets[j].day || 1) === day) { sheet = sheets[j]; break; } }
+    if (!sheet) sheet = sheets[0];
+    var call = sheet.call || sheet.callTime || sheet.generalCall || sheet.castCall || null;
+    if (!call) continue;
+    return {
+      key: STAGED_KEYS[i], call: call,
+      next: sheet.next || sheet.nextSetup || sheet.firstShot || null,
+      day: sheet.day || day, move: !!(sheet.move || sheet.companyMove)
+    };
+  }
+  return null;
+}
+
+function load() {
+  var m = readJSON(BANNER_KEY);
+  if (m) { B.call = m.call || ''; B.next = m.next || ''; B.move = !!m.move; if (m.day) B.day = m.day; }
+  var s = findStaged();
+  if (s) {
+    B.call = s.call; B.next = s.next || B.next; B.move = s.move; B.day = s.day;
+    B.source = 'staged (' + s.key + ')';
+  } else {
+    B.source = B.call ? 'manual' : 'manual (nothing staged)';
+  }
+}
+function keep() {
+  try { localStorage.setItem(BANNER_KEY, JSON.stringify({ call: B.call, next: B.next, move: B.move, day: B.day })); }
+  catch (e) { /* storage refused - the shell already warns about that */ }
+}
+
+function status() {
+  var hm = parseHM(B.call);
+  if (!hm) return { status: 'none', minutes: null };
+  var target = atToday(hm);
+  var mins = Math.round((target.getTime() - Date.now()) / 60000);
+  return { status: mins < 0 ? 'over' : (mins <= SOON_MINUTES ? 'soon' : 'ok'), minutes: mins, at: pad2(hm.h) + ':' + pad2(hm.m) };
+}
+function span(mins) {
+  if (mins < 60) return mins + ' min';
+  return Math.floor(mins / 60) + 'h ' + pad2(mins % 60) + 'm';
+}
+
+var lastCount = null;
+function paint() {
+  var e = el('bnCall'); if (e && e.textContent !== (B.call || 'not set')) e.textContent = B.call || 'not set';
+  e = el('bnNext'); if (e && e.textContent !== (B.next || 'not set')) e.textContent = B.next || 'not set';
+  e = el('bnDay'); if (e && B.day) { var d = 'DAY ' + B.day; if (e.textContent !== d) e.textContent = d; }
+
+  var s = status(), c = el('bnCount');
+  if (c) {
+    var text, cls;
+    if (s.status === 'none') { text = '--'; cls = 'v'; }
+    else if (s.status === 'over') { text = '-' + span(Math.abs(s.minutes)); cls = 'v over'; }
+    else { text = span(s.minutes); cls = 'v' + (s.status === 'soon' ? ' hot' : ''); }
+    if (text + cls !== lastCount) { c.textContent = text; c.className = cls; lastCount = text + cls; }
+  }
+  var mv = el('bnMove');
+  if (mv) {
+    var t = B.move ? 'COMPANY MOVE' : 'NO COMPANY MOVE';
+    if (mv.textContent !== t) {
+      mv.textContent = t;
+      mv.style.borderColor = B.move ? 'var(--amber)' : '';
+      mv.style.color = B.move ? 'var(--amber)' : '';
+    }
+  }
+}
+
+function edit() {
+  FILM.ask({
+    title: 'Call sheet', icon: 'clock',
+    fields: [
+      { k: 'call', label: 'Current call (24h, e.g. 07:30)', value: B.call },
+      { k: 'next', label: 'Next set-up', value: B.next },
+      { k: 'day', label: 'Shoot day', value: B.day || '' }
+    ],
+    html: '<label class="fl">Company move today?</label>' +
+          '<label style="display:flex;gap:8px;align-items:center;font-size:15px">' +
+          '<input type="checkbox" id="bnmv" style="width:auto"' + (B.move ? ' checked' : '') + '> Yes, moving location</label>' +
+          '<p style="margin:10px 0 0;font-size:13px;color:#8794A6">Source: ' + FILM.esc(B.source) + '</p>'
+  }).then(function (r) {
+    if (!r) return;
+    B.call = (r.call || '').trim();
+    B.next = (r.next || '').trim();
+    B.day = parseInt(r.day, 10) || B.day || 0;
+    var mv = el('bnmv');
+    B.move = mv ? !!mv.checked : false;
+    B.source = 'manual';
+    keep(); paint();
+    if (typeof FILM.save === 'function') FILM.save();
+    FILM.toast(B.call ? 'Call sheet updated' : 'Call sheet cleared', 'good');
+  });
+}
+
+FILM.register({
+  id: 'banner',
+  mount: function () {
+    load(); paint();
+    var b = el('banner');
+    if (b) {
+      b.style.cursor = 'pointer';
+      b.title = 'Click to edit the call sheet';
+      b.addEventListener('click', function (ev) {
+        if (ev.target && ev.target.tagName === 'BUTTON') return;
+        edit();
+      });
+    }
+  },
+  tick: function () { paint(); },
+  state: function () {
+    var s = status();
+    return { callAt: B.call || null, nextAt: B.next || null, day: B.day || 0,
+             move: !!B.move, status: s.status, minutesToCall: s.minutes, source: B.source };
+  }
+});
+})();
+
+;
+/* module: 20-launcher.js */
+(function(){
+/* filmHUB - launcher
+   Three tiles that open the three apps. Contributes to the shell rather than patching it:
+   it calls FILM.addTile() and hands each tile a run() of its own.
+
+   Where the apps live: siblings of filmhub.html by default, so a folder deploy just works.
+   Override any of them (a Wix page, a hosted URL) with localStorage filmhub_endpoints_v1,
+   or FILM.setEndpoint('prohub', 'https://...'). */
+var EP_KEY = 'filmhub_endpoints_v1';
+
+var APPS = [
+  { id: 'prehub',  title: 'preHUB',  sub: 'Writing desk · script · breakdown', colour: '#00ABA9', icon: 'grid',   tag: 'PRE',  file: 'prehub.html'  },
+  { id: 'prohub',  title: 'proHUB',  sub: 'Production desk · nine modules',     colour: '#E51400', icon: 'rocket', tag: 'PROD', file: 'prohub.html'  },
+  { id: 'posthub', title: 'postHUB', sub: 'Edit desk · ingest · timeline',      colour: '#7137C8', icon: 'play',   tag: 'POST', file: 'posthub.html' }
+];
+
+function readEP() { try { var r = localStorage.getItem(EP_KEY); return r ? JSON.parse(r) : {}; } catch (e) { return {}; } }
+function urlFor(a) { var ep = readEP(); return ep[a.id] || a.file; }
+function embedded() { try { return window.self !== window.top; } catch (e) { return true; } }
+
+function launch(a) {
+  var u = urlFor(a);
+  if (typeof FILM.toast === 'function') FILM.toast('Opening ' + a.title + '…');
+  /* inside an embed a new tab is the only way out; on a plain page, navigate. */
+  if (embedded()) {
+    var w = null;
+    try { w = window.open(u, '_blank'); } catch (e) { w = null; }
+    if (w) return;
+    try { window.top.location.href = u; return; } catch (e) { /* cross-origin top - fall through */ }
+  }
+  try { location.href = u; } catch (e) {
+    if (typeof FILM.toast === 'function') FILM.toast('Could not open ' + a.title, 'bad');
+  }
+}
+
+/* a best-effort check so a tile can say "not uploaded yet" rather than failing silently */
+function reachable(a, cb) {
+  var u = urlFor(a);
+  if (typeof fetch !== 'function') { cb(null); return; }
+  if (/^https?:/i.test(u) && u.indexOf(location.origin) !== 0) { cb(null); return; }
+  try {
+    fetch(u, { method: 'HEAD' }).then(function (r) { cb(r && r.ok === true); })
+      .catch(function () { cb(false); });
+  } catch (e) { cb(null); }
+}
+
+function tileFor(a) {
+  var sub = a.sub;
+  if (a.ready === true) sub = sub + ' · ready';
+  else if (a.ready === false) sub = sub + ' · not uploaded yet';
+  return { id: 'app-' + a.id, title: a.title, sub: sub, colour: a.colour, icon: a.icon, tag: a.tag,
+           run: function () { launch(a); } };
+}
+function addAll() { for (var i = 0; i < APPS.length; i++) FILM.addTile(tileFor(APPS[i])); }
+
+FILM.register({
+  id: 'launcher',
+  mount: function () {
+    addAll();
+    /* annotate each tile once the reachability check answers - guarded so a failure
+       leaves the tile exactly as it was rather than blanking it */
+    for (var i = 0; i < APPS.length; i++) {
+      (function (a) {
+        reachable(a, function (ok) {
+          if (ok === null || a.ready === ok) return;
+          a.ready = ok;
+          try { FILM.addTile(tileFor(a)); } catch (e) { /* leave it be */ }
+        });
+      })(APPS[i]);
+    }
+  },
+  state: function () {
+    return {
+      apps: APPS.map(function (a) { return { id: a.id, url: urlFor(a), ready: (a.ready === undefined ? null : a.ready) }; }),
+      endpoints: readEP(),
+      embedded: embedded()
+    };
+  }
+});
+
+/* public helpers so the tile manager and the console can drive it */
+FILM.launch = function (id) {
+  for (var i = 0; i < APPS.length; i++) { if (APPS[i].id === id) { launch(APPS[i]); return true; } }
+  return false;
+};
+FILM.setEndpoint = function (id, url) {
+  var ep = readEP();
+  if (url) ep[id] = url; else delete ep[id];
+  try { localStorage.setItem(EP_KEY, JSON.stringify(ep)); } catch (e) { return false; }
+  addAll();
+  return true;
+};
+FILM.apps = function () { return APPS.map(function (a) { return a.id; }); };
+})();
+
+;
+/* module: 30-tiles.js */
+(function(){
+/* filmHUB - tile manager
+   Owns layout, never the tiles themselves. It re-adds existing tiles through FILM.addTile()
+   in the order you choose, so it needs no hook inside the shell: the public API is enough.
+
+   Keeps: custom tiles, their order, per-tile size, and named presets - all in localStorage. */
+var T_KEY = 'filmhub_tiles_v1', L_KEY = 'filmhub_layout_v1', P_KEY = 'filmhub_presets_v1';
+var SIZE_STEPS = [[1,1],[2,1],[2,2],[1,2]];
+var custom = [], layout = { order: [], size: {} }, presets = {}, mo = null;
+
+function jread(k, d) { try { var r = localStorage.getItem(k); return r ? JSON.parse(r) : d; } catch (e) { return d; } }
+function jwrite(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+function loadAll() {
+  custom = jread(T_KEY, []); if (!(custom instanceof Array)) custom = [];
+  layout = jread(L_KEY, { order: [], size: {} });
+  if (!layout.order) layout.order = []; if (!layout.size) layout.size = {};
+  presets = jread(P_KEY, {}); if (!presets || typeof presets !== 'object') presets = {};
+}
+function saveAll() { jwrite(T_KEY, custom); jwrite(L_KEY, layout); jwrite(P_KEY, presets); }
+function embed() { try { return window.self !== window.top; } catch (e) { return true; } }
+
+function openUrl(u) {
+  if (!u) return;
+  if (typeof FILM.toast === 'function') FILM.toast('Opening…');
+  if (embed()) {
+    var w = null; try { w = window.open(u, '_blank'); } catch (e) { w = null; }
+    if (w) return;
+    try { window.top.location.href = u; return; } catch (e) { /* cross-origin */ }
+  }
+  try { location.href = u; } catch (e) { if (typeof FILM.toast === 'function') FILM.toast('Could not open that link', 'bad'); }
+}
+function toTile(t) { return { id: t.id, title: t.title, sub: t.sub, colour: t.colour, icon: t.icon || 'grid', tag: t.tag || 'MINE',
+                              run: function () { openUrl(t.url); } }; }
+function managerTile() {
+  return { id: 'tile-manager', title: 'Tile manager', sub: 'Add · reorder · size · presets', colour: '#E2A93B',
+           icon: 'grid', tag: 'DESK', run: openManager };
+}
+
+/* ---- layout: rebuild the grid in the stored order, then apply sizes ---- */
+function allTiles() {
+  var list = custom.map(toTile);
+  FILM.tiles().forEach(function (t) {
+    if (t.id.indexOf('custom-') === 0 || t.id === 'tile-manager') return;
+    list.push(t);
+  });
+  list.push(managerTile());
+  return list;
+}
+function applyLayout() {
+  var list = allTiles(), byId = {};
+  list.forEach(function (t) { byId[t.id] = t; });
+  var order = (layout.order || []).filter(function (id) { return !!byId[id]; });
+  list.forEach(function (t) { if (order.indexOf(t.id) < 0) order.push(t.id); });
+  layout.order = order;
+  order.forEach(function (id) { FILM.addTile(byId[id]); });
+  saveAll(); applySizes();
+}
+
+/* ---- sizes and drag, applied to the DOM the shell just rendered ---- */
+function applySizes() {
+  var host = document.getElementById('tiles'); if (!host) return;
+  var tiles = host.querySelectorAll('.tile[data-tile]');
+  for (var i = 0; i < tiles.length; i++) {
+    var el = tiles[i], id = el.getAttribute('data-tile'), s = layout.size[id] || [1, 1];
+    el.style.gridColumn = 'span ' + s[0];
+    el.style.gridRow = 'span ' + s[1];
+    el.setAttribute('draggable', 'true');
+    bindDrag(el, id);
+  }
+}
+function bindDrag(el, id) {
+  if (el._dragBound) return;
+  el._dragBound = true;
+  el.addEventListener('dragstart', function (ev) {
+    try { ev.dataTransfer.setData('text/plain', id); ev.dataTransfer.effectAllowed = 'move'; } catch (e) {}
+  });
+  el.addEventListener('dragover', function (ev) { ev.preventDefault(); });
+  el.addEventListener('drop', function (ev) {
+    ev.preventDefault();
+    var from = ''; try { from = ev.dataTransfer.getData('text/plain'); } catch (e) {}
+    if (!from || from === id) return;
+    moveBefore(from, id);
+  });
+}
+function moveBefore(fromId, toId) {
+  var o = (layout.order || []).slice();
+  var i = o.indexOf(fromId), j = o.indexOf(toId);
+  if (i < 0 || j < 0) return;
+  o.splice(i, 1); o.splice(j, 0, fromId);
+  layout.order = o; saveAll(); applyLayout();
+  if (typeof FILM.toast === 'function') FILM.toast('Reordered', 'good');
+}
+function nudge(id, dir) {
+  var o = (layout.order || []).slice(), i = o.indexOf(id);
+  if (i < 0) return;
+  var j = i + dir; if (j < 0 || j >= o.length) return;
+  var t = o[i]; o[i] = o[j]; o[j] = t;
+  layout.order = o; saveAll(); applyLayout();
+}
+function cycleSize(id) {
+  var cur = layout.size[id] || [1, 1], at = 0;
+  for (var i = 0; i < SIZE_STEPS.length; i++) { if (SIZE_STEPS[i][0] === cur[0] && SIZE_STEPS[i][1] === cur[1]) { at = i; break; } }
+  layout.size[id] = SIZE_STEPS[(at + 1) % SIZE_STEPS.length];
+  saveAll(); applySizes();
+}
+
+/* ---- the manager panel ---- */
+function listHtml() {
+  var list = allTiles(), out = [];
+  for (var i = 0; i < list.length; i++) {
+    var t = list[i], s = layout.size[t.id] || [1, 1];
+    var mine = t.id.indexOf('custom-') === 0;
+    out.push('<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #1B2436">' +
+      '<span style="flex:1;font-size:14px">' + FILM.esc(t.title) +
+      ' <span style="color:#8794A6;font-size:12px">' + s[0] + '&times;' + s[1] + '</span></span>' +
+      '<button type="button" class="btn sm" data-up="' + t.id + '">&uarr;</button>' +
+      '<button type="button" class="btn sm" data-dn="' + t.id + '">&darr;</button>' +
+      '<button type="button" class="btn sm" data-sz="' + t.id + '">size</button>' +
+      (mine ? '<button type="button" class="btn sm" data-rm="' + t.id + '">remove</button>' : '') +
+      '</div>');
+  }
+  return out.join('');
+}
+function presetHtml() {
+  var names = Object.keys(presets);
+  if (!names.length) return '<p style="margin:0;font-size:13px;color:#8794A6">No presets saved.</p>';
+  return names.map(function (n) {
+    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #1B2436">' +
+      '<span style="flex:1;font-size:14px">' + FILM.esc(n) + '</span>' +
+      '<button type="button" class="btn sm" data-pl="' + FILM.esc(n) + '">load</button>' +
+      '<button type="button" class="btn sm" data-pd="' + FILM.esc(n) + '">delete</button></div>';
+  }).join('');
+}
+function managerHtml() {
+  return '<label class="fl">Layout</label><div id="tmLayout">' + listHtml() + '</div>' +
+    '<p style="margin:8px 0 14px;font-size:13px;color:#8794A6">Drag a tile to reorder, or use the arrows - which also work on a phone.</p>' +
+    '<label class="fl">Add a tile</label>' +
+    '<div style="display:grid;gap:8px;margin-bottom:8px">' +
+    '<input data-k="title" placeholder="Tile name (e.g. Dailies drive)">' +
+    '<input data-k="sub" placeholder="Sub-line (e.g. production server)">' +
+    '<input data-k="url" placeholder="Link it opens (https://... or a file name)">' +
+    '<div style="display:flex;gap:8px;align-items:center"><input data-k="colour" value="#00ABA9" style="width:110px">' +
+    '<span style="font-size:13px;color:#8794A6">colour</span></div></div>' +
+    '<button type="button" class="btn sm" id="addTileBtn">Add tile</button>' +
+    '<label class="fl" style="margin-top:16px">Presets</label><div id="tmPresets">' + presetHtml() + '</div>' +
+    '<div style="display:flex;gap:8px;margin-top:8px"><input data-k="preset" placeholder="Preset name">' +
+    '<button type="button" class="btn sm" id="savePreset">Save preset</button></div>';
+}
+
+/* ONE dialog, always. refresh() rewrites the two list containers in place and rebinds
+   with onclick - assignment, not addEventListener - so handlers can never stack and a
+   second dialog can never open on top of the first. The add-tile form is deliberately
+   outside those containers so anything typed survives a reorder. */
+function bind(d) {
+  var i, n;
+  function wire(attr, fn) {
+    n = d.querySelectorAll('[' + attr + ']');
+    for (i = 0; i < n.length; i++) n[i].onclick = fn;
+  }
+  wire('data-up', function () { nudge(this.getAttribute('data-up'), -1); refresh(d); });
+  wire('data-dn', function () { nudge(this.getAttribute('data-dn'), 1); refresh(d); });
+  wire('data-sz', function () { cycleSize(this.getAttribute('data-sz')); refresh(d); });
+  wire('data-rm', function () {
+    var id = this.getAttribute('data-rm');
+    custom = custom.filter(function (t) { return t.id !== id; });
+    layout.order = layout.order.filter(function (x) { return x !== id; });
+    FILM.removeTile(id); saveAll(); applyLayout(); refresh(d);
+  });
+  wire('data-pl', function () { applyPreset(this.getAttribute('data-pl')); refresh(d); });
+  wire('data-pd', function () { delete presets[this.getAttribute('data-pd')]; saveAll(); refresh(d); });
+
+  var add = d.querySelector('#addTileBtn');
+  if (add) add.onclick = function () {
+    var q = function (k) { var e = d.querySelector('[data-k="' + k + '"]'); return e ? e.value.trim() : ''; };
+    var title = q('title'), url = q('url');
+    if (!title) { FILM.toast('A tile needs a name', 'bad'); return; }
+    var id = 'custom-' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 24) + '-' + Date.now().toString(36).slice(-4);
+    custom.push({ id: id, title: title.toUpperCase(), sub: q('sub') || 'your tile', url: url, colour: q('colour') || '#00ABA9', tag: 'MINE' });
+    layout.order.push(id); saveAll(); applyLayout(); refresh(d);
+    FILM.toast('Tile added', 'good');
+  };
+  var sp = d.querySelector('#savePreset');
+  if (sp) sp.onclick = function () {
+    var e = d.querySelector('[data-k="preset"]'), name = e ? e.value.trim() : '';
+    if (!name) { FILM.toast('Name the preset first', 'bad'); return; }
+    presets[name] = { order: layout.order.slice(), size: JSON.parse(JSON.stringify(layout.size)), tiles: JSON.parse(JSON.stringify(custom)) };
+    saveAll(); refresh(d); FILM.toast('Preset "' + name + '" saved', 'good');
+  };
+}
+
+function openManager() {
+  FILM.ask({ title: 'Tile manager', icon: 'grid', ok: 'Close', cancel: false, html: managerHtml() }).then(function () {});
+  setTimeout(function () { var d = document.querySelector('dialog[open]'); if (d) bind(d); }, 80);
+}
+
+function refresh(d) {
+  if (!d) d = document.querySelector('dialog[open]');
+  if (!d) return;
+  var l = document.getElementById('tmLayout'); if (l) l.innerHTML = listHtml();
+  var p = document.getElementById('tmPresets'); if (p) p.innerHTML = presetHtml();
+  bind(d);
+}
+
+function applyPreset(name) {
+  var p = presets[name]; if (!p) return;
+  layout.order = (p.order || []).slice();
+  layout.size = p.size || {};
+  custom = JSON.parse(JSON.stringify(p.tiles || []));
+  saveAll(); applyLayout();
+  if (typeof FILM.toast === 'function') FILM.toast('Preset "' + name + '" loaded', 'good');
+}
+FILM.register({
+  id: 'tiles',
+  mount: function () {
+    loadAll();
+    applyLayout();
+    var host = document.getElementById('tiles');
+    if (host && typeof MutationObserver === 'function') {
+      if (mo) mo.disconnect();
+      mo = new MutationObserver(function () { applySizes(); });
+      mo.observe(host, { childList: true });
+    }
+  },
+  state: function () {
+    return { custom: custom.length, order: (layout.order || []).slice(),
+             sizes: JSON.parse(JSON.stringify(layout.size)), presets: Object.keys(presets) };
+  }
+});
+FILM.openTileManager = openManager;
+})();
+
+</script>
+</body>
+</html>
