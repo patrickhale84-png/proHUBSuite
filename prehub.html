@@ -196,6 +196,11 @@ dialog::backdrop{background:rgba(3,6,12,.82)}
 #paper .ln[data-ind="4"]{padding-left:2in}
 #paper .ln[data-note]{position:relative}
 #paper .ln[data-note]:after{content:"\25CF";position:absolute;right:-13px;top:4px;font-size:7px;color:var(--amber)}
+
+.dhub{display:flex;flex-direction:column}
+#phMenu,#wtb{flex:0 0 auto}
+.dgrid{flex:1 1 auto;min-width:0}
+.dcenter{overflow:auto}
 </style>
 </head>
 <body>
@@ -1186,7 +1191,9 @@ function deskBuild(){
 box.insertBefore(tb,body);body.innerHTML='';
  grid.appendChild(nv);grid.appendChild(ce);grid.appendChild(ins);
  if(pw)ce.appendChild(pw);body.appendChild(grid);
- try{ if(pw&&pw.parentNode){ var mh=document.createElement('div');mh.id='phMenu';pw.parentNode.insertBefore(mh,pw); var th=document.createElement('div');th.id='wtb';pw.parentNode.insertBefore(th,pw); } }catch(e){}
+ try{ var bm=document.createElement('div');bm.id='phMenu';body.insertBefore(bm,grid); var bt=document.createElement('div');bt.id='wtb';body.insertBefore(bt,grid); }catch(e){}
+ try{ buildMenu(); }catch(e){}
+ try{ buildToolbar(); }catch(e){}
  try{ buildMenu(); }catch(e){}
  try{ buildToolbar(); }catch(e){}
  body.style.padding='0';
