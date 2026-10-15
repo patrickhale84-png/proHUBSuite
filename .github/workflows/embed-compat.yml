@@ -35,9 +35,11 @@ jobs:
           git config user.name "prohub-ci"
           git config user.email "ci@localhost"
           if [ -f build/out/report.json ]; then
+            cat build/out/report.json
+            git checkout -b ci-report >/dev/null 2>&1 || git checkout ci-report
             git add -f build/out/report.json
             git commit -m "ci: embed compatibility report [skip ci]" || echo "nothing to commit"
-            git push || echo "push skipped"
+            git push -f origin ci-report && echo "report pushed to ci-report" || echo "push skipped"
           else
             echo "no report produced"
           fi
