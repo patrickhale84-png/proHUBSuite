@@ -300,7 +300,7 @@ function renderPitch(){var sc=scenesOf(),ch=Object.keys(castList()),t=S.project.
  return '<div class="row" style="margin-bottom:12px"><span class="pill">'+slides.length+' slides</span><span class="tiny muted">Built from your own draft. Edit any slide; it saves with the project.</span></div>'+
  '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px">'+slides.map(function(s,i){
   var saved=(S.pitch&&S.pitch[i]!=null)?S.pitch[i]:s[1];
-  return '<div class="box" style="margin:0"><div class="tiny" style="color:var(--amber);font-family:var(--fm);letter-spacing:.08em;margin-bottom:6px">SLIDE '+(i+1)+' - '+esc(s[0]).toUpperCase()+'</div>'+
+  return '<div class="box" style="margin:0">'+((S.frames&&S.frames['slide'+i])?'<img src="'+S.frames['slide'+i]+'" style="width:100%;border-radius:6px;margin-bottom:7px">':'')+'<div class="tiny" style="color:var(--amber);font-family:var(--fm);letter-spacing:.08em;margin-bottom:6px">SLIDE '+(i+1)+' - '+esc(s[0]).toUpperCase()+'</div>'+
   '<textarea data-slide="'+i+'" rows="4" style="width:100%;font-family:var(--fm);font-size:11.5px">'+esc(saved)+'</textarea></div>'}).join('')+'</div>'}
 function renderBudget(){var b=budgetTotals(),p=S.budget||{};
  var row=function(k,n){return '<tr><td>'+n+'</td><td class="n"><input data-bud="'+k+'" value="'+(p[k]!=null?p[k]:{atl:150000,btl:200000,post:50000,pct:10}[k])+'" style="width:110px;text-align:right"></td></tr>'};
@@ -320,7 +320,7 @@ function renderBoards(){var sc=scenesOf();
  return '<div class="row" style="margin-bottom:12px"><span class="pill">'+sc.length+' scenes</span><span class="tiny muted">Six set-ups per scene where the scene earns them. Sketch on a panel with a finger or a mouse; the drawing is kept with the project.</span></div>'+
  '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">'+sc.map(function(s,i){
   return '<div class="box" style="margin:0;padding:0;overflow:hidden"><div class="tiny" style="padding:8px 10px;border-bottom:1px solid var(--line);font-family:var(--fm)">SC '+esc(s.head)+'</div>'+
-  '<div style="position:relative;background:#05080F;aspect-ratio:16/9"><canvas data-cv="'+i+'" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair"></canvas></div>'+
+  '<div style="position:relative;background:#05080F;aspect-ratio:16/9">'+((S.frames&&S.frames['sc'+i])?'<img src="'+S.frames['sc'+i]+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain">':'<canvas data-cv="'+i+'" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair"></canvas>')+'</div>'+
   '<div style="padding:8px 10px"><div class="tiny" style="color:var(--amber)">RuLES 1-6</div><div class="tiny muted">'+(s.cast.length?('Cast: '+esc(s.cast.join(', '))):'Silent')+'</div></div></div>'}).join('')+'</div>'+rules.map(function(){return ''}).join('')}
 function wireBoards(){ if(!(S.panels))S.panels={};
  $$('canvas[data-cv]').forEach(function(cv){var i=cv.getAttribute('data-cv');cv.width=cv.clientWidth||300;cv.height=cv.clientHeight||170;
@@ -388,6 +388,11 @@ function stagePaint(limit){var st=stage(),cv=$('#stagecv');if(!cv)return;var c=c
   if(it.t==='arrow')arrowDraw(c,it.x,it.y,it.sc,it.rot);else partDraw(it.t,c,it.x,it.y,it.sc,it.rot);
   if(st.sel===i){c.save();c.strokeStyle='#E5A93C';c.setLineDash([5,4]);c.strokeRect(it.x-44,it.y-58,88,116);c.restore()}});
  c.save();c.fillStyle='#5C6B7D';c.font='12px monospace';c.fillText(roomName(st.bg)+'  -  '+st.items.length+' objects',12,h-12);c.restore()}
+function stageTargets(){var o='<optgroup label="Storyboard panels">';
+ scenesOf().forEach(function(s,i){o+='<option value="sc'+i+'">Storyboard - SC '+esc(s.head)+'</option>'});
+ o+='</optgroup><optgroup label="Pitch slides">';
+ ['Title','Hook','The world','Protagonist','Opposing force','The turn','Tone and reference','Audience','Comparable territory','Why now'].forEach(function(t,i){o+='<option value="slide'+i+'">Pitch slide '+(i+1)+' - '+t+'</option>'});
+ return o+'</optgroup>'}
 function stagePanel(){var st=stage();
  return '<div class="row" style="margin-bottom:10px"><label class="fl" style="margin:0">Room</label><select id="sRoom" style="max-width:210px">'+
  ROOMS.map(function(r){return '<option value="'+r+'"'+(st.bg===r?' selected':'')+'>'+roomName(r)+'</option>'}).join('')+'</select>'+
@@ -395,7 +400,7 @@ function stagePanel(){var st=stage();
  '<button class="btn sm" id="sPlay">animate</button><button class="btn sm" id="sPng">save PNG</button><span style="margin-left:auto"></span><button class="btn sm dan" id="sDel">delete selected</button></div>'+
  '<div class="row" style="margin-bottom:10px"><span class="tiny muted">Turn</span><input type="range" id="sRot" min="-180" max="180" value="0" style="width:140px">'+
  '<span class="tiny muted">Scale</span><input type="range" id="sSc" min="30" max="260" value="100" style="width:140px"><span class="tiny muted">Click to select, drag to move.</span></div>'+
- '<div class="box" style="padding:0;overflow:hidden"><canvas id="stagecv" width="960" height="540" style="width:100%;display:block;cursor:grab"></canvas></div>'+
+ '<div class="row" style="margin-bottom:10px"><label class="fl" style="margin:0">Use for</label><select id="sTarget" style="max-width:340px">'+stageTargets()+'</select><button class="btn sm lime" id="sSave">Save into that panel</button><button class="btn sm dan" id="sUnsave">Clear it</button><span class="tiny muted">The staged frame then appears on that storyboard panel or pitch slide.</span></div>'+'<div class="box" style="padding:0;overflow:hidden"><canvas id="stagecv" width="960" height="540" style="width:100%;display:block;cursor:grab"></canvas></div>'+
  '<div class="box mt10"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">HEADS AND BODIES</h3><div class="row">'+
  ['head1','head2','head3','body1','body2','body3'].map(function(p){return '<button class="btn xs" data-part="'+p+'">'+p+'</button>'}).join('')+
  '<span class="tiny muted">Pick a part, add it, turn and scale it into the space.</span></div></div>'}
@@ -415,6 +420,8 @@ function stageWire(h){var cv=$('#stagecv',h);if(!cv)return;var st=stage();
  $('#sRot',h).addEventListener('change',function(){saveSoon()});
  $('#sSc',h).addEventListener('input',function(){if(st.sel==null)return;st.items[st.sel].sc=(+this.value)/100;stagePaint()});
  $('#sSc',h).addEventListener('change',function(){saveSoon()});
+ $('#sSave',h).addEventListener('click',function(){var v=$('#sTarget',h).value;if(!v)return;S.frames=S.frames||{};S.frames[v]=cv.toDataURL('image/png');save(true);toast('Saved into '+v,'good')});
+ $('#sUnsave',h).addEventListener('click',function(){var v=$('#sTarget',h).value;if(!v)return;if(S.frames)delete S.frames[v];save(true);toast('Cleared '+v,'good')});
  $('#sPng',h).addEventListener('click',function(){try{var u=cv.toDataURL('image/png'),a=document.createElement('a');a.href=u;a.download='stage_'+st.bg.replace(/\s/g,'_')+'.png';document.body.appendChild(a);a.click();a.remove();toast('Panel saved','good')}catch(e){toast('Saving was blocked here','bad')}});
  $('#sPlay',h).addEventListener('click',function(){var i=-1,n=st.items.length,t=setInterval(function(){i++;stagePaint(i-1);if(i>=n){clearInterval(t);stagePaint()}},260)});
  $('#sUp',h).addEventListener('click',function(){
