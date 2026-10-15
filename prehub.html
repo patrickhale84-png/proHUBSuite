@@ -437,7 +437,7 @@ function renderBoards(){
  if(!scenes.length)return '<p class="tiny muted">Import a script and the panels bind to your scenes. Six frames per scene.</p>';
  var out=[];
  out.push('<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:10px"><span class="pill">'+scenes.length+' scenes</span>'+
-  '<button class="btn xs" type="button" id="sbLib">Shot library</button>'+'<span class="tiny muted">Numbered from the scene. Draw on a panel, take a default frame, or import an image. Arrows reorder.</span></div>');
+  '<button class="btn xs" type="button" id="sbLib">Shot library</button>'+'<button class="btn xs" type="button" id="sbExp">Export sheet</button>'+'<span class="tiny muted">Numbered from the scene. Draw on a panel, take a default frame, or import an image. Arrows reorder.</span></div>');
  scenes.forEach(function(s,si){
   var order=(S.sbOrder&&S.sbOrder['s'+si])||[0,1,2,3,4,5];
   out.push('<div class="box" style="margin-bottom:12px"><div class="row" style="align-items:center;gap:8px;flex-wrap:wrap">'+
@@ -550,6 +550,149 @@ function libPicker(panelKey){
   var imp=d.querySelector('#libImp');if(imp)imp.onclick=function(){d.close();libImport()};
  },80);
 }
+var SBFIELDS=[['scene','Scene'],['shot','Shot'],['type','Shot type'],['size','Shot size'],['subject','Subject'],['desc','Description'],['move','Movement'],['cam','Camera'],['lens','Lens'],['loc','Location'],['notes','Notes']];
+function sbPanels(){
+ var L=lines()||[],scenes=[],cur=null;
+ L.forEach(function(l){if(l.type==='SCENE_HEADING'){cur={head:l.text,cast:[],act:[]};scenes.push(cur)}
+  else if(cur&&l.type==='CHARACTER'&&cur.cast.indexOf(l.text)<0){cur.cast.push(l.text)}
+  else if(cur&&l.type==='ACTION'&&l.text&&cur.act.length<1){cur.act.push(l.text)}});
+ var out=[];
+ scenes.forEach(function(s,si){
+  var m=/^(INT|EXT|INT\/EXT|EST)[.\s\/]*\s*([^-\u2013]+?)(?:\s*[-\u2013]\s*(.+))?$/i.exec(s.head||'');
+  var loc=(m&&m[2]?m[2]:'').trim(), tod=(m&&m[3]?m[3]:'').trim();
+  var order=(S.sbOrder&&S.sbOrder['s'+si])||[0,1,2,3,4,5];
+  order.forEach(function(pi,pos){
+   var key=si+':'+pi;
+   S.sbF=S.sbF||{};var f=S.sbF[key]||{};
+   out.push({ key:key, no:(si+1)+'.'+(pos+1), scene:s.head||'', sceneNo:si+1,
+    shot:String(pos+1), frame:(S.frames&&S.frames['sb'+key])||'', type:(S.sbType&&S.sbType[key])||'',
+    size:f.size||'', subject:f.subj||s.cast.join(', '), desc:f.desc||(S.sbCap&&S.sbCap[key])||'',
+    move:f.move||'', cam:f.cam||'', lens:f.lens||'', loc:f.loc||loc||'', notes:f.notes||'', tod:tod });
+  });
+ });
+ return out;
+}
+function sbDetails(key){
+ S.sbF=S.sbF||{};var f=S.sbF[key]||{};
+ ask({title:'Panel '+key,icon:'film',ok:'Save',fields:[
+  {k:'size',label:'Shot size',value:f.size||''},{k:'subj',label:'Subject',value:f.subj||''},
+  {k:'cam',label:'Camera',value:f.cam||''},{k:'lens',label:'Lens',value:f.lens||''},
+  {k:'move',label:'Movement',value:f.move||''},{k:'loc',label:'Location',value:f.loc||''},
+  {k:'desc',label:'Description',value:f.desc||f.desc||''},{k:'notes',label:'Notes',type:'textarea',rows:3,value:f.notes||''}
+ ]}).then(function(r){if(!r)return;S.sbF[key]=r;saveSoon();toast('Panel details saved','good');
+  var h=document.querySelector('.hub.open');if(h){var b=h.querySelector('.hubbody');if(b)b.innerHTML=renderBoards()}});
+}
+function sbSheetHTML(o){
+ o=o||{};var P=sbPanels(),f=o.fields||{},out=[];
+ var land=(o.orientation==='landscape'),cols=Math.max(1,Math.min(5,+o.cols||3)),rows=Math.max(1,Math.min(6,+o.rows||3));
+ var per=cols*rows,grid=(o.layout||'grid')==='grid';
+ if(o.cover){
+  out.push('<div class="sbcov">'+
+   '<div class="sbt">'+esc(S.project.title||'UNTITLED PROJECT')+'</div>'+
+   '<div class="sbs">SHOT LIST \u00b7 '+esc(S.project.writer||'')+'</div>'+
+   '<div class="sbm">'+P.length+' panels \u00b7 '+esc(String(o.orientation||'landscape').toUpperCase())+' \u00b7 '+esc(String(o.layout||'grid').toUpperCase())+' \u00b7 '+cols+' \u00d7 '+rows+' per page'+
+   '<br>'+esc(new Date().toLocaleString())+'</div></div>');
+ }
+ var pages=[],cur=[];
+ P.forEach(function(p,i){cur.push(p);if(cur.length>=per){pages.push(cur);cur=[]}});
+ if(cur.length)pages.push(cur);
+ pages.forEach(function(pg,pageNo){
+  out.push('<div class="sbpage'+(land?' land':'')+'">');
+  out.push('<div class="sbhd">'+esc(S.project.title||'')+' \u00b7 page '+(pageNo+1)+' of '+pages.length+'</div>');
+  out.push('<div class="sbg" style="grid-template-columns:repeat('+cols+',1fr)">');
+  pg.forEach(function(p){
+   out.push('<div class="sbc">');
+   if(f.image!==false&&p.frame)out.push('<img src="'+p.frame+'">');
+   else out.push('<div class="sbnf">no frame</div>');
+   var linesOut=[];
+   if(f.shot!==false)linesOut.push(['Shot',p.no]);
+   if(f.scene)linesOut.push(['Scene',p.scene]);
+   if(f.type&&p.type)linesOut.push(['Type',p.type]);
+   if(f.size&&p.size)linesOut.push(['Size',p.size]);
+   if(f.subject&&p.subject)linesOut.push(['Subject',p.subject]);
+   if(f.desc&&p.desc)linesOut.push(['Description',p.desc]);
+   if(f.move&&p.move)linesOut.push(['Movement',p.move]);
+   if(f.cam&&p.cam)linesOut.push(['Camera',p.cam]);
+   if(f.lens&&p.lens)linesOut.push(['Lens',p.lens]);
+   if(f.loc&&p.loc)linesOut.push(['Location',p.loc]);
+   if(f.notes&&p.notes)linesOut.push(['Notes',p.notes]);
+   if(linesOut.length){
+    out.push('<table class="sbf">');
+    linesOut.forEach(function(kv){out.push('<tr><th>'+esc(kv[0])+'</th><td>'+esc(kv[1])+'</td></tr>')});
+    out.push('</table>');
+   }
+   out.push('</div>');
+  });
+  out.push('</div></div>');
+ });
+ return out.join('');
+}
+function sbPrintCSS(land){
+ var el=document.getElementById('sbPrintCSS');
+ if(!el){el=document.createElement('style');el.id='sbPrintCSS';document.head.appendChild(el)}
+ el.textContent='@page{size:A4 '+(land?'landscape':'portrait')+';margin:10mm}'+
+  '@media print{body>*{display:none!important}#sbPrint{display:block!important;background:#fff;color:#111}'+
+  '#sbPrint *{color:#111}.sbpage{page-break-after:always}.sbcov{page-break-after:always}}'+
+  '.sbcov{background:#fff;color:#111;padding:40px 30px;text-align:center}'+
+  '.sbt{font-size:30px;font-weight:700;letter-spacing:.02em}'+
+  '.sbs{font-size:14px;letter-spacing:.16em;margin-top:8px;color:#555}'+
+  '.sbm{font-size:12px;color:#666;margin-top:26px;line-height:1.7}'+
+  '.sbpage{background:#fff;color:#111;padding:14px}'+
+  '.sbhd{font-size:11px;color:#666;margin-bottom:8px}'+
+  '.sbg{display:grid;gap:10px}'+
+  '.sbc{border:1px solid #ccc;border-radius:4px;overflow:hidden;background:#fff}'+
+  '.sbc img{width:100%;display:block}'+
+  '.sbnf{height:80px;display:flex;align-items:center;justify-content:center;color:#999;font-size:11px;background:#f2f4f7}'+
+  '.sbf{width:100%;border-collapse:collapse;font-size:10.5px}'+
+  '.sbf th{text-align:left;width:74px;color:#555;font-weight:600;padding:2px 5px;border-top:1px solid #eee;vertical-align:top}'+
+  '.sbf td{padding:2px 5px;border-top:1px solid #eee;color:#111}';
+}
+function sbPreview(o){
+ var land=(o.orientation==='landscape');
+ sbPrintCSS(land);
+ var old=document.getElementById('sbPrint');if(old)old.remove();
+ var d=document.createElement('div');d.id='sbPrint';
+ d.style.cssText='position:fixed;inset:0;z-index:600;background:#20242c;overflow-y:auto;padding:16px';
+ d.innerHTML='<div style="max-width:1100px;margin:0 auto"><div class="sbctrl" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">'+
+  '<button class="btn sm pri" id="sbDo">Print / Save as PDF</button>'+
+  '<button class="btn sm" id="sbCsv">Export CSV</button>'+
+  '<button class="btn sm" id="sbAgain">Change settings</button>'+
+  '<button class="btn sm" id="sbX">Close</button></div>'+
+  '<div style="background:#fff;border-radius:6px;overflow:hidden">'+sbSheetHTML(o)+'</div></div>';
+ document.body.appendChild(d);
+ document.getElementById('sbX').onclick=function(){d.remove()};
+ document.getElementById('sbDo').onclick=function(){sbPrintCSS(land);window.print()};
+ document.getElementById('sbAgain').onclick=function(){d.remove();sbExport()};
+ document.getElementById('sbCsv').onclick=function(){sbCSV()};
+}
+function sbCSV(){
+ var P=sbPanels(),head=['Panel','Scene','Shot','Type','Size','Subject','Description','Movement','Camera','Lens','Location','Notes'];
+ var rows=[head.join(',')];
+ P.forEach(function(p){rows.push([p.no,p.scene,p.shot,p.type,p.size,p.subject,p.desc,p.move,p.cam,p.lens,p.loc,p.notes]
+  .map(function(x){return '"'+String(x==null?'':x).replace(/"/g,'""')+'"'}).join(','))});
+ dl('shotlist.csv',rows.join('\n'),'text/csv');
+}
+function sbExport(){
+ var boxes=SBFIELDS.map(function(f,i){return '<label class="tiny" style="display:inline-flex;gap:4px;align-items:center;margin:0 10px 6px 0"><input type="checkbox" data-k="f_'+f[0]+'"'+(i<6?' checked':'')+'>'+f[1]+'</label>'}).join('');
+ ask({title:'Export the sheet',icon:'out',ok:'Build sheet',cancel:true,
+  html:'<div class="db" style="padding:0">'+
+   '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">'+
+   '<div><label class="tiny muted">Cover page</label><select data-k="cover"><option value="1">Yes</option><option value="0">No</option></select></div>'+
+   '<div><label class="tiny muted">Orientation</label><select data-k="orientation"><option value="landscape">Landscape</option><option value="portrait">Portrait</option></select></div>'+
+   '<div><label class="tiny muted">Layout</label><select data-k="layout"><option value="grid">Grid</option><option value="list">List</option></select></div>'+
+   '<div><label class="tiny muted">Columns</label><select data-k="cols"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select></div>'+
+   '<div><label class="tiny muted">Rows</label><select data-k="rows"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select></div>'+
+   '</div>'+
+   '<p class="tiny muted" style="margin:12px 0 6px">Fields to print</p>'+boxes+
+   '<p class="tiny muted" style="margin:6px 0 0">Shot numbers and frames are always included. Fields with nothing to show are left out of the sheet.</p>'+
+   '</div>'}).then(function(r){
+  if(!r)return;
+  var fields={};SBFIELDS.forEach(function(f){fields[f[0]]=(r['f_'+f[0]]===undefined)?true:true});
+  Object.keys(r).forEach(function(k){if(k.indexOf('f_')===0)fields[k.slice(2)]=(r[k]==='on'||r[k]==='true'||r[k]===true)});
+  SBFIELDS.forEach(function(f){fields[f[0]]=(r['f_'+f[0]]!==undefined)});
+  sbPreview({cover:r.cover==='1',orientation:r.orientation||'landscape',layout:r.layout||'grid',cols:r.cols,rows:r.rows,fields:fields});
+ });
+}
 function bindBoards(){
  S.sbOrder=S.sbOrder||{};S.sbCap=S.sbCap||{};S.frames=S.frames||{};
  $$('[data-cv]').forEach(function(cv){
@@ -586,6 +729,7 @@ function bindBoards(){
   if(body){body.innerHTML=renderBoards()}
  }
  var bl=$('#sbLib');if(bl)bl.onclick=function(){libPicker(null)};
+ var be=$('#sbExp');if(be)be.onclick=function(){sbExport()};
  $$('[data-libp]').forEach(function(b){b.addEventListener('click',function(){libPicker(b.getAttribute('data-libp'))})});
  $$('[data-mvl]').forEach(function(b){b.addEventListener('click',function(){move(b.getAttribute('data-mvl'),-1)})});
  $$('[data-mvr]').forEach(function(b){b.addEventListener('click',function(){move(b.getAttribute('data-mvr'),1)})});
@@ -1122,7 +1266,7 @@ MOD2.stage.wire=function(h){
 };
 })();
 window.preHUB={version:'1.0',sketch:sketchOf,stage:stage,paint:stagePaint,rooms:ROOMS,get state(){return S},lines:lines,setLines:setLines,tok:tok,transmit:transmit,reformat:reformat,pick:pick,save:function(){return save(true)},open:openHub,storageOk:function(){return OK}};
-try{window.preHUB.sb={lib:function(){return Object.keys(S.lib||{}).length},importLib:libImport,assign:libAssign,picker:libPicker,types:function(){return S.sbType||{}},catalogue:SBLIB.map(function(x){return x.l})};}catch(e){}
+try{window.preHUB.sb={exportSheet:function(o){return sbSheetHTML(o||{})},exportDialog:sbExport,preview:sbPreview,csv:sbCSV,panels:sbPanels,details:sbDetails,fields:SBFIELDS.map(function(f){return f[0]}),lib:function(){return Object.keys(S.lib||{}).length},importLib:libImport,assign:libAssign,picker:libPicker,types:function(){return S.sbType||{}},catalogue:SBLIB.map(function(x){return x.l})};}catch(e){}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 </script>
