@@ -945,7 +945,9 @@ function deskBuild(){
  var ce=document.createElement('div');ce.className='dcenter';
  var ins=document.createElement('div');ins.className='dpane ins';
  ins.innerHTML='<div class="dph">Inspector</div><div id="dinsp"></div>';
- var pw=$('.paperwrap',h);box.insertBefore(tb,body);body.innerHTML='';
+ var pw=$('.paperwrap',h);
+ try{ if(pw&&pw.parentNode&&!document.getElementById('phMenu')){var mh=document.createElement('div');mh.id='phMenu';pw.parentNode.insertBefore(mh,pw);} }catch(e){}
+box.insertBefore(tb,body);body.innerHTML='';
  grid.appendChild(nv);grid.appendChild(ce);grid.appendChild(ins);
  if(pw)ce.appendChild(pw);body.appendChild(grid);
  body.style.padding='0';
