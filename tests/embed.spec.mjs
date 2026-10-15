@@ -161,13 +161,13 @@ for (const t of TARGETS) {
     record(t.label, 'tab bar renders five tabs', bar.length === 5, bar.join(', '));
     const wantLabels = ['Ingest', 'Timeline', 'Notes', 'Sync', 'Deliverables'];
     const badLabels = wantLabels.filter(l => bar.indexOf(l) < 0);
-      const deskState = await fr.evaluate('(function(){try{var m=POST.state().modules;return JSON.stringify({notes:!!m.notes,sync:!!m.sync,deliverables:!!m.deliverables,platforms:(m.sync&&m.sync.platforms)?m.sync.platforms.length:0,delitems:(m.deliverables&&m.deliverables.items)||0})}catch(e){return 'threw: '+e.message}})()');
+      const deskState = await fr.evaluate('(function(){try{var m=POST.state().modules;return JSON.stringify({notes:!!m.notes,sync:!!m.sync,deliverables:!!m.deliverables,platforms:(m.sync&&m.sync.platforms)?m.sync.platforms.length:0,delitems:(m.deliverables&&m.deliverables.items)||0})}catch(e){return "threw: "+e.message}})()');
     record(t.label, 'notes, sync and deliverables answer state()',
       deskState.indexOf('"notes":true') >= 0 && deskState.indexOf('"sync":true') >= 0 && deskState.indexOf('"deliverables":true') >= 0,
       String(deskState).slice(0, 110));
     const plat = await fr.evaluate('(function(){try{return POST.sync.platforms().length}catch(e){return -1}})()');
     record(t.label, 'sync ships platform columns', plat >= 3, plat + ' platforms');
-    const del = await fr.evaluate('(function(){try{var t=POST.deliverables.totals();return t.items+\' items / \'+t.checksTotal+\' checks\'}catch(e){return 'threw: '+e.message}})()');
+    const del = await fr.evaluate('(function(){try{var t=POST.deliverables.totals();return t.items+\' items / \'+t.checksTotal+\' checks\'}catch(e){return "threw: "+e.message}})()');
     record(t.label, 'deliverables carry QC checklists', /items/.test(String(del)), String(del).slice(0, 60));
 
   record(t.label, 'tab labels correct', badLabels.length === 0,
@@ -183,14 +183,14 @@ for (const t of TARGETS) {
     const tiles = await fr.evaluate('(function(){try{return FILM.tiles().map(function(t){return t.id})}catch(e){return []}})()');
     record(t.label, 'launcher and tile manager tiles present',
       tiles.indexOf('app-prehub') >= 0 && tiles.indexOf('tile-manager') >= 0, tiles.join(', '));
-    const st = await fr.evaluate('(function(){try{var s=FILM.state();return JSON.stringify({mods:Object.keys(s.modules),tiles:s.tiles.length})}catch(e){return 'threw: '+e.message}})()');
+    const st = await fr.evaluate('(function(){try{var s=FILM.state();return JSON.stringify({mods:Object.keys(s.modules),tiles:s.tiles.length})}catch(e){return "threw: "+e.message}})()');
     record(t.label, 'filmHUB state readable', st.indexOf('banner') >= 0, String(st).slice(0, 90));
   }
 
   record(t.label, 'no page or console errors', errors.length === 0, errors.slice(0, 2).join(' | ') || 'clean');
   } catch (e) {
     // a throw must never kill the run: record it and carry on, so the report always lands
-    record(t.label, 'target completed', false, 'threw: ' + String(e && e.message ? e.message : e).slice(0, 140));
+    record(t.label, 'target completed', false, "threw: " + String(e && e.message ? e.message : e).slice(0, 140));
   }
   if (page) { try { await page.close(); } catch (e) {} }
 }
