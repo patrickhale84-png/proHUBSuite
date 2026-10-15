@@ -380,7 +380,6 @@ FILM.register({
   }
 });
 })();
-
 ;
 /* module: 20-launcher.js */
 (function(){
@@ -477,7 +476,6 @@ FILM.setEndpoint = function (id, url) {
 };
 FILM.apps = function () { return APPS.map(function (a) { return a.id; }); };
 })();
-
 ;
 /* module: 30-tiles.js */
 (function(){
@@ -708,9 +706,37 @@ FILM.register({
              sizes: JSON.parse(JSON.stringify(layout.size)), presets: Object.keys(presets) };
   }
 });
+/* public operations, so the lifecycle can be exercised without clicking the dialog.
+   addCustom does exactly what the Add tile button does; nudge, cycleSize and applyPreset
+   are the very functions the arrow, size and preset buttons call. */
+FILM.tileOps = {
+  layout: function () { return JSON.parse(JSON.stringify(layout)); },
+  addCustom: function (title, sub, url, colour) {
+    if (!title) return null;
+    var id = 'custom-' + String(title).toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 24) + '-' + Date.now().toString(36).slice(-4);
+    custom.push({ id: id, title: String(title).toUpperCase(), sub: sub || 'your tile', url: url || '', colour: colour || '#00ABA9', tag: 'MINE' });
+    layout.order.push(id); saveAll(); applyLayout();
+    return id;
+  },
+  removeCustom: function (id) {
+    custom = custom.filter(function (t) { return t.id !== id; });
+    layout.order = layout.order.filter(function (x) { return x !== id; });
+    FILM.removeTile(id); saveAll(); applyLayout(); return true;
+  },
+  nudge: nudge,
+  cycleSize: cycleSize,
+  applyPreset: applyPreset,
+  order: function () { return (layout.order || []).slice(); },
+  sizeOf: function (id) { return (layout.size[id] || [1, 1]).slice(); },
+  presetNames: function () { return Object.keys(presets); },
+  savePreset: function (name) {
+    if (!name) return false;
+    presets[name] = { order: layout.order.slice(), size: JSON.parse(JSON.stringify(layout.size)), tiles: JSON.parse(JSON.stringify(custom)) };
+    saveAll(); return true;
+  }
+};
 FILM.openTileManager = openManager;
 })();
-
 </script>
 </body>
 </html>
