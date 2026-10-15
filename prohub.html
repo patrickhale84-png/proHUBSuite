@@ -347,10 +347,18 @@ function save(quiet){
  return true;
 }
 function saveSoon(){ clearTimeout(saveTimer); saveTimer=setTimeout(function(){save(true)},900) }
+/* the chrome seam: header writes go through ONE place.
+   Falls back to the old direct writes if the ops surface is ever absent, so this cannot throw. */
+function actChrome(o){
+ var op=window.proHUB&&window.proHUB.ops;
+ if(op&&typeof op.setChrome==='function'){ try{ return op.setChrome(o); }catch(e){} }
+ if(o.stamp!=null){ var e=$('#saveStamp'); if(e) e.textContent=o.stamp; }
+ if(o.dot!=null){ var d=$('#liveDot'); if(d) d.style.background=o.dot?'var(--emerald)':'var(--red)'; }
+ return null;
+}
 function stamp(ok){
- var t=new Date(), e=$('#saveStamp');
- if(e) e.textContent=(ok?'saved ':'in memory only ')+pad(t.getHours())+':'+pad(t.getMinutes())+':'+pad(t.getSeconds());
- var d=$('#liveDot'); if(d) d.style.background=ok?'var(--emerald)':'var(--red)';
+ var t=new Date();
+ actChrome({ stamp:(ok?'saved ':'in memory only ')+pad(t.getHours())+':'+pad(t.getMinutes())+':'+pad(t.getSeconds()), dot:ok });
 }
 function showStorageWarn(){
  var w=$('#storageWarn'); if(!w||!w.classList.contains('hide'))return;
