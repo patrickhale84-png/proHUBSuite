@@ -42,8 +42,8 @@ partDraw=function(t,c,x,y,sc,rot){
  c.restore();
  _partDrawL(t,c,x,y,sc,rot);
 };
-var _stagePanelL=stagePanel;
-stagePanel=function(){
+var _stagePanelL=MOD2.stage.render;
+MOD2.stage.render=function(){
  var h=_stagePanelL();
  var lk=stageLightName();
  var lr='';
@@ -58,8 +58,8 @@ stagePanel=function(){
  box=box+'<div class="row"><span class="tiny muted">Rig</span>'+lr+'</div></div>';
  return h+box;
 };
-var _stageWireL=stageWire;
-stageWire=function(h){
+var _stageWireL=MOD2.stage.wire;
+MOD2.stage.wire=function(h){
  _stageWireL(h);
  var list=$$('[data-lt]',h);
  for(var i=0;i<list.length;i++){
