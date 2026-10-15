@@ -437,7 +437,7 @@ function renderBoards(){
  if(!scenes.length)return '<p class="tiny muted">Import a script and the panels bind to your scenes. Six frames per scene.</p>';
  var out=[];
  out.push('<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:10px"><span class="pill">'+scenes.length+' scenes</span>'+
-  '<span class="tiny muted">Numbered from the scene. Draw on a panel or import an image; either is saved with the project. Arrows reorder.</span></div>');
+  '<button class="btn xs" type="button" id="sbLib">Shot library</button>'+'<span class="tiny muted">Numbered from the scene. Draw on a panel, take a default frame, or import an image. Arrows reorder.</span></div>');
  scenes.forEach(function(s,si){
   var order=(S.sbOrder&&S.sbOrder['s'+si])||[0,1,2,3,4,5];
   out.push('<div class="box" style="margin-bottom:12px"><div class="row" style="align-items:center;gap:8px;flex-wrap:wrap">'+
@@ -454,13 +454,101 @@ function renderBoards(){
     '<canvas data-cv="'+key+'" width="380" height="208" style="width:100%;height:100%;display:block;cursor:crosshair"></canvas></div>'+
     '<input data-cap="'+key+'" value="'+esc((S.sbCap&&S.sbCap[key])||'')+'" placeholder="shot note" style="width:100%;margin-top:5px;font-size:12px">'+
     '<div class="row" style="gap:5px;margin-top:5px;flex-wrap:wrap">'+
-    '<button class="btn xs" type="button" data-imp="'+key+'">import</button>'+
+    '<button class="btn xs" type="button" data-libp="'+key+'">frame</button>'+'<button class="btn xs" type="button" data-imp="'+key+'">import</button>'+
     '<button class="btn xs" type="button" data-clr="'+key+'">clear</button></div></div>');
   });
   out.push('</div></div>');
  });
  setTimeout(bindBoards,60);
  return out.join('');
+}
+var SBLIB=[
+ {k:'single',l:'Single',u:'https://uploads.codewords.ai/8448debe470bc2a6b7248792c0eb10531a4d5345007d639799d49d0bed544998/single_shot.jpeg'},
+ {k:'two',l:'2-Shot',u:'https://uploads.codewords.ai/7710ab8729ebae4279b8b16bb4e09157d7bab2109b5ab2e55d8ef77c54edebe1/2-shot.jpeg'},
+ {k:'three',l:'3-Shot',u:'https://uploads.codewords.ai/2fa4233ecb927ff161ae9ef084bc22b3396f6b74e02bb3973a9f4ca8a2a987e6/3-shot.jpeg'},
+ {k:'four',l:'4-Shot',u:'https://uploads.codewords.ai/b978892b7aeee09131345990e1a9245239d0fbddc4937e94006b9e3add3889f2/4-shot.jpeg'},
+ {k:'five',l:'5-Shot',u:'https://uploads.codewords.ai/0e56f85a32fccc2ea53e22e80f35785ed892e3d16a7438bbda95a17274aa17f4/5-shot.jpeg'},
+ {k:'crowd',l:'Crowd',u:'https://uploads.codewords.ai/1cbc73ab9ae75b903b8b158a3792d2dcce708d40c5bd0f1f8df97da855b442b6/crowd.jpeg'},
+ {k:'ots',l:'Over the shoulder',u:'https://uploads.codewords.ai/6ce15698b4d7dc72ac8de68e86d3cb0e6404383b0bd278e6f3cd21f8430e5a58/OTS.jpeg'},
+ {k:'pov',l:'POV',u:'https://uploads.codewords.ai/71ef22bb4b82364efad9d1dd3507dfc128241ac0a4cb49be28bd7e6e9044aa1d/POV.jpeg'},
+ {k:'insert',l:'Insert',u:'https://uploads.codewords.ai/90aaf5339c3ec87b45bf22a88a91aed904af4779acde7e2e8a665757bc422247/Insert_Shot.jpeg'},
+ {k:'closeup',l:'Close-up',u:'https://uploads.codewords.ai/faab53df588291a881ccbf5d0ff050bdd380387e7cb81a0ff361a1402f400dd5/Close-up.png'},
+ {k:'mcu',l:'Medium close-up',u:'https://uploads.codewords.ai/52a719ffbf0aaef9273a1d56ad48b4f8141c732382d270f4472c552578b77acd/Medium_Close_Up.png'},
+ {k:'medium',l:'Medium',u:'https://uploads.codewords.ai/9a0f97c166947b8ea1a3b51a655f416f065be2c29a83680e5e7cf61dbbb774cc/Medium_Shot.png'},
+ {k:'eyelevel',l:'Eye level',u:'https://uploads.codewords.ai/c206bc7dbe60b42441fdbdb3116607649ec6c5577fc0d40f3bd33fe56926157a/Eye_Level_Shot.jpeg'},
+ {k:'ground',l:'Ground level',u:'https://uploads.codewords.ai/a0683b21d3491ad3046105d42c9b12b0ae6e550f53683dcb55691651406f4ce2/Ground_Level.jpeg'},
+ {k:'knee',l:'Knee level',u:'https://uploads.codewords.ai/9dd380a234b737dcae97dc1f6d3cc27e80926debb8c4eaf1a1180b78bd66d238/Knee_Level.jpeg'},
+ {k:'hip',l:'Hip level',u:'https://uploads.codewords.ai/f2f7a35c20c7eedf2c4795c72f329c268432e4084df54644dffbc3e4e2e49edf/Hip_Level.jpeg'},
+ {k:'shoulder',l:'Shoulder level',u:'https://uploads.codewords.ai/27c8f022173c0295abe407c744744af74ebebe536f6318648609a467e4be61c4/Shoulder_Level.jpeg'},
+ {k:'overhead',l:'Overhead',u:'https://uploads.codewords.ai/ebdb81d72f826bd8961edba9f4b54dd7963901d16653e068075ae3f070df4685/Overhead_Shot.jpeg'},
+ {k:'dutch',l:'Dutch tilt',u:'https://uploads.codewords.ai/0ddf1e96531ac6d59f1e0f0d01ec58bb1de42b029f459b4512dd40cc9a5929a8/Dutch_Tilt.jpeg'},
+ {k:'ha',l:'High angle',u:'https://uploads.codewords.ai/537c1a492af09f2909429ace5712b268367370b6fdd9babfb6bd99b8e75fb7a2/HA.jpeg'},
+ {k:'la',l:'Low angle',u:'https://uploads.codewords.ai/a6b9ef4d816195f4159c1137ffe54b54e2036b468ee8e70bbf66849551edf943/LA.jpeg'}
+];
+function libHave(){S.lib=S.lib||{};return S.lib}
+function libImport(){
+ var todo=SBLIB.filter(function(x){return !libHave()[x.k]});
+ if(!todo.length){toast('Shot library already here','good');libPicker();return}
+ toast('Fetching '+todo.length+' default frames...');
+ var i=0,done=0;
+ function next(){
+  if(i>=todo.length){saveSoon();toast('Library ready: '+done+' frames','good');libPicker();return}
+  var it=todo[i++];
+  fetch(it.u,{mode:'cors'}).then(function(r){return r.blob()}).then(function(bl){
+   var fr=new FileReader();
+   fr.onload=function(){libHave()[it.k]=fr.result;done++;next()};
+   fr.onerror=function(){next()};
+   fr.readAsDataURL(bl);
+  }).catch(function(){next()});
+ }
+ next();
+}
+function libAssign(panelKey,libKey){
+ var src=libHave()[libKey];
+ if(!src){toast('That frame is not in the library yet','bad');return false}
+ var im=new Image();
+ im.onload=function(){
+  var cv=document.createElement('canvas');cv.width=380;cv.height=208;
+  var ctx=cv.getContext('2d');ctx.fillStyle='#0A0F1D';ctx.fillRect(0,0,cv.width,cv.height);
+  var sc=Math.max(cv.width/im.width,cv.height/im.height);
+  var w=im.width*sc,h=im.height*sc;
+  ctx.drawImage(im,(cv.width-w)/2,(cv.height-h)/2,w,h);
+  try{S.frames=S.frames||{};S.frames['sb'+panelKey]=cv.toDataURL('image/png');saveSoon();
+      var it=null;for(var z=0;z<SBLIB.length;z++)if(SBLIB[z].k===libKey)it=SBLIB[z];
+      S.sbType=S.sbType||{};S.sbType[panelKey]=it?it.l:libKey;
+      toast('Frame set: '+(it?it.l:libKey),'good');
+      var hub=document.querySelector('.hub.open');if(hub){var body=hub.querySelector('.hubbody');if(body)body.innerHTML=renderBoards()}
+  }catch(e){toast('Could not store that frame','bad')}
+ };
+ im.onerror=function(){toast('That frame would not load','bad')};
+ im.src=src;
+ return true;
+}
+function libPicker(panelKey){
+ var have=libHave(),rows=[];
+ SBLIB.forEach(function(x){
+  var has=!!have[x.k];
+  rows.push('<button type="button" class="btn xs" data-lib="'+x.k+'" title="'+esc(x.l)+'" style="padding:3px;display:inline-block;width:104px;vertical-align:top">'+
+   '<img src="'+(has?have[x.k]:x.u)+'" style="width:96px;height:54px;object-fit:cover;border-radius:3px;display:block">'+
+   '<span class="tiny" style="display:block;font-size:10.5px;color:'+(has?'var(--lime)':'var(--mu)')+'">'+esc(x.l)+'</span></button>');
+ });
+ ask({title:(panelKey?('Frame for panel '+panelKey):'Shot library'),icon:'film',ok:'Close',cancel:false,
+  html:'<div class="db" style="padding:0"><p style="margin:0 0 8px;font-size:13px;color:#8794A6">'+
+   (panelKey?'Tap a frame to put it in this panel.':'These are the defaults. Import stores them in the project so they work offline.')+
+   '</p><div style="display:flex;gap:6px;flex-wrap:wrap">'+rows.join('')+'</div>'+
+   '<div style="margin-top:10px"><button type="button" class="btn sm" id="libImp">'+
+   (Object.keys(have).length===SBLIB.length?'Re-import':'Import all frames')+'</button> '+
+   '<span class="tiny muted">'+Object.keys(have).length+' of '+SBLIB.length+' stored</span></div></div>'}).then(function(){});
+ setTimeout(function(){
+  var d=document.querySelector('dialog[open]');if(!d)return;
+  var bs=d.querySelectorAll('[data-lib]');
+  for(var i=0;i<bs.length;i++)bs[i].onclick=function(){
+   var k=this.getAttribute('data-lib');
+   if(panelKey){libAssign(panelKey,k);d.close()}
+   else{d.close();panelKey=null;libPicker('0:0')}
+  };
+  var imp=d.querySelector('#libImp');if(imp)imp.onclick=function(){d.close();libImport()};
+ },80);
 }
 function bindBoards(){
  S.sbOrder=S.sbOrder||{};S.sbCap=S.sbCap||{};S.frames=S.frames||{};
@@ -497,6 +585,8 @@ function bindBoards(){
   var h=$('.hub.open');var body=h?h.querySelector('.hubbody'):null;
   if(body){body.innerHTML=renderBoards()}
  }
+ var bl=$('#sbLib');if(bl)bl.onclick=function(){libPicker(null)};
+ $$('[data-libp]').forEach(function(b){b.addEventListener('click',function(){libPicker(b.getAttribute('data-libp'))})});
  $$('[data-mvl]').forEach(function(b){b.addEventListener('click',function(){move(b.getAttribute('data-mvl'),-1)})});
  $$('[data-mvr]').forEach(function(b){b.addEventListener('click',function(){move(b.getAttribute('data-mvr'),1)})});
 }
@@ -1032,6 +1122,7 @@ MOD2.stage.wire=function(h){
 };
 })();
 window.preHUB={version:'1.0',sketch:sketchOf,stage:stage,paint:stagePaint,rooms:ROOMS,get state(){return S},lines:lines,setLines:setLines,tok:tok,transmit:transmit,reformat:reformat,pick:pick,save:function(){return save(true)},open:openHub,storageOk:function(){return OK}};
+try{window.preHUB.sb={lib:function(){return Object.keys(S.lib||{}).length},importLib:libImport,assign:libAssign,picker:libPicker,types:function(){return S.sbType||{}},catalogue:SBLIB.map(function(x){return x.l})};}catch(e){}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 </script>
