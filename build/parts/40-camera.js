@@ -45,8 +45,8 @@ roomDraw=function(k,c,w,h){
  roomDetail(k,c,w,h,m,A);
  c.restore();
 };
-var _stagePanelC=stagePanel;
-stagePanel=function(){
+var _stagePanelC=MOD2.stage.render;
+MOD2.stage.render=function(){
  var h=_stagePanelC();
  var A=stageAngleName();
  var F=stageFrameName();
@@ -67,8 +67,8 @@ stagePanel=function(){
  box=box+'<div class="row"><span class="tiny muted">Framing</span>'+fr+'</div></div>';
  return h+box;
 };
-var _stageWireC=stageWire;
-stageWire=function(h){
+var _stageWireC=MOD2.stage.wire;
+MOD2.stage.wire=function(h){
  _stageWireC(h);
  function bind(attr){
   var list=$$('['+attr+']',h);
