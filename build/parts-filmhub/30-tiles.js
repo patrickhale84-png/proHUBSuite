@@ -130,67 +130,76 @@ function presetHtml() {
       '<button type="button" class="btn sm" data-pd="' + FILM.esc(n) + '">delete</button></div>';
   }).join('');
 }
+function managerHtml() {
+  return '<label class="fl">Layout</label><div id="tmLayout">' + listHtml() + '</div>' +
+    '<p style="margin:8px 0 14px;font-size:13px;color:#8794A6">Drag a tile to reorder, or use the arrows - which also work on a phone.</p>' +
+    '<label class="fl">Add a tile</label>' +
+    '<div style="display:grid;gap:8px;margin-bottom:8px">' +
+    '<input data-k="title" placeholder="Tile name (e.g. Dailies drive)">' +
+    '<input data-k="sub" placeholder="Sub-line (e.g. production server)">' +
+    '<input data-k="url" placeholder="Link it opens (https://... or a file name)">' +
+    '<div style="display:flex;gap:8px;align-items:center"><input data-k="colour" value="#00ABA9" style="width:110px">' +
+    '<span style="font-size:13px;color:#8794A6">colour</span></div></div>' +
+    '<button type="button" class="btn sm" id="addTileBtn">Add tile</button>' +
+    '<label class="fl" style="margin-top:16px">Presets</label><div id="tmPresets">' + presetHtml() + '</div>' +
+    '<div style="display:flex;gap:8px;margin-top:8px"><input data-k="preset" placeholder="Preset name">' +
+    '<button type="button" class="btn sm" id="savePreset">Save preset</button></div>';
+}
+
+/* ONE dialog, always. refresh() rewrites the two list containers in place and rebinds
+   with onclick - assignment, not addEventListener - so handlers can never stack and a
+   second dialog can never open on top of the first. The add-tile form is deliberately
+   outside those containers so anything typed survives a reorder. */
+function bind(d) {
+  var i, n;
+  function wire(attr, fn) {
+    n = d.querySelectorAll('[' + attr + ']');
+    for (i = 0; i < n.length; i++) n[i].onclick = fn;
+  }
+  wire('data-up', function () { nudge(this.getAttribute('data-up'), -1); refresh(d); });
+  wire('data-dn', function () { nudge(this.getAttribute('data-dn'), 1); refresh(d); });
+  wire('data-sz', function () { cycleSize(this.getAttribute('data-sz')); refresh(d); });
+  wire('data-rm', function () {
+    var id = this.getAttribute('data-rm');
+    custom = custom.filter(function (t) { return t.id !== id; });
+    layout.order = layout.order.filter(function (x) { return x !== id; });
+    FILM.removeTile(id); saveAll(); applyLayout(); refresh(d);
+  });
+  wire('data-pl', function () { applyPreset(this.getAttribute('data-pl')); refresh(d); });
+  wire('data-pd', function () { delete presets[this.getAttribute('data-pd')]; saveAll(); refresh(d); });
+
+  var add = d.querySelector('#addTileBtn');
+  if (add) add.onclick = function () {
+    var q = function (k) { var e = d.querySelector('[data-k="' + k + '"]'); return e ? e.value.trim() : ''; };
+    var title = q('title'), url = q('url');
+    if (!title) { FILM.toast('A tile needs a name', 'bad'); return; }
+    var id = 'custom-' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 24) + '-' + Date.now().toString(36).slice(-4);
+    custom.push({ id: id, title: title.toUpperCase(), sub: q('sub') || 'your tile', url: url, colour: q('colour') || '#00ABA9', tag: 'MINE' });
+    layout.order.push(id); saveAll(); applyLayout(); refresh(d);
+    FILM.toast('Tile added', 'good');
+  };
+  var sp = d.querySelector('#savePreset');
+  if (sp) sp.onclick = function () {
+    var e = d.querySelector('[data-k="preset"]'), name = e ? e.value.trim() : '';
+    if (!name) { FILM.toast('Name the preset first', 'bad'); return; }
+    presets[name] = { order: layout.order.slice(), size: JSON.parse(JSON.stringify(layout.size)), tiles: JSON.parse(JSON.stringify(custom)) };
+    saveAll(); refresh(d); FILM.toast('Preset "' + name + '" saved', 'good');
+  };
+}
+
 function openManager() {
-  FILM.ask({
-    title: 'Tile manager', icon: 'grid', ok: 'Close', cancel: false,
-    html:
-      '<label class="fl">Layout</label>' + listHtml() +
-      '<p style="margin:8px 0 14px;font-size:13px;color:#8794A6">Drag a tile to reorder, or use the arrows - which also work on a phone.</p>' +
-      '<label class="fl">Add a tile</label>' +
-      '<div style="display:grid;gap:8px;margin-bottom:8px">' +
-      '<input data-k="title" placeholder="Tile name (e.g. Dailies drive)">' +
-      '<input data-k="sub" placeholder="Sub-line (e.g. production server)">' +
-      '<input data-k="url" placeholder="Link it opens (https://… or a file name)">' +
-      '<div style="display:flex;gap:8px;align-items:center"><input data-k="colour" value="#00ABA9" style="width:110px">' +
-      '<span style="font-size:13px;color:#8794A6">colour</span></div></div>' +
-      '<button type="button" class="btn sm" id="addTileBtn">Add tile</button>' +
-      '<label class="fl" style="margin-top:16px">Presets</label>' + presetHtml() +
-      '<div style="display:flex;gap:8px;margin-top:8px"><input data-k="preset" placeholder="Preset name">' +
-      '<button type="button" class="btn sm" id="savePreset">Save preset</button></div>'
-  }).then(function () {});
-  setTimeout(function () {
-    var d = document.querySelector('dialog[open]'); if (!d) return;
-    function on(sel, ev, fn) { var n = d.querySelectorAll(sel); for (var i = 0; i < n.length; i++) n[i].addEventListener(ev, fn); }
-    on('[data-up]', 'click', function () { nudge(this.getAttribute('data-up'), -1); refresh(d); });
-    on('[data-dn]', 'click', function () { nudge(this.getAttribute('data-dn'), 1); refresh(d); });
-    on('[data-sz]', 'click', function () { cycleSize(this.getAttribute('data-sz')); refresh(d); });
-    on('[data-rm]', 'click', function () {
-      var id = this.getAttribute('data-rm');
-      custom = custom.filter(function (t) { return t.id !== id; });
-      layout.order = layout.order.filter(function (x) { return x !== id; });
-      FILM.removeTile(id); saveAll(); applyLayout(); refresh(d);
-    });
-    on('[data-pl]', 'click', function () { applyPreset(this.getAttribute('data-pl')); refresh(d); });
-    on('[data-pd]', 'click', function () { delete presets[this.getAttribute('data-pd')]; saveAll(); refresh(d); });
-    var add = d.querySelector('#addTileBtn');
-    if (add) add.addEventListener('click', function () {
-      var q = function (k) { var e = d.querySelector('[data-k="' + k + '"]'); return e ? e.value.trim() : ''; };
-      var title = q('title'), url = q('url');
-      if (!title) { FILM.toast('A tile needs a name', 'bad'); return; }
-      var id = 'custom-' + title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 24) + '-' + Date.now().toString(36).slice(-4);
-      custom.push({ id: id, title: title.toUpperCase(), sub: q('sub') || 'your tile', url: url, colour: q('colour') || '#00ABA9', tag: 'MINE' });
-      layout.order.push(id); saveAll(); applyLayout(); refresh(d);
-      FILM.toast('Tile added', 'good');
-    });
-    var sp = d.querySelector('#savePreset');
-    if (sp) sp.addEventListener('click', function () {
-      var e = d.querySelector('[data-k="preset"]'), name = e ? e.value.trim() : '';
-      if (!name) { FILM.toast('Name the preset first', 'bad'); return; }
-      presets[name] = { order: layout.order.slice(), size: JSON.parse(JSON.stringify(layout.size)), tiles: JSON.parse(JSON.stringify(custom)) };
-      saveAll(); refresh(d); FILM.toast('Preset "' + name + '" saved', 'good');
-    });
-  }, 80);
+  FILM.ask({ title: 'Tile manager', icon: 'grid', ok: 'Close', cancel: false, html: managerHtml() }).then(function () {});
+  setTimeout(function () { var d = document.querySelector('dialog[open]'); if (d) bind(d); }, 80);
 }
+
 function refresh(d) {
-  var body = d.querySelector('.db'); if (!body) return;
-  var keepScroll = body.scrollTop;
-  body.innerHTML = body.innerHTML.replace(/<label class="fl">Layout<\/label>[\s\S]*$/, '');
-  body.insertAdjacentHTML('beforeend', '<label class="fl">Layout</label>' + listHtml() +
-    '<p style="margin:8px 0 14px;font-size:13px;color:#8794A6">Drag a tile to reorder, or use the arrows.</p>' +
-    '<label class="fl">Presets</label>' + presetHtml());
-  body.scrollTop = keepScroll;
-  openManager();   /* rebind */
+  if (!d) d = document.querySelector('dialog[open]');
+  if (!d) return;
+  var l = document.getElementById('tmLayout'); if (l) l.innerHTML = listHtml();
+  var p = document.getElementById('tmPresets'); if (p) p.innerHTML = presetHtml();
+  bind(d);
 }
+
 function applyPreset(name) {
   var p = presets[name]; if (!p) return;
   layout.order = (p.order || []).slice();
@@ -199,7 +208,6 @@ function applyPreset(name) {
   saveAll(); applyLayout();
   if (typeof FILM.toast === 'function') FILM.toast('Preset "' + name + '" loaded', 'good');
 }
-
 FILM.register({
   id: 'tiles',
   mount: function () {
