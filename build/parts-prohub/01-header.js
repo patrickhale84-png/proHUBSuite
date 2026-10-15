@@ -5,6 +5,7 @@
 
    The assembler wraps this in its own IIFE, so the two tiny helpers it needs are local. */
 (function () {
+  try { (window.proHUBtrace = window.proHUBtrace || []).push({ e: 'parts:init', t: Date.now() }); } catch (e) {}
   function q(sel) { return document.querySelector(sel); }
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
 
