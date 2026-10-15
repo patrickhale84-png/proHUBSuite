@@ -21,6 +21,9 @@ APPS = {
     'prehub':  {'parts': 'build/parts',         'anchor': "window.preHUB={version:'1.0'"},
     'filmhub': {'parts': 'build/parts-filmhub', 'anchor': '</script>'},
     'posthub': {'parts': 'build/parts-posthub', 'anchor': '</script>'},
+    # prohub is a shell with no modules yet: it joins the assembler so its 119 KB of script
+    # gets node --check on every push, which is the gate the split needs before it starts.
+    'prohub':  {'parts': 'build/parts-prohub',   'anchor': '</script>'},
 }
 SHELL = '00-shell.html'
 
@@ -58,9 +61,8 @@ def assemble(app):
     js = script.group(1) if script else ''
     with open(os.path.join(OUTDIR, app + '.js'), 'w', encoding='utf-8') as fh:
         fh.write(js)
-    print('%-8s %6d bytes  %d modules  %d registers  %s' % (
-        app, len(out), len(blocks), js.count('POST.register({') + js.count('window.preHUB={version'),
-        'script %d chars' % len(js)))
+    print('%-8s %6d bytes  %d modules  script %d chars' % (
+        app, len(out), len(blocks), len(js)))
     return out
 
 
