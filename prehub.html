@@ -685,7 +685,7 @@ function deskTop(){var t=$('#dtop');if(!t)return;var rev=S.rev||0;var th=S.pageT
  '<span class="chipx">'+lines().length+' LINES</span><span class="chipx"><span class="dot"></span>SAVED</span></div>';
  var tc=$('#themeChips',t);
  if(tc)$$('[data-th]',tc).forEach(function(ch){ch.addEventListener('click',function(){setPageTheme(ch.getAttribute('data-th'))})})}
- var zr=$('#zoomRange',t);if(zr)zr.addEventListener('input',function(){setPageZoom(+this.value)})}
+ var zr=$('#zoomRange',t);if(zr)zr.addEventListener('input',function(){setPageZoom(+this.value)})
 function deskStatus(){var s=$('#dstatus');if(!s)return;var L=lines();
  var w=L.map(function(l){return l.text}).join(' ').split(/\s+/).filter(Boolean).length;
  s.innerHTML='<span>ELEMENT <b>ACTION</b></span><span>PAGE <b>'+deskPages()+'</b></span><span>WORDS <b>'+w.toLocaleString('en-US')+'</b></span><span><kbd>Tab</kbd> cycles element</span><span><kbd>Enter</kbd> next line</span><span style="margin-left:auto"><span class="dot"></span> saved in this browser &#183; nothing uploaded</span>'}
