@@ -60,8 +60,19 @@ for (const t of TARGETS) {
   });
 
   await page.goto(base + '/harness?f=' + encodeURIComponent(t.file) + '&s=' + encodeURIComponent(SB));
-  await page.waitForTimeout(1400);
-  const fr = page.frames().find(f => f.url().includes(t.file));
+  // Wait for the condition, never for a stopwatch: CI runners are slower than a laptop and a
+  // fixed delay probes the frame while a 139 KB script is still parsing - that is exactly what
+  // "exposes proHUB -> undefined" and "no frame" were reporting.
+  try { await page.waitForSelector('iframe', { timeout: 20000 }); } catch (e) {}
+  let fr = null;
+  for (let i = 0; i < 40 && !fr; i++) {
+    await page.waitForTimeout(500);
+    fr = page.frames().find(f => f.url().includes(t.file)) || null;
+  }
+  if (fr && t.api) {
+    try { await fr.waitForFunction('typeof window.' + t.api + ' === "object"', { timeout: 20000 }); } catch (e) {}
+  }
+  if (!fr) record(t.label, 'frames seen', false, page.frames().map(f => f.url()).join(' , ').slice(0, 160));
   record(t.label, 'boots inside a Wix-shaped embed', !!fr, fr ? 'frame attached' : 'no frame');
   if (!fr) { await page.close(); continue; }
 
