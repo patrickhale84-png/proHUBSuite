@@ -46,8 +46,8 @@ partDraw=function(t,c,x,y,sc,rot){
  c.beginPath();c.moveTo(0,24+dy);c.lineTo(P.l2x,P.l2y+dy);c.stroke();
  c.restore();
 };
-var _stagePanelP=stagePanel;
-stagePanel=function(){
+var _stagePanelP=MOD2.stage.render;
+MOD2.stage.render=function(){
  var h=_stagePanelP();
  var pk=stagePoseName();
  var pr='';
@@ -61,8 +61,8 @@ stagePanel=function(){
  box=box+'<div class="row"><span class="tiny muted">Pose</span>'+pr+'</div></div>';
  return h+box;
 };
-var _stageWireP=stageWire;
-stageWire=function(h){
+var _stageWireP=MOD2.stage.wire;
+MOD2.stage.wire=function(h){
  _stageWireP(h);
  var list=$$('[data-ps]',h);
  for(var i=0;i<list.length;i++){
