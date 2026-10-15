@@ -1,103 +1,107 @@
-# proHUB Suite - roadmap and current build
+# proHUB Suite - roadmap and current state
 
 Four single-file apps, one per stage of a production. Each is one `.html` you paste into a Wix
-**Embed HTML** element. No build step, no server, no accounts, no AI, no uploads.
+**Embed HTML** element, or serve standalone. No build step at run time, no accounts, no AI.
 
 ## Status
 
-| File | State | Notes |
+| File | Size | State |
 |---|---|---|
-| `prohub.html` | **Built, tested, verified** | 9 modules, embed harness passed inside a Wix-shaped sandbox |
-| `prehub.html` | **Built, stages 1-3 - untested** | 61,511 bytes on `main` |
-| `posthub.html` | Not started | |
-| `filmhub.html` | Not started | Front end; Rooks Productions mark goes in the header |
-| CI | Wired | Red until all four files exist at the root |
+| `prohub.html` | 139,788 | **Built, verified in CI 8/0** - nine module tiles, all nine desks open, storage, no console errors |
+| `prehub.html` | 86,914 | **Built, verified in CI 9/0** - assembled from parts with lighting, pose and camera modules |
+| `filmhub.html` | 39,502 | **Built, verified in CI 3/0** - assembled from parts; shell, banner and launcher measured working |
+| `posthub.html` | 82,861 | **Built, five desks, partially verified** - assembled from parts |
 
-## preHUB feature set (tagged snapshot)
+## Assembly and parse gates
 
-**Stage 1 - writing desk**
-- Screenplay editor: Tab cycles the line type, Enter starts the right next element, Backspace merges
-- Live line, page and scene count; print
-- Intake: paste, plain text, Final Draft (.fdx), Fountain, PDF (lazy reader), JSON
-- Reformat and sync: re-types a whole draft in one pass
-- Hand-off to proHUB: writes `prehub_master_v1` in the shape proHUB reads, verifies the write, and
-  falls back to a copy-paste payload when the browser blocks storage
-- Storage vault: snapshots, project-file export and restore, honest storage warning
+Three of the four apps are **assembled from parts** (`build/parts`, `build/parts-filmhub`,
+`build/parts-posthub`) by `build/build.py`, and CI assembles and `node --check`s every one on
+every push:
 
-**Stage 2 - the four studios**
-- Coverage studio, pitch deck (10 editable slides), macro budget (ATL/BTL/post/contingency),
-  storyboard panels with sketch canvases
-- The macro budget now travels with the hand-off, so proHUB starts with your above-the-line figure
+```
+python3 build/build.py                # every app -> build/out/<app>.html + <app>.js
+python3 build/build.py --app posthub  # one app
+```
 
-**Stage 3 - staging desk**
-- Ten rooms drawn in code: kitchen, office, bedroom, bathroom, stairs, storefront, car interior,
-  car exterior, exterior house, exterior office building
-- Heads and bodies (3 each): click to select, drag to move, turn and scale
-- Camera arrows with turn and scale
-- Image import by URL or upload, converted to line art by a pencil-sketch pass, animated as a
-  draw-on reveal; save PNG; copy shot plan
-- **Use for** selector: bind a staged frame to any storyboard panel or pitch slide, replacing it
-- Coverage engine calibrated to the Black List and WeScreenplay benchmarks (see below)
+Each app declares an **anchor**, and modules are inserted immediately before it:
 
-## Coverage engine calibration
+| App | Anchor | Why |
+|---|---|---|
+| prehub | `window.preHUB={version:'1.0'` | modules land *inside* the shell IIFE |
+| filmhub | `</script>` | modules land *after* the shell IIFE, because `FILM` is defined at its end |
+| posthub | `</script>` | same reason, for `POST` |
 
-Categories match the reference coverage: Premise, Plot, Character, Dialogue, Setting, Overall.
-Grading is measured from the draft - scene and location count, dialogue cadence and share, action
-length, cast size, era markers, genre signals.
+Modules are wrapped in their own IIFE by the assembler. A bare block appended after the previous
+`})();` does not parse - that rule cost this project three broken files, and the assembler exists
+so nobody has to remember it.
 
-- Black List band = mean minus 0.7 (that scale grades harder), matching the spread between the
-  two reference reports on the same draft
-- Bands: 0-49th improve / 50-84th good / 85-97th excellent / 98-100th virtually perfect
-- Rating: pass, consider, recommend, weighted to the published rates (~3% recommend, ~20% consider)
-- Weaknesses cite measured specifics with line numbers
-- **Limit:** rules can measure and grade consistently. They cannot judge theme, subtext or
-  structure the way a reader does. Matching that prose needs a language model, which the suite's
-  rules forbid.
+**`prohub.html` is the exception: a single hand-maintained file, not assembled, and therefore the
+only app without a parse gate.** Splitting it into parts is the outstanding structural work.
 
-## Test queue (must pass before any file is called done)
+## CI
 
-1. All six preHUB desks open
-2. All ten rooms paint, each producing a different canvas signature
-3. Figures add, turn, scale and drag
-4. Sketch conversion returns real PNG data
-5. Animate plays through
-6. Save-into-panel binds a frame to a storyboard panel and a pitch slide
-7. Two budget edits in a row both persist (listener bug fixed, unverified)
-8. Hand-off still carries the script and the budget
-9. Zero page and console errors
+`.github/workflows/embed-compat.yml` runs on every push:
+
+1. assemble every app, `node --check` each script
+2. install deps and Chromium
+3. boot each file inside an iframe carrying Wix's exact embed permissions
+4. write `build/out/report.json` and publish it to the `ci-report` branch
+5. promote the assembled prehub to `main` - **only** when the verdict is PASS and all six staging
+   checks are green
+
+Manual runs: **Actions -> Wix embed compatibility -> Run workflow**, with optional inputs
+`target` (scope to one file) and `promote` (untick to verify without promoting). Do not fire runs
+back to back; that trips the account's workflow-run limit.
+
+### Assertions per app
+
+- **prehub** - nine tiles, staging canvas opens, five lighting rigs, six poses, three angles and
+  framings, no console errors
+- **prohub** - nine module tiles, script state readable, storage available, all nine desks open
+- **filmhub** - three modules registered (banner, launcher, tiles), launcher and tile-manager
+  tiles present, state readable
+- **posthub** - five desk modules registered, desk registry holds five, tab bar renders five tabs
+  with correct labels, notes/sync/deliverables answer `state()`, sync ships platform columns,
+  deliverables carry QC checklists
+
+## Verified by measurement
+
+- **proHUB** - nine desks open, nine module tiles, storage, clean console, in a Wix-shaped embed
+- **preHUB** - the staging desk canvas opens; navigator lists scenes with numbers and slugs;
+  clicking a row drives the inspector; department dots and element chips come from the prose
+- **filmHUB** - master clock ticks; banner slots fill from a call sheet or manual entry, with the
+  countdown amber at 15 minutes and red past; three launcher tiles, and all three open the right
+  app; the tile-manager tile mounts and the grid lays out
+- **postHUB** - ingest refuses undecodable files with a plain reason (ProRes and friends) rather
+  than listing them as broken; *Build By Storyboard* lays panels on the timeline in scene order,
+  reel SB, board-tagged, with record times contiguous
+
+## Written but not yet measured
+
+- filmHUB tile manager **interactions** - add, arrow reorder, size cycling, presets
+- postHUB notes, sync and deliverables desks - mounting and behaviour
+- postHUB desk tab bar - five tabs, switching without closing
+- postHUB *replace with the shot* - needs real decodable media in the bin
+- preHUB's white page, page themes, icon toolbar, type floor, mobile pass and zoom. These were
+  built and lost in a rollback when a splice broke the file; the desk itself is verified
+
+## Still to build
+
+- **Optional**: split `prohub.html` into parts so it gets the same parse gate as the others
+- **Optional**: Wix install steps for each file, with embed heights (preHUB ~1200px,
+  proHUB ~1400px, filmHUB ~900px, postHUB ~1000px)
+- postHUB ingest against real H.264 footage - the first true test of the decoder probe
+
+## Deployment
+
+- **Standalone**: `node deploy/server.mjs` serves the suite with an image proxy and working
+  localStorage. See `deploy/README.md`
+- **Embed**: paste the file into Wix's Embed HTML. `prohub.html` at 139 KB is a large paste; host
+  it instead if Wix trims it
+- **Obfuscation**: planned, not enabled. `docs/obfuscate-and-deploy.md`
 
 ## Invariants, true in every file
 
-Rules not AI. Nothing leaves the browser. Nothing loaded from the internet (one exception: the PDF
-reader, fetched only on PDF import). No browser pop-ups. Exports always available by copy and
-print. Storage that admits when it is off.
-
-
-## Requested next: the writing desk, professional grade
-
-Target: a screenwriting surface that stands comparison with Final Draft and WriterDuet, with a
-WriterDuet-style control layout.
-
-**Editor**
-- Element types with correct tab/enter flow, dual dialogue (two columns), page breaks, scene numbers
-  (locked and auto), revision colours by draft (blue, pink, yellow, green, gold, buff, salmon, cherry)
-- Revision marks, "omitted" scenes, A/B scene pages, locked pages, title page
-- Smart-type: auto-capitalise character intros, auto-complete character names, scene heading
-  autocomplete from a location bank, transition and extension handling
-- Scene navigator, outline view, index cards, notes, character and dialogue reports, scene reports
-- Undo/redo across the whole document; find and replace; page-level navigation; word and page counts
-
-**Import** (reformatting on the way in)
-- Final Draft (.fdx), Fountain, plain text, WriterDuet/Fade In via FDX or Fountain
-- PDF (text extraction only - layout is reconstructed by rule, not guaranteed)
-- Rich text and Word documents (text extraction, elements re-typed by rule)
-- JSON round-trip of the app's own project file
-
-**Export**
-- Final Draft (.fdx), Fountain, plain text, PDF via print, HTML, CSV of scenes/cast for reports,
-  and a sides export per shooting day
-
-**Honest limit:** "any file" is not achievable in a browser with no server. There is no reliable way
-to read .docx or .rtf formatting without a parser, and no way at all to read scanned pages without
-OCR. What is achievable: every text exchange format a screenwriter actually swaps, re-typed into
-proper elements on the way in, and the industry formats out.
+Rules, not AI. Nothing uploaded. Nothing fetched from the internet at run time. No browser
+pop-ups - in-app panels only. Exports always available by copy and print. Media is never copied:
+postHUB keeps edit decisions, not footage. Storage that admits when it is off.
