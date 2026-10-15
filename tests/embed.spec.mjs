@@ -124,6 +124,19 @@ for (const t of TARGETS) {
       !!(c2 && c2.title === 'CI PROBE' && c2.company === 'CI CO'),
       ((c2 && c2.title) || '?') + ' / ' + ((c2 && c2.company) || '?') + '  ' + String(setRes).slice(0, 40));
 
+    // the bridge can skip silently, so the app records whether proHUBparts existed at each
+    // call. This asserts the order rather than logging it.
+    const seq = await fr.evaluate('(function(){try{var T=window.proHUBtrace||[];var init=-1,first=-1,atCall=null;for(var i=0;i<T.length;i++){if(T[i].e==="parts:init"&&init<0)init=i;if((T[i].e==="stamp"||T[i].e==="bindFields")&&first<0){first=i;atCall=T[i].parts;}}return JSON.stringify({entries:T.length,initIndex:init,firstCallIndex:first,partsAtCall:atCall})}catch(e){return "threw: "+e.message}})()');
+    const seqObj = (function () { try { return JSON.parse(seq); } catch (e) { return {}; } })();
+    record(t.label, 'the trace recorded the part and a bridge call',
+      seqObj.entries > 0 && seqObj.initIndex >= 0 && seqObj.firstCallIndex >= 0, String(seq).slice(0, 84));
+    record(t.label, 'parts initialise before the first bridge call',
+      seqObj.initIndex >= 0 && seqObj.firstCallIndex > seqObj.initIndex,
+      'init@' + seqObj.initIndex + ' firstCall@' + seqObj.firstCallIndex);
+    record(t.label, 'proHUBparts existed at that call',
+      seqObj.partsAtCall === true, 'partsAtCall=' + seqObj.partsAtCall);
+
+
 
   }
 
