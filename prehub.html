@@ -209,6 +209,18 @@ dialog::backdrop{background:rgba(3,6,12,.82)}
 .dgrid{display:grid;grid-template-columns:236px 1fr 280px}
 .dcenter{flex:1 1 auto;min-width:0;overflow:auto}
 .dpane.collapsed{display:none}
+
+.axes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-bottom:6px}
+.ax{border:1px solid #1B2436;border-radius:6px;padding:8px 10px;background:#0A0F1D}
+.axh{display:flex;align-items:baseline;gap:8px;margin-bottom:5px}
+.axn{font-family:var(--fm);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8794A6}
+.axv{font-size:20px;font-family:var(--fd)}
+.ax textarea{width:100%;font-size:12px}
+.scn{border-bottom:1px solid rgba(27,36,54,.7);padding:7px 0}
+.scnrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.scnrow b{font-family:var(--fm);color:var(--amber);font-size:12px}
+.scnh{font-size:12.5px;color:#C6D1DC;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scn textarea{width:100%;font-size:12px;margin-top:4px}
 </style>
 </head>
 <body>
@@ -580,79 +592,98 @@ function evOpts(cur){
  for(var i=0;i<=10;i++)o.push('<option'+(String(cur)===String(i)?' selected':'')+'>'+i+'</option>');
  return o.join('');
 }
+/* the evaluator's own per-scene reading: length, dialogue density, location turnover. */
+function sceneAnalysis(){
+ var L=lines()||[],out=[],cur=null;
+ L.forEach(function(l){
+  if(l.type==='SCENE_HEADING'){cur={head:l.text,lines:0,dlg:0,words:0};out.push(cur)}
+  else if(cur){cur.lines++;if(l.type==='DIALOGUE'){cur.dlg++;cur.words+=((l.text||'').trim().split(/\s+/).filter(Boolean)).length}}
+ });
+ var prev=null;
+ out.forEach(function(s2,i){
+  var m=/^(INT|EXT|INT\/EXT|EST)[.\s\/]*\s*([^-\u2013]+?)(?:\s*[-\u2013]\s*(.+))?$/i.exec(s2.head||'');
+  s2.loc=((m&&m[2]?m[2]:'')+'').trim().toUpperCase();
+  s2.tod=((m&&m[3]?m[3]:'')+'').trim();
+  s2.density=s2.lines?Math.round((s2.dlg/s2.lines)*100):0;
+  s2.turn=(i===0)?'opens here':((s2.loc&&prev&&s2.loc!==prev)?'location change':'same location');
+  prev=s2.loc||prev;
+  s2.read=(s2.lines<=3)?'fragment':(s2.lines>=26?'long - consider splitting'):(s2.density>=55?'dialogue-led':(s2.density<=15?'action-led':'balanced'));
+ });
+ return out;
+}
 function evalBlock(){
- S.eval=S.eval||{scores:{},notes:{},scenes:{},verdict:'',overall:''};
+ S.eval=S.eval||{notes:{},scenes:{},overall:''};
+ delete S.eval.scores;delete S.eval.verdict;
  var a={};try{a=analyse()}catch(e){}
  var s=(a&&a.s)||{};
  var lab={PREMISE:'Premise',PLOT:'Plot',CHARACTER:'Character',DIALOGUE:'Dialogue',SETTING:'Setting'};
- var rows=Object.keys(lab).map(function(k){
-  var yours=S.eval.scores[k];
-  return '<div class="evrow"><span class="evl">'+lab[k]+'</span>'+
-   '<span class="tiny muted" style="flex:1">derived '+(s[k]!=null?s[k]:'-')+'</span>'+
-   '<select data-ev="score:'+k+'">'+evOpts(yours)+'</select></div>'+
-   '<textarea data-ev="note:'+k+'" rows="2" placeholder="your note on '+lab[k].toLowerCase()+'">'+esc(S.eval.notes[k]||'')+'</textarea>';
+ var axes=Object.keys(lab).map(function(k){
+  var v=(s[k]!=null?s[k]:'-'),col=(typeof v==='number'&&v>=7.5)?'var(--lime)':((typeof v==='number'&&v>=6.5)?'var(--gold)':'var(--red)');
+  return '<div class="ax"><div class="axh"><span class="axn">'+lab[k]+'</span><span class="axv" style="color:'+col+'">'+v+
+   '<i class="tiny">/10</i></span></div>'+
+   '<textarea data-ev="note:'+k+'" rows="2" placeholder="reader&#39;s note on '+lab[k].toLowerCase()+'">'+esc((S.eval.notes||{})[k]||'')+'</textarea></div>';
  }).join('');
- var sc=[];try{sc=deskScenes()||[]}catch(e){}
- var sceneRows=sc.map(function(x,i){
-  var v=S.eval.scenes[i]||{};
-  return '<div class="evrow"><span class="evl" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(String(x.head||'').slice(0,30))+'</span>'+
-   '<select data-ev="scene:'+i+'">'+evOpts(v.score)+'</select>'+
+ var sc=sceneAnalysis();
+ var rows=sc.map(function(x,i){
+  var v=(S.eval.scenes||{})[i]||{};
+  return '<div class="scn"><div class="scnrow"><b>'+(i+1)+'</b><span class="scnh">'+esc(String(x.head||'').slice(0,32))+'</span>'+
+   '<span class="tiny muted">'+x.lines+' lines &middot; '+x.density+'% dialogue &middot; '+esc(x.loc||'-')+' &middot; '+esc(x.turn)+' &middot; '+esc(x.read)+'</span>'+
    '<button type="button" class="btn xs" data-ev="go:'+i+'">open</button></div>'+
-   '<textarea data-ev="scnote:'+i+'" rows="2" placeholder="note on this scene">'+esc(v.note||'')+'</textarea>';
+   '<textarea data-ev="scnote:'+i+'" rows="2" placeholder="note on this scene">'+esc(v.note||'')+'</textarea></div>';
  }).join('');
- var V=['Recommend','Consider','Pass'];
  setTimeout(bindEval,60);
- return '<div class="box" style="margin-top:12px"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">YOUR EVALUATION</h3>'+
-  '<p class="tiny muted" style="margin:0 0 8px">Your figures sit beside the derived ones, and they save with the project.</p>'+rows+
-  '<h3 style="font-size:12px;color:var(--mu);margin:12px 0 8px">SCENE BY SCENE</h3>'+(sceneRows||'<p class="tiny muted">No scenes parsed yet - import a script first.</p>')+
-  '<h3 style="font-size:12px;color:var(--mu);margin:12px 0 8px">VERDICT</h3>'+
-  '<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:8px">'+
-  V.map(function(v){return '<button type="button" class="btn xs'+(S.eval.verdict===v?' pri':'')+'" data-ev="verdict:'+v+'">'+v+'</button>'}).join('')+'</div>'+
-  '<textarea data-ev="overall" rows="3" placeholder="overall note">'+esc(S.eval.overall||'')+'</textarea>'+
-  '<div class="row" style="gap:6px;margin-top:8px"><button type="button" class="btn xs" id="evCopy">Copy report</button>'+
-  '<button type="button" class="btn xs" id="evClear">Clear my notes</button></div></div>';
+ return '<div class="box" style="margin-top:12px"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">THE EVALUATOR&#39;S READING</h3>'+
+  '<p class="tiny muted" style="margin:0 0 10px">Figures measured from the draft itself. Your prose goes where prose belongs.</p>'+
+  '<div class="axes">'+axes+'</div>'+
+  '<h3 style="font-size:12px;color:var(--mu);margin:14px 0 8px">SCENE BY SCENE</h3>'+
+  (rows||'<p class="tiny muted">No scenes parsed yet - import a script first.</p>')+
+  '<h3 style="font-size:12px;color:var(--mu);margin:14px 0 8px">OVERALL</h3>'+
+  '<textarea data-ev="overall" rows="3" placeholder="your overall note">'+esc(S.eval.overall||'')+'</textarea>'+
+  '<div class="row" style="gap:6px;margin-top:8px"><button type="button" class="btn xs" id="evCopy">Copy the report</button>'+
+  '<button type="button" class="btn xs" id="evClear">Clear notes</button></div></div>';
 }
+
 function evReport(){
  var a={};try{a=analyse()}catch(e){}
  var L=["COVERAGE - "+(S.project.title||'untitled')+" by "+(S.project.writer||'')];
- if(a&&a.s)L.push('Derived: '+Object.keys(a.s).map(function(k){return k+' '+a.s[k]}).join('  '));
- L.push('');L.push('YOUR FIGURES');
- Object.keys(S.eval.scores||{}).forEach(function(k){if(S.eval.scores[k]!==''&&S.eval.scores[k]!=null)L.push('  '+k+': '+S.eval.scores[k]+(S.eval.notes[k]?('  - '+S.eval.notes[k]):''))});
- var sc=[];try{sc=deskScenes()||[]}catch(e){}
- if(Object.keys(S.eval.scenes||{}).length){L.push('');L.push('SCENES');
-  Object.keys(S.eval.scenes).forEach(function(i){var v=S.eval.scenes[i];if((v.score||'')!==''||v.note)L.push('  '+(i+1)+'. '+((sc[i]&&sc[i].head)||'')+': '+(v.score||'-')+(v.note?('  - '+v.note):''))})}
- if(S.eval.verdict||S.eval.overall){L.push('');L.push('VERDICT: '+(S.eval.verdict||'-'));if(S.eval.overall)L.push('  '+S.eval.overall)}
+ if(a&&a.s)L.push('Measured: '+Object.keys(a.s).map(function(k){return k+' '+a.s[k]}).join('  '));
+ if(a&&a.rating)L.push('Rating: '+a.rating+'  band: '+a.band);
+ L.push('');L.push('SCENE BY SCENE');
+ sceneAnalysis().forEach(function(x,i){
+  var n=((S.eval.scenes||{})[i]||{}).note||'';
+  L.push('  '+(i+1)+'. '+x.head);
+  L.push('     '+x.lines+' lines, '+x.density+'% dialogue, '+x.loc+', '+x.turn+', '+x.read+(n?('  - '+n):''));
+ });
+ var notes=S.eval.notes||{};
+ var keys=Object.keys(notes).filter(function(k){return notes[k]});
+ if(keys.length){L.push('');L.push('READER NOTES');keys.forEach(function(k){L.push('  '+k+': '+notes[k])})}
+ if(S.eval.overall){L.push('');L.push('OVERALL: '+S.eval.overall)}
  return L.join('\n');
 }
+
 function bindEval(){
  $$('[data-ev]').forEach(function(el){
   var k=el.getAttribute('data-ev'),parts=k.split(':'),kind=parts[0],id=parts.slice(1).join(':');
   if(kind==='go'){el.onclick=function(){
-    var sc=[];try{sc=deskScenes()||[]}catch(e){}
-    var head=sc[+id]&&sc[+id].head;
-    try{openHub('write')}catch(e){}
-    setTimeout(function(){
-      var els=$$('#paper .ln'),hit=null;
-      for(var i=0;i<els.length;i++){if((els[i].textContent||'').trim().toUpperCase()===(head||'').trim().toUpperCase()){hit=els[i];break}}
-      if(hit){hit.scrollIntoView({block:'center'});hit.focus()}
-    },220);
-  };return}
-  if(kind==='verdict'){el.onclick=function(){S.eval.verdict=(S.eval.verdict===id)?'':id;saveSoon();
-    var h=document.querySelector('.hub.open');if(h){var b=h.querySelector('.hubbody');if(b)b.innerHTML=renderCov()}};return}
+   var sc=[];try{sc=deskScenes()||[]}catch(e){}
+   var head=sc[+id]&&sc[+id].head;
+   try{openHub('write')}catch(e){}
+   setTimeout(function(){var els=$$('#paper .ln'),hit=null;
+    for(var i=0;i<els.length;i++){if((els[i].textContent||'').trim().toUpperCase()===(head||'').trim().toUpperCase()){hit=els[i];break}}
+    if(hit){hit.scrollIntoView({block:'center'});hit.focus()}},220);};return}
   el.addEventListener('change',function(){
-   var v=el.value;
-   if(kind==='score'){S.eval.scores[id]=v}
-   else if(kind==='note'){S.eval.notes[id]=v}
-   else if(kind==='scene'){S.eval.scenes[id]=S.eval.scenes[id]||{};S.eval.scenes[id].score=v}
-   else if(kind==='scnote'){S.eval.scenes[id]=S.eval.scenes[id]||{};S.eval.scenes[id].note=v}
-   else if(kind==='overall'){S.eval.overall=v}
+   S.eval.notes=S.eval.notes||{};S.eval.scenes=S.eval.scenes||{};
+   if(kind==='note')S.eval.notes[id]=el.value;
+   else if(kind==='scnote'){S.eval.scenes[id]=S.eval.scenes[id]||{};S.eval.scenes[id].note=el.value}
+   else if(kind==='overall')S.eval.overall=el.value;
    saveSoon();
   });
  });
  var cp=$('#evCopy');if(cp)cp.onclick=function(){dl('coverage.txt',evReport(),'text/plain')};
- var cl=$('#evClear');if(cl)cl.onclick=function(){S.eval={scores:{},notes:{},scenes:{},verdict:'',overall:''};saveSoon();toast('Cleared','good');
+ var cl=$('#evClear');if(cl)cl.onclick=function(){S.eval={notes:{},scenes:{},overall:''};saveSoon();toast('Notes cleared','good');
   var h=document.querySelector('.hub.open');if(h){var b=h.querySelector('.hubbody');if(b)b.innerHTML=renderCov()}};
 }
+
 function renderCov(){var _base=(function(){var a=analyse(),p=coverProse(a),lab={PREMISE:'Premise',PLOT:'Plot',CHARACTER:'Character',DIALOGUE:'Dialogue',SETTING:'Setting'};
  var cards=Object.keys(lab).map(function(k){var v=a.s[k],col=v>=7.5?'var(--lime)':v>=6.5?'var(--gold)':'var(--red)';
   return '<div class="kpi"><div class="k">'+lab[k]+'</div><div class="v">'+v+'<span class="tiny muted">/10</span></div><div style="height:4px;background:#0A0F1D;border-radius:9px;margin-top:6px"><div style="width:'+Math.min(100,v*10)+'%;height:100%;background:'+col+';border-radius:9px"></div></div></div>'}).join('');
