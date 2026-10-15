@@ -157,6 +157,12 @@ dialog::backdrop{background:rgba(3,6,12,.82)}
 .gitem b{display:block;font-size:11.5px;color:#E2A93B;font-weight:600}
 .gitem span{display:block;font-size:11.5px;color:#8794A6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mkrow{padding:5px 0;border-bottom:1px solid rgba(27,36,54,.7);font-size:12px;color:#C6D1DC;cursor:pointer}
+
+/* text selection must work on the page: the app chrome disables it for tiles and buttons,
+   which was inherited into the screenplay and stopped drag selection and select all. */
+#paper{-webkit-user-select:text!important;user-select:text!important;cursor:text}
+#paper .ln{-webkit-user-select:text!important;user-select:text!important;cursor:text}
+#paper .ln *{-webkit-user-select:text!important;user-select:text!important}
 </style>
 </head>
 <body>
