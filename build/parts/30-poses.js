@@ -7,10 +7,28 @@ POSES.Running={a1x:-36,a1y:-6,a2x:30,a2y:16,l1x:-30,l1y:40,l2x:24,l2y:34,drop:0,
 POSES.Lying={a1x:-16,a1y:14,a2x:16,a2y:14,l1x:-26,l1y:10,l2x:26,l2y:10,drop:0,lean:0,rot:72};
 function stagePoseName(){var k=stage().pose;if(!k){k='Standing'}return k}
 function stagePose(){var k=stagePoseName();var P=POSES[k];if(!P){P=POSES.Standing}return P}
+/* the shadow is drawn from the lighting rig, not by wrapping again: heads hand off
+   down the chain (the lighting module already shades them), bodies draw one shadow
+   and then the posed figure, so no transform is applied twice. */
+function poseShadow(c,x,y,sc){
+ if(typeof stageLight!=='function'){return}
+ var L=stageLight();
+ var dir=(L.key-0.5)*2;
+ c.save();
+ c.globalAlpha=L.shade;
+ c.fillStyle='#0A1018';
+ c.beginPath();
+ c.ellipse(x+dir*34*sc*L.len,y+52*sc,30*sc,9*sc,0,0,7);
+ c.fill();
+ c.restore();
+}
 var _partDrawP=partDraw;
 partDraw=function(t,c,x,y,sc,rot){
+ if(t.indexOf('head')===0){if(_partDrawP){return _partDrawP(t,c,x,y,sc,rot)}}
  var P=stagePose();
- var dy=P.drop?P.drop:0;
+ poseShadow(c,x,y,sc);
+ var dy=0;
+ if(P.drop){dy=P.drop}
  var r=rot;
  if(P.rot){r=P.rot}
  c.save();
@@ -18,16 +36,14 @@ partDraw=function(t,c,x,y,sc,rot){
  c.rotate(r*Math.PI/180);
  if(P.lean){c.rotate(P.lean*Math.PI/180)}
  c.scale(sc,sc);
- c.lineWidth=2.4;c.strokeStyle='#2A3543';c.fillStyle='rgba(255,244,220,0.72)';
- if(t.indexOf('head')===0){
-  c.beginPath();c.ellipse(0,0,15,19,0,0,7);c.fill();c.stroke();
- }else{
-  c.beginPath();c.moveTo(0,-16);c.lineTo(0,24+dy);c.stroke();
-  c.beginPath();c.moveTo(0,-6+dy);c.lineTo(P.a1x,P.a1y+dy);c.stroke();
-  c.beginPath();c.moveTo(0,-6+dy);c.lineTo(P.a2x,P.a2y+dy);c.stroke();
-  c.beginPath();c.moveTo(0,24+dy);c.lineTo(P.l1x,P.l1y+dy);c.stroke();
-  c.beginPath();c.moveTo(0,24+dy);c.lineTo(P.l2x,P.l2y+dy);c.stroke();
- }
+ c.lineWidth=2.4;
+ c.strokeStyle='#2A3543';
+ c.fillStyle='rgba(255,244,220,0.72)';
+ c.beginPath();c.moveTo(0,-16);c.lineTo(0,24+dy);c.stroke();
+ c.beginPath();c.moveTo(0,-6+dy);c.lineTo(P.a1x,P.a1y+dy);c.stroke();
+ c.beginPath();c.moveTo(0,-6+dy);c.lineTo(P.a2x,P.a2y+dy);c.stroke();
+ c.beginPath();c.moveTo(0,24+dy);c.lineTo(P.l1x,P.l1y+dy);c.stroke();
+ c.beginPath();c.moveTo(0,24+dy);c.lineTo(P.l2x,P.l2y+dy);c.stroke();
  c.restore();
 };
 var _stagePanelP=stagePanel;
