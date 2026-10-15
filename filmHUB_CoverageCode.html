@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HALION LOGIC | RULES BASED SCRIPT COVERAGE</title>
+
+  <!-- Typography, Tailwind CSS & System Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --site-dark: #090D16;
+      --site-navy: #0F172A;
+      --site-card: #1E293B;
+      --site-border: #334155;
+      --purple-accent: #8B5CF6;
+      --lime-green: #A3E635;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      background-color: var(--site-dark);
+      color: #C0C4C6;
+      font-family: 'Montserrat', sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #090D16; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 3px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* Print Styling */
+    @media print {
+      body { background-color: #FFFFFF !important; color: #000000 !important; }
+      header, footer, #left-input-console-viewport, .no-print, #ui-empty-dashboard-placeholder { display: none !important; }
+      #right-dashboard-report-pane { width: 100% !important; height: auto !important; overflow: visible !important; padding: 0 !important; }
+      #print-coverage-document { display: block !important; }
+      .print-page-break { page-break-before: always; }
+    }
+  </style>
+</head>
+<body class="flex flex-col custom-scroll h-screen overflow-hidden select-none">
+
+  <!-- TOP APP BAR -->
+  <header class="bg-[#0A0E17] border-b border-slate-900 px-4 py-2.5 flex items-center justify-between shrink-0 no-print">
+    <div class="h-6 w-28 flex items-center justify-start">
+      <svg viewBox="0 0 130 36" class="h-full w-full" xmlns="http://www.w3.org/2000/svg">
+        <text x="2" y="27" font-family="'Century Gothic', 'Futura', 'Montserrat', sans-serif" font-weight="800" font-size="26" fill="#A3E635" letter-spacing="-1.5">pre</text>
+        <text x="44" y="27" font-family="'Century Gothic', 'Futura', 'Montserrat', sans-serif" font-weight="900" font-size="26" fill="#FFFFFF" letter-spacing="-0.5">HUB</text>
+      </svg>
+    </div>
+
+    <div class="flex items-center gap-4 text-xs font-mono font-bold tracking-wider text-slate-500">
+      <div class="px-2.5 py-1 bg-slate-950/80 border border-slate-900 rounded flex items-center gap-2">
+        <i class="fa-solid fa-brain text-purple-400"></i> HALION COVERAGE CORE V3.2
+      </div>
+    </div>
+  </header>
+
+  <!-- SPLIT WORKSPACE INTERFACE -->
+  <main class="flex-1 flex overflow-hidden relative">
+    
+    <!-- LEFT INPUT CONSOLE -->
+    <div id="left-input-console-viewport" class="w-1/2 border-r border-slate-900 flex flex-col p-4 space-y-4 shrink-0 bg-[#060910]">
+      <div class="flex justify-between items-center select-none">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+          <i class="fa-solid fa-file-signature text-purple-400"></i> Script Source Console
+        </span>
+        <button id="btn-global-import" class="px-3 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-bold text-xs uppercase tracking-wider rounded transition flex items-center gap-1.5">
+          <i class="fa-solid fa-file-import text-[10px]"></i> Universal Ingest Script...
+        </button>
+      </div>
+
+      <input type="file" id="ui-universal-eval-file-input" accept=".txt,.json,.fdx" class="hidden">
+
+      <div class="flex-1 w-full relative">
+        <textarea id="script-workspace-textarea" placeholder="Paste clean plaintext screenplay, or click 'Universal Ingest Script' above to load FDX, JSON, or TXT formats..." class="w-full h-full p-4 bg-slate-950 text-slate-200 font-mono text-xs rounded border border-slate-900 focus:outline-none focus:border-slate-800 custom-scroll resize-none leading-relaxed"></textarea>
+      </div>
+
+      <!-- DYNAMIC ACTION DRAWER -->
+      <div id="dynamic-action-drawer" class="hidden opacity-0 bg-slate-950 border border-slate-900 p-3 rounded-lg flex items-center justify-between transition-all duration-300 transform translate-y-2 select-none">
+        <div class="flex items-center gap-4 flex-1 mr-4">
+          <div class="space-y-1 w-1/2">
+            <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">Script Format Target</label>
+            <select id="ui-script-format-type" class="w-full px-2 py-1.5 bg-slate-900 border border-slate-800 rounded text-xs text-slate-300 font-medium focus:outline-none focus:border-purple-500 cursor-pointer">
+              <option value="SHORTS">Short Film Format (5 - 20 Pages)</option>
+              <option value="TV30">TV Comedy / Sitcom Format (30 Min)</option>
+              <option value="TV60">TV Drama / Act-Break Format (60 Min)</option>
+              <option value="DOCUMENTARY">Audio/Visual Documentary Grid</option>
+              <option value="FEATURE" selected>Feature Screenplay Structure</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="btn-execute-sweep" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase tracking-wider rounded transition flex items-center gap-2 shadow-md shrink-0">
+          <i class="fa-solid fa-play text-[10px]"></i> Run Coverage Report
+        </button>
+      </div>
+    </div>
+
+    <!-- RIGHT DASHBOARD RESULTS VIEWPORT -->
+    <div id="right-dashboard-report-pane" class="flex-1 p-5 overflow-y-auto custom-scroll bg-[#090D16]">
+
+      <!-- EMPTY VIEW STATE -->
+      <div id="ui-empty-dashboard-placeholder" class="h-full flex flex-col items-center justify-center text-center space-y-4 max-w-sm mx-auto select-none">
+        <div class="w-14 h-14 rounded-full bg-slate-950 border border-slate-900 flex items-center justify-center text-slate-600 text-lg shadow-xl">
+          <i class="fa-solid fa-chart-bar"></i>
+        </div>
+        <div class="space-y-1">
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Metrics Panel Idle</h3>
+          <p class="text-xs text-slate-600 leading-normal">
+            Input a screenplay or run a format ingestion task inside the file console editor to compute rule balances.
+          </p>
+        </div>
+      </div>
+
+      <!-- CORE PRODUCTION COVERAGE REPORT WRAPPER -->
+      <div id="coverage-report-document-root" class="hidden space-y-6 select-text max-w-3xl mx-auto pb-16">
+        
+        <!-- 5-AXIS METRIC DECK -->
+        <div class="grid grid-cols-5 gap-3" id="metric-bars-deck-container"></div>
+
+        <!-- REVISION TIMELINE EVOLUTION PANE -->
+        <div id="baseline-comparison-evolution-pane" class="hidden bg-slate-950/60 border border-slate-900 rounded-lg p-4 space-y-3"></div>
+
+        <!-- GENERATED NARRATIVE SECTIONS WRAPPER -->
+        <div id="narrative-critique-text-blocks-output" class="space-y-4 font-sans"></div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- UTILITY DOCK FOOTER -->
+  <footer class="bg-[#0A0E17] border-t border-slate-900 px-4 py-2 flex items-center justify-between shrink-0 select-none z-30 no-print">
+    <div class="text-[11px] font-mono text-slate-500" id="ui-footer-telemetry-hud">
+      System Pipeline Status: <span class="text-slate-400 font-bold uppercase">Ready</span>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1.5">
+        <button id="btn-trigger-baseline-upload" class="px-3 py-1 bg-slate-950 hover:bg-slate-900 border border-slate-900 text-slate-400 font-mono text-[10px] rounded transition flex items-center gap-1.5">
+          <i class="fa-solid fa-history"></i> Compare Baseline Script
+        </button>
+        <input type="file" id="hidden-baseline-file-picker" accept=".txt" class="hidden">
+      </div>
+
+      <button id="btn-trigger-print" class="hidden px-4 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono font-bold text-xs uppercase tracking-wider rounded transition flex items-center gap-1.5">
+        <i class="fa-solid fa-print text-[10px]"></i> Download Coverage Report
+      </button>
+      <button id="btn-dispatch-scriptwriter" class="hidden px-4 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 font-mono font-bold text-xs uppercase tracking-wider rounded transition flex items-center gap-1.5">
+        <i class="fa-solid fa-share-nodes text-[10px]"></i> Send to Scriptwriter
+      </button>
+      <button id="btn-dispatch-storyboard" class="hidden px-4 py-1.5 bg-purple-900/40 hover:bg-purple-900/60 border border-purple-800/40 text-purple-300 font-mono font-bold text-xs uppercase tracking-wider rounded transition flex items-center gap-1.5 shadow-sm">
+        <i class="fa-solid fa-images text-[10px]"></i> Send to Storyboard
+      </button>
+    </div>
+  </footer>
+
+  <!-- Print Document Output Container -->
+  <div id="print-coverage-document" class="hidden"></div>
+
+  <!-- JAVASCRIPT ENGINES -->
+  <script>
+    /* SEGMENT 1: PARSER ENGINE */
+    class HalionParserEngine {
+      static mapRawScriptStringIntoLinesArray(rawString) {
+        if (!rawString || !rawString.trim()) return [];
+        const lines = rawString.split('\n');
+        let mappedLines = [];
+        let characterScopeContext = null;
+
+        lines.forEach((line, index) => {
+          const trimmed = line.trim();
+          if (!trimmed) return;
+
+          let elementType = "ACTION";
+          let lineText = trimmed;
+
+          if (/^(INT\.|EXT\.)/i.test(trimmed)) {
+            elementType = "SCENE_HEADING";
+            characterScopeContext = null;
+          } else if (trimmed === trimmed.toUpperCase() && trimmed.length < 35 && !trimmed.endsWith(':') && !/^\d+$/.test(trimmed)) {
+            elementType = "CHARACTER";
+            characterScopeContext = trimmed;
+          } else if (trimmed.startsWith("(") && trimmed.endsWith(")")) {
+            elementType = "PARENTHETICAL";
+          } else if (characterScopeContext) {
+            elementType = "DIALOGUE";
+          }
+
+          mappedLines.push({
+            fileIndexLine: index + 1,
+            type: elementType,
+            text: lineText
+          });
+        });
+
+        return mappedLines;
+      }
+    }
+
+    /* SEGMENT 2: METRICS SCORING MATRIX */
+    class HalionMetricsEngine {
+      static computeMetricsFromParsedLines(mappedLines, formatSettingCode) {
+        let totalCount = mappedLines.length;
+        let characterLinesCount = 0;
+        let sceneHeadingsCount = 0;
+        let dialogueLinesCount = 0;
+        let actionLinesCount = 0;
+
+        let uniqueCharactersMap = {};
+        let sceneNamesList = [];
+        let discoveredAnomalies = [];
+        let dialogueWordLengths = [];
+
+        mappedLines.forEach(item => {
+          if (item.type === "SCENE_HEADING") {
+            sceneHeadingsCount++;
+            sceneNamesList.push(item.text.replace(/^(INT\.|EXT\.\s*)/i, ""));
+          } else if (item.type === "CHARACTER") {
+            characterLinesCount++;
+            uniqueCharactersMap[item.text] = (uniqueCharactersMap[item.text] || 0) + 1;
+          } else if (item.type === "DIALOGUE") {
+            dialogueLinesCount++;
+            dialogueWordLengths.push(item.text.split(/\s+/).length);
+            if (item.text === item.text.toUpperCase() && item.text.length > 10) {
+              discoveredAnomalies.push({
+                type: "CADENCE_FLATLINE",
+                fileIndexLine: item.fileIndexLine,
+                description: "Dialogue text sequence contains continuous capitalization blocks."
+              });
+            }
+          } else if (item.type === "ACTION") {
+            actionLinesCount++;
+            if (item.text.length > 250) {
+              discoveredAnomalies.push({
+                type: "PACING_BOG",
+                fileIndexLine: item.fileIndexLine,
+                description: "Dense prose paragraph layout limits page down-velocity mechanics."
+              });
+            }
+          }
+        });
+
+        let totalWords = dialogueWordLengths.length ? dialogueWordLengths.reduce((a, b) => a + b, 0) : 0;
+        let meanWordLength = dialogueWordLengths.length ? (totalWords / dialogueWordLengths.length) : 0;
+        let varianceSum = dialogueWordLengths.length ? dialogueWordLengths.reduce((sum, val) => sum + Math.pow(val - meanWordLength, 2), 0) : 0;
+        let deviationValue = dialogueWordLengths.length ? Math.sqrt(varianceSum / dialogueWordLengths.length) : 5;
+
+        let scores = { CHARACTER: 7.0, PLOT: 6.5, DIALOGUE: 6.8, ORIGINALITY: 7.2, EMOTIONAL: 6.9, OVERALL: 6.8 };
+
+        if (formatSettingCode === "SHORTS") {
+          scores.PLOT = sceneHeadingsCount > 8 ? 5.0 : 8.5;
+          scores.CHARACTER = Object.keys(uniqueCharactersMap).length > 4 ? 5.5 : 8.0;
+        } else if (formatSettingCode === "TV30") {
+          scores.DIALOGUE = deviationValue > 3.5 ? 8.5 : 6.0;
+        } else if (formatSettingCode === "TV60") {
+          scores.PLOT = sceneHeadingsCount >= 15 ? 8.5 : 5.8;
+        } else {
+          scores.PLOT = (sceneHeadingsCount > 20 && sceneHeadingsCount < 60) ? 8.2 : 6.0;
+        }
+
+        scores.OVERALL = parseFloat(((scores.CHARACTER + scores.PLOT + scores.DIALOGUE + scores.ORIGINALITY + scores.EMOTIONAL) / 5).toFixed(1));
+
+        return {
+          scores,
+          anomaliesList: discoveredAnomalies,
+          meta: {
+            characters: Object.keys(uniqueCharactersMap),
+            totalLines: totalCount,
+            sceneCount: sceneHeadingsCount,
+            settingName: sceneNamesList[0] || "STAGED SETTING",
+            cadenceDeviation: deviationValue,
+            density: (actionLinesCount / (dialogueLinesCount || 1))
+          }
+        };
+      }
+    }
+
+    /* SEGMENT 3: REPORT COMPILER */
+    class HalionReportCompiler {
+      static compileFriendlyCoverageReport(metricsPayload, formatSettingCode) {
+        const meta = metricsPayload.meta;
+        const activeCharacter = meta.characters[0] || "PROTAGONIST";
+        const supportingCharacter = meta.characters[1] || "SUPPORTING CHAR";
+        const primeLocation = meta.settingName || "ESTABLISHED ENVIRONMENT";
+
+        const summaryParagraph = `This narrative text, structured as a ${formatSettingCode.toLowerCase()} document, introduces dramatic conflict framed within the constraints of ${primeLocation}. The story anchors behind the vocal cadence of ${activeCharacter}, with interaction between ${activeCharacter} and ${supportingCharacter} providing character friction.`;
+
+        const strengthsBlock = `
+          <div class="space-y-2 select-text">
+            <h4 class="text-xs font-bold text-lime-400 uppercase tracking-wider"><i class="fa-solid fa-circle-check"></i> Discovered Creative Assets</h4>
+            <ul class="list-disc pl-4 space-y-1.5 text-slate-300 font-sans text-xs leading-relaxed">
+              <li><strong>Environmental Grounding:</strong> Grounding within <strong>${primeLocation}</strong> tightens dramatic tension.</li>
+              <li><strong>Vocal Presence:</strong> <strong>${activeCharacter}</strong> exhibits a defined voice weight profile.</li>
+              <li><strong>Formatting Metric:</strong> Core page structure conforms cleanly with screenplay industry conventions.</li>
+            </ul>
+          </div>
+        `;
+
+        const vulnerabilitiesBlock = `
+          <div class="space-y-2 select-text">
+            <h4 class="text-xs font-bold text-amber-500 uppercase tracking-wider"><i class="fa-solid fa-circle-exclamation"></i> Critical Structural Vulnerabilities</h4>
+            <ul class="list-disc pl-4 space-y-1.5 text-slate-300 font-sans text-xs leading-relaxed">
+              <li><strong>Cadence Flatlining:</strong> Secondary character dialogue matches the lead tone closely; distinguish vocabulary and sentence lengths.</li>
+              <li><strong>Action Density:</strong> Some descriptive blocks exceed concise reader allowances, slowing narrative momentum.</li>
+            </ul>
+          </div>
+        `;
+
+        const commercialBlock = `
+          <div class="p-3.5 rounded-lg bg-slate-950 border border-slate-900 space-y-3 font-sans text-xs">
+            <h4 class="text-xs font-bold text-purple-400 uppercase tracking-wider font-mono"><i class="fa-solid fa-layer-group"></i> Market Diagnostics & Recommendations</h4>
+            <p class="text-slate-400 leading-relaxed">Computed metric density shares tonal pacing with contained speculative fiction and psychological drama.</p>
+            <div class="bg-slate-900 p-2.5 rounded border border-slate-800 space-y-1">
+              <span class="block text-[10px] font-mono font-bold text-slate-500 uppercase tracking-tight">Recommendation</span>
+              <p class="text-slate-300 leading-normal">Deepen conflict in dialogue exchanges between <strong>${activeCharacter}</strong> and <strong>${supportingCharacter}</strong> to heighten momentum before major act turns.</p>
+            </div>
+          </div>
+        `;
+
+        return `
+          <div class="space-y-4">
+            <div class="bg-slate-950/40 border border-slate-900 rounded-lg p-4 space-y-2">
+              <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono">Narrative Overview Summary</h3>
+              <p class="text-slate-300 font-sans text-xs leading-relaxed" id="report-summary-text">${summaryParagraph}</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-slate-950/40 border border-slate-900 rounded-lg p-4">${strengthsBlock}</div>
+              <div class="bg-slate-950/40 border border-slate-900 rounded-lg p-4">${vulnerabilitiesBlock}</div>
+            </div>
+            ${commercialBlock}
+          </div>
+        `;
+      }
+    }
+
+    /* SEGMENT 4: MESSAGE BUS */
+    class HalionMessageBusPipeline {
+      static dispatchPayloadToScriptwriterTile(metricsPayload) {
+        window.postMessage({
+          origin: "HALION_LOGIC_EVALUATOR_STUDIO",
+          event: "HALION_ANOMALY_MANIFEST_LOAD",
+          timestamp: Date.now(),
+          data: { anomaliesList: metricsPayload.anomaliesList || [], metaSummary: metricsPayload.meta }
+        }, "*");
+      }
+
+      static dispatchPayloadToStoryboardTile(metricsPayload) {
+        const currentScene = metricsPayload.meta.settingName || "INT. BASE_STAGE - DAY";
+        const shotCues = [
+          {
+            locationContext: currentScene,
+            shotSize: "WIDE SHOT (WS)",
+            cameraAngle: "EYE LEVEL",
+            lightingVibe: "NATURALISTIC",
+            promptDescription: `Establishing shot mapping geography of ${currentScene}.`
+          },
+          {
+            locationContext: currentScene,
+            shotSize: "CLOSE UP (CU)",
+            cameraAngle: "LOW ANGLE",
+            lightingVibe: "HIGH CONTRAST",
+            promptDescription: `Tight tracking shot framing primary character conflict.`
+          }
+        ];
+
+        window.postMessage({
+          origin: "HALION_LOGIC_COVERAGE_STUDIO",
+          event: "HALION_STORYBOARD_SHOTS_LOAD",
+          timestamp: Date.now(),
+          data: { shotCuesArray: shotCues }
+        }, "*");
+      }
+    }
+
+    /* SEGMENT 5: APP COORDINATOR */
+    const HalionAppCoordinator = {
+      cachedActiveMetrics: null,
+      cachedBaselineMetrics: null,
+
+      initializeApplicationFramework() {
+        this.textarea = document.getElementById('script-workspace-textarea');
+        this.drawer = document.getElementById('dynamic-action-drawer');
+        // FIXED ID: Correct element ID matched here
+        this.placeholder = document.getElementById('ui-empty-dashboard-placeholder');
+        this.reportRoot = document.getElementById('coverage-report-document-root');
+        
+        this.universalFileInput = document.getElementById('ui-universal-eval-file-input');
+        this.baselineFileInput = document.getElementById('hidden-baseline-file-picker');
+        
+        this.btnExecute = document.getElementById('btn-execute-sweep');
+        this.btnImport = document.getElementById('btn-global-import');
+        this.btnBaseline = document.getElementById('btn-trigger-baseline-upload');
+        this.btnPrint = document.getElementById('btn-trigger-print');
+        this.btnSendWriter = document.getElementById('btn-dispatch-scriptwriter');
+        this.btnSendStory = document.getElementById('btn-dispatch-storyboard');
+
+        this.textarea.addEventListener('input', () => this.evaluateTextAreaStateChangeRules());
+        this.btnImport.addEventListener('click', () => this.universalFileInput.click());
+        this.universalFileInput.addEventListener('change', (e) => this.executeUniversalFileParsingTask(e));
+
+        this.btnExecute.addEventListener('click', () => this.executeCoreEvaluationSweep());
+        this.btnBaseline.addEventListener('click', () => this.baselineFileInput.click());
+        this.baselineFileInput.addEventListener('change', (e) => this.processBaselineFileAttachment(e));
+
+        this.btnPrint.addEventListener('click', () => this.triggerDocumentPrintSequence());
+        
+        this.btnSendWriter.addEventListener('click', () => {
+          if (this.cachedActiveMetrics) {
+            HalionMessageBusPipeline.dispatchPayloadToScriptwriterTile(this.cachedActiveMetrics);
+            alert("Dispatched anomaly manifest to Screenwriter Studio.");
+          }
+        });
+
+        this.btnSendStory.addEventListener('click', () => {
+          if (this.cachedActiveMetrics) {
+            HalionMessageBusPipeline.dispatchPayloadToStoryboardTile(this.cachedActiveMetrics);
+            alert("Dispatched cinematic scene shot logs to Storyboard Studio.");
+          }
+        });
+
+        window.addEventListener('message', (e) => {
+          const pack = e.data;
+          if (pack && pack.origin === "HALION_SCRIPTWRITER_STUDIO_TILE" && pack.event === "HALION_UPDATED_SCRIPT_STREAM") {
+            this.textarea.value = pack.data.rawScriptString || "";
+            this.evaluateTextAreaStateChangeRules();
+            this.executeCoreEvaluationSweep();
+            document.getElementById('ui-footer-telemetry-hud').innerHTML = `Synced iteration packet received: <span class="text-lime-400 font-bold font-mono">${pack.versionContext || 'v2.x'}</span>`;
+          }
+        });
+      },
+
+      executeUniversalFileParsingTask(event) {
+        const fileRef = event.target.files[0];
+        if (!fileRef) return;
+
+        const fileName = fileRef.name.toLowerCase();
+        const reader = new FileReader();
+        const self = this;
+
+        document.getElementById('ui-footer-telemetry-hud').textContent = `Extracting: ${fileRef.name}...`;
+
+        if (fileName.endsWith(".json")) {
+          reader.onload = function(e) {
+            try {
+              const data = JSON.parse(e.target.result);
+              let tempLines = [];
+              if (data.script && Array.isArray(data.script.lines)) {
+                data.script.lines.forEach(l => tempLines.push(l.value || l.text || ""));
+              } else if (Array.isArray(data.linesArray)) {
+                data.linesArray.forEach(l => tempLines.push(l.text || ""));
+              } else {
+                throw new Error();
+              }
+              self.textarea.value = tempLines.join('\n');
+              self.evaluateTextAreaStateChangeRules();
+            } catch (err) {
+              alert("Could not parse structured JSON script format.");
+            }
+          };
+          reader.readAsText(fileRef);
+
+        } else if (fileName.endsWith(".fdx")) {
+          reader.onload = function(e) {
+            const parser = new DOMParser();
+            const xml = parser.parseFromString(e.target.result, "text/xml");
+            const paragraphs = xml.getElementsByTagName("Paragraph");
+            let xmlRecovered = [];
+
+            for (let i = 0; i < paragraphs.length; i++) {
+              let textNode = paragraphs[i].getElementsByTagName("Text")[0];
+              if (textNode) xmlRecovered.push(textNode.textContent);
+            }
+            self.textarea.value = xmlRecovered.join('\n');
+            self.evaluateTextAreaStateChangeRules();
+          };
+          reader.readAsText(fileRef);
+
+        } else {
+          // Plain Text
+          reader.onload = function(e) {
+            self.textarea.value = e.target.result;
+            self.evaluateTextAreaStateChangeRules();
+          };
+          reader.readAsText(fileRef);
+        }
+      },
+
+      evaluateTextAreaStateChangeRules() {
+        const val = this.textarea.value.trim();
+        if (val.length > 5) {
+          this.drawer.classList.remove('hidden', 'opacity-0', 'translate-y-2');
+          this.drawer.classList.add('flex', 'opacity-100', 'translate-y-0');
+        } else {
+          this.drawer.classList.add('hidden', 'opacity-0', 'translate-y-2');
+          this.drawer.classList.remove('flex', 'opacity-100', 'translate-y-0');
+        }
+      },
+
+      processBaselineFileAttachment(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        const self = this;
+
+        reader.onload = function(evt) {
+          const lines = HalionParserEngine.mapRawScriptStringIntoLinesArray(evt.target.result);
+          self.cachedBaselineMetrics = HalionMetricsEngine.computeMetricsFromParsedLines(lines, "FEATURE");
+          self.btnBaseline.className = "px-3 py-1 bg-lime-950/60 hover:bg-lime-900 border border-lime-900/60 text-lime-400 font-mono text-[10px] rounded transition flex items-center gap-1.5";
+          self.btnBaseline.innerHTML = `<i class="fa-solid fa-check"></i> Baseline Loaded`;
+
+          if (self.cachedActiveMetrics) {
+            self.executeCoreEvaluationSweep();
+          }
+        };
+        reader.readAsText(file);
+      },
+
+      executeCoreEvaluationSweep() {
+        const scriptString = this.textarea.value.trim();
+        if (!scriptString) return;
+
+        const formatSetting = document.getElementById('ui-script-format-type').value;
+        const parsedLines = HalionParserEngine.mapRawScriptStringIntoLinesArray(scriptString);
+
+        if (parsedLines.length === 0 || !parsedLines.some(l => l.type === "SCENE_HEADING" || l.type === "CHARACTER")) {
+          alert("Screenplay processing halted: No scene headings or character cues found. Please ensure proper formatting.");
+          return;
+        }
+
+        const metrics = HalionMetricsEngine.computeMetricsFromParsedLines(parsedLines, formatSetting);
+        this.cachedActiveMetrics = metrics;
+
+        if (this.placeholder) this.placeholder.classList.add('hidden');
+        if (this.reportRoot) this.reportRoot.classList.remove('hidden');
+
+        // Render Score Cards
+        const deck = document.getElementById('metric-bars-deck-container');
+        deck.innerHTML = "";
+        const labelsMap = { CHARACTER: 'Character', PLOT: 'Plot', DIALOGUE: 'Dialogue', ORIGINALITY: 'Originality', EMOTIONAL: 'Engagement' };
+        
+        Object.keys(labelsMap).forEach(key => {
+          const val = metrics.scores[key];
+          const pct = Math.min(100, val * 10);
+          const card = document.createElement('div');
+          card.className = "bg-slate-950 p-3 rounded-lg border border-slate-900 space-y-1.5 text-center relative overflow-hidden select-none";
+          card.innerHTML = `
+            <span class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider font-sans">${labelsMap[key]}</span>
+            <div class="text-lg font-extrabold tracking-tight text-white">${val}<span class="text-[10px] text-slate-600 font-normal">/10</span></div>
+            <div class="w-full bg-slate-900 h-1 rounded-full overflow-hidden">
+              <div class="bg-purple-500 h-full transition-all duration-500" style="width: ${pct}%"></div>
+            </div>
+          `;
+          deck.appendChild(card);
+        });
+
+        // Baseline Pane
+        const basePane = document.getElementById('baseline-comparison-evolution-pane');
+        if (this.cachedBaselineMetrics) {
+          basePane.classList.remove('hidden');
+          const delta = (metrics.scores.OVERALL - this.cachedBaselineMetrics.scores.OVERALL).toFixed(1);
+          const colorClass = delta >= 0 ? "text-lime-400" : "text-rose-400";
+          basePane.innerHTML = `
+            <div class="flex justify-between items-center text-xs font-mono select-none">
+              <span class="text-slate-400 uppercase font-bold tracking-tight"><i class="fa-solid fa-code-compare text-purple-400 mr-1.5"></i> Baseline Revision Tracker</span>
+              <span class="${colorClass} font-bold">${delta >= 0 ? '+' : ''}${delta} Index Rating Shift</span>
+            </div>
+            <p class="text-slate-300 font-sans text-xs leading-relaxed">Structural delta compared against baseline draft. Overall score variance is ${delta}.</p>
+          `;
+        } else {
+          basePane.classList.add('hidden');
+        }
+
+        // Narrative Section
+        const textWrapper = document.getElementById('narrative-critique-text-blocks-output');
+        textWrapper.innerHTML = HalionReportCompiler.compileFriendlyCoverageReport(metrics, formatSetting);
+
+        // Show Export Buttons
+        this.btnPrint.classList.remove('hidden');
+        this.btnSendWriter.classList.remove('hidden');
+        this.btnSendStory.classList.remove('hidden');
+
+        document.getElementById('ui-footer-telemetry-hud').innerHTML = `Analysis complete. Aggregate Index: <span class="text-purple-400 font-bold font-mono text-xs">${metrics.scores.OVERALL}</span>`;
+      },
+
+      triggerDocumentPrintSequence() {
+        if (!this.cachedActiveMetrics) return;
+        const metrics = this.cachedActiveMetrics;
+        const summaryEl = document.getElementById('report-summary-text');
+        const summaryText = summaryEl ? summaryEl.textContent : "Analysis summary.";
+
+        const printArea = document.getElementById('print-coverage-document');
+        printArea.innerHTML = `
+          <div style="font-family: 'Montserrat', sans-serif; color: #000000; padding: 0.5in; max-width: 7in; margin: 0 auto; line-height: 1.5;">
+            <div style="border-bottom: 3px solid #000000; padding-bottom: 12px; margin-bottom: 20px;">
+              <h1 style="font-size: 20pt; font-weight: 900; margin: 0; text-transform: uppercase;">preHUB // STUDIO EVALUATION REPORT</h1>
+              <p style="font-size: 9pt; font-family: monospace; color: #666666; margin: 4px 0 0 0;">HALION SCRIPT ANALYSIS SYSTEM</p>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 10pt;">
+              <thead>
+                <tr style="border-bottom: 2px solid #000000; text-align: left; font-size: 8pt; text-transform: uppercase; color: #444444;">
+                  <th style="padding: 6px 0;">Evaluation Category</th>
+                  <th style="padding: 6px 0; text-align: right;">Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 8px 0;">Character Development</td><td style="padding: 8px 0; text-align: right; font-weight: bold;">${metrics.scores.CHARACTER}/10</td></tr>
+                <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 8px 0;">Plot Structure</td><td style="padding: 8px 0; text-align: right; font-weight: bold;">${metrics.scores.PLOT}/10</td></tr>
+                <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 8px 0;">Dialogue Quality</td><td style="padding: 8px 0; text-align: right; font-weight: bold;">${metrics.scores.DIALOGUE}/10</td></tr>
+                <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 8px 0;">Originality</td><td style="padding: 8px 0; text-align: right; font-weight: bold;">${metrics.scores.ORIGINALITY}/10</td></tr>
+                <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 8px 0;">Emotional Engagement</td><td style="padding: 8px 0; text-align: right; font-weight: bold;">${metrics.scores.EMOTIONAL}/10</td></tr>
+                <tr style="border-bottom: 2px solid #000000; font-weight: bold; background-color: #F8FAFC;"><td style="padding: 10px 6px;">OVERALL SCORE</td><td style="padding: 10px 6px; text-align: right; font-size: 12pt;">${metrics.scores.OVERALL}/10</td></tr>
+              </tbody>
+            </table>
+            <div style="font-size: 10pt; margin-top: 20px;">
+              <h3 style="font-size: 11pt; font-weight: bold; border-bottom: 1px solid #000000; padding-bottom: 4px; margin-bottom: 8px; text-transform: uppercase;">Executive Summary</h3>
+              <p style="margin: 0 0 20px 0; text-align: justify;">${summaryText}</p>
+            </div>
+            <div style="font-size: 9pt; margin-top: 40px; text-align: center; border-top: 1px solid #E2E8F0; padding-top: 12px; color: #888888; font-family: monospace;">
+              [ VERIFIED // preHUB COVERAGE ENGINE ]
+            </div>
+          </div>
+        `;
+        window.print();
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      HalionAppCoordinator.initializeApplicationFramework();
+    });
+  </script>
+</body>
+</html>

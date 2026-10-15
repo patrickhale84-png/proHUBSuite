@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>preHUB // Storyboard Creator Studio (Tile 4)</title>
+
+  <!-- Typography, Tailwind CSS & System Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --site-dark: #090D16;
+      --site-navy: #0F172A;
+      --site-card: #1E293B;
+      --site-border: #334155;
+      --purple-accent: #8B5CF6;
+      --lime-green: #A3E635;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      background-color: var(--site-dark);
+      color: #C0C4C6;
+      font-family: 'Montserrat', sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #090D16; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 3px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* ASPECT RATIO SCREEN GRID CONTAINERS */
+    .aspect-16-9 { aspect-ratio: 16 / 9; }
+    .aspect-239-1 { aspect-ratio: 2.39 / 1; }
+    .aspect-4-3 { aspect-ratio: 4 / 3; }
+
+    .menu-dropdown { 
+      display: none; 
+      position: absolute; 
+      top: 100%; 
+      left: 0; 
+      min-width: 220px; 
+      background-color: #0F172A; 
+      border: 1px solid #1E293B; 
+      box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.7); 
+      z-index: 50; 
+    }
+    .menu-item-wrapper:hover .menu-dropdown { display: block; }
+
+    /* Drag & Reorder Animations */
+    .board-card-node {
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    }
+    .board-card-node.dragging {
+      opacity: 0.4;
+      transform: scale(0.98);
+      border-color: var(--purple-accent);
+    }
+    .board-card-node.drag-over {
+      border-color: var(--lime-green);
+      box-shadow: 0 0 15px rgba(163, 230, 53, 0.3);
+    }
+
+    /* Print View Definition Layout Sheet */
+    @media print {
+      body { background-color: #FFFFFF !important; color: #000000 !important; }
+      header, footer, #collab-drawer-simulator-view, .no-print, .card-control-bar { display: none !important; }
+      #main-board-scroll-pane { overflow: visible !important; height: auto !important; padding: 0 !important; }
+      #storyboard-cards-grid-deck { 
+        display: grid !important; 
+        grid-template-columns: repeat(2, 1fr) !important; 
+        gap: 16px !important; 
+      }
+      .board-card-node { 
+        background-color: #FFFFFF !important; 
+        border: 2px solid #000000 !important; 
+        color: #000000 !important; 
+        page-break-inside: avoid;
+        box-shadow: none !important;
+      }
+      .visual-thumbnail-placeholder { 
+        background-color: #F1F5F9 !important; 
+        border-bottom: 2px solid #000000 !important; 
+      }
+      .visual-thumbnail-placeholder i { color: #64748B !important; }
+      .visual-thumbnail-placeholder img { filter: grayscale(10%) contrast(110%); }
+      input, select, textarea { 
+        color: #000000 !important; 
+        background: transparent !important; 
+        border: 1px solid #CCCCCC !important; 
+      }
+    }
+  </style>
+</head>
+<body class="flex flex-col custom-scroll h-screen overflow-hidden select-none">
+
+  <!-- STANDARD SYSTEM BAR TOP NAVIGATION LAYER -->
+  <header class="bg-[#0A0E17] border-b border-slate-900 px-4 py-1.5 flex items-center justify-between shrink-0">
+    <div class="flex items-center gap-6">
+      <!-- preHUB Bauhaus Vector Brand Logo -->
+      <div class="h-6 w-24 flex items-center justify-start select-none cursor-pointer" onclick="location.reload()">
+        <svg viewBox="0 0 130 36" class="h-full w-full" xmlns="http://www.w3.org/2000/svg">
+          <text x="2" y="27" font-family="'Century Gothic', 'Futura', 'Montserrat', sans-serif" font-weight="800" font-size="26" fill="#A3E635" letter-spacing="-1.5">pre</text>
+          <text x="44" y="27" font-family="'Century Gothic', 'Futura', 'Montserrat', sans-serif" font-weight="900" font-size="26" fill="#FFFFFF" letter-spacing="-0.5">HUB</text>
+        </svg>
+      </div>
+
+      <!-- Professional Desktop Menu Dropdown Architecture Bar -->
+      <nav class="flex items-center gap-1 text-xs text-slate-400 font-medium">
+        <!-- File Dropdown -->
+        <div class="relative menu-item-wrapper px-3 py-1 hover:bg-slate-900 hover:text-white rounded cursor-default">
+          File
+          <div class="menu-dropdown py-1 rounded-b border-t-2 border-purple-500 text-xs">
+            <button id="menu-file-add-blank" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-300 flex justify-between items-center">
+              <span>Add Blank Card</span>
+              <span class="text-slate-500 font-mono text-[10px]">⌘N</span>
+            </button>
+            <button id="menu-file-load-sample" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-300 flex justify-between items-center">
+              <span>Load Cinematic Sample</span>
+              <i class="fa-solid fa-wand-magic-sparkles text-[10px] text-purple-400"></i>
+            </button>
+            <button id="menu-file-clear" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-rose-400 flex justify-between items-center">
+              <span>Clear Current Board</span>
+              <i class="fa-solid fa-trash-can text-[10px]"></i>
+            </button>
+            <div class="border-t border-slate-800 my-1"></div>
+            <button id="menu-file-invite-email" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-lime-400 flex justify-between items-center">
+              <span>Invite Team Member...</span>
+              <i class="fa-solid fa-envelope text-[10px]"></i>
+            </button>
+            <button id="menu-file-collab" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-400 flex justify-between items-center">
+              <span>Initialize Live Session</span>
+              <i class="fa-solid fa-tower-broadcast text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Edit Dropdown -->
+        <div class="relative menu-item-wrapper px-3 py-1 hover:bg-slate-900 hover:text-white rounded cursor-default">
+          Edit
+          <div class="menu-dropdown py-1 rounded-b border-t-2 border-purple-500 text-xs">
+            <button id="menu-edit-undo" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-300 flex justify-between items-center">
+              <span>Undo Action</span>
+              <span class="font-mono text-slate-500 text-[10px]">⌘Z</span>
+            </button>
+            <button id="menu-edit-redo" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-300 flex justify-between items-center">
+              <span>Redo Action</span>
+              <span class="font-mono text-slate-500 text-[10px]">⌘Y</span>
+            </button>
+            <div class="border-t border-slate-800 my-1"></div>
+            <button id="menu-edit-duplicate-last" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-300 flex justify-between items-center">
+              <span>Duplicate Last Frame</span>
+              <span class="font-mono text-slate-500 text-[10px]">⌘D</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- View Dropdown -->
+        <div class="relative menu-item-wrapper px-3 py-1 hover:bg-slate-900 hover:text-white rounded cursor-default">
+          View
+          <div class="menu-dropdown py-1 rounded-b border-t-2 border-purple-500 text-xs">
+            <div class="px-4 py-1.5 text-[10px] text-slate-500 font-bold uppercase tracking-tight">Global Screen Format</div>
+            <button id="view-ratio-169" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-lime-400 flex justify-between items-center">
+              <span>Widescreen (16:9)</span><span id="check-ratio-169">✓</span>
+            </button>
+            <button id="view-ratio-239" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-400 flex justify-between items-center">
+              <span>Anamorphic (2.39:1)</span><span id="check-ratio-239" class="hidden">✓</span>
+            </button>
+            <button id="view-ratio-43" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-400 flex justify-between items-center">
+              <span>Academy (4:3)</span><span id="check-ratio-43" class="hidden">✓</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- History Dropdown -->
+        <div class="relative menu-item-wrapper px-3 py-1 hover:bg-slate-900 hover:text-white rounded cursor-default">
+          History
+          <div class="menu-dropdown py-1 rounded-b border-t-2 border-purple-500 text-xs max-h-56 overflow-y-auto custom-scroll" id="menu-history-list">
+            <div class="px-4 py-1 text-[10px] text-slate-500 uppercase tracking-tight font-bold">Board Versions History</div>
+            <div class="px-4 py-1.5 text-slate-300 text-[11px] font-mono border-l-2 border-lime-400 bg-slate-900/40" id="menu-history-active-stamp">
+              v1.0-EMPTY_BOARD
+            </div>
+            <div id="menu-history-items-container" class="space-y-0.5"></div>
+          </div>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Right HUD Status Descriptors -->
+    <div class="flex items-center gap-4 text-xs font-medium text-slate-500 select-none">
+      <div id="ui-collab-active-badge" class="hidden text-lime-400 flex items-center gap-1.5 font-mono text-[11px] font-bold bg-lime-950/40 px-2 py-0.5 rounded border border-lime-900/60 animate-fade-in">
+        <i class="fa-solid fa-circle text-[7px] animate-pulse"></i> COLLAB ROOM ACTIVE
+      </div>
+      <div class="font-mono text-xs text-slate-400 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded flex items-center gap-1.5" id="ui-top-version-badge">
+        <i class="fa-solid fa-code-commit text-[10px] text-purple-400"></i>
+        <span id="ui-version-label">v1.0-EMPTY</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- EMAIL INVITATION MODAL GATEWAY FRAME -->
+  <div id="ui-email-modal-overlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-2xl space-y-4 text-xs">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-user-plus text-purple-400"></i> Invite Reviewer to Storyboard
+        </h3>
+        <button id="btn-close-email-modal" class="text-slate-500 hover:text-white transition"><i class="fa-solid fa-xmark text-sm"></i></button>
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-tight">Collaborator Email Address</label>
+        <input type="email" id="input-collab-email" placeholder="cinematographer@production.com" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-xs text-white focus:outline-none focus:border-purple-500">
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-tight">Access Permissions</label>
+        <select id="input-collab-permission" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-xs text-slate-300 focus:outline-none focus:border-purple-500 cursor-pointer">
+          <option value="EDIT">Full Editor Rights (Can Add & Modify Cues)</option>
+          <option value="VIEW">Reviewer Only Mode (Read & Comment Only)</option>
+        </select>
+      </div>
+      <div class="pt-2 flex justify-end gap-2 border-t border-slate-800">
+        <button id="btn-cancel-invite" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs uppercase rounded transition">Cancel</button>
+        <button id="btn-dispatch-invite" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase rounded transition shadow-md">Send Board Token</button>
+      </div>
+    </div>
+  </div>
+  <!-- MAIN STORYBOARD MATRIX DESK VIEWPORT -->
+  <main class="flex-1 flex overflow-hidden relative">
+    
+    <!-- CENTRAL CONTAINER FOR STORYBOARD CARDS -->
+    <div id="main-board-scroll-pane" class="flex-1 p-6 overflow-y-auto custom-scroll bg-[#090D16]">
+
+      <!-- DEFAULT NO-DATA SCREEN OVERLAY -->
+      <div id="ui-empty-board-placeholder" class="h-full flex flex-col items-center justify-center text-center space-y-4 max-w-md mx-auto animate-fade-in select-text">
+        <div class="w-16 h-16 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-purple-400 text-xl shadow-xl">
+          <i class="fa-solid fa-clapperboard"></i>
+        </div>
+        <div class="space-y-1.5">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200">No Script Elements Pushed</h2>
+          <p class="text-xs text-slate-500 leading-normal">
+            This module is waiting on downstream data assets. Click <span class="font-mono text-purple-400 font-bold">Run Coverage Report</span> and click <span class="font-mono text-purple-400 font-bold">Send to Storyboard</span> inside Tile 1 to hydrate this canvas grid automatically.
+          </p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btn-create-first-card" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase rounded shadow transition flex items-center gap-2">
+            <i class="fa-solid fa-plus text-[10px]"></i> Create First Card Manually
+          </button>
+          <button id="btn-load-quick-sample" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs uppercase rounded shadow transition flex items-center gap-2">
+            <i class="fa-solid fa-film text-[10px]"></i> Load Scene Demo
+          </button>
+        </div>
+        <div class="text-[11px] text-slate-600 font-mono bg-slate-950/40 p-2 rounded border border-slate-900/60 w-full mt-2">
+          Telemetry Monitor: Waiting for window.postMessage from Coverage Core...
+        </div>
+      </div>
+
+      <!-- MASTER GRID DECK (INVISBLE UNTIL ELEMENTS ARE DISPATCHED) -->
+      <div id="storyboard-cards-grid-deck" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 w-full pb-16">
+        <!-- Storyboard frames inject programmatically here -->
+      </div>
+
+    </div>
+
+    <!-- SEAMLESS SIMULATED COLLABORATIVE PEER DRAWER PANEL -->
+    <div id="collab-drawer-simulator-view" class="w-0 opacity-0 bg-[#060910] border-l border-slate-900 flex flex-col shrink-0 overflow-hidden transition-all duration-300 z-20">
+      <div class="bg-slate-950/80 text-[10px] font-mono font-bold tracking-widest text-lime-400 uppercase border-b border-slate-900 px-4 py-2.5 select-none flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-1.5"><i class="fa-solid fa-network-wired"></i> Board Sync Portal</div>
+        <span class="h-1.5 w-1.5 rounded-full bg-lime-400 animate-ping"></span>
+      </div>
+      
+      <!-- Granular Connected Users Roster Panel -->
+      <div class="p-3 border-b border-slate-900 bg-slate-950/40 text-xs space-y-2 select-none">
+        <span class="block text-[10px] font-mono font-bold text-slate-500 uppercase tracking-tight">Active Room Session</span>
+        <div class="flex items-center justify-between bg-slate-900/80 p-2 rounded border border-slate-800">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded bg-purple-600 flex items-center justify-center font-bold text-[10px] text-white">ME</div>
+            <span class="text-slate-200 font-medium font-mono text-[11px]">You (Director)</span>
+          </div>
+          <span class="text-[9px] font-bold text-purple-400 bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-900/40">HOST</span>
+        </div>
+
+        <!-- Co-author user node slot -->
+        <div id="collab-peer-user-row" class="hidden flex items-center justify-between bg-slate-900/80 p-2 rounded border border-slate-800 animate-fade-in">
+          <div class="flex items-center gap-2 overflow-hidden mr-2">
+            <div class="w-6 h-6 rounded bg-lime-600 flex items-center justify-center font-bold text-[10px] text-slate-950 shrink-0">DP</div>
+            <span id="txt-peer-user-identity" class="text-slate-300 font-medium font-mono text-[10px] truncate">crew@cinematography.io</span>
+          </div>
+          <!-- Real-Time Permissions Toggle Switch -->
+          <select id="select-peer-permission-gate" class="bg-slate-950 border border-slate-800 rounded text-[10px] text-slate-300 font-bold px-1.5 py-0.5 outline-none focus:border-lime-500 cursor-pointer shrink-0">
+            <option value="EDIT">CAN EDIT</option>
+            <option value="VIEW">VIEW ONLY</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="collab-sandbox-event-logs" class="flex-1 p-3 space-y-2.5 overflow-y-auto custom-scroll text-[11px] text-slate-400 font-mono">
+        <div class="text-center py-6 text-slate-600">No collaborative sync messages logged.</div>
+      </div>
+
+      <div class="p-2 bg-slate-950 border-t border-slate-900 grid grid-cols-2 gap-2 select-none">
+        <button id="btn-sim-peer-type" class="py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded font-bold text-[9px] uppercase tracking-wide text-slate-300 transition flex items-center justify-center gap-1">
+          <i class="fa-solid fa-pen text-[8px]"></i> Sim Peer Edit
+        </button>
+        <button id="btn-sim-peer-cut" class="py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded font-bold text-[9px] uppercase tracking-wide text-rose-400 transition flex items-center justify-center gap-1">
+          <i class="fa-solid fa-plus text-[8px]"></i> Sim Peer Frame
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- UTILITY BOTTOM ACTIONS PANEL HOUSING EXPORT CHANNELS -->
+  <footer class="bg-[#0A0E17] border-t border-slate-900 px-4 py-2.5 flex items-center justify-between shrink-0 select-none z-30">
+    <div class="flex items-center gap-6 text-xs font-medium text-slate-500">
+      <div class="bg-slate-950 border border-slate-900 px-2 py-0.5 rounded font-mono text-[11px] text-slate-400 flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Canvas Aspect Ratio: <span id="ui-current-aspect-ratio-badge" class="text-white font-bold">16:9</span>
+      </div>
+      <div class="text-[11px] font-mono text-slate-400">
+        Total Frame Cards: <span id="ui-hud-frames-total-count" class="text-white font-bold">0</span>
+      </div>
+    </div>
+
+    <!-- COMPREHENSIVE COMPILATION EXPORT MATRIX DOCK -->
+    <div class="flex items-center gap-3">
+      <button id="btn-quick-add" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-lime-400 font-mono font-bold text-xs uppercase tracking-wider rounded transition flex items-center gap-1.5">
+        <i class="fa-solid fa-plus text-[10px]"></i> Add Frame
+      </button>
+
+      <div class="relative group">
+        <button class="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono font-bold text-xs uppercase tracking-wider rounded transition flex items-center gap-2">
+          <i class="fa-solid fa-file-export text-[10px]"></i> Export Package <i class="fa-solid fa-chevron-up text-[9px] text-slate-500"></i>
+        </button>
+        <div class="absolute bottom-full right-0 mb-1 w-60 bg-slate-950 border border-slate-800 rounded shadow-2xl py-1 hidden group-hover:block text-xs z-40">
+          <button id="export-target-pdf" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-file-pdf text-rose-500 w-4"></i> Print Directors Board (PDF)
+          </button>
+          <button id="export-target-xml" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-file-code text-blue-400 w-4"></i> Final Draft Scene Cues (.xml)
+          </button>
+          <button id="export-target-json" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-cubes text-purple-400 w-4"></i> Storyboard Manifest (.json)
+          </button>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification Dock -->
+  <div id="toast-portal-rack" class="fixed bottom-14 left-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Hidden Image File Picker for Individual Card Thumbnail Customization -->
+  <input type="file" id="hidden-card-image-picker" accept="image/*" class="hidden">
+  <script>
+    let activeGlobalAspectClass = "aspect-16-9";
+    let isCollaborationModeActive = false;
+    let currentVersionIndex = 1;
+    let peerPermissionGateState = "EDIT";
+    let activeCardImageTargetIndex = null;
+
+    // History undo/redo state stacks ledger
+    let CommandHistoryStack = [];
+    let HistoryStackPointerIndex = -1;
+    let isHistoryMufflingActive = false;
+
+    const StoryboardStudioCore = {
+      initializeStoryboardSystem() {
+        this.gridDeck = document.getElementById('storyboard-cards-grid-deck');
+        this.placeholder = document.getElementById('ui-empty-board-placeholder');
+        this.collabDrawer = document.getElementById('collab-drawer-simulator-view');
+        this.emailModal = document.getElementById('ui-email-modal-overlay');
+
+        this.versionStampTop = document.getElementById('ui-version-label');
+        this.historyActiveStamp = document.getElementById('menu-history-active-stamp');
+        this.historyItemsContainer = document.getElementById('menu-history-items-container');
+        this.imageFileInput = document.getElementById('hidden-card-image-picker');
+
+        // Card creation click bindings
+        const handleAddBlank = () => {
+          this.injectBlankStoryboardCardNode({
+            sceneText: "INT. CONTROL ROOM - NIGHT",
+            actionText: "Wide establishing angle of the tactical array. Operator monitors incoming telemetry.",
+            sizeVal: "WS",
+            angleVal: "EYE",
+            lightingVal: "NATURAL"
+          });
+          this.recordActiveStateToHistorySnapshotStack("Add Frame");
+        };
+
+        document.getElementById('menu-file-add-blank').addEventListener('click', handleAddBlank);
+        document.getElementById('btn-create-first-card').addEventListener('click', handleAddBlank);
+        document.getElementById('btn-quick-add').addEventListener('click', handleAddBlank);
+
+        // Load cinematic sample boards
+        const handleLoadSample = () => {
+          this.loadSampleCinematicSequence();
+        };
+        document.getElementById('menu-file-load-sample').addEventListener('click', handleLoadSample);
+        document.getElementById('btn-load-quick-sample').addEventListener('click', handleLoadSample);
+
+        document.getElementById('menu-file-clear').addEventListener('click', () => this.clearStoryboardWorkspaceLayout());
+        document.getElementById('menu-file-collab').addEventListener('click', () => this.toggleCollaborationLobbyState());
+        document.getElementById('menu-file-invite-email').addEventListener('click', () => this.toggleEmailInvitationModal(true));
+        document.getElementById('btn-close-email-modal').addEventListener('click', () => this.toggleEmailInvitationModal(false));
+        document.getElementById('btn-cancel-invite').addEventListener('click', () => this.toggleEmailInvitationModal(false));
+        document.getElementById('btn-dispatch-invite').addEventListener('click', () => this.dispatchSecureEmailInvitationLink());
+
+        // Card duplicate last command
+        document.getElementById('menu-edit-duplicate-last').addEventListener('click', () => {
+          const cards = this.gridDeck.children;
+          if (cards.length === 0) return this.showSystemToast("No frame cards present to duplicate.", true);
+          this.duplicateCardByIndex(cards.length - 1);
+        });
+
+        // Dynamic Permissions Gate Switch
+        document.getElementById('select-peer-permission-gate').addEventListener('change', (e) => {
+          peerPermissionGateState = e.target.value;
+          this.showSystemToast(`Guest permission updated to: ${peerPermissionGateState}`);
+          this.logCollaborationEvent(`Host restricted guest permission to: [${peerPermissionGateState}]`);
+        });
+
+        // Aspect Ratio View Switch Toggles
+        document.getElementById('view-ratio-169').addEventListener('click', () => this.updateGlobalAspectConfiguration("aspect-16-9", "16:9"));
+        document.getElementById('view-ratio-239').addEventListener('click', () => this.updateGlobalAspectConfiguration("aspect-239-1", "2.39:1"));
+        document.getElementById('view-ratio-43').addEventListener('click', () => this.updateGlobalAspectConfiguration("aspect-4-3", "4:3"));
+
+        // Undo / Redo Click Bindings
+        document.getElementById('menu-edit-undo').addEventListener('click', () => this.executeUndoCommandStep());
+        document.getElementById('menu-edit-redo').addEventListener('click', () => this.executeRedoCommandStep());
+
+        // Multi-Format Export Pipelines
+        document.getElementById('export-target-pdf').addEventListener('click', () => window.print());
+        document.getElementById('export-target-xml').addEventListener('click', () => this.executeProductionPackageExport("xml"));
+        document.getElementById('export-target-json').addEventListener('click', () => this.executeProductionPackageExport("json"));
+
+        document.getElementById('btn-sim-peer-type').addEventListener('click', () => this.executeSimulatedPeerEditingEvent());
+        document.getElementById('btn-sim-peer-cut').addEventListener('click', () => this.executeSimulatedPeerAppendEvent());
+
+        // Card image upload handler
+        this.imageFileInput.addEventListener('change', (e) => this.handleCardImageFileSelected(e));
+
+        // Global key shortcut listeners
+        window.addEventListener('keydown', (e) => {
+          // Ignore shortcuts if actively typing in text fields
+          const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+          const isInput = activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select';
+
+          if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n') {
+            e.preventDefault();
+            handleAddBlank();
+          }
+          if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+            if (!isInput) {
+              e.preventDefault();
+              this.executeUndoCommandStep();
+            }
+          }
+          if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+            if (!isInput) {
+              e.preventDefault();
+              this.executeRedoCommandStep();
+            }
+          }
+          if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'd') {
+            e.preventDefault();
+            const cards = this.gridDeck.children;
+            if (cards.length > 0) this.duplicateCardByIndex(cards.length - 1);
+          }
+        });
+
+        // Cross-tile inbound message listener
+        window.addEventListener('message', (e) => this.handleInboundCrossTilePipelineMessages(e));
+
+        // Record initial baseline history state
+        this.recordActiveStateToHistorySnapshotStack("Initial Blank Canvas");
+      },
+
+      toggleEmailInvitationModal(shouldDisplayVisible) {
+        if (shouldDisplayVisible) {
+          this.emailModal.classList.remove('hidden');
+          setTimeout(() => document.getElementById('input-collab-email').focus(), 50);
+        } else {
+          this.emailModal.classList.add('hidden');
+          document.getElementById('input-collab-email').value = "";
+        }
+      },
+
+      dispatchSecureEmailInvitationLink() {
+        const mail = document.getElementById('input-collab-email').value.trim();
+        const initialPerm = document.getElementById('input-collab-permission').value;
+        if (!mail || !mail.includes("@")) {
+          return this.showSystemToast("Please enter a valid collaborator email address.", true);
+        }
+
+        this.toggleEmailInvitationModal(false);
+
+        if (!isCollaborationModeActive) {
+          this.toggleCollaborationLobbyState();
+        }
+
+        peerPermissionGateState = initialPerm;
+        document.getElementById('select-peer-permission-gate').value = initialPerm;
+        
+        // Fix for previously missing DOM node txt-peer-user-identity
+        const peerRow = document.getElementById('collab-peer-user-row');
+        const peerLabel = document.getElementById('txt-peer-user-identity');
+        if (peerRow) peerRow.classList.remove('hidden');
+        if (peerLabel) peerLabel.textContent = mail;
+
+        this.showSystemToast(`Collaboration access token dispatched to: ${mail}`);
+        this.logCollaborationEvent(`Invite transmitted to [${mail}] with [${initialPerm}] clearance.`);
+      },
+
+      showSystemToast(messageText, isErrorNotification = false) {
+        const portal = document.getElementById('toast-portal-rack');
+        if (!portal) return;
+
+        const toastCard = document.createElement('div');
+        toastCard.className = `p-3 rounded shadow-2xl text-xs font-mono border transition duration-300 transform translate-y-0 flex items-center gap-2 pointer-events-auto ${
+          isErrorNotification ? 'bg-rose-950/95 border-rose-900 text-rose-200' : 'bg-slate-950/95 border-slate-800 text-slate-100'
+        }`;
+
+        toastCard.innerHTML = `<i class="${isErrorNotification ? 'fa-solid fa-circle-exclamation text-rose-500' : 'fa-solid fa-circle-check text-lime-400'}"></i><span>${messageText}</span>`;
+        
+        portal.appendChild(toastCard);
+        setTimeout(() => {
+          toastCard.style.opacity = '0';
+          setTimeout(() => toastCard.remove(), 300);
+        }, 3000);
+      },
+
+      logCollaborationEvent(logMessageString) {
+        const logger = document.getElementById('collab-sandbox-event-logs');
+        if (!logger) return;
+        if (logger.innerHTML.includes("No collaborative sync")) {
+          logger.innerHTML = "";
+        }
+
+        const frame = document.createElement('div');
+        frame.className = "p-1.5 border-b border-slate-900/60 text-slate-400 font-mono text-[10px] leading-normal";
+        frame.innerHTML = `<span class="text-slate-600 mr-1">[${new Date().toLocaleTimeString()}]</span>${logMessageString}`;
+        logger.appendChild(frame);
+        logger.scrollTop = logger.scrollHeight;
+      },
+      recordActiveStateToHistorySnapshotStack(actionLabel = "Modify Board") {
+        if (isHistoryMufflingActive) return;
+
+        let frameCardsSnapshot = [];
+        Array.from(this.gridDeck.children).forEach((card, index) => {
+          const imgNode = card.querySelector('.card-thumbnail-img');
+          frameCardsSnapshot.push({
+            id: index + 1,
+            scene: card.querySelector('.input-scene-heading-tag').value,
+            action: card.querySelector('.textarea-action-desc').value,
+            size: card.querySelector('.select-shot-size').value,
+            angle: card.querySelector('.select-shot-angle').value,
+            lighting: card.querySelector('.select-shot-lighting').value,
+            imageSrc: imgNode ? imgNode.src : null
+          });
+        });
+
+        // Trim redo branch if pointer is in the middle of history
+        if (HistoryStackPointerIndex < CommandHistoryStack.length - 1) {
+          CommandHistoryStack = CommandHistoryStack.slice(0, HistoryStackPointerIndex + 1);
+        }
+
+        const snapshot = {
+          label: actionLabel,
+          aspectClass: activeGlobalAspectClass,
+          cards: frameCardsSnapshot,
+          timestamp: new Date().toLocaleTimeString()
+        };
+
+        CommandHistoryStack.push(snapshot);
+        if (CommandHistoryStack.length > 50) CommandHistoryStack.shift();
+        HistoryStackPointerIndex = CommandHistoryStack.length - 1;
+
+        this.renderHistoryDropdownMenu();
+      },
+
+      renderHistoryDropdownMenu() {
+        if (!this.historyItemsContainer) return;
+        this.historyItemsContainer.innerHTML = "";
+
+        // Display the last 10 snapshots in reverse chronological order
+        const maxItems = Math.min(CommandHistoryStack.length, 10);
+        for (let i = CommandHistoryStack.length - 1; i >= CommandHistoryStack.length - maxItems; i--) {
+          const item = CommandHistoryStack[i];
+          const isCurrent = i === HistoryStackPointerIndex;
+
+          const row = document.createElement('div');
+          row.className = `px-4 py-1.5 font-mono text-[11px] cursor-pointer flex justify-between items-center transition ${
+            isCurrent ? 'bg-purple-950/40 border-l-2 border-purple-400 text-white font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+          }`;
+          row.innerHTML = `
+            <span class="truncate mr-2">${item.label}</span>
+            <span class="text-[9px] text-slate-500 font-sans">${item.timestamp}</span>
+          `;
+          row.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.jumpToHistoryIndex(i);
+          });
+          this.historyItemsContainer.appendChild(row);
+        }
+
+        if (this.historyActiveStamp) {
+          this.historyActiveStamp.textContent = `${CommandHistoryStack[HistoryStackPointerIndex].label} (${CommandHistoryStack[HistoryStackPointerIndex].cards.length} cards)`;
+        }
+      },
+
+      jumpToHistoryIndex(targetIndex) {
+        if (targetIndex < 0 || targetIndex >= CommandHistoryStack.length) return;
+        HistoryStackPointerIndex = targetIndex;
+        this.applyHistoricalSnapshotToInterface(CommandHistoryStack[HistoryStackPointerIndex]);
+        this.showSystemToast(`Restored checkpoint: ${CommandHistoryStack[HistoryStackPointerIndex].label}`);
+      },
+
+      executeUndoCommandStep() {
+        if (HistoryStackPointerIndex <= 0) {
+          return this.showSystemToast("Baseline state reached. Nothing to undo.", true);
+        }
+        HistoryStackPointerIndex--;
+        this.applyHistoricalSnapshotToInterface(CommandHistoryStack[HistoryStackPointerIndex]);
+        this.showSystemToast(`Undo: ${CommandHistoryStack[HistoryStackPointerIndex].label}`);
+      },
+
+      executeRedoCommandStep() {
+        if (HistoryStackPointerIndex >= CommandHistoryStack.length - 1) {
+          return this.showSystemToast("Latest state active. Nothing to redo.", true);
+        }
+        HistoryStackPointerIndex++;
+        this.applyHistoricalSnapshotToInterface(CommandHistoryStack[HistoryStackPointerIndex]);
+        this.showSystemToast(`Redo: ${CommandHistoryStack[HistoryStackPointerIndex].label}`);
+      },
+
+      applyHistoricalSnapshotToInterface(stateSnapshotNode) {
+        isHistoryMufflingActive = true;
+
+        activeGlobalAspectClass = stateSnapshotNode.aspectClass;
+        this.updateAspectUIBadges(activeGlobalAspectClass);
+
+        this.gridDeck.innerHTML = "";
+        if (stateSnapshotNode.cards.length > 0) {
+          this.placeholder.classList.add('hidden');
+          this.gridDeck.classList.remove('hidden');
+          stateSnapshotNode.cards.forEach(c => {
+            this.injectBlankStoryboardCardNode({
+              sceneText: c.scene,
+              actionText: c.action,
+              sizeVal: c.size,
+              angleVal: c.angle,
+              lightingVal: c.lighting,
+              imageSrc: c.imageSrc
+            });
+          });
+        } else {
+          this.placeholder.classList.remove('hidden');
+          this.gridDeck.classList.add('hidden');
+        }
+
+        this.recalculateFramesHUDCount();
+        this.renderHistoryDropdownMenu();
+        isHistoryMufflingActive = false;
+      },
+
+      clearStoryboardWorkspaceLayout() {
+        if (this.gridDeck.children.length === 0) return;
+        this.recordActiveStateToHistorySnapshotStack("Before Clear");
+        this.gridDeck.innerHTML = "";
+        this.placeholder.classList.remove('hidden');
+        this.gridDeck.classList.add('hidden');
+        this.recalculateFramesHUDCount();
+        this.recordActiveStateToHistorySnapshotStack("Clear Board");
+        this.showSystemToast("Workspace canvas cleared.");
+      },
+
+      updateGlobalAspectConfiguration(targetClassCode, labelString) {
+        activeGlobalAspectClass = targetClassCode;
+        this.updateAspectUIBadges(targetClassCode);
+
+        // Update all existing thumbnails
+        const containers = document.querySelectorAll('.visual-thumbnail-placeholder');
+        containers.forEach(c => {
+          c.classList.remove("aspect-16-9", "aspect-239-1", "aspect-4-3");
+          c.classList.add(targetClassCode);
+        });
+
+        this.showSystemToast(`Aspect ratio switched to: ${labelString}`);
+        this.recordActiveStateToHistorySnapshotStack(`Aspect: ${labelString}`);
+      },
+
+      updateAspectUIBadges(aspectCode) {
+        const badge = document.getElementById('ui-current-aspect-ratio-badge');
+        if (badge) {
+          badge.textContent = aspectCode === "aspect-16-9" ? "16:9" : (aspectCode === "aspect-239-1" ? "2.39:1" : "4:3");
+        }
+
+        // Toggle checkmarks
+        document.getElementById('check-ratio-169').classList.toggle('hidden', aspectCode !== "aspect-16-9");
+        document.getElementById('check-ratio-239').classList.toggle('hidden', aspectCode !== "aspect-239-1");
+        document.getElementById('check-ratio-43').classList.toggle('hidden', aspectCode !== "aspect-4-3");
+      },
+
+      loadSampleCinematicSequence() {
+        this.gridDeck.innerHTML = "";
+        const sampleShots = [
+          {
+            sceneText: "EXT. DESERT HIGHWAY - DUSK",
+            actionText: "Extreme wide crane shot. A vintage sedan drives down the open blacktop under deep violet clouds.",
+            sizeVal: "ELS",
+            angleVal: "HIGH",
+            lightingVal: "GOLDEN"
+          },
+          {
+            sceneText: "INT. VINTAGE SEDAN - CONTINUOUS",
+            actionText: "Medium close-up on Ingrid gripping the cracked steering wheel. Exhaustion in her eyes, mirror shaking.",
+            sizeVal: "MCU",
+            angleVal: "EYE",
+            lightingVal: "LOW_KEY"
+          },
+          {
+            sceneText: "EXT. ROADSIDE DINER - NIGHT",
+            actionText: "High contrast Dutch tilt. Fluorescent neon flicker humming across the gravel lot as headlights cut through fog.",
+            sizeVal: "WS",
+            angleVal: "DUTCH",
+            lightingVal: "STYLIZED"
+          }
+        ];
+
+        this.placeholder.classList.add('hidden');
+        this.gridDeck.classList.remove('hidden');
+
+        sampleShots.forEach(shot => {
+          this.injectBlankStoryboardCardNode(shot);
+        });
+
+        this.recordActiveStateToHistorySnapshotStack("Load Sample Shots");
+        this.showSystemToast("Cinematic sample sequence populated!");
+      },
+      injectBlankStoryboardCardNode({ sceneText, actionText, sizeVal, angleVal, lightingVal, imageSrc = null }) {
+        this.placeholder.classList.add('hidden');
+        this.gridDeck.classList.remove('hidden');
+
+        const cardIndex = this.gridDeck.children.length + 1;
+        const cardFrame = document.createElement('div');
+        cardFrame.className = "board-card-node bg-[#0E131F] border border-slate-800 rounded-lg overflow-hidden flex flex-col shadow-xl animate-fade-in group/card relative";
+        cardFrame.setAttribute("draggable", "true");
+
+        // Prepare thumbnail container inner content
+        let thumbnailContent = "";
+        if (imageSrc) {
+          thumbnailContent = `
+            <img src="${imageSrc}" alt="Shot Reference" class="card-thumbnail-img w-full h-full object-cover">
+            <button class="btn-clear-card-img absolute top-2 right-2 bg-black/70 hover:bg-rose-600 text-white rounded w-6 h-6 flex items-center justify-center text-xs transition" title="Remove custom image">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          `;
+        } else {
+          thumbnailContent = `
+            <i class="fa-solid fa-mountain-sun text-2xl mb-1 opacity-40"></i>
+            <span class="text-[9px] font-mono tracking-widest uppercase font-bold text-slate-600 select-none">[ PREVIEW LAYOUT LAYER ]</span>
+            <button class="btn-upload-card-img absolute inset-0 bg-purple-950/0 hover:bg-purple-950/60 text-transparent hover:text-purple-200 flex flex-col items-center justify-center transition duration-200 gap-1 font-mono text-[10px] font-bold">
+              <i class="fa-solid fa-camera-retro text-base"></i>
+              <span>UPLOAD REFERENCE PHOTO / SKETCH</span>
+            </button>
+          `;
+        }
+
+        cardFrame.innerHTML = `
+          <!-- Visual Framing Display Viewport -->
+          <div class="visual-thumbnail-placeholder bg-slate-950 border-b border-slate-800 flex flex-col items-center justify-center text-slate-700 relative overflow-hidden transition-all duration-300 w-full ${activeGlobalAspectClass}">
+            ${thumbnailContent}
+            
+            <!-- Frame Number & Order Badge -->
+            <div class="absolute top-2 left-2 bg-black/70 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-mono font-bold tracking-tight text-slate-300 select-none border border-slate-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-film text-[9px] text-purple-400"></i>
+              <span class="card-frame-badge-number">FRAME ${cardIndex.toString().padStart(2, '0')}</span>
+            </div>
+
+            <!-- Card Control Action Bar (Re-order, Duplicate, Delete) -->
+            <div class="card-control-bar absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover/card:opacity-100 transition duration-200 z-10 bg-slate-950/80 p-0.5 rounded border border-slate-800">
+              <button class="btn-move-card-prev px-1.5 py-1 text-slate-400 hover:text-white transition rounded hover:bg-slate-800" title="Shift Left / Up">
+                <i class="fa-solid fa-arrow-left text-[10px]"></i>
+              </button>
+              <button class="btn-move-card-next px-1.5 py-1 text-slate-400 hover:text-white transition rounded hover:bg-slate-800" title="Shift Right / Down">
+                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+              </button>
+              <button class="btn-duplicate-card px-1.5 py-1 text-slate-400 hover:text-purple-400 transition rounded hover:bg-slate-800" title="Duplicate Frame">
+                <i class="fa-solid fa-clone text-[10px]"></i>
+              </button>
+              <button class="btn-delete-card px-1.5 py-1 text-slate-400 hover:text-rose-400 transition rounded hover:bg-slate-800" title="Delete Frame">
+                <i class="fa-solid fa-trash text-[10px]"></i>
+              </button>
+            </div>
+
+            <!-- Aspect Stamp -->
+            <div class="absolute bottom-1.5 right-2 text-[8px] font-mono text-slate-700 uppercase tracking-widest font-bold select-none pointer-events-none">preHUB Engine</div>
+          </div>
+
+          <!-- Configuration Fields Panel Grid -->
+          <div class="p-4 space-y-3 flex-1 flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="flex gap-2">
+                <div class="w-1/2 space-y-1">
+                  <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block font-sans">Scene Location</label>
+                  <input type="text" class="input-scene-heading-tag w-full px-2 py-1 bg-slate-950 border border-slate-800 rounded font-mono text-[11px] text-white focus:outline-none focus:border-purple-500 uppercase transition" value="${sceneText}">
+                </div>
+                <div class="w-1/2 space-y-1">
+                  <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block font-sans">Shot Size</label>
+                  <select class="select-shot-size w-full px-2 py-1 bg-slate-950 border border-slate-800 rounded font-sans text-[11px] text-slate-300 focus:outline-none focus:border-purple-500 cursor-pointer transition">
+                    <option value="ECU" ${sizeVal==="EXTREME CLOSE UP"||sizeVal==="ECU"?'selected':''}>EXTREME CLOSE UP (ECU)</option>
+                    <option value="CU" ${sizeVal==="CLOSE UP"||sizeVal==="CU"?'selected':''}>CLOSE UP (CU)</option>
+                    <option value="MCU" ${sizeVal==="MEDIUM CLOSE UP"||sizeVal==="MCU"?'selected':''}>MEDIUM CLOSE UP (MCU)</option>
+                    <option value="MS" ${sizeVal==="MEDIUM SHOT"||sizeVal==="MS"?'selected':''}>MEDIUM SHOT (MS)</option>
+                    <option value="WS" ${sizeVal==="WIDE SHOT"||sizeVal==="WS"?'selected':''}>WIDE SHOT (WS)</option>
+                    <option value="ELS" ${sizeVal==="EXTREME LONG SHOT"||sizeVal==="ELS"?'selected':''}>EXTREME LONG SHOT (ELS)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block font-sans">Action / Lens Prompt</label>
+                <textarea class="textarea-action-desc w-full h-16 px-2 py-1.5 bg-slate-950 border border-slate-800 rounded font-mono text-[11px] text-slate-200 focus:outline-none focus:border-purple-500 custom-scroll resize-none leading-normal transition">${actionText}</textarea>
+              </div>
+            </div>
+
+            <!-- Lens and Lighting Secondary Dropdown Deck -->
+            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-900 select-none">
+              <div class="space-y-1">
+                <label class="text-[8px] font-bold text-slate-600 uppercase tracking-wider block font-sans">Camera Angle</label>
+                <select class="select-shot-angle w-full px-1.5 py-0.5 bg-slate-900 border border-slate-800 rounded font-sans text-[10px] text-slate-400 focus:outline-none cursor-pointer">
+                  <option value="EYE" ${angleVal==="EYE LEVEL"||angleVal==="EYE"?'selected':''}>EYE LEVEL</option>
+                  <option value="LOW" ${angleVal==="LOW ANGLE"||angleVal==="LOW"?'selected':''}>LOW ANGLE</option>
+                  <option value="HIGH" ${angleVal==="HIGH ANGLE"||angleVal==="HIGH"?'selected':''}>HIGH ANGLE</option>
+                  <option value="DUTCH" ${angleVal==="DUTCH TILT"||angleVal==="DUTCH"?'selected':''}>DUTCH TILT</option>
+                  <option value="POV" ${angleVal==="BIRD'S EYE"||angleVal==="POV"?'selected':''}>POV PERSPECTIVE</option>
+                </select>
+              </div>
+              <div class="space-y-1">
+                <label class="text-[8px] font-bold text-slate-600 uppercase tracking-wider block font-sans">Lighting</label>
+                <select class="select-shot-lighting w-full px-1.5 py-0.5 bg-slate-900 border border-slate-800 rounded font-sans text-[10px] text-slate-400 focus:outline-none cursor-pointer">
+                  <option value="NATURAL" ${lightingVal==="NATURAL"||lightingVal==="NATURALISTIC"?'selected':''}>NATURALISTIC</option>
+                  <option value="HIGH_KEY" ${lightingVal==="HIGH KEY"||lightingVal==="HIGH_KEY"?'selected':''}>HIGH KEY (BRIGHT)</option>
+                  <option value="LOW_KEY" ${lightingVal==="LOW KEY"||lightingVal==="CHIAROSCURO"||lightingVal==="LOW_KEY"?'selected':''}>LOW KEY (DARK)</option>
+                  <option value="STYLIZED" ${lightingVal==="STYLIZED"||lightingVal==="NEON"?'selected':''}>NEON STYLIZED</option>
+                  <option value="GOLDEN" ${lightingVal==="GOLDEN HOUR"||lightingVal==="GOLDEN"?'selected':''}>GOLDEN HOUR</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        `;
+
+        this.bindCardEventListeners(cardFrame);
+        this.gridDeck.appendChild(cardFrame);
+        this.recalculateFramesHUDCount();
+      },
+
+      bindCardEventListeners(cardFrame) {
+        // Change listener for history recording
+        let inputDebounceTimer = null;
+        cardFrame.querySelectorAll('input, select, textarea').forEach(input => {
+          input.addEventListener('input', () => {
+            clearTimeout(inputDebounceTimer);
+            inputDebounceTimer = setTimeout(() => {
+              this.recordActiveStateToHistorySnapshotStack("Edit Frame Content");
+            }, 600);
+          });
+        });
+
+        // Delete card button
+        const btnDelete = cardFrame.querySelector('.btn-delete-card');
+        if (btnDelete) {
+          btnDelete.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cardFrame.remove();
+            this.recalculateFramesHUDCount();
+            this.recordActiveStateToHistorySnapshotStack("Delete Frame");
+            this.showSystemToast("Frame deleted.");
+          });
+        }
+
+        // Duplicate card button
+        const btnDup = cardFrame.querySelector('.btn-duplicate-card');
+        if (btnDup) {
+          btnDup.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const index = Array.from(this.gridDeck.children).indexOf(cardFrame);
+            this.duplicateCardByIndex(index);
+          });
+        }
+
+        // Reorder buttons
+        const btnPrev = cardFrame.querySelector('.btn-move-card-prev');
+        if (btnPrev) {
+          btnPrev.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const prev = cardFrame.previousElementSibling;
+            if (prev) {
+              this.gridDeck.insertBefore(cardFrame, prev);
+              this.recalculateFramesHUDCount();
+              this.recordActiveStateToHistorySnapshotStack("Reorder Frames");
+            }
+          });
+        }
+
+        const btnNext = cardFrame.querySelector('.btn-move-card-next');
+        if (btnNext) {
+          btnNext.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const next = cardFrame.nextElementSibling;
+            if (next) {
+              this.gridDeck.insertBefore(next, cardFrame);
+              this.recalculateFramesHUDCount();
+              this.recordActiveStateToHistorySnapshotStack("Reorder Frames");
+            }
+          });
+        }
+
+        // Card image upload trigger
+        const btnUpload = cardFrame.querySelector('.btn-upload-card-img');
+        if (btnUpload) {
+          btnUpload.addEventListener('click', (e) => {
+            e.stopPropagation();
+            activeCardImageTargetIndex = Array.from(this.gridDeck.children).indexOf(cardFrame);
+            this.imageFileInput.click();
+          });
+        }
+
+        // Clear card image
+        const btnClearImg = cardFrame.querySelector('.btn-clear-card-img');
+        if (btnClearImg) {
+          btnClearImg.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const img = cardFrame.querySelector('.card-thumbnail-img');
+            if (img) img.remove();
+            btnClearImg.remove();
+
+            // Re-inject upload overlay
+            const thumbBox = cardFrame.querySelector('.visual-thumbnail-placeholder');
+            const newUploadBtn = document.createElement('button');
+            newUploadBtn.className = "btn-upload-card-img absolute inset-0 bg-purple-950/0 hover:bg-purple-950/60 text-transparent hover:text-purple-200 flex flex-col items-center justify-center transition duration-200 gap-1 font-mono text-[10px] font-bold";
+            newUploadBtn.innerHTML = `
+              <i class="fa-solid fa-camera-retro text-base"></i>
+              <span>UPLOAD REFERENCE PHOTO / SKETCH</span>
+            `;
+            newUploadBtn.addEventListener('click', (ev) => {
+              ev.stopPropagation();
+              activeCardImageTargetIndex = Array.from(this.gridDeck.children).indexOf(cardFrame);
+              this.imageFileInput.click();
+            });
+            thumbBox.appendChild(newUploadBtn);
+
+            this.recordActiveStateToHistorySnapshotStack("Remove Frame Image");
+          });
+        }
+
+        // HTML5 Drag & Drop reordering support
+        cardFrame.addEventListener('dragstart', (e) => {
+          cardFrame.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+
+        cardFrame.addEventListener('dragend', () => {
+          cardFrame.classList.remove('dragging');
+          document.querySelectorAll('.board-card-node').forEach(c => c.classList.remove('drag-over'));
+          this.recalculateFramesHUDCount();
+          this.recordActiveStateToHistorySnapshotStack("Drag Reorder");
+        });
+
+        cardFrame.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          const dragging = document.querySelector('.dragging');
+          if (dragging && dragging !== cardFrame) {
+            cardFrame.classList.add('drag-over');
+          }
+        });
+
+        cardFrame.addEventListener('dragleave', () => {
+          cardFrame.classList.remove('drag-over');
+        });
+
+        cardFrame.addEventListener('drop', (e) => {
+          e.preventDefault();
+          cardFrame.classList.remove('drag-over');
+          const dragging = document.querySelector('.dragging');
+          if (dragging && dragging !== cardFrame) {
+            const allCards = Array.from(this.gridDeck.children);
+            const droppedIndex = allCards.indexOf(cardFrame);
+            const draggedIndex = allCards.indexOf(dragging);
+
+            if (draggedIndex < droppedIndex) {
+              this.gridDeck.insertBefore(dragging, cardFrame.nextSibling);
+            } else {
+              this.gridDeck.insertBefore(dragging, cardFrame);
+            }
+          }
+        });
+      },
+
+      duplicateCardByIndex(index) {
+        const cards = Array.from(this.gridDeck.children);
+        if (index < 0 || index >= cards.length) return;
+        const source = cards[index];
+
+        const imgNode = source.querySelector('.card-thumbnail-img');
+        this.injectBlankStoryboardCardNode({
+          sceneText: source.querySelector('.input-scene-heading-tag').value,
+          actionText: source.querySelector('.textarea-action-desc').value + " (Variation)",
+          sizeVal: source.querySelector('.select-shot-size').value,
+          angleVal: source.querySelector('.select-shot-angle').value,
+          lightingVal: source.querySelector('.select-shot-lighting').value,
+          imageSrc: imgNode ? imgNode.src : null
+        });
+
+        this.recordActiveStateToHistorySnapshotStack("Duplicate Frame");
+        this.showSystemToast(`Frame ${index + 1} duplicated.`);
+      },
+
+      handleCardImageFileSelected(event) {
+        const file = event.target.files[0];
+        if (!file || activeCardImageTargetIndex === null) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const cards = Array.from(this.gridDeck.children);
+          if (activeCardImageTargetIndex < cards.length) {
+            const card = cards[activeCardImageTargetIndex];
+            const thumbBox = card.querySelector('.visual-thumbnail-placeholder');
+            
+            // Clean previous image or button
+            const oldImg = thumbBox.querySelector('.card-thumbnail-img');
+            if (oldImg) oldImg.remove();
+            const oldBtn = thumbBox.querySelector('.btn-upload-card-img');
+            if (oldBtn) oldBtn.remove();
+            const oldClear = thumbBox.querySelector('.btn-clear-card-img');
+            if (oldClear) oldClear.remove();
+
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.alt = "Frame Reference";
+            img.className = "card-thumbnail-img w-full h-full object-cover animate-fade-in";
+            thumbBox.prepend(img);
+
+            const clearBtn = document.createElement('button');
+            clearBtn.className = "btn-clear-card-img absolute top-2 right-2 bg-black/70 hover:bg-rose-600 text-white rounded w-6 h-6 flex items-center justify-center text-xs transition z-20";
+            clearBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+            clearBtn.addEventListener('click', (ev) => {
+              ev.stopPropagation();
+              img.remove();
+              clearBtn.remove();
+              this.recordActiveStateToHistorySnapshotStack("Remove Image");
+            });
+            thumbBox.appendChild(clearBtn);
+
+            this.recordActiveStateToHistorySnapshotStack("Assign Frame Image");
+            this.showSystemToast("Reference sketch attached to frame.");
+          }
+          this.imageFileInput.value = "";
+          activeCardImageTargetIndex = null;
+        };
+        reader.readAsDataURL(file);
+      },
+
+      recalculateFramesHUDCount() {
+        const cards = Array.from(this.gridDeck.children);
+        document.getElementById('ui-hud-frames-total-count').textContent = cards.length;
+
+        // Renumber badges sequentially
+        cards.forEach((card, idx) => {
+          const badge = card.querySelector('.card-frame-badge-number');
+          if (badge) {
+            badge.textContent = `FRAME ${(idx + 1).toString().padStart(2, '0')}`;
+          }
+        });
+
+        if (cards.length === 0) {
+          this.placeholder.classList.remove('hidden');
+          this.gridDeck.classList.add('hidden');
+        } else {
+          this.placeholder.classList.add('hidden');
+          this.gridDeck.classList.remove('hidden');
+        }
+      },
+
+      handleInboundCrossTilePipelineMessages(event) {
+        const payloadPacket = event.data;
+        if (!payloadPacket || payloadPacket.origin !== "HALION_LOGIC_COVERAGE_STUDIO") return;
+
+        if (payloadPacket.event === "HALION_STORYBOARD_SHOTS_LOAD") {
+          currentVersionIndex++;
+          const nextStamp = `v${currentVersionIndex}.0-SYNCED`;
+          this.versionStampTop.textContent = nextStamp;
+
+          const frameCuesList = payloadPacket.data.shotCuesArray || [];
+          this.gridDeck.innerHTML = "";
+
+          if (frameCuesList.length === 0) {
+            this.placeholder.classList.remove('hidden');
+            this.gridDeck.classList.add('hidden');
+            this.showSystemToast("Inbound shot cue list was empty.", true);
