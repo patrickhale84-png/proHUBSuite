@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>postHUB | Edit Desk</title>
+<style>
+:root{--ink:#060911;--bar:#070C15;--panel:#0B111E;--line:#1B2436;--line2:#26344E;--tx:#E6EBF2;--mu:#8794A6;
+--lime:#88C13F;--gold:#E5A93C;--amber:#F0A30A;--cyan:#00ABA9;--red:#E51400;--purple:#7137C8;
+--fd:'Barlow Condensed','Impact','Haettenschweiler','Franklin Gothic Medium',sans-serif;
+--fb:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
+--fm:'IBM Plex Mono','Courier New',Courier,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--tx);font-family:var(--fb);font-size:16px;line-height:1.5}
+#grain{position:fixed;inset:0;pointer-events:none;opacity:.05;z-index:400;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E")}
+.ic{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+h1,h2,h3{margin:0;font-family:var(--fd);text-transform:uppercase;letter-spacing:.02em;font-weight:400}
+.topbar{position:sticky;top:0;z-index:300;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+ padding:calc(7px + env(safe-area-inset-top)) 14px 7px;background:var(--bar);border-bottom:1px solid var(--line)}
+.brand{font-family:var(--fd);font-size:26px;letter-spacing:.05em;line-height:1}
+.brand b{color:var(--purple);font-weight:400}.brand i{font-style:normal;color:#fff}
+.tagx{font-family:var(--fm);font-size:11px;letter-spacing:.12em;color:var(--amber);border:1px solid rgba(240,163,10,.45);background:rgba(240,163,10,.1);padding:2px 6px;border-radius:3px}
+.proj{font-family:var(--fd);font-size:17px;color:var(--gold);letter-spacing:.06em;text-transform:uppercase}
+.proj span{color:var(--mu);font-family:var(--fm);font-size:12px;margin-left:8px}
+.tright{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chip{font-family:var(--fm);font-size:12.5px;letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--line2);color:var(--mu);background:#0A0F1A;padding:4px 8px;border-radius:4px;white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--lime);display:inline-block;margin-right:5px}
+.btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--fb);font-size:14px;font-weight:600;color:var(--tx);
+ background:#131A28;border:1px solid var(--line2);padding:8px 12px;border-radius:6px;cursor:pointer;min-height:44px}
+.btn:hover{background:#1B2436}
+.btn.pri{background:linear-gradient(135deg,var(--amber),#C98708);color:#0A0D12;border-color:transparent;font-weight:700}
+.btn.sm{padding:6px 10px;font-size:13px;min-height:38px}
+.source{display:flex;align-items:center;gap:10px;padding:8px 16px;background:#0A0F1A;border-bottom:1px solid var(--line);font-family:var(--fm);font-size:13px;color:var(--mu);flex-wrap:wrap}
+.source b{color:#C6D1DC;font-weight:500}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;padding:16px;max-width:1340px;margin:0 auto 40px}
+.tile{position:relative;cursor:pointer;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;
+ min-height:132px;padding:14px;border-radius:4px;color:#fff;box-shadow:0 5px 14px rgba(0,0,0,.55);transition:transform .16s;user-select:none;outline:none}
+.tile:hover{transform:translateY(-2px);filter:brightness(1.07)}
+.tile:focus-visible{box-shadow:0 0 0 3px rgba(240,163,10,.75)}
+.tile .tl{font-family:var(--fd);font-size:19px;text-transform:uppercase;line-height:1.05}
+.tile .ts{font-family:var(--fm);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;opacity:.9;display:block;margin-top:4px}
+.tile .ic{width:37px;height:37px}
+.tile .tagx2{font-family:var(--fm);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border-radius:3px;background:rgba(0,0,0,.35)}
+.empty{grid-column:1/-1;border:2px dashed var(--line2);border-radius:8px;padding:28px;text-align:center;color:var(--mu)}
+dialog{border:0;padding:0;background:transparent;max-width:100vw}
+dialog::backdrop{background:rgba(3,6,12,.82)}
+.dlg{width:100%;max-width:560px;background:var(--panel);border:1px solid var(--line2);border-top:3px solid var(--purple);border-radius:10px;overflow:hidden}
+.dlg .dh{padding:13px 15px;border-bottom:1px solid var(--line);background:#0A0F1D;display:flex;gap:9px;align-items:center}
+.dlg .dh h3{font-size:17px;color:#fff}
+.dlg .db{padding:15px;max-height:calc(100dvh - 180px);overflow-y:auto}
+.dlg .df{padding:12px 15px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;background:#0A0F1D}
+label.fl{display:block;font-family:var(--fm);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);margin-bottom:4px}
+input,select,textarea{font-family:var(--fb);font-size:16px;color:var(--tx);background:#0A0F1D;border:1px solid var(--line2);border-radius:6px;padding:8px 10px;outline:none;max-width:100%;width:100%}
+input:focus,textarea:focus{border-color:var(--purple)}
+#toasts{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:900;display:flex;flex-direction:column;gap:7px;pointer-events:none;width:92%;max-width:420px}
+.toast{background:rgba(8,13,20,.97);border:1px solid var(--gold);color:#F2D9A4;padding:10px 14px;border-radius:9px;font-size:14px;font-weight:600;text-align:center}
+.toast.good{border-color:var(--lime);color:#DFF6C6}.toast.bad{border-color:var(--red);color:#FFC9C2}
+.warnbar{background:#3A1210;border-bottom:1px solid #7A2A22;color:#FFC9C2;font-size:14px;padding:9px 14px;display:flex;gap:9px;align-items:center}
+.hide{display:none!important}
+@media(max-width:700px){.tiles{grid-template-columns:1fr;padding:10px}.brand{font-size:22px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="grain"></div>
+<div id="storageWarn" class="warnbar hide"></div>
+
+<header class="topbar">
+  <div class="brand"><b>post</b><i>HUB</i></div>
+  <span class="tagx">EDIT DESK</span>
+  <div class="proj" id="projName">NO PROJECT<span id="projMeta"></span></div>
+  <div class="tright">
+    <span class="chip" id="tcChip">--:--:--:--</span>
+    <span class="chip"><span class="dot" id="liveDot"></span><span id="saveStamp">ready</span></span>
+    <button class="btn sm" id="btnProj">Project</button>
+    <button class="btn sm" id="btnVault">Vault</button>
+  </div>
+</header>
+
+<section class="source" id="sourceBar">
+  <span>Source: <b id="srcKind">nothing staged</b></span>
+  <span id="srcDetail">Media is read from your drive - nothing is uploaded, nothing is fetched.</span>
+</section>
+
+<main class="tiles" id="tiles"></main>
+<div id="toasts"></div>
+
+<script>
+(function(){
+'use strict';
+function $(s,r){return (r||document).querySelector(s)}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+var ICONS={ play:'<path d="M8 5l11 7-11 7z"/>', grid:'<path d="M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v7H4zM13 14h7v7h-7z"/>',
+ film:'<path d="M4 5h16v14H4z"/><path d="M8 5v14M16 5v14M4 9h4M4 15h4M16 9h4M16 15h4"/>',
+ save:'<path d="M5 4h11l3 3v13H5z"/><path d="M9 4h6v4H9z"/>', in:'<path d="M12 4v11m0 0l-4-4m4 4l4-4"/><path d="M5 20h14"/>',
+ out:'<path d="M12 20V9m0 0L8 13m4-4l4 4"/><path d="M5 4h14"/>', warn:'<path d="M12 4l8 15H4z"/><path d="M12 10v4M12 17h.01"/>',
+ clock:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>', list:'<path d="M4 6h16M4 12h16M4 18h10"/>',
+ note:'<path d="M4 5h16v11H9l-5 4z"/>'};
+function ic(n){return '<svg viewBox="0 0 24 24" class="ic">'+(ICONS[n]||'')+'</svg>'}
+
+var STORE='posthub_v1', STAGED=['posthub_staged_payload_v1','prohub_staged_payload_v1'];
+function blank(){return {project:{name:'',code:''},tc:'',notes:[],tiles:[],stamp:0}}
+var S=blank(), OK=true;
+try{localStorage.setItem('__t','1');localStorage.removeItem('__t')}catch(e){OK=false}
+function save(){try{S.stamp=Date.now();localStorage.setItem(STORE,JSON.stringify(S));stamp(true)}catch(e){OK=false;warn()}return true}
+function stamp(ok){var e=$('#saveStamp');if(e)e.textContent=(ok?'saved ':'memory only ')+new Date().toLocaleTimeString();var d=$('#liveDot');if(d)d.style.background=ok?'var(--lime)':'var(--red)'}
+function warn(){var w=$('#storageWarn');if(w&&w.classList.contains('hide')){w.classList.remove('hide');w.innerHTML=ic('warn')+'<span><b>This browser will not keep your work.</b> Export the project before you close the tab.</span>'}}
+function toast(m,k){var t=document.createElement('div');t.className='toast'+(k?' '+k:'');t.textContent=m;$('#toasts').appendChild(t);setTimeout(function(){t.remove()},2600)}
+function ask(o){return new Promise(function(res){var d=document.createElement('dialog'),b='<div class="db">';
+ (o.fields||[]).forEach(function(f){b+='<div style="margin-bottom:11px"><label class="fl">'+esc(f.label||f.k)+'</label>';
+  b+=f.type==='textarea'?'<textarea data-k="'+f.k+'" rows="'+(f.rows||6)+'">'+esc(f.value||'')+'</textarea>':'<input data-k="'+f.k+'" value="'+esc(f.value==null?'':f.value)+'">';b+='</div>'});
+ if(o.html)b+=o.html;b+='</div>';
+ d.innerHTML='<form class="dlg" method="dialog"><div class="dh">'+ic(o.icon||'film')+'<h3>'+esc(o.title||'')+'</h3></div>'+b+
+ '<div class="df">'+(o.cancel===false?'':'<button class="btn" value="cancel" type="submit">Cancel</button>')+'<button class="btn pri" value="ok" type="submit">'+esc(o.ok||'Close')+'</button></div></form>';
+ document.body.appendChild(d);
+ d.addEventListener('close',function(){var out=null;if(d.returnValue==='ok'){out={};$$('[data-k]',d).forEach(function(i){out[i.getAttribute('data-k')]=i.value})}d.remove();res(out)});
+ d.showModal();setTimeout(function(){var f=$('input,textarea',d);if(f)f.focus()},40)})}
+function dl(name,text,mime){try{var b=new Blob([text],{type:(mime||'text/plain')+';charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');
+ a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);toast('Saved '+name,'good')}
+ catch(e){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(x){}ta.remove();toast('Copied instead','good')}}
+
+/* the staged payload: postHUB reads what proHUB wrote, and works with nothing there */
+function staged(){for(var i=0;i<STAGED.length;i++){try{var r=localStorage.getItem(STAGED[i]);if(r)return JSON.parse(r)}catch(e){}}return null}
+
+/* ---------- module contract: contributors, never patches ---------- */
+var MODULES=[],TILES=[];
+function register(mod){if(!mod||!mod.id)throw new Error('POST.register needs an id');
+ MODULES=MODULES.filter(function(m){return m.id!==mod.id});MODULES.push(mod);
+ if(typeof mod.mount==='function'){try{mod.mount(document)}catch(e){console.error('module '+mod.id+' mount failed',e)}}
+ renderTiles();return mod.id}
+function addTile(t){if(!t||!t.id)return;TILES=TILES.filter(function(x){return x.id!==t.id});TILES.push(t);renderTiles()}
+function removeTile(id){TILES=TILES.filter(function(x){return x.id!==id});renderTiles()}
+function renderTiles(){var h=$('#tiles');if(!h)return;
+ if(!TILES.length){h.innerHTML='<div class="empty">No desks yet. The modules add them - ingest, timeline, notes, sync, deliverables.</div>';return}
+ h.innerHTML=TILES.map(function(t){return '<div class="tile" data-tile="'+esc(t.id)+'" tabindex="0" role="button" style="background:'+esc(t.colour||'#26344E')+'">'+
+  '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+ic(t.icon||'film')+'<span class="tagx2">'+esc(t.tag||'')+'</span></div>'+
+  '<div><span class="tl">'+esc(t.title)+'</span><span class="ts">'+esc(t.sub||'')+'</span></div></div>'}).join('');
+ $$('[data-tile]',h).forEach(function(el){var id=el.getAttribute('data-tile');
+  function fire(){var t=TILES.filter(function(x){return x.id===id})[0];if(t&&typeof t.run==='function'){try{t.run()}catch(e){toast('That desk failed: '+e.message,'bad')}}}
+  el.addEventListener('click',fire);el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();fire()}})})}
+function moduleState(){var o={};MODULES.forEach(function(m){try{o[m.id]=typeof m.state==='function'?m.state():null}catch(e){o[m.id]='state() threw: '+e.message}});return o}
+
+/* ---------- clock: one interval, every module ticked safely ---------- */
+function pad(n){return (n<10?'0':'')+n}
+function tc(d,fr){return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())+':'+pad(fr||0)}
+function tick(){var now=new Date();var e=$('#tcChip');if(e)e.textContent=tc(now,0);
+ for(var i=0;i<MODULES.length;i++){var m=MODULES[i];if(typeof m.tick!=='function')continue;
+  try{m.tick(now)}catch(err){if(!m._f){m._f=1;console.error('module '+m.id+' tick failed',err)}}}}
+
+function paint(){
+ var n=$('#projName');if(n)n.firstChild.nodeValue=(S.project.name||'NO PROJECT').toUpperCase();
+ var m=$('#projMeta');if(m)m.textContent=S.project.code?('  '+S.project.code):'';
+ var p=staged();
+ var k=$('#srcKind'), d=$('#srcDetail');
+ if(p&&k){k.textContent=(p.projectName||p.project&&p.project.name||'staged payload')+'  from proHUB';
+  var sc=(p.scenes&&p.scenes.length)||0, dy=(p.days&&p.days.length)||0;
+  d.textContent=sc+' scenes, '+dy+' shoot days carried across.'}
+ else if(k){k.textContent='nothing staged'; d.textContent='Media is read from your drive - nothing is uploaded, nothing is fetched.'}
+ document.title=(S.project.name||'postHUB')+' | postHUB';
+}
+function openVault(){ask({title:'Storage vault',icon:'save',cancel:false,ok:'Close',html:
+ '<p style="margin:0 0 10px;font-size:14px;color:#B9C4D2">'+(OK?'Saved in this browser, on this device. Media is never copied - only your edit decisions are kept.':'This browser is refusing to keep your work - export before you close the tab.')+'</p>'+
+ '<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm" id="vEx">'+ic('out')+' Export project</button>'+
+ '<button type="button" class="btn sm" id="vIm">'+ic('in')+' Restore project</button></div>'+
+ '<p style="margin:12px 0 0;font-size:13px;color:#8794A6">Modules: '+(MODULES.length?MODULES.map(function(m){return esc(m.id)}).join(', '):'none yet')+'</p>'}).then(function(){});
+ setTimeout(function(){var d=$('dialog[open]');if(!d)return;
+  $('#vEx',d).addEventListener('click',function(){dl('postHUB_'+String(S.project.name||'project').replace(/\s+/g,'_')+'.json',JSON.stringify(S,null,1),'application/json')});
+  $('#vIm',d).addEventListener('click',function(){var i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=function(){var f=i.files[0];if(!f)return;var r=new FileReader();
+   r.onload=function(){try{var j=JSON.parse(r.result);S=Object.assign(blank(),j);S.project=Object.assign(blank().project,j.project||{});save();paint();toast('Project restored','good')}catch(e){toast('That file could not be read','bad')}};r.readAsText(f)};i.click()})},60)}
+
+function boot(){
+ try{var raw=localStorage.getItem(STORE);if(raw){var j=JSON.parse(raw);S=Object.assign(blank(),j);S.project=Object.assign(blank().project,j.project||{})}}catch(e){}
+ var p=staged();
+ if(p&&!S.project.name){var nm=(p.projectName)||(p.project&&p.project.name)||'';if(nm){S.project.name=nm;S.project.code=(p.code||'');}}
+ paint();renderTiles();if(!OK)warn();tick();setInterval(tick,1000);
+ $('#btnVault').addEventListener('click',openVault);
+ $('#btnProj').addEventListener('click',function(){
+  ask({title:'Project',icon:'film',fields:[{k:'name',label:'Production',value:S.project.name},{k:'code',label:'Code or job',value:S.project.code},{k:'tc',label:'Start timecode',value:S.tc||'01:00:00:00'}]})
+  .then(function(r){if(!r)return;S.project.name=r.name||'';S.project.code=r.code||'';S.tc=r.tc||'';save();paint();toast('Project saved','good')})});
+ document.addEventListener('keydown',function(e){if(e.key==='Escape'){var d=$('dialog[open]');if(d)d.close()}});
+ document.addEventListener('visibilitychange',function(){if(document.hidden)save()});
+ setInterval(save,20000);
+}
+window.POST={version:'1.0',register:register,modules:function(){return MODULES.map(function(m){return m.id})},
+ addTile:addTile,removeTile:removeTile,tiles:function(){return TILES.slice()},
+ state:function(){return {project:S.project,tc:S.tc,staged:!!staged(),modules:moduleState(),tiles:TILES.map(function(t){return t.id})}},
+ storageOk:function(){return OK},payload:staged,save:save,paint:paint,ask:ask,toast:toast,ic:ic,esc:esc,dl:dl,
+ clock:function(){return $('#tcChip')?$('#tcChip').textContent:null}};
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+;
+/* module: 10-ingest.js */
+(function(){
+/* postHUB - ingest
+   Reads media straight off the client's drive. Nothing is copied, uploaded or fetched.
+
+   Playability is decided by asking the browser to decode the file, not by trusting an
+   extension: an object URL goes into a hidden <video>/<audio> and we wait for metadata.
+   If it loads, the browser can play it and we have the duration. If it does not, the file
+   is refused with a reason - which is the honest answer for ProRes, BRAW, R3D and MXF. */
+var DB_NAME = 'posthub_handles', DB_STORE = 'dirs';
+var VIDEO_EXT = ['mp4','m4v','webm','mov','mkv','avi','mxf','r3d','braw'];
+var AUDIO_EXT = ['wav','aif','aiff','mp3','m4a','aac','flac','ogg'];
+var KNOWN_BAD = { mxf:'MXF is not decodable in any browser', r3d:'RED RAW is not decodable in any browser',
+                  braw:'Blackmagic RAW is not decodable in any browser', mkv:'MKV is usually not decodable',
+                  avi:'AVI is usually not decodable', mov:'ProRes and other MOV codecs are usually not decodable' };
+
+var FILES = [], REFUSED = [], DIR_HANDLE = null, MOUNTED = false;
+
+function extOf(n) { var m = String(n).toLowerCase().match(/\.([a-z0-9]+)$/); return m ? m[1] : ''; }
+function isMedia(n) { var e = extOf(n); return VIDEO_EXT.indexOf(e) >= 0 || AUDIO_EXT.indexOf(e) >= 0; }
+function mmss(sec) {
+  if (!isFinite(sec) || sec <= 0) return '--:--';
+  var s = Math.round(sec), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
+  function p(n) { return (n < 10 ? '0' : '') + n; }
+  return (h ? h + ':' : '') + p(m) + ':' + p(r);
+}
+function bytes(n) { var u = ['B','KB','MB','GB']; var i = 0; while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; } return (Math.round(n * 10) / 10) + ' ' + u[i]; }
+
+/* ---- handle persistence: a directory handle survives in IndexedDB, permission does not ---- */
+function idb() {
+  return new Promise(function (res, rej) {
+    try {
+      var r = indexedDB.open(DB_NAME, 1);
+      r.onupgradeneeded = function () { try { r.result.createObjectStore(DB_STORE); } catch (e) {} };
+      r.onsuccess = function () { res(r.result); };
+      r.onerror = function () { rej(r.error); };
+    } catch (e) { rej(e); }
+  });
+}
+function putHandle(h) {
+  return idb().then(function (db) {
+    return new Promise(function (res) {
+      try { var tx = db.transaction(DB_STORE, 'readwrite'); tx.objectStore(DB_STORE).put(h, 'media'); tx.oncomplete = function () { res(true); }; }
+      catch (e) { res(false); }
+    });
+  }).catch(function () { return false; });
+}
+function getHandle() {
+  return idb().then(function (db) {
+    return new Promise(function (res) {
+      try { var tx = db.transaction(DB_STORE, 'readonly'), rq = tx.objectStore(DB_STORE).get('media'); rq.onsuccess = function () { res(rq.result || null); }; rq.onerror = function () { res(null); }; }
+      catch (e) { res(null); }
+    });
+  }).catch(function () { return null; });
+}
+function permission(h) {
+  if (!h || !h.queryPermission) return Promise.resolve('no-handle-api');
+  return h.queryPermission({ mode: 'read' }).catch(function () { return 'unknown'; });
+}
+
+/* ---- the honest playability probe ---- */
+function probe(file, cb) {
+  var isAudio = AUDIO_EXT.indexOf(extOf(file.name)) >= 0;
+  var url = null, el = null, done = false;
+  function finish(ok, info) {
+    if (done) return; done = true;
+    try { if (el) { el.removeAttribute('src'); el.load(); } } catch (e) {}
+    try { if (url) URL.revokeObjectURL(url); } catch (e) {}
+    cb(ok, info || {});
+  }
+  try {
+    url = URL.createObjectURL(file);
+    el = document.createElement(isAudio ? 'audio' : 'video');
+    el.preload = 'metadata'; el.muted = true;
+    var to = setTimeout(function () { finish(false, { reason: 'timed out reading metadata' }); }, 6000);
+    el.onloadedmetadata = function () {
+      clearTimeout(to);
+      finish(true, { duration: el.duration, width: (isAudio ? 0 : el.videoWidth), height: (isAudio ? 0 : el.videoHeight), audio: isAudio });
+    };
+    el.onerror = function () { clearTimeout(to); finish(false, { reason: KNOWN_BAD[extOf(file.name)] || 'this browser has no decoder for it' }); };
+    el.src = url;
+  } catch (e) { finish(false, { reason: 'could not read the file' }); }
+}
+
+function ingestFiles(list) {
+  REFUSED = [];
+  var arr = Array.prototype.slice.call(list).filter(function (f) { return isMedia(f.name); });
+  if (!arr.length) { if (POST.toast) POST.toast('No media found there', 'bad'); paint(); return; }
+  if (POST.toast) POST.toast('Reading ' + arr.length + ' files…');
+  var i = 0;
+  function next() {
+    if (i >= arr.length) { paint(); if (POST.toast) POST.toast('Bin ready: ' + FILES.length + ' playable', 'good'); return; }
+    var f = arr[i++];
+    probe(f, function (ok, info) {
+      if (ok) FILES.push({ name: f.name, size: f.size, ext: extOf(f.name), duration: info.duration || 0,
+                           width: info.width || 0, height: info.height || 0, audio: !!info.audio, ready: true });
+      else REFUSED.push({ name: f.name, size: f.size, ext: extOf(f.name), reason: info.reason || 'unreadable' });
+      paint();
+      setTimeout(next, 0);   /* keep the UI responsive and the watchdog clean */
+    });
+  }
+  next();
+}
+
+function walk(dir, out) {
+  return new Promise(function (res) {
+    var it = dir.values(), chain = Promise.resolve();
+    chain = chain.then(function step() {
+      return it.next().then(function (r) {
+        if (r.done) { res(out); return; }
+        var e = r.value;
+        if (e.kind === 'file' && isMedia(e.name)) { out.push(e); return step(); }
+        if (e.kind === 'directory') { return walk(e, out).then(step); }
+        return step();
+      });
+    });
+    chain.catch(function () { res(out); });
+  });
+}
+function openFromHandle(dir) {
+  DIR_HANDLE = dir;
+  return permission(dir).then(function (p) {
+    var need = (p === 'granted' || p === 'no-handle-api') ? Promise.resolve(true) : dir.requestPermission({ mode: 'read' }).then(function (q) { return q === 'granted'; });
+    return need.then(function (ok) {
+      if (!ok) { if (POST.toast) POST.toast('Permission was not granted', 'bad'); return; }
+      putHandle(dir);
+      return walk(dir, []).then(function (entries) {
+        if (!entries.length) { if (POST.toast) POST.toast('No media in that folder', 'bad'); paint(); return; }
+        var chain = Promise.resolve();
+        entries.forEach(function (h) { chain = chain.then(function () { return h.getFile().then(function (f) { return f; }).then(function (f) { ingestFiles([f]); }); }); });
+        /* ingestFiles paints after each file, so a folder arrives a row at a time */
+      });
+    });
+  });
+}
+function pickFolder() {
+  if (!window.showDirectoryPicker) { if (POST.toast) POST.toast('This browser has no folder picker - use the file picker below', 'bad'); return; }
+  window.showDirectoryPicker({ mode: 'read' }).then(openFromHandle).catch(function (e) {
+    if (e && e.name !== 'AbortError' && POST.toast) POST.toast('Could not open that folder: ' + e.message, 'bad');
+  });
+}
+function pickFiles() {
+  var i = document.createElement('input');
+  i.type = 'file'; i.multiple = true; i.accept = 'video/*,audio/*';
+  i.onchange = function () { if (i.files && i.files.length) ingestFiles(i.files); };
+  i.click();
+}
+
+/* ---- the desk ---- */
+function style() {
+  if (document.getElementById('ingestStyle')) return;
+  var s = document.createElement('style'); s.id = 'ingestStyle';
+  s.textContent = '.pgh{position:fixed;inset:0;z-index:500;background:rgba(3,6,12,.94);overflow-y:auto;display:none}' +
+    '.pgh.on{display:block}.pgh .box{max-width:1180px;margin:0 auto;background:#0A101B;min-height:100vh}' +
+    '@media(min-width:900px){.pgh{padding:30px 16px 60px}.pgh .box{border-radius:12px;min-height:auto;border-top:4px solid #7137C8}}' +
+    '.pgh .hd{display:flex;gap:10px;align-items:flex-start;padding:15px 17px;border-bottom:1px solid #1B2436;background:#0C1320;position:sticky;top:0}' +
+    '.pgh .hd h2{font-size:20px;color:#fff}.pgh .hd .k{font-family:var(--fm);font-size:12px;letter-spacing:.15em;color:#B07CE8;text-transform:uppercase}' +
+    '.pgh .bd{padding:16px 17px 26px}.pgh table{width:100%;border-collapse:collapse;font-size:13px}' +
+    '.pgh th{text-align:left;font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:#8794A6;text-transform:uppercase;border-bottom:1px solid #1B2436;padding:6px 8px}' +
+    '.pgh td{border-bottom:1px solid rgba(27,36,54,.6);padding:7px 8px;color:#C6D1DC}' +
+    '.pgh td.n{font-family:var(--fm);white-space:nowrap}.pgh .ok{color:#88C13F}.pgh .no{color:#FF9E9E}' +
+    '.pgh .note{font-size:13px;color:#8794A6;margin:10px 0 0}';
+  document.head.appendChild(s);
+}
+function hub() {
+  var h = document.getElementById('posthub-ingest');
+  if (h) return h;
+  style();
+  h = document.createElement('div'); h.className = 'pgh'; h.id = 'posthub-ingest';
+  h.innerHTML = '<div class="box"><div class="hd"><div><div class="k">INGEST</div><h2>Media bin</h2></div>' +
+    '<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">' +
+    '<button class="btn sm pri" id="igPick">Choose a folder</button>' +
+    '<button class="btn sm" id="igFiles">Choose files</button>' +
+    '<button class="btn sm" id="igClose">Close</button></div></div>' +
+    '<div class="bd"><div id="igSource"></div><div id="igBin"></div></div></div>';
+  document.body.appendChild(h);
+  h.addEventListener('click', function (e) { if (e.target === h) h.classList.remove('on'); });
+  h.querySelector('#igClose').addEventListener('click', function () { h.classList.remove('on'); });
+  h.querySelector('#igPick').addEventListener('click', pickFolder);
+  h.querySelector('#igFiles').addEventListener('click', pickFiles);
+  return h;
+}
+function paint() {
+  var h = document.getElementById('posthub-ingest');
+  if (!h) return;
+  var src = h.querySelector('#igSource'), bin = h.querySelector('#igBin');
+  var permText = DIR_HANDLE ? 'folder connected' : 'no folder connected yet';
+  src.innerHTML = '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-family:var(--fm);font-size:13px;color:#8794A6">' +
+    '<span class="chip" style="font-family:var(--fm);font-size:12px;border:1px solid #26344E;padding:4px 8px;border-radius:4px">' + permText + '</span>' +
+    '<span>' + FILES.length + ' playable</span><span>' + REFUSED.length + ' refused</span>' +
+    '<span>' + mmss(FILES.reduce(function (a, f) { return a + (f.duration || 0); }, 0)) + ' total</span></div>';
+  if (!FILES.length && !REFUSED.length) {
+    bin.innerHTML = '<div class="note">Choose the folder holding your media. Nothing is uploaded and nothing is copied - the desk reads the files where they sit, and keeps only the decisions you make about them.</div>';
+    return;
+  }
+  var rows = FILES.map(function (f) {
+    return '<tr><td>' + POST.esc(f.name) + '</td><td class="n">' + f.ext.toUpperCase() + '</td><td class="n">' + mmss(f.duration) + '</td>' +
+      '<td class="n">' + (f.audio ? 'audio' : (f.width + 'x' + f.height)) + '</td><td class="n">' + bytes(f.size) + '</td><td class="ok">playable</td></tr>';
+  }).join('');
+  var ref = REFUSED.map(function (f) {
+    return '<tr><td>' + POST.esc(f.name) + '</td><td class="n">' + f.ext.toUpperCase() + '</td><td class="n">--:--</td>' +
+      '<td class="n">-</td><td class="n">' + bytes(f.size) + '</td><td class="no">' + POST.esc(f.reason) + '</td></tr>';
+  }).join('');
+  bin.innerHTML = '<table><thead><tr><th>File</th><th>Format</th><th>Duration</th><th>Frame</th><th>Size</th><th>Status</th></tr></thead><tbody>' + rows + ref + '</tbody></table>' +
+    (REFUSED.length ? '<p class="note">Refused files have no decoder in any browser. Supply H.264 or WebM proxies alongside the camera originals and they will open here.</p>' : '');
+}
+function closeOtherDesks() {   /* one desk at a time: a full-screen desk must not trap you */
+  var all = document.querySelectorAll('.pgh.on, .tlh.on');
+  for (var i = 0; i < all.length; i++) all[i].classList.remove('on');
+}
+function openDesk() { closeOtherDesks(); var h = hub(); h.classList.add('on'); paint(); }
+
+POST.register({
+  id: 'ingest',
+  mount: function () {
+    hub(); MOUNTED = true;
+    POST.addTile({ id: 'ingest', title: 'Ingest', sub: 'Media from your drive', colour: '#7137C8', icon: 'in', tag: 'MEDIA', run: openDesk });
+    getHandle().then(function (h) {
+      if (!h) return;
+      DIR_HANDLE = h;
+      return permission(h).then(function (p) { if (p === 'granted') return openFromHandle(h); paint(); });
+    }).catch(function () {});
+  },
+  state: function () {
+    return { mounted: MOUNTED, files: FILES.length, refused: REFUSED.length,
+             totalSeconds: Math.round(FILES.reduce(function (a, f) { return a + (f.duration || 0); }, 0)),
+             folderConnected: !!DIR_HANDLE,
+             pickerAvailable: !!window.showDirectoryPicker,
+             refusedList: REFUSED.map(function (f) { return f.name + ': ' + f.reason; }) };
+  }
+});
+POST.openIngest = openDesk;
+POST.media = function () { return FILES.slice(); };
+POST.ingestFiles = ingestFiles;
+})();
+
+;
+/* module: 20-timeline.js */
+(function(){
+/* postHUB - timeline
+   The spine of the edit desk: a cut list with source and record in/out, ripple delete, and
+   EDL text both ways. No media is touched here - cuts are decisions, and decisions are small. */
+var FPS = 25;
+var CUTS = [], SELECTED = -1;
+
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function tcf(sec) {
+  sec = sec || 0;
+  var f = Math.round((sec - Math.floor(sec)) * FPS), s = Math.floor(sec) % 60, m = Math.floor(sec / 60) % 60, h = Math.floor(sec / 3600);
+  return pad(h) + ':' + pad(m) + ':' + pad(s) + ':' + pad(f);
+}
+function parseTc(t) {
+  if (t == null) return 0;
+  var p = String(t).trim().split(':');
+  if (p.length === 1) return parseFloat(p[0]) || 0;
+  var f = parseFloat(p[p.length - 1]) || 0, s = parseFloat(p[p.length - 2]) || 0, m = parseFloat(p[p.length - 3]) || 0, h = parseFloat(p[p.length - 4]) || 0;
+  return h * 3600 + m * 60 + s + f / FPS;
+}
+function ripple() {                    /* record times are derived, never stored loose */
+  var at = 0;
+  CUTS.forEach(function (k) {
+    k.duration = Math.max(0, k.srcOut - k.srcIn);
+    k.recIn = at; k.recOut = at + k.duration; at = k.recOut;
+  });
+}
+function add(cut) {
+  cut = cut || {};
+  var k = { name: cut.name || 'CLIP', reel: cut.reel || 'AX', srcIn: +cut.srcIn || 0, srcOut: +cut.srcOut || 5 };
+  CUTS.push(k); ripple(); paint();
+  return CUTS.length;
+}
+function rippleDelete(i) {
+  if (i == null || i < 0 || i >= CUTS.length) return false;
+  CUTS.splice(i, 1); if (SELECTED >= CUTS.length) SELECTED = CUTS.length - 1;
+  ripple(); paint(); return true;
+}
+function total() { return CUTS.length ? CUTS[CUTS.length - 1].recOut : 0; }
+
+/* ---- EDL: CMX3600 out, forgiving in ---- */
+function edl() {
+  var title = (POST.state().project && POST.state().project.name) || 'postHUB';
+  var out = ['TITLE: ' + title, 'FCM: NON-DROP FRAME', ''];
+  CUTS.forEach(function (k, i) {
+    var n = String(i + 1);
+    while (n.length < 3) n = '0' + n;
+    out.push(n + '  ' + (k.reel + '        ').slice(0, 8) + ' V     C        ' +
+      tcf(k.srcIn) + ' ' + tcf(k.srcOut) + ' ' + tcf(k.recIn) + ' ' + tcf(k.recOut));
+    out.push('* FROM CLIP NAME: ' + k.name);
+  });
+  return out.join('\n');
+}
+function importEdl(text) {
+  var lines = String(text || '').split(/\r?\n/), added = 0, last = null;
+  var re = /^(\d{3,6})\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/;
+  lines.forEach(function (ln) {
+    var m = ln.match(re);
+    if (m) {
+      last = { reel: m[2], srcIn: parseTc(m[5]), srcOut: parseTc(m[6]), name: m[2] };
+      CUTS.push(last); added++;
+      return;
+    }
+    var c = ln.match(/^\*\s*FROM CLIP NAME:\s*(.+)$/i);
+    if (c && last) last.name = c[1].trim();
+  });
+  ripple(); paint();
+  return added;
+}
+
+/* ---- Build By Storyboard ----
+   Reads the storyboard left in this browser by preHUB or proHUB, lays the panels on the
+   timeline in scene order, and lets each one be swapped for its shot with a single click.
+   Tolerant about shape: frames keyed 'sc0','sc1'... plus scene headings, or an array of
+   scenes carrying an image. Anything it cannot find is said plainly, not guessed at. */
+var STORY_KEYS = ['prehub_desk_v1', 'prehub_master_v1', 'prohub_staged_payload_v1', 'posthub_staged_payload_v1'];
+function jread(k) { try { var r = localStorage.getItem(k); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+function fmt(sec) { var s = Math.round(sec || 0), m = Math.floor(s / 60), r = s % 60; return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r; }
+
+function readShots() {
+  for (var i = 0; i < STORY_KEYS.length; i++) {
+    var d = jread(STORY_KEYS[i]);
+    if (!d) continue;
+    var heads = [];
+    if (d.lines && d.lines.length) { for (var j = 0; j < d.lines.length; j++) { if (d.lines[j].type === 'SCENE_HEADING') heads.push(d.lines[j].text); } }
+    var frames = d.frames || d.panels || null;
+    if (frames && typeof frames === 'object' && !(frames instanceof Array)) {
+      var keys = Object.keys(frames).filter(function (k) { return /^sc\d+$/.test(k); })
+        .sort(function (a, b) { return (parseInt(a.slice(2), 10) - parseInt(b.slice(2), 10)); });
+      if (keys.length) {
+        return keys.map(function (k) {
+          var n = parseInt(k.slice(2), 10);
+          return { n: n, heading: heads[n] || ('SCENE ' + (n + 1)), image: frames[k] };
+        });
+      }
+    }
+    var arr = d.scenes || d.shots || d.boards || null;
+    if (arr && arr.length) {
+      return arr.map(function (s, ix) {
+        return { n: ix, heading: s.heading || s.slug || s.name || ('SCENE ' + (ix + 1)),
+                 image: s.image || s.frame || s.dataUrl || null };
+      });
+    }
+  }
+  return [];
+}
+function buildByStoryboard(force) {
+  var shots = readShots();
+  if (!shots.length) { POST.toast('No storyboard found in this browser - make one in preHUB or proHUB first', 'bad'); return 0; }
+  function lay() {
+    CUTS = shots.map(function (s) {
+      return { name: s.heading, reel: 'SB', srcIn: 0, srcOut: 5, image: s.image || null, sb: true, scene: s.n, replaced: false };
+    });
+    SELECTED = -1; ripple(); paint();
+    POST.toast(shots.length + ' storyboard panels on the timeline', 'good');
+    return shots.length;
+  }
+  if (CUTS.length && !force) {
+    POST.ask({ title: 'Replace the cut list?', icon: 'warn', ok: 'Replace it', cancel: true,
+      html: '<p style="margin:0;font-size:14px;color:#B9C4D2">The timeline already has ' + CUTS.length +
+            ' cuts. Building from the storyboard will replace them.</p>' }).then(function (r) { if (r) lay(); });
+    return -1;
+  }
+  return lay();
+}
+function replaceCut(i) {
+  var media = (typeof POST.media === 'function') ? POST.media() : [];
+  if (!media.length) { POST.toast('Ingest the shots first - the bin is empty', 'bad'); return false; }
+  var opts = media.map(function (f, ix) {
+    return '<option value="' + ix + '">' + POST.esc(f.name) + '   ' + fmt(f.duration) + '</option>';
+  }).join('');
+  var cur = CUTS[i] ? CUTS[i].name : '';
+  POST.ask({ title: 'Replace with the shot', icon: 'film', ok: 'Replace',
+    html: '<label class="fl">Using ' + POST.esc(cur) + '</label><select data-k="clip">' + opts + '</select>' +
+          '<p style="margin:10px 0 0;font-size:13px;color:#8794A6">The storyboard panel stays with the cut as a reference frame.</p>' })
+  .then(function (r) {
+    if (!r) return;
+    var f = media[parseInt(r.clip, 10) || 0];
+    if (!f) return;
+    CUTS[i].name = f.name; CUTS[i].reel = 'AX';
+    CUTS[i].srcIn = 0; CUTS[i].srcOut = f.duration || 5;
+    CUTS[i].replaced = true;
+    ripple(); paint();
+    POST.toast('Replaced with ' + f.name, 'good');
+  });
+  return true;
+}
+
+/* ---- the desk ---- */
+function style() {
+  if (document.getElementById('tlStyle')) return;
+  var s = document.createElement('style'); s.id = 'tlStyle';
+  s.textContent = '.tlh{position:fixed;inset:0;z-index:500;background:rgba(3,6,12,.94);overflow-y:auto;display:none}' +
+    '.tlh.on{display:block}.tlh .box{max-width:1240px;margin:0 auto;background:#0A101B;min-height:100vh}' +
+    '@media(min-width:900px){.tlh{padding:30px 16px 60px}.tlh .box{border-radius:12px;min-height:auto;border-top:4px solid #00ABA9}}' +
+    '.tlh .hd{display:flex;gap:10px;align-items:flex-start;padding:15px 17px;border-bottom:1px solid #1B2436;background:#0C1320;position:sticky;top:0}' +
+    '.tlh .hd h2{font-size:20px;color:#fff}.tlh .hd .k{font-family:var(--fm);font-size:12px;letter-spacing:.15em;color:#00ABA9;text-transform:uppercase}' +
+    '.tlh .bd{padding:16px 17px 26px}.tlh table{width:100%;border-collapse:collapse;font-size:13px}' +
+    '.tlh th{text-align:left;font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:#8794A6;text-transform:uppercase;border-bottom:1px solid #1B2436;padding:6px 8px}' +
+    '.tlh td{border-bottom:1px solid rgba(27,36,54,.6);padding:7px 8px;color:#C6D1DC}' +
+    '.tlh td.n{font-family:var(--fm);white-space:nowrap}.tlh tr.sel{background:#12202E}.tlh tr{cursor:pointer}' +
+    '.tlh .note{font-size:13px;color:#8794A6;margin:10px 0 0}' +
+    '.tlh textarea{width:100%;min-height:150px;font-family:var(--fm);font-size:12px}';
+  document.head.appendChild(s);
+}
+function hub() {
+  var h = document.getElementById('posthub-timeline');
+  if (h) return h;
+  style();
+  h = document.createElement('div'); h.className = 'tlh'; h.id = 'posthub-timeline';
+  h.innerHTML = '<div class="box"><div class="hd"><div><div class="k">TIMELINE</div><h2>Cut list</h2></div>' +
+    '<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">' +
+    '<button class="btn sm pri" id="tlAdd">Add cut</button>' +
+    '<button class="btn sm" id="tlFromBin">From bin</button>' +
+    '<button class="btn sm" id="tlRip">Ripple delete</button>' +
+    '<button class="btn sm" id="tlStory">Build By Storyboard</button>' +
+    '<button class="btn sm" id="tlEdl">EDL</button>' +
+    '<button class="btn sm" id="tlClose">Close</button></div></div>' +
+    '<div class="bd"><div id="tlBody"></div></div></div>';
+  document.body.appendChild(h);
+  h.addEventListener('click', function (e) { if (e.target === h) h.classList.remove('on'); });
+  h.querySelector('#tlClose').onclick = function () { h.classList.remove('on'); };
+  h.querySelector('#tlAdd').onclick = function () {
+    POST.ask({ title: 'Add a cut', icon: 'list', ok: 'Add', fields: [
+      { k: 'name', label: 'Clip name', value: '' }, { k: 'reel', label: 'Reel', value: 'AX' },
+      { k: 'srcIn', label: 'Source in (HH:MM:SS:FF or seconds)', value: '01:00:00:00' },
+      { k: 'srcOut', label: 'Source out', value: '01:00:05:00' } ] }).then(function (r) {
+      if (!r) return;
+      add({ name: r.name || 'CLIP', reel: (r.reel || 'AX').toUpperCase(), srcIn: parseTc(r.srcIn), srcOut: parseTc(r.srcOut) });
+      POST.toast('Cut added', 'good');
+    });
+  };
+  h.querySelector('#tlRip').onclick = function () {
+    if (rippleDelete(SELECTED)) POST.toast('Rippled - everything after closed up', 'good');
+    else POST.toast('Select a cut first', 'bad');
+  };
+  h.querySelector('#tlFromBin').onclick = function () {
+    var media = (typeof POST.media === 'function') ? POST.media() : [];
+    if (!media.length) { POST.toast('The bin is empty - ingest some media first', 'bad'); return; }
+    media.forEach(function (f) { add({ name: f.name, reel: 'AX', srcIn: 0, srcOut: f.duration || 5 }); });
+    POST.toast(media.length + ' clips added from the bin', 'good');
+  };
+  h.querySelector('#tlStory').onclick = function () { buildByStoryboard(); };
+  h.querySelector('#tlEdl').onclick = function () { openEdl(); };
+  return h;
+}
+function openEdl() {
+  POST.ask({ title: 'EDL', icon: 'out', ok: 'Import', cancel: true,
+    fields: [{ k: 'edl', label: 'CMX3600 - edit and paste back to import', type: 'textarea', rows: 12, value: edl() }],
+    html: '<div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="edlCopy">Copy EDL</button>' +
+          '<button type="button" class="btn sm" id="edlSave">Download .edl</button>' +
+          '<span style="font-size:13px;color:#8794A6;align-self:center">' + CUTS.length + ' cuts · ' + tcf(total()) + '</span></div>' })
+  .then(function (r) { if (!r) return; var n = importEdl(r.edl); if (n) POST.toast(n + ' cuts imported', 'good'); });
+  setTimeout(function () {
+    var d = document.querySelector('dialog[open]'); if (!d) return;
+    var c = d.querySelector('#edlCopy'), s = d.querySelector('#edlSave');
+    if (c) c.onclick = function () { var t = d.querySelector('[data-k="edl"]'); try { navigator.clipboard.writeText(t.value); POST.toast('EDL copied', 'good'); } catch (e) { t.select(); } };
+    if (s) s.onclick = function () { var t = d.querySelector('[data-k="edl"]'); POST.dl('sequence.edl', t.value, 'text/plain'); };
+  }, 80);
+}
+function paint() {
+  var h = document.getElementById('posthub-timeline'); if (!h) return;
+  var b = h.querySelector('#tlBody');
+  if (!CUTS.length) { b.innerHTML = '<div class="note">No cuts yet. Add one by hand, pull the bin in, or import an EDL.</div>'; return; }
+  var rows = CUTS.map(function (k, i) {
+    var thumb = k.image ? '<img src="' + k.image + '" alt="" style="height:34px;border-radius:3px;display:block">' : '<span style="color:#4B5563">-</span>';
+    var act = '<button type="button" class="btn xs" data-rep="' + i + '" style="min-height:28px">replace</button>';
+    return '<tr data-i="' + i + '"' + (i === SELECTED ? ' class="sel"' : '') + '><td class="n">' + pad(i + 1) + '</td><td>' + thumb + '</td>' +
+      '<td>' + POST.esc(k.name) + (k.replaced ? ' <span style="color:#88C13F;font-size:11px">shot</span>' : (k.sb ? ' <span style="color:#E2A93B;font-size:11px">board</span>' : '')) + '</td>' +
+      '<td class="n">' + POST.esc(k.reel) + '</td><td class="n">' + tcf(k.srcIn) + '</td><td class="n">' + tcf(k.srcOut) + '</td>' +
+      '<td class="n">' + tcf(k.duration) + '</td><td class="n">' + tcf(k.recIn) + '</td><td class="n">' + tcf(k.recOut) + '</td><td>' + act + '</td></tr>';
+  }).join('');
+  b.innerHTML = '<table><thead><tr><th>#</th><th>Board</th><th>Clip</th><th>Reel</th><th>Src in</th><th>Src out</th><th>Dur</th><th>Rec in</th><th>Rec out</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>' +
+    '<p class="note">' + CUTS.length + ' cuts · sequence ' + tcf(total()) + ' · ' + FPS + ' fps</p>';
+  var reps = b.querySelectorAll('[data-rep]');
+  for (var r2 = 0; r2 < reps.length; r2++) reps[r2].onclick = function (ev) { ev.stopPropagation(); replaceCut(parseInt(this.getAttribute('data-rep'), 10)); };
+  var trs = b.querySelectorAll('tr[data-i]');
+  for (var i = 0; i < trs.length; i++) trs[i].onclick = function () { SELECTED = +this.getAttribute('data-i'); paint(); };
+}
+function closeOtherDesks() {   /* one desk at a time: a full-screen desk must not trap you */
+  var all = document.querySelectorAll('.pgh.on, .tlh.on');
+  for (var i = 0; i < all.length; i++) all[i].classList.remove('on');
+}
+function openDesk() { closeOtherDesks(); var h = hub(); h.classList.add('on'); paint(); }
+
+POST.register({
+  id: 'timeline',
+  mount: function () {
+    hub();
+    POST.addTile({ id: 'timeline', title: 'Timeline', sub: 'Cut list · EDL in and out', colour: '#00ABA9', icon: 'list', tag: 'EDIT', run: openDesk });
+  },
+  state: function () {
+    var shots = readShots();
+    return { shotsFound: shots.length, boards: CUTS.filter(function (k) { return !!k.sb; }).length,
+             replaced: CUTS.filter(function (k) { return !!k.replaced; }).length,
+             cuts: CUTS.length, selected: SELECTED, total: Math.round(total() * 100) / 100,
+             fps: FPS, sequence: tcf(total()),
+             first: CUTS.length ? CUTS[0].name : null, edlLines: edl().split('\n').length };
+  }
+});
+POST.timeline = { add: add, ripple: rippleDelete, buildByStoryboard: buildByStoryboard, replace: replaceCut, shots: readShots, edl: edl, importEdl: importEdl, cuts: function () { return CUTS.slice(); }, total: total, open: openDesk };
+})();
+
+</script>
+</body>
+</html>
