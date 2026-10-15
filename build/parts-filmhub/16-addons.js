@@ -6,8 +6,11 @@ var EX_KEY = 'filmhub_extras_v1';
 function eread() { try { var r = localStorage.getItem(EX_KEY); var a = r ? JSON.parse(r) : []; return a instanceof Array ? a : []; } catch (e) { return []; } }
 function ewrite(a) { try { localStorage.setItem(EX_KEY, JSON.stringify(a)); return true; } catch (e) { return false; } }
 function ids() { return eread(); }
+/* extras live in their own id namespace, so an added module can never be confused with -
+   or removed in place of - the role's own tile of the same catalogue entry. */
+function tileId(catId) { return 'extra-' + catId; }
 function tileFrom(cat) {
-  return { id: cat.id, title: cat.title, sub: cat.sub + ' · added', colour: cat.colour, icon: cat.icon, tag: 'EXTRA',
+  return { id: tileId(cat.id), title: cat.title, sub: cat.sub + ' · added', colour: cat.colour, icon: cat.icon, tag: 'EXTRA',
            run: function () { var u = cat.url, emb = false; try { emb = window.self !== window.top; } catch (e) { emb = true; }
              if (emb) { var w = null; try { w = window.open(u, '_blank'); } catch (e) { w = null; } if (w) return;
                         try { window.top.location.href = u; return; } catch (e) {} }
@@ -25,7 +28,7 @@ function add(id) {
 }
 function remove(id) {
   ewrite(ids().filter(function (x) { return x !== id; }));
-  FILM.removeTile(id);
+  FILM.removeTile(tileId(id));
   if (typeof FILM.toast === 'function') FILM.toast('Removed', 'bad');
   return true;
 }
