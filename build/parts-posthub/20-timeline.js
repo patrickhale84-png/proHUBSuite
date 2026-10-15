@@ -151,7 +151,11 @@ function paint() {
   var trs = b.querySelectorAll('tr[data-i]');
   for (var i = 0; i < trs.length; i++) trs[i].onclick = function () { SELECTED = +this.getAttribute('data-i'); paint(); };
 }
-function openDesk() { var h = hub(); h.classList.add('on'); paint(); }
+function closeOtherDesks() {   /* one desk at a time: a full-screen desk must not trap you */
+  var all = document.querySelectorAll('.pgh.on, .tlh.on');
+  for (var i = 0; i < all.length; i++) all[i].classList.remove('on');
+}
+function openDesk() { closeOtherDesks(); var h = hub(); h.classList.add('on'); paint(); }
 
 POST.register({
   id: 'timeline',
