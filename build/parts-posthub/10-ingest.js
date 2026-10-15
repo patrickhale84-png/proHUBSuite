@@ -91,7 +91,7 @@ function ingestFiles(list) {
     var f = arr[i++];
     probe(f, function (ok, info) {
       if (ok) FILES.push({ name: f.name, size: f.size, ext: extOf(f.name), duration: info.duration || 0,
-                           width: info.width || 0, height: info.height || 0, audio: !!info.audio, ready: true });
+                           width: info.width || 0, height: info.height || 0, audio: !!info.audio, ready: true, f: f });
       else REFUSED.push({ name: f.name, size: f.size, ext: extOf(f.name), reason: info.reason || 'unreadable' });
       paint();
       setTimeout(next, 0);   /* keep the UI responsive and the watchdog clean */
@@ -261,4 +261,6 @@ POST.register({
 });
 POST.openIngest = openDesk;
 POST.media = function () { return FILES.slice(); };
+/* the viewer needs the File itself, not a summary of it */
+POST.mediaFiles = function () { var out = []; for (var i = 0; i < FILES.length; i++) { if (FILES[i].f) out.push({ name: FILES[i].name, file: FILES[i].f, duration: FILES[i].duration || 0 }); } return out; };
 POST.ingestFiles = ingestFiles;
