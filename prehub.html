@@ -163,6 +163,11 @@ dialog::backdrop{background:rgba(3,6,12,.82)}
 #paper{-webkit-user-select:text!important;user-select:text!important;cursor:text}
 #paper .ln{-webkit-user-select:text!important;user-select:text!important;cursor:text}
 #paper .ln *{-webkit-user-select:text!important;user-select:text!important}
+
+.evrow{display:flex;gap:8px;align-items:center;margin:7px 0 3px}
+.evl{font-family:var(--fm);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:#C6D1DC}
+.evrow select{width:78px}
+.box textarea{width:100%;font-size:12.5px;margin-bottom:6px}
 </style>
 </head>
 <body>
@@ -430,7 +435,87 @@ function hubShell(id,title,tag,color,actions,bodyHTML){var h=$('#hub-m-'+id);
  }
  $('#mb-'+id).innerHTML=bodyHTML;h.classList.add('open');document.body.style.overflow='hidden';return h}
 function close2(h){save(true);h.classList.remove('open');document.body.style.overflow=''}
-function renderCov(){var a=analyse(),p=coverProse(a),lab={PREMISE:'Premise',PLOT:'Plot',CHARACTER:'Character',DIALOGUE:'Dialogue',SETTING:'Setting'};
+/* the evaluator's controls: your scores beside the derived ones, a note per axis, a rating
+   and note per scene, a verdict, and every entry stored with the project. Rules, not AI. */
+function evOpts(cur){
+ var o=['<option value="">-</option>'];
+ for(var i=0;i<=10;i++)o.push('<option'+(String(cur)===String(i)?' selected':'')+'>'+i+'</option>');
+ return o.join('');
+}
+function evalBlock(){
+ S.eval=S.eval||{scores:{},notes:{},scenes:{},verdict:'',overall:''};
+ var a={};try{a=analyse()}catch(e){}
+ var s=(a&&a.s)||{};
+ var lab={PREMISE:'Premise',PLOT:'Plot',CHARACTER:'Character',DIALOGUE:'Dialogue',SETTING:'Setting'};
+ var rows=Object.keys(lab).map(function(k){
+  var yours=S.eval.scores[k];
+  return '<div class="evrow"><span class="evl">'+lab[k]+'</span>'+
+   '<span class="tiny muted" style="flex:1">derived '+(s[k]!=null?s[k]:'-')+'</span>'+
+   '<select data-ev="score:'+k+'">'+evOpts(yours)+'</select></div>'+
+   '<textarea data-ev="note:'+k+'" rows="2" placeholder="your note on '+lab[k].toLowerCase()+'">'+esc(S.eval.notes[k]||'')+'</textarea>';
+ }).join('');
+ var sc=[];try{sc=deskScenes()||[]}catch(e){}
+ var sceneRows=sc.map(function(x,i){
+  var v=S.eval.scenes[i]||{};
+  return '<div class="evrow"><span class="evl" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(String(x.head||'').slice(0,30))+'</span>'+
+   '<select data-ev="scene:'+i+'">'+evOpts(v.score)+'</select>'+
+   '<button type="button" class="btn xs" data-ev="go:'+i+'">open</button></div>'+
+   '<textarea data-ev="scnote:'+i+'" rows="2" placeholder="note on this scene">'+esc(v.note||'')+'</textarea>';
+ }).join('');
+ var V=['Recommend','Consider','Pass'];
+ setTimeout(bindEval,60);
+ return '<div class="box" style="margin-top:12px"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">YOUR EVALUATION</h3>'+
+  '<p class="tiny muted" style="margin:0 0 8px">Your figures sit beside the derived ones, and they save with the project.</p>'+rows+
+  '<h3 style="font-size:12px;color:var(--mu);margin:12px 0 8px">SCENE BY SCENE</h3>'+(sceneRows||'<p class="tiny muted">No scenes parsed yet - import a script first.</p>')+
+  '<h3 style="font-size:12px;color:var(--mu);margin:12px 0 8px">VERDICT</h3>'+
+  '<div class="row" style="gap:6px;flex-wrap:wrap;margin-bottom:8px">'+
+  V.map(function(v){return '<button type="button" class="btn xs'+(S.eval.verdict===v?' pri':'')+'" data-ev="verdict:'+v+'">'+v+'</button>'}).join('')+'</div>'+
+  '<textarea data-ev="overall" rows="3" placeholder="overall note">'+esc(S.eval.overall||'')+'</textarea>'+
+  '<div class="row" style="gap:6px;margin-top:8px"><button type="button" class="btn xs" id="evCopy">Copy report</button>'+
+  '<button type="button" class="btn xs" id="evClear">Clear my notes</button></div></div>';
+}
+function evReport(){
+ var a={};try{a=analyse()}catch(e){}
+ var L=["COVERAGE - "+(S.project.title||'untitled')+" by "+(S.project.writer||'')];
+ if(a&&a.s)L.push('Derived: '+Object.keys(a.s).map(function(k){return k+' '+a.s[k]}).join('  '));
+ L.push('');L.push('YOUR FIGURES');
+ Object.keys(S.eval.scores||{}).forEach(function(k){if(S.eval.scores[k]!==''&&S.eval.scores[k]!=null)L.push('  '+k+': '+S.eval.scores[k]+(S.eval.notes[k]?('  - '+S.eval.notes[k]):''))});
+ var sc=[];try{sc=deskScenes()||[]}catch(e){}
+ if(Object.keys(S.eval.scenes||{}).length){L.push('');L.push('SCENES');
+  Object.keys(S.eval.scenes).forEach(function(i){var v=S.eval.scenes[i];if((v.score||'')!==''||v.note)L.push('  '+(i+1)+'. '+((sc[i]&&sc[i].head)||'')+': '+(v.score||'-')+(v.note?('  - '+v.note):''))})}
+ if(S.eval.verdict||S.eval.overall){L.push('');L.push('VERDICT: '+(S.eval.verdict||'-'));if(S.eval.overall)L.push('  '+S.eval.overall)}
+ return L.join('\n');
+}
+function bindEval(){
+ $$('[data-ev]').forEach(function(el){
+  var k=el.getAttribute('data-ev'),parts=k.split(':'),kind=parts[0],id=parts.slice(1).join(':');
+  if(kind==='go'){el.onclick=function(){
+    var sc=[];try{sc=deskScenes()||[]}catch(e){}
+    var head=sc[+id]&&sc[+id].head;
+    try{openHub('write')}catch(e){}
+    setTimeout(function(){
+      var els=$$('#paper .ln'),hit=null;
+      for(var i=0;i<els.length;i++){if((els[i].textContent||'').trim().toUpperCase()===(head||'').trim().toUpperCase()){hit=els[i];break}}
+      if(hit){hit.scrollIntoView({block:'center'});hit.focus()}
+    },220);
+  };return}
+  if(kind==='verdict'){el.onclick=function(){S.eval.verdict=(S.eval.verdict===id)?'':id;saveSoon();
+    var h=document.querySelector('.hub.open');if(h){var b=h.querySelector('.hubbody');if(b)b.innerHTML=renderCov()}};return}
+  el.addEventListener('change',function(){
+   var v=el.value;
+   if(kind==='score'){S.eval.scores[id]=v}
+   else if(kind==='note'){S.eval.notes[id]=v}
+   else if(kind==='scene'){S.eval.scenes[id]=S.eval.scenes[id]||{};S.eval.scenes[id].score=v}
+   else if(kind==='scnote'){S.eval.scenes[id]=S.eval.scenes[id]||{};S.eval.scenes[id].note=v}
+   else if(kind==='overall'){S.eval.overall=v}
+   saveSoon();
+  });
+ });
+ var cp=$('#evCopy');if(cp)cp.onclick=function(){dl('coverage.txt',evReport(),'text/plain')};
+ var cl=$('#evClear');if(cl)cl.onclick=function(){S.eval={scores:{},notes:{},scenes:{},verdict:'',overall:''};saveSoon();toast('Cleared','good');
+  var h=document.querySelector('.hub.open');if(h){var b=h.querySelector('.hubbody');if(b)b.innerHTML=renderCov()}};
+}
+function renderCov(){var _base=(function(){var a=analyse(),p=coverProse(a),lab={PREMISE:'Premise',PLOT:'Plot',CHARACTER:'Character',DIALOGUE:'Dialogue',SETTING:'Setting'};
  var cards=Object.keys(lab).map(function(k){var v=a.s[k],col=v>=7.5?'var(--lime)':v>=6.5?'var(--gold)':'var(--red)';
   return '<div class="kpi"><div class="k">'+lab[k]+'</div><div class="v">'+v+'<span class="tiny muted">/10</span></div><div style="height:4px;background:#0A0F1D;border-radius:9px;margin-top:6px"><div style="width:'+Math.min(100,v*10)+'%;height:100%;background:'+col+';border-radius:9px"></div></div></div>'}).join('');
  var blk=function(t,b){return '<div class="box"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">'+t+'</h3><p style="font-size:12.5px;color:#C6D1DC;margin:0;line-height:1.6">'+esc(b)+'</p></div>'};
@@ -442,7 +527,7 @@ function renderCov(){var a=analyse(),p=coverProse(a),lab={PREMISE:'Premise',PLOT
  '<tr><td class="muted">Scenes</td><td>'+a.scenes+'</td><td class="muted">Named characters</td><td>'+a.names.length+'</td></tr>'+
  '<tr><td class="muted">Dialogue share</td><td>'+a.dRatio+'%</td><td class="muted">Average speech</td><td>'+a.mean+' words (spread '+a.dev+')</td></tr></table></div>'+
  blk('STRENGTHS',p.Strengths)+blk('WEAKNESSES',p.Weaknesses)+blk('PROSPECTS',p.Prospects)+
- '<div class="box"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">HOW THIS IS GRADED</h3><p class="tiny" style="margin:0;color:#B9C4D2">Six axes measured from the draft itself: scene and location count, dialogue cadence and share, action length, cast size, era markers, genre signals. The Black List band is the same reading minus 0.7, matching the spread between your two reference reports. Bands and the pass / consider / recommend rating follow WeScreenplay published rates. No model is involved, so treat the prose as a first pass to edit.</p></div>'}
+ '<div class="box"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">HOW THIS IS GRADED</h3><p class="tiny" style="margin:0;color:#B9C4D2">Six axes measured from the draft itself: scene and location count, dialogue cadence and share, action length, cast size, era markers, genre signals. The Black List band is the same reading minus 0.7, matching the spread between your two reference reports. Bands and the pass / consider / recommend rating follow WeScreenplay published rates. No model is involved, so treat the prose as a first pass to edit.</p></div>'})(); return _base+evalBlock();}
 
 function renderPitch(){
  var L=lines()||[],scenes=[],cur=null;
