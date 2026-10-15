@@ -191,14 +191,14 @@ function reformat(){$$('#paper .ln').forEach(function(e){var t=e.textContent.tri
 function tok(raw){var out=[],prev=null;
  raw.replace(/\r/g,'').split('\n').forEach(function(line){var t=line.replace(/[\t ]+/g,' ').trim();
   if(!t){prev=null;return}
-  if(/^(INT\.|EXT\.|INT\/EXT\.|I\/E\.|EST\.)/i.test(t)){var m=t.match(/^((?:INT\.|EXT\.|INT\/EXT\.|I\/E\.)\s*[^-]{2,70}?)\s*[-\u2013]\s*((?:DAY|NIGHT|DUSK|DAWN|MORNING|AFTERNOON|EVENING|CONTINUOUS|LATER|MOMENTS LATER|SAME TIME|MAGIC HOUR)(?:\s*[-\u2013]\s*[A-Z ]{3,20})?)/i);
-   var h=m?(m[1]+' - '+m[2]).replace(/\s+\d{1,3}$/,'').trim():t.replace(/(\d{1,3})\s+\d{1,3}$/,'').trim();
+  if(/^\s*(?:\d+[A-Za-z]?[.)]?\s+)?(?:INT|EXT|EST|I\/E|INT\.?\/EXT|EXT\.?\/INT)\b[.\s\/]/i.test(t)){var m=t.match(/^((?:INT\.|EXT\.|INT\/EXT\.|I\/E\.)\s*[^-]{2,70}?)\s*[-\u2013]\s*((?:DAY|NIGHT|DUSK|DAWN|MORNING|AFTERNOON|EVENING|CONTINUOUS|LATER|MOMENTS LATER|SAME TIME|MAGIC HOUR)(?:\s*[-\u2013]\s*[A-Z ]{3,20})?)/i);
+   var h=(m?(m[1]+' - '+m[2]).replace(/\s+\d{1,3}$/,'').trim():t.replace(/(\d{1,3})\s+\d{1,3}$/,'').trim()).replace(/^\s*\d+[A-Za-z]?[.)]?\s+/,'');
    out.push({type:'SCENE_HEADING',text:h.toUpperCase()});
    if(m&&t.length>m[0].length+2){var rest=t.slice(m[0].length).replace(/^[\s\d.\-\u2013]+/,'').trim();if(rest)out.push({type:'ACTION',text:rest})}
    prev='h';return}
   if(/^(FADE IN|FADE OUT|FADE TO|CUT TO|SMASH TO|SMASH CUT|MATCH CUT|DISSOLVE TO|HARD CUT)/i.test(t)||/\bTO:\s*$/.test(t)){out.push({type:'TRANSITION',text:t.toUpperCase()});prev='t';return}
   if(/^\(.*\)$/.test(t)){out.push({type:'PARENTHETICAL',text:t});prev='p';return}
-  if(t===t.toUpperCase()&&t.length<44&&!/[.,!?]$/.test(t)&&!/[:;]/.test(t)&&!/^(TITLE|SUPER|SCENE|WRITTEN BY|PRODUCTION|DRAFT|END|GOOD|CONTINUED)\b/.test(t)){out.push({type:'CHARACTER',text:t});prev='c';return}
+  if(t===t.toUpperCase()&&t.length<44&&!/[.,!?]$/.test(t)&&!/[:;]/.test(t)&&!/^\s*(?:\d+[A-Za-z]?[.)]?\s+)?(?:INT|EXT|EST|I\/E|INT\.?\/EXT|EXT\.?\/INT)\b[.\s\/]/i.test(t)&&!/^(TITLE|SUPER|SCENE|WRITTEN BY|PRODUCTION|DRAFT|END|GOOD|CONTINUED)\b/.test(t)){out.push({type:'CHARACTER',text:t});prev='c';return}
   if(prev==='c'||prev==='p'||prev==='d'){out.push({type:'DIALOGUE',text:t});prev='d';return}
   out.push({type:'ACTION',text:t});prev='a'});
  return out}
