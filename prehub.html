@@ -111,8 +111,8 @@ dialog::backdrop{background:rgba(3,6,12,.82)}
    US Letter, 12pt Courier, 1.5in left and 1in elsewhere, which is the format a writer
    expects to see their own pages in. Overrides the dark editor look; the app chrome stays
    dark so the page reads as paper. */
-.paperwrap{background:#20242C;padding:24px 12px;overflow:auto;display:flex;justify-content:center}
-.paper{background:#FFFFFF;color:#111;width:8.5in;min-height:11in;margin:0 auto;padding:1in 1in 1in 1.5in;
+.paperwrap{background:#20242C;padding:22px 16px 34px;overflow:auto;display:block}
+.paper{background:#FFFFFF;color:#111;width:8.5in;min-width:8.5in;box-sizing:border-box;min-height:11in;margin:0 auto;padding:1in 1in 1in 1.5in;
  font-family:'Courier Prime','Courier New',Courier,monospace;font-size:12pt;line-height:1.05;
  box-shadow:0 14px 40px rgba(0,0,0,.55);border-radius:2px}
 .paper .ln{color:#111;background:none;padding:0;min-height:12pt;border-radius:0}
@@ -124,7 +124,7 @@ dialog::backdrop{background:rgba(3,6,12,.82)}
 .paper .t-paren{margin:0 0 0 3.1in;font-style:normal;max-width:none}
 .paper .t-dial{margin:0 0 0 2.5in;max-width:3.5in}
 .paper .t-trans{margin:12pt 0 0;text-align:right;font-weight:400;text-transform:uppercase}
-@media (max-width:1200px){.paper{width:7.4in;padding:.8in .8in .8in 1.2in}}
+@media (max-width:1200px){.paper{zoom:.86}}
 @page{size:letter;margin:0}
 @media print{
  body>*{display:none!important}
