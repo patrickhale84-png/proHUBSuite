@@ -431,14 +431,75 @@ function renderBudget(){var b=budgetTotals(),p=S.budget||{};
  row('post','Post-production - edit, sound, score, finishing')+row('pct','Contingency %')+'</table>'+
  '<div class="row" style="margin-top:10px;justify-content:space-between"><span class="tiny muted">A macro top sheet, not a union-shop budget - proHUB carries the detailed fringes and rebates.</span><b class="mono">'+money(b.sub)+' + '+money(b.cont)+' = '+money(b.total)+'</b></div></div>'+
  '<div class="box"><h3 style="font-size:12px;color:var(--mu);margin-bottom:8px">TO PROHUB</h3><p class="tiny" style="margin:0;color:#B9C4D2">'+(b.atl>0?'This top sheet now travels with the hand-off, so the production desk starts with your above-the-line figure already in place.':'')+' Press <b>Transmit to proHUB</b> to send it.</p></div>'}
-function renderBoards(){var sc=scenesOf();
- if(!sc.length)return '<div class="empty tiny">Write or import a script first - the boards are built from the scene headings.</div>';
- var rules=['Master establishing','Over the shoulder','Medium framing','Insert on the prop','Close on the face','Motion track'];
- return '<div class="row" style="margin-bottom:12px"><span class="pill">'+sc.length+' scenes</span><span class="tiny muted">Six set-ups per scene where the scene earns them. Sketch on a panel with a finger or a mouse; the drawing is kept with the project.</span></div>'+
- '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">'+sc.map(function(s,i){
-  return '<div class="box" style="margin:0;padding:0;overflow:hidden"><div class="tiny" style="padding:8px 10px;border-bottom:1px solid var(--line);font-family:var(--fm)">SC '+esc(s.head)+'</div>'+
-  '<div style="position:relative;background:#05080F;aspect-ratio:16/9">'+((S.frames&&S.frames['sc'+i])?'<img src="'+S.frames['sc'+i]+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain">':'<canvas data-cv="'+i+'" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair"></canvas>')+'</div>'+
-  '<div style="padding:8px 10px"><div class="tiny" style="color:var(--amber)">RuLES 1-6</div><div class="tiny muted">'+(s.cast.length?('Cast: '+esc(s.cast.join(', '))):'Silent')+'</div></div></div>'}).join('')+'</div>'+rules.map(function(){return ''}).join('')}
+function renderBoards(){
+ var L=lines()||[],scenes=[],cur=null;
+ L.forEach(function(l){if(l.type==='SCENE_HEADING'){cur={head:l.text,act:[]};scenes.push(cur)}else if(cur&&l.type==='ACTION'&&l.text&&cur.act.length<1){cur.act.push(l.text)}});
+ if(!scenes.length)return '<p class="tiny muted">Import a script and the panels bind to your scenes. Six frames per scene.</p>';
+ var out=[];
+ out.push('<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:10px"><span class="pill">'+scenes.length+' scenes</span>'+
+  '<span class="tiny muted">Numbered from the scene. Draw on a panel or import an image; either is saved with the project. Arrows reorder.</span></div>');
+ scenes.forEach(function(s,si){
+  var order=(S.sbOrder&&S.sbOrder['s'+si])||[0,1,2,3,4,5];
+  out.push('<div class="box" style="margin-bottom:12px"><div class="row" style="align-items:center;gap:8px;flex-wrap:wrap">'+
+   '<b style="font-family:var(--fd);font-size:15px;letter-spacing:.04em">'+esc(s.head)+'</b>'+
+   '<span class="tiny muted">'+order.length+' panels</span></div>'+
+   '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:8px">');
+  order.forEach(function(pi,pos){
+   var key=si+':'+pi;
+   out.push('<div class="box" style="margin:0;padding:8px">'+
+    '<div class="row" style="justify-content:space-between;align-items:center;margin-bottom:5px">'+
+    '<span class="tiny" style="font-family:var(--fm);color:var(--amber)">'+(si+1)+'.'+(pos+1)+'</span>'+
+    '<span><button class="btn xs" type="button" data-mvl="'+key+'">&#8592;</button> <button class="btn xs" type="button" data-mvr="'+key+'">&#8594;</button></span></div>'+
+    '<div style="background:#0A0F1D;border:1px dashed #26344E;border-radius:5px;height:104px;overflow:hidden">'+
+    '<canvas data-cv="'+key+'" width="380" height="208" style="width:100%;height:100%;display:block;cursor:crosshair"></canvas></div>'+
+    '<input data-cap="'+key+'" value="'+esc((S.sbCap&&S.sbCap[key])||'')+'" placeholder="shot note" style="width:100%;margin-top:5px;font-size:12px">'+
+    '<div class="row" style="gap:5px;margin-top:5px;flex-wrap:wrap">'+
+    '<button class="btn xs" type="button" data-imp="'+key+'">import</button>'+
+    '<button class="btn xs" type="button" data-clr="'+key+'">clear</button></div></div>');
+  });
+  out.push('</div></div>');
+ });
+ setTimeout(bindBoards,60);
+ return out.join('');
+}
+function bindBoards(){
+ S.sbOrder=S.sbOrder||{};S.sbCap=S.sbCap||{};S.frames=S.frames||{};
+ $$('[data-cv]').forEach(function(cv){
+  var key=cv.getAttribute('data-cv'),ctx=cv.getContext('2d'),drawing=false,last=null;
+  var saved=S.frames['sb'+key];
+  ctx.lineWidth=3;ctx.strokeStyle='#E8EDF3';ctx.lineCap='round';
+  if(saved){var im=new Image();im.onload=function(){ctx.drawImage(im,0,0,cv.width,cv.height)};im.src=saved;}
+  else{ctx.fillStyle='rgba(255,255,255,.02)';ctx.fillRect(0,0,cv.width,cv.height);}
+  function pos(e){var r=cv.getBoundingClientRect();return {x:(e.clientX-r.left)*(cv.width/r.width),y:(e.clientY-r.top)*(cv.height/r.height)}}
+  cv.addEventListener('pointerdown',function(e){drawing=true;last=pos(e);cv.setPointerCapture&&cv.setPointerCapture(e.pointerId)});
+  cv.addEventListener('pointermove',function(e){if(!drawing)return;var p=pos(e);ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p});
+  cv.addEventListener('pointerup',function(){if(!drawing)return;drawing=false;try{S.frames['sb'+key]=cv.toDataURL('image/png');saveSoon();hud&&hud()}catch(err){}});
+  cv.addEventListener('pointerleave',function(){if(drawing){drawing=false;try{S.frames['sb'+key]=cv.toDataURL('image/png');saveSoon()}catch(err){}}});
+ });
+ $$('[data-cap]').forEach(function(inp){inp.addEventListener('change',function(){S.sbCap[inp.getAttribute('data-cap')]=inp.value;saveSoon()})});
+ $$('[data-clr]').forEach(function(b){b.addEventListener('click',function(){
+  var key=b.getAttribute('data-clr'),cv=$('[data-cv="'+key+'"]');
+  delete S.frames['sb'+key];saveSoon();
+  if(cv){var ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);ctx.fillStyle='rgba(255,255,255,.02)';ctx.fillRect(0,0,cv.width,cv.height)}
+  toast('Panel cleared','good')})});
+ $$('[data-imp]').forEach(function(b){b.addEventListener('click',function(){
+  var key=b.getAttribute('data-imp'),i=document.createElement('input');i.type='file';i.accept='image/*';
+  i.onchange=function(){var f=i.files&&i.files[0];if(!f)return;var rd=new FileReader();
+   rd.onload=function(){S.frames['sb'+key]=rd.result;saveSoon();
+    var cv=$('[data-cv="'+key+'"]');if(cv){var ctx=cv.getContext('2d');var im=new Image();im.onload=function(){ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(im,0,0,cv.width,cv.height)};im.src=rd.result}
+    toast('Frame imported','good')};rd.readAsDataURL(f)};i.click()})});
+ function move(key,dir){
+  var parts=key.split(':'),si=+parts[0],pi=+parts[1];
+  var order=(S.sbOrder['s'+si]||[0,1,2,3,4,5]).slice();
+  var at=order.indexOf(pi);if(at<0)return;
+  var to=at+dir;if(to<0||to>=order.length)return;
+  order[at]=order[to];order[to]=pi;S.sbOrder['s'+si]=order;saveSoon();
+  var h=$('.hub.open');var body=h?h.querySelector('.hubbody'):null;
+  if(body){body.innerHTML=renderBoards()}
+ }
+ $$('[data-mvl]').forEach(function(b){b.addEventListener('click',function(){move(b.getAttribute('data-mvl'),-1)})});
+ $$('[data-mvr]').forEach(function(b){b.addEventListener('click',function(){move(b.getAttribute('data-mvr'),1)})});
+}
 function wireBoards(){ if(!(S.panels))S.panels={};
  $$('canvas[data-cv]').forEach(function(cv){var i=cv.getAttribute('data-cv');cv.width=cv.clientWidth||300;cv.height=cv.clientHeight||170;
   var ctx=cv.getContext('2d');if(S.panels[i]){var im=new Image();im.onload=function(){ctx.drawImage(im,0,0,cv.width,cv.height)};im.src=S.panels[i]}
