@@ -256,6 +256,9 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 function slug(s){return String(s||'').toUpperCase().replace(/[^A-Z0-9]+/g,'_').replace(/^_|_$/g,'')}
 function toNum(v,d){var n=parseFloat(String(v).replace(/[^0-9.\-]/g,''));return isFinite(n)?n:(d||0)}
 function money(n){return (S.project.currency||'$')+Math.round(n||0).toLocaleString('en-US')}
+/* execution-order trace: the bridge skips silently if the part has not initialised,
+   so every bridge call records whether proHUBparts existed at that moment. */
+function traceIt(ev, extra){ try{ var T=window.proHUBtrace=window.proHUBtrace||[]; T.push(Object.assign({e:ev,t:Date.now()},extra||{})); if(T.length>200)T.shift(); }catch(e){} }
 function pad(n){return (n<10?'0':'')+n}
 function todayISO(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
 function dateFrom(iso,add){var d=iso?new Date(iso+'T12:00:00'):new Date();d.setDate(d.getDate()+(add||0));return d}
@@ -341,8 +344,8 @@ try{localStorage.setItem('__prohub_test','1');localStorage.removeItem('__prohub_
 /* ---------- storage ---------- */
 var saveTimer=null,lastSaved=0;
 function save(quiet){
- try{ S.meta.savedAt=Date.now(); localStorage.setItem(STORE,JSON.stringify(S)); lastSaved=Date.now(); if(window.proHUBparts)window.proHUBparts.stamp(true); }
- catch(e){ STORAGE_OK=false; showStorageWarn(); if(window.proHUBparts)window.proHUBparts.stamp(false); }
+ try{ S.meta.savedAt=Date.now(); localStorage.setItem(STORE,JSON.stringify(S)); lastSaved=Date.now(); traceIt('stamp',{parts:!!window.proHUBparts});if(window.proHUBparts)window.proHUBparts.stamp(true); }
+ catch(e){ STORAGE_OK=false; showStorageWarn(); traceIt('stamp',{parts:!!window.proHUBparts});if(window.proHUBparts)window.proHUBparts.stamp(false); }
  if(!quiet) return true;
  return true;
 }
@@ -741,7 +744,7 @@ function projectDialog(){
   p.rateCast=toNum(r.rateCast,650); p.rateCrew=toNum(r.rateCrew,450); p.rateOps=toNum(r.rateOps,1200);
   p.postFlat=toNum(r.postFlat,25000); p.atlFlat=toNum(r.atlFlat,0);
   p.creditPct=toNum(r.creditPct,30); p.qualifiedPct=toNum(r.qualifiedPct,82);
-  if(window.proHUBparts)window.proHUBparts.bindFields(); save(true); renderTiles(); refreshOpenHub(); toast('Settings saved','good');
+  traceIt('bindFields',{parts:!!window.proHUBparts});if(window.proHUBparts)window.proHUBparts.bindFields(); save(true); renderTiles(); refreshOpenHub(); toast('Settings saved','good');
  });
 }
 
@@ -965,7 +968,7 @@ function pullFromPrehub(){
  if(!lines.length){ toast('The preHUB hand-off had no script in it','bad'); return; }
  if(d.projectName) S.project.title=String(d.projectName).toUpperCase();
  if(d.writerName) S.project.lineProducer=d.writerName;
- if(window.proHUBparts)window.proHUBparts.bindFields();
+ traceIt('bindFields',{parts:!!window.proHUBparts});if(window.proHUBparts)window.proHUBparts.bindFields();
  var when=d.ts?new Date(d.ts).toLocaleString():'earlier';
  ask({title:'preHUB hand-off found',icon:'pull',okLabel:'Bring it in',html:
   '<p style="font-size:13px;color:#B9C4D2">Found <b>'+lines.length+' script elements</b> for <b>'+esc(d.projectName||'untitled')+'</b>, sent '+esc(when)+'. Bringing it in replaces the script and board currently on this desk.</p>'})
@@ -2004,7 +2007,7 @@ function openVault(){
    ============================================================ */
 function boot(){
  var how=load();
- if(window.proHUBparts)window.proHUBparts.bindFields(); buildMenu(); bindChrome(); renderTiles(); tickClock();
+ traceIt('bindFields',{parts:!!window.proHUBparts});if(window.proHUBparts)window.proHUBparts.bindFields(); buildMenu(); bindChrome(); renderTiles(); tickClock();
  setInterval(tickClock,1000);
  setInterval(function(){ save(true) },20000);
  if(!STORAGE_OK)showStorageWarn();
@@ -2088,6 +2091,7 @@ function boot(){
 
    The assembler wraps this in its own IIFE, so the two tiny helpers it needs are local. */
 (function () {
+  try { (window.proHUBtrace = window.proHUBtrace || []).push({ e: 'parts:init', t: Date.now() }); } catch (e) {}
   function q(sel) { return document.querySelector(sel); }
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
 
@@ -2129,7 +2133,7 @@ function boot(){
   window.proHUBparts.actChrome = actChrome;
 })();
 })();
-window.proHUB={version:'1.0',get state(){return S},set state(v){S=v},pull:pullFromPrehub,reload:function(){return load()},
+window.proHUB={version:'1.0'},get state(){return S},set state(v){S=v},pull:pullFromPrehub,reload:function(){return load()},
  board:autoBoard,panels:buildPanels,dood:dood,budget:budgetTotals,sheet:sheetHTML,push:pushToPosthub,paint:paint,
  open:openHub,save:function(){return save(true)},apply:applyScript,lines:linesFromText,storageOk:function(){return STORAGE_OK}};
 /* prohub.ops - a deterministic surface for tests.
@@ -2153,6 +2157,7 @@ window.proHUB.ops = {
   },
   renderTiles: function () { try { return renderTiles(); } catch (e) { return 'threw: ' + e.message; } },
   saveSoon: function () { try { return saveSoon(); } catch (e) { return 'threw: ' + e.message; } },
+  trace: function () { return (window.proHUBtrace || []).slice(); },
   ready: function () { return !!document.querySelector('.tile'); },
   modules: function () {
     return Array.prototype.slice.call(document.querySelectorAll('.tile[data-mod]'))
