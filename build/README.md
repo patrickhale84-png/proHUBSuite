@@ -41,3 +41,4 @@ CI does all three, then boots the assembled file inside a Wix-shaped embed.
 
 No module ever edits another. Nothing is inserted by hand.
 <!-- ci trigger 08:59:35 -->
+<!-- rerun 09:01:28 -->
