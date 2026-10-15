@@ -409,7 +409,7 @@ var MICON={file:'<path d="M6 3h8l5 5v13H6z"/><path d="M14 3v5h5"/>',
  cust:'<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
  help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.6 2.6 0 115 1c0 1.6-2.5 2-2.5 3.6"/><path d="M12 17.5h.01"/>'};
 var MENUS=[
- ['file','File',[['New script','file-new'],['Open a project&#8230;','file-open'],['Save','file-save'],['Import a script&#8230;','file-import'],['Export as Fountain','file-export'],['Print or save as PDF','file-print']]],
+ ['file','File',[['New script','file-new'],['Open a project&#8230;','file-open'],['Save','file-save'],['Import a script&#8230;','file-import'],['Export as Fountain','file-export'],['Print or save as PDF','file-print'],['Close the desk','file-close']]],
  ['edit','Edit',[['Find&#8230;','edit-find'],['Select all','edit-select'],['Reformat lines','edit-reformat'],['Take a snapshot','edit-snapshot']]],
  ['format','Format',[['Scene heading','fmt-SCENE_HEADING'],['Action','fmt-ACTION'],['Character','fmt-CHARACTER'],['Parenthetical','fmt-PARENTHETICAL'],['Dialogue','fmt-DIALOGUE'],['Transition','fmt-TRANSITION'],['Page setup&#8230;','fmt-doc']]],
  ['share','Share',[['Transmit to proHUB','share-transmit'],['Copy the script','share-copy'],['Print or save as PDF','file-print']]],
@@ -427,9 +427,11 @@ function mwrap(id,label,items){
  out.push('</div></div>');
  return out.join('');
 }
+function closeMenus(){$$('.mwrap').forEach(function(w){w.classList.remove('open')})}
 function menuGo(id){
  try{
  if(id==='file-new'){setLines([{type:'SCENE_HEADING',text:'INT. LOCATION - DAY'},{type:'ACTION',text:''}]);toast('New script','good');return}
+ if(id==='file-close'){var cb=$('#btnX');if(cb)cb.click();return}
  if(id==='file-open'){openHub('vault');return}
  if(id==='share-transmit'||id==='prod-transmit'){var b=$('#btnTx');if(b)b.click();else toast('Transmit sits in the toolbar','bad');return}
  if(id==='share-copy'){navigator.clipboard.writeText(scriptFountain());toast('Script copied','good');return}
@@ -1227,6 +1229,7 @@ function deskBuild(){
  ins.innerHTML='<div class="dph dtabbar"><button type="button" class="dtab on" data-rp="insp">Inspector</button><button type="button" class="dtab" data-rp="gram">Grammar</button><button type="button" class="dtab" data-rp="mark">Marks</button></div><div id="dinsp"></div><div id="dgram" class="dtabbody" style="display:none"></div><div id="dmark" class="dtabbody" style="display:none"></div>';
  var pw=$('.paperwrap',h);
  try{  }catch(e){}
+try{tb.style.display='none'}catch(e){}
 box.insertBefore(tb,body);body.innerHTML='';
  grid.appendChild(nv);grid.appendChild(ce);grid.appendChild(ins);
  if(pw)ce.appendChild(pw);body.appendChild(grid);
