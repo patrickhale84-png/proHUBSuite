@@ -73,7 +73,26 @@ function span(mins) {
 }
 
 var lastCount = null;
+
+/* crew mode: the call time leads the banner for a crew member */
+var _lastRole=null;
+function roleNow(){try{return localStorage.getItem('filmhub_role_v1')||''}catch(e){return ''}}
+function emphasiseRole(){
+ var r=roleNow(); if(r===_lastRole) return; _lastRole=r;
+ var bar=document.getElementById('banner'); if(!bar) return;
+ bar.setAttribute('data-role',r||'none');
+ var v=document.getElementById('bnCall'),slot=v?v.parentNode:null;
+ if(slot){slot.classList.add('call-slot');
+  var label=slot.querySelector('.k'); if(label) label.textContent=(r==='crew')?'My call':'Current call';}
+}
+(function(){if(document.getElementById('crewBannerStyle'))return;
+ var s=document.createElement('style');s.id='crewBannerStyle';
+ s.textContent='.banner[data-role="crew"] .call-slot{order:-1;padding-left:0;border-left:0}'+
+  '.banner[data-role="crew"] .call-slot .v{font-size:40px;line-height:1;color:#E2A93B;font-weight:600}';
+ document.head.appendChild(s);})();
+
 function paint() {
+  try{emphasiseRole()}catch(e){}
   var e = el('bnCall'); if (e && e.textContent !== (B.call || 'not set')) e.textContent = B.call || 'not set';
   e = el('bnNext'); if (e && e.textContent !== (B.next || 'not set')) e.textContent = B.next || 'not set';
   e = el('bnDay'); if (e && B.day) { var d = 'DAY ' + B.day; if (e.textContent !== d) e.textContent = d; }
