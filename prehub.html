@@ -94,7 +94,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 .mib:hover{background:#1E293B;}
 @keyframes pa{0%,100%{opacity:1;}50%{opacity:.4;}}
 .pa{animation:pa 2s infinite;}
-@media print{body{background:#fff!important;color:#000!important;}header,.psb,.tbr,#rib,footer,.np{display:none!important;}.esr{padding:0!important;background:#fff!important;overflow:visible!important;}.pp{border:none!important;box-shadow:none!important;background:#fff!important;color:#000!important;width:100%!important;min-height:0!important;}.leb{color:#000!important;}}
+/* @media print consolidated below */
 
     /* 100% ACCURATE SCREENPLAY PAGE METRICS ARCHITECTURE (8.5" x 11") */
     .paper-sheet-container {
@@ -268,24 +268,81 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 
     /* Print View Definition Layout Sheet */
     @media print {
-      body { background-color: #FFFFFF !important; color: #000000 !important; font-family: 'Courier Prime', monospace !important; }
-      header, footer, #quick-action-ribbon, #coverage-alert-sidebar-pane, #collab-drawer-simulator-view, .no-print, #ui-ingest-modal-overlay { display: none !important; }
+      /* ── Base ── */
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { background-color: #FFFFFF !important; color: #000000 !important; }
+      #tc, nav, aside, header, footer,
+      .psb, .tbr, #rib, #quick-action-ribbon,
+      #coverage-alert-sidebar-pane, #collab-drawer-simulator-view,
+      .no-print, .np, #ui-ingest-modal-overlay { display: none !important; }
+
+      /* Hide all views; printView() sets body[data-print-view] to reveal one */
+      .vs { display: none !important; overflow: visible !important; }
+
+      /* ── SCREENWRITER (default print or explicit) ── */
+      body:not([data-print-view]) #v-writer,
+      body[data-print-view="writer"] #v-writer {
+        display: block !important; overflow: visible !important;
+        background: #fff !important; flex: none !important;
+      }
       #editor-scroller-viewport { padding: 0 !important; overflow: visible !important; background-color: #FFFFFF !important; }
-      .paper-sheet-container { 
-        border: none !important; 
-        box-shadow: none !important; 
-        background-color: #FFFFFF !important; 
-        color: #000000 !important; 
-        width: 100% !important; 
-        min-height: 0 !important; 
-        padding: 0.8in 1in 0.8in 1.4in !important; 
+      .paper-sheet-container {
+        border: none !important; box-shadow: none !important;
+        background-color: #FFFFFF !important; color: #000000 !important;
+        width: 100% !important; min-height: 0 !important;
+        padding: 0.8in 1in 0.8in 1.4in !important;
+        font-family: 'Courier Prime', monospace !important;
         page-break-after: always;
       }
-      .line-editable-box { color: #000000 !important; }
+      .line-editable-box, .leb { color: #000000 !important; }
       .element-character { padding-left: 2.0in !important; }
       .element-parenthetical { padding-left: 1.4in !important; padding-right: 1.4in !important; }
       .element-dialogue { padding-left: 0.9in !important; padding-right: 1.2in !important; }
       #ui-page-footer-counter-wrap { color: #000000 !important; }
+
+      /* ── PITCH DECK ── */
+      body[data-print-view="pitch"] #v-pitch {
+        display: block !important; overflow: visible !important;
+        background: #fff !important; flex: none !important;
+      }
+      body[data-print-view="pitch"] #pitch-inputs,
+      body[data-print-view="pitch"] .pitch-header-row { display: none !important; }
+      body[data-print-view="pitch"] #pg {
+        background: #fff !important; color: #000 !important;
+      }
+      body[data-print-view="pitch"] #pg > * {
+        page-break-inside: avoid; margin-bottom: 8px;
+        background: #f9f9f9 !important; color: #000 !important;
+        border: 1px solid #ccc !important; box-shadow: none !important;
+      }
+
+      /* ── COVERAGE ── */
+      body[data-print-view="coverage"] #v-coverage {
+        display: block !important; overflow: visible !important;
+        background: #fff !important; flex: none !important;
+        flex-direction: column !important;
+      }
+      body[data-print-view="coverage"] #v-coverage > .flex > *:first-child { display: none !important; }
+      body[data-print-view="coverage"] #cv-body {
+        overflow: visible !important; color: #000 !important; background: #fff !important;
+        max-height: none !important;
+      }
+
+      /* ── BUDGET ── */
+      body[data-print-view="budget"] #v-budget {
+        display: block !important; overflow: visible !important;
+        background: #fff !important; flex: none !important;
+      }
+
+      /* ── STORYBOARD ── */
+      body[data-print-view="storyboard"] #v-storyboard {
+        display: block !important; overflow: visible !important;
+        background: #fff !important; flex: none !important;
+      }
+
+      /* Legacy compat */
+      .esr { padding: 0 !important; background: #fff !important; overflow: visible !important; }
+      .pp { border: none !important; box-shadow: none !important; background: #fff !important; color: #000 !important; width: 100% !important; min-height: 0 !important; }
     }
     /* animate-fade-in utility — used by script line rows and collab badge */
     @keyframes fadeInRow{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
@@ -438,7 +495,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
   <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-3 border-b border-gray-800 pb-5">
     <div>
       <h1 class="text-2xl md:text-3xl font-black text-white tracking-widest uppercase" style="font-family:var(--fds)">Pre-Production Hub</h1>
-      <p class="text-gray-400 text-xs sm:text-sm mt-1">Screenplay authoring, heuristic evaluation, pitch decks, visual storyboards, macro budgeting.</p>
+      <p class="text-gray-400 text-xs sm:text-sm mt-1">Screenplay authoring · Heuristic evaluation · Pitch decks · Visual storyboards · Macro budgeting · Script analysis · Film research · Outreach</p>
     </div>
     <label class="cursor-pointer bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-4 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2">
       <i class="fa-solid fa-file-import text-amber-400"></i> Import PDF / Script
@@ -471,11 +528,26 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       <div class="micon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
       <div><div class="mtit">5. Pre-Lim Budget</div><div class="msub">ATL · BTL · Post · Contingency</div></div>
     </div>
-    <div class="mtile" style="background:#C0392B;" onclick="txProHub()">
-      <div class="mbadge">BRIDGE</div>
-      <div class="micon"><i class="fa-solid fa-rocket"></i></div>
-      <div><div class="mtit">6. Transmit to proHUB</div><div class="msub">Bridge Manifests · Scene Units</div></div>
+    <div class="mtile" style="background:#4F46E5;" onclick="sw('scripts')">
+      <div class="mbadge">PARSER</div>
+      <div class="micon"><i class="fa-solid fa-scroll"></i></div>
+      <div><div class="mtit">6. Script Reader</div><div class="msub">Upload · Analyze · Compare</div></div>
     </div>
+    <div class="mtile" style="background:#BE123C;" onclick="sw('filmdb')">
+      <div class="mbadge">TMDB</div>
+      <div class="micon"><i class="fa-solid fa-film"></i></div>
+      <div><div class="mtit">7. Film Database</div><div class="msub">Comps · Loglines · Research</div></div>
+    </div>
+    <div class="mtile" style="background:#0E7490;" onclick="sw('outreach')">
+      <div class="mbadge">TRACKER</div>
+      <div class="micon"><i class="fa-solid fa-envelope-open-text"></i></div>
+      <div><div class="mtit">8. Outreach</div><div class="msub">Distributors · Query Letters</div></div>
+    </div>
+  </div>
+  <div class="mt-4 text-center">
+    <button onclick="txProHub()" class="text-xs font-bold tracking-wider uppercase px-5 py-2 rounded-lg border transition" style="background:rgba(192,57,43,.12);color:#E07060;border-color:#7B2D24;">
+      <i class="fa-solid fa-rocket mr-2"></i>Transmit to proHUB — Bridge Manifests &amp; Scene Units
+    </button>
   </div>
 </div>
 </section>
@@ -993,7 +1065,8 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       <div id="cv-body" class="hidden space-y-0 max-w-2xl mx-auto pb-4"></div>
       <!-- Export row -->
       <div id="cv-export-row" class="hidden flex gap-3 pt-2 border-t border-slate-900 max-w-2xl mx-auto mt-2">
-        <button onclick="exportCoverage()" class="flex-1 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono font-bold text-[10px] uppercase rounded transition flex items-center justify-center gap-1.5"><i class="fa-solid fa-download"></i> Export Coverage</button>
+        <button onclick="exportCoverage()" class="flex-1 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono font-bold text-[10px] uppercase rounded transition flex items-center justify-center gap-1.5"><i class="fa-solid fa-download"></i> Export .txt</button>
+        <button onclick="exportCoveragePDF()" class="flex-1 py-2 bg-rose-950/60 hover:bg-rose-900/60 border border-rose-900 text-rose-300 font-mono font-bold text-[10px] uppercase rounded transition flex items-center justify-center gap-1.5"><i class="fa-solid fa-file-pdf"></i> Print PDF</button>
         <button onclick="sw('writer')" class="flex-1 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 font-mono font-bold text-[10px] uppercase rounded transition flex items-center justify-center gap-1.5"><i class="fa-solid fa-share-nodes"></i> Back to Writer</button>
       </div>
     </div>
@@ -1005,7 +1078,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 <div class="max-w-7xl mx-auto w-full p-5 space-y-5">
 
   <!-- Header -->
-  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-3">
+  <div class="pitch-header-row flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-3">
     <div>
       <h2 class="text-xl font-black text-white uppercase tracking-wider flex items-center gap-2" style="font-family:var(--fds)"><i class="fa-solid fa-film mr-2 text-purple-400"></i>PITCH DECK BUILDER</h2>
       <p class="text-xs text-gray-500">Build a complete pitch package. Images sourced from Unsplash by genre &amp; mood keywords.</p>
@@ -1019,7 +1092,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
   <!-- Input panel -->
   <div id="pitch-inputs" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/50 border border-slate-800 rounded-xl p-5">
     <div class="space-y-3">
-      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Title</label><input id="wni" placeholder="Script Title" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2 placeholder-slate-600"></div>
+      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Title</label><input id="pitch-title" placeholder="Script Title" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2 placeholder-slate-600"></div>
       <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Logline (1-2 sentences)</label><textarea id="pitch-logline" rows="2" placeholder="When X happens to Y, they must Z before Q..." class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2 placeholder-slate-600 resize-none"></textarea></div>
       <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Genre</label><select id="pitch-genre" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2"><option value="drama">Drama</option><option value="thriller">Thriller</option><option value="crime">Crime / Noir</option><option value="horror">Horror</option><option value="sci-fi">Sci-Fi</option><option value="action">Action / Adventure</option><option value="comedy">Comedy</option><option value="romance">Romance</option><option value="biopic">Biopic / True Story</option><option value="western">Western</option></select></div>
       <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Tone / Mood</label><select id="pitch-tone" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2"><option value="dark,cinematic">Dark &amp; Cinematic</option><option value="gritty,urban">Gritty Urban</option><option value="atmospheric,mysterious">Atmospheric &amp; Mysterious</option><option value="warm,intimate">Warm &amp; Intimate</option><option value="tense,suspense">High-Tension</option><option value="epic,grand">Epic &amp; Grand</option><option value="minimalist,quiet">Minimalist &amp; Quiet</option><option value="neon,stylized">Neon &amp; Stylized</option></select></div>
@@ -1071,7 +1144,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       <div class="relative group">
         <button class="px-3 py-1 bg-slate-900 border border-slate-800 text-slate-300 font-mono font-bold text-[10px] rounded hover:bg-slate-800 flex items-center gap-1"><i class="fa-solid fa-file-export text-[9px]"></i> Export</button>
         <div class="absolute right-0 bottom-full mb-1 w-48 bg-slate-950 border border-slate-800 rounded shadow-2xl py-1 hidden group-hover:block text-xs z-40">
-          <button onclick="window.print()" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-file-pdf text-rose-400 w-4"></i> Print Board (PDF)</button>
+          <button onclick="printView('storyboard')" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-file-pdf text-rose-400 w-4"></i> Print Board (PDF)</button>
           <button onclick="exportSBJ()" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-cubes text-purple-400 w-4"></i> Storyboard JSON</button>
           <button onclick="exportSBCSV()" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-table text-teal-400 w-4"></i> Shot List CSV</button>
           <button onclick="exportBoardAsScript()" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-file-lines text-indigo-400 w-4"></i> Board → Script</button>
@@ -1136,6 +1209,9 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       <span>Total Macro Budget</span><span id="bt" class="text-emerald-400">$440,000</span>
     </div>
   </div>
+  <div class="flex justify-end">
+    <button onclick="exportBudgetPDF()" class="px-4 py-2 bg-rose-950/50 hover:bg-rose-900/60 border border-rose-900 text-rose-300 font-mono font-bold text-xs rounded transition flex items-center gap-1.5"><i class="fa-solid fa-file-pdf"></i> Print Budget PDF</button>
+  </div>
 </div>
 </section>
 
@@ -1170,7 +1246,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 </section>
 
 <!-- VIEW 7: FILM DATABASE (TMDB) -->
-<section id="v-filmdb" class="vs" style="background:#07090F;">
+<section id="v-filmdb" class="vs" style="background:#07090F;position:relative;">
   <div style="display:flex;height:100%;overflow:hidden;flex-direction:column;">
     <div style="padding:10px 16px;border-bottom:1px solid #1E293B;background:#080B12;display:flex;align-items:center;gap:10px;flex-shrink:0;">
       <i class="fa-solid fa-film" style="color:#F43F5E;font-size:13px;"></i>
@@ -1179,6 +1255,8 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       <div style="width:1px;background:#1E293B;height:20px;"></div>
       <input id="fdb-key-input" type="password" placeholder="TMDB API Key" style="width:160px;background:#0A0D14;border:1px solid #1E293B;border-radius:4px;padding:4px 8px;color:#475569;font-family:monospace;font-size:9px;outline:none;" oninput="fdbSetKey(this.value)"/>
       <a href="https://www.themoviedb.org/settings/api" target="_blank" style="font-size:8px;color:#334155;font-family:monospace;text-decoration:none;white-space:nowrap;" title="Get a free TMDB API key">GET KEY ↗</a>
+      <div style="width:1px;background:#1E293B;height:20px;"></div>
+      <button onclick="openFdbSrModal()" style="background:rgba(79,70,229,.18);color:#818CF8;border:1px solid #3730A3;border-radius:4px;padding:4px 10px;font-size:9px;font-family:monospace;cursor:pointer;font-weight:700;white-space:nowrap;" title="Open Script Reader alongside Film DB"><i class="fa-solid fa-scroll" style="margin-right:4px;"></i>SCRIPTS</button>
     </div>
     <div style="display:flex;flex:1;overflow:hidden;">
       <div style="flex:1;overflow-y:auto;padding:16px;min-width:0;">
@@ -1188,6 +1266,26 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       </div>
       <div style="width:310px;flex-shrink:0;background:#0A0D14;border-left:1px solid #1E293B;overflow-y:auto;">
         <div id="fdb-panel"><div style="color:#1E293B;text-align:center;padding:60px 16px;font-family:monospace;font-size:11px;">Select a film to view details.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script Reader Modal — overlays Film DB view -->
+  <div id="fdb-sr-modal" style="display:none;position:absolute;inset:0;z-index:50;background:rgba(7,9,15,.97);flex-direction:column;">
+    <div style="padding:10px 16px;border-bottom:1px solid #1E293B;background:#080B12;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <i class="fa-solid fa-scroll" style="color:#818CF8;font-size:13px;"></i>
+      <span style="font-family:monospace;font-size:11px;font-weight:700;color:#818CF8;letter-spacing:.08em;white-space:nowrap;">SCRIPT READER</span>
+      <select id="fdb-sr-select" onchange="fdbSrSelect(this.value)" style="background:#0A0D14;border:1px solid #1E293B;border-radius:4px;padding:3px 8px;color:#94A3B8;font-family:monospace;font-size:9px;outline:none;max-width:220px;"></select>
+      <input id="fdb-sr-search" type="text" placeholder="Search script…" oninput="fdbSrSearch(this.value)" style="flex:1;background:#0A0D14;border:1px solid #1E293B;border-radius:4px;padding:4px 8px;color:#E2E8F0;font-family:monospace;font-size:11px;outline:none;"/>
+      <span id="fdb-sr-match" style="font-size:9px;color:#475569;font-family:monospace;white-space:nowrap;min-width:60px;"></span>
+      <button onclick="closeFdbSrModal()" style="background:rgba(244,63,94,.12);color:#FB7185;border:1px solid #9F1239;border-radius:4px;padding:4px 12px;font-size:9px;font-family:monospace;cursor:pointer;font-weight:700;">✕ CLOSE</button>
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden;">
+      <div id="fdb-sr-reader" style="flex:1;overflow-y:auto;padding:24px 48px;font-size:13px;line-height:1.9;color:#94A3B8;font-family:'Courier Prime',monospace;background:#07090F;">
+        <div style="color:#1E293B;text-align:center;margin-top:80px;font-size:13px;">Load a script to begin reading.</div>
+      </div>
+      <div id="fdb-sr-analysis" style="width:220px;flex-shrink:0;background:#0A0D14;border-left:1px solid #1E293B;overflow-y:auto;padding:12px;">
+        <div style="color:#1E293B;font-size:9px;font-family:monospace;">No script selected.</div>
       </div>
     </div>
   </div>
@@ -1282,10 +1380,6 @@ function exportJSON(){const d=JSON.stringify(S,null,2),b=new Blob([d],{type:'app
 function importJSON(event){const f=event.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=e=>{try{const p=JSON.parse(e.target.result);S={...S,...p};if(S.projectName)document.getElementById('pni').value=S.projectName;if(S.writerName)document.getElementById('wni').value=S.writerName;renderBudget();renderVV();updateGUI();toast('Restored JSON state.');}catch{toast('Error parsing JSON.');}};rd.readAsText(f);event.target.value='';}
 function autoSave(){try{localStorage.setItem('prehub_v3',JSON.stringify(S));}catch(e){}}
 // ========== SCREENWRITER ENGINE ==========
-// Configure PDF.js Worker
-    if (window.pdfjsLib) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
 
     const SAMPLE_SCRIPT_PAYLOAD_STRING = `1 EXT. HOUSE / CARPORT - NIGHT 1
 
@@ -1824,8 +1918,10 @@ let isTitlePageVisible = false;
 
       executeQuickPdfPrint() {
         this.showSystemToast("Generating formatted Screenplay PDF...");
+        document.body.setAttribute('data-print-view', 'writer');
         setTimeout(() => {
           window.print();
+          document.body.removeAttribute('data-print-view');
         }, 150);
       },
 
@@ -3311,7 +3407,10 @@ function renderHalionCoverage(parsed,finalScores,axisResults,allResults){const v
 function exportCoverage(){const body=document.getElementById('cv-body');if(!body||body.classList.contains('hidden'))return toast('Run coverage first.');const txt=body.innerText;const bl=new Blob([txt],{type:'text/plain'});const u=URL.createObjectURL(bl);const a=document.createElement('a');a.href=u;a.download=(document.getElementById('pni')?.value||'script').replace(/\s+/g,'_')+'_HALION_coverage.txt';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);toast('Coverage exported.');}
 async function runCov(){const tx=document.getElementById('cta').value.trim();if(!tx)return toast('Paste or sync a screenplay first.');const fmt=document.getElementById('cff').value||'FEATURE';document.getElementById('ce').classList.add('hidden');document.getElementById('cv-score-tiles').classList.add('hidden');document.getElementById('cv-score-tiles').innerHTML='';document.getElementById('cv-verdict').classList.add('hidden');document.getElementById('cv-body').classList.add('hidden');document.getElementById('cv-export-row').classList.add('hidden');const loadEl=document.getElementById('cv-loading');loadEl.classList.remove('hidden');const logEl=document.getElementById('cv-spline-log');if(logEl)logEl.innerHTML='';const barEl=document.getElementById('cv-spline-bar');const lblEl=document.getElementById('cv-spline-label');const stpEl=document.getElementById('cv-spline-step');const pctEl=document.getElementById('cv-spline-pct');if(barEl)barEl.style.width='0%';const splines=['Initializing HALION Engine...','Parsing scene headings...','Indexing character slugs...','Building dialogue distribution map...','Mapping protagonist dialogue arc...','Evaluating agency markers (P01-P03)...','Scoring supporting cast depth (P04-P07)...','Analyzing relationship dynamics (P08-P14)...','Calculating three-act structure (P15-P17)...','Running pacing dead-zone scan (P18)...','Measuring inciting incident placement (P20)...','Midpoint shift analysis (P21)...','Exposition distribution check (P28)...','Voice differentiation matrix (P29-P31)...','Subtext density pass (P30)...','Measuring climactic dialogue power (P40)...','Originality and premise analysis (P41-P50)...','Emotional stakes scan (P51-P55)...','Sensory specificity index (P52)...','Catharsis delivery check (P56-P60)...','Central theme mapping (P61-P65)...','Thematic payoff analysis (P69)...','Commercial viability pass (P71-P80)...','Craft integrity evaluation (P81-P100)...','Aggregating 100-parameter scores...','Computing axis-weighted averages...','Generating coverage narrative...','Drafting market diagnostics...','Final QA pass...','Coverage ready. Rendering report...'];for(let i=0;i<30;i++){await new Promise(r=>setTimeout(r,1000));const pct=Math.round(((i+1)/30)*100);if(logEl){const ln=document.createElement('div');ln.className='text-[10px] font-mono text-emerald-400/70';ln.textContent='> '+(splines[i]||'Processing...');logEl.appendChild(ln);logEl.scrollTop=logEl.scrollHeight;}if(barEl)barEl.style.width=pct+'%';if(lblEl)lblEl.textContent=splines[i]||'Processing...';if(stpEl)stpEl.textContent=(i+1)+'/30';if(pctEl)pctEl.textContent=pct+'%';}try{const parsed=HalionParser.parse(tx,fmt);const{finalScores,axisResults,allResults}=computeAxisScores(parsed);loadEl.classList.add('hidden');const tilesEl=document.getElementById('cv-score-tiles');tilesEl.innerHTML=renderHalionScoreTiles(finalScores);tilesEl.classList.remove('hidden');document.getElementById('cv-verdict').classList.remove('hidden');document.getElementById('cv-body').classList.remove('hidden');document.getElementById('cv-export-row').classList.remove('hidden');renderHalionCoverage(parsed,finalScores,axisResults,allResults);toast('HALION coverage complete.');}catch(err){loadEl.classList.add('hidden');document.getElementById('ce').classList.remove('hidden');toast('Coverage error: '+(err.message||'parse failed'));}}
 // ========== PITCH DECK ==========
-function exportPitchPDF(){window.print();toast('Use browser print dialog — set to PDF output.');}
+function exportPitchPDF(){printView('pitch');}
+function printView(view){document.body.setAttribute('data-print-view',view);window.print();document.body.removeAttribute('data-print-view');}
+function exportCoveragePDF(){printView('coverage');}
+function exportBudgetPDF(){printView('budget');}
 function _unsplashUrl(keywords, w, h) {
   /* Unsplash Source API — free, no key required */
   const kw = encodeURIComponent(keywords.replace(/[,]+/g,' '));
@@ -3323,7 +3422,7 @@ function genPitch(){const g=document.getElementById('pg');if(!g)return;const wn=
   const comps=document.getElementById('pitch-comps')?.value||'';
   const market=document.getElementById('pitch-market')?.value||'Adult drama / prestige';
   const budgetRange=document.getElementById('pitch-budget')?.value||'Mid-range ($5M–$30M)';
-  const title=wn&&wn!=='Unknown Writer'?document.getElementById('wni')?.value||'UNTITLED PROJECT':'UNTITLED PROJECT';
+  const title=document.getElementById('pitch-title')?.value||'UNTITLED PROJECT';
   const imgKw = (kw) => _unsplashUrl(`${genre},${tone},${kw},cinematic,film`, 900, 500);
   const tmpls=[
     {ti:'TITLE PAGE',kw:'cinematic title credits dark film noir',body:`<div class="pitch-hero" style="text-align:center;padding:24px 0"><div style="font-size:32px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#fff;font-family:var(--fds);text-shadow:0 2px 20px rgba(0,0,0,.8)">${title||'UNTITLED PROJECT'}</div><div style="margin-top:8px;font-size:13px;color:#94A3B8;font-style:italic">Written by ${wn||'[Writer]'}</div><div style="margin-top:4px;font-size:11px;color:#4B5563;text-transform:uppercase;letter-spacing:.15em">${genre.toUpperCase()} · ${budgetRange}</div></div>`},
@@ -3962,7 +4061,7 @@ function srRenderAnalysis(s){const el=document.getElementById('sr-analysis');if(
 }
 function srCompare(id1,id2){const a=srScripts.find(x=>x.id===id1),b=srScripts.find(x=>x.id===id2);if(!a||!b)return;const el=document.getElementById('sr-analysis');if(!el)return;const c1=SR_TC[a.stats.budgetTier],c2=SR_TC[b.stats.budgetTier];const RW=(l,v1,v2)=>`<tr><td style="padding:4px 6px;color:#4B5563;font-size:9px;font-family:monospace;border-bottom:1px solid #0F172A;">${l}</td><td style="padding:4px 6px;text-align:center;color:#E2E8F0;font-size:9px;font-family:monospace;border-bottom:1px solid #0F172A;">${v1}</td><td style="padding:4px 6px;text-align:center;color:#E2E8F0;font-size:9px;font-family:monospace;border-bottom:1px solid #0F172A;">${v2}</td></tr>`;el.innerHTML=`<button onclick="srRenderAnalysis(srScripts.find(x=>x.id===srActiveId))" style="background:none;border:none;color:#475569;font-size:9px;font-family:monospace;cursor:pointer;margin-bottom:10px;">← Back</button><div style="font-size:8px;color:#374151;font-family:monospace;letter-spacing:.1em;margin-bottom:8px;">COMPARISON</div><table style="width:100%;border-collapse:collapse;"><thead><tr><th style="padding:4px 6px;font-size:7px;color:#374151;font-family:monospace;text-align:left;border-bottom:1px solid #1E293B;"></th><th style="padding:4px 6px;font-size:8px;color:#94A3B8;font-family:monospace;border-bottom:1px solid #1E293B;max-width:80px;overflow:hidden;text-overflow:ellipsis;">${a.name.substring(0,12)}</th><th style="padding:4px 6px;font-size:8px;color:#94A3B8;font-family:monospace;border-bottom:1px solid #1E293B;max-width:80px;overflow:hidden;text-overflow:ellipsis;">${b.name.substring(0,12)}</th></tr></thead><tbody>${RW('Tier',`<span style="color:${c1};font-weight:700;">${a.stats.budgetTier}</span>`,`<span style="color:${c2};font-weight:700;">${b.stats.budgetTier}</span>`)}${RW('Scenes',a.stats.sceneCount,b.stats.sceneCount)}${RW('Locations',a.stats.locations.length,b.stats.locations.length)}${RW('INT/EXT',a.stats.intCount+'/'+a.stats.extCount,b.stats.intCount+'/'+b.stats.extCount)}${RW('Nights',a.stats.nightCount,b.stats.nightCount)}${RW('Cast',a.stats.castSize,b.stats.castSize)}${RW('Pages',a.stats.pageEst,b.stats.pageEst)}${RW('Days',a.stats.shootDays,b.stats.shootDays)}${RW('VFX',a.stats.vfxCount,b.stats.vfxCount)}${RW('Score',a.stats.budgetScore,b.stats.budgetScore)}</tbody></table>`;}
 function srUseForBoard(){const s=srScripts.find(x=>x.id===srActiveId);if(!s)return;try{const ta=document.querySelector('#script-editable-node-rows-stack');if(ta){const lines=srParseLines(s.text);lines.filter(l=>l.type==='SCENE').forEach(l=>{if(typeof addSBCard==='function')addSBCard(l.text);});}}catch(e){}sw('storyboard');toast('Script loaded into Storyboard.');}
-function srUseForCoverage(){const s=srScripts.find(x=>x.id===srActiveId);if(!s)return;const ta=document.getElementById('evl-script-input')||document.querySelector('textarea');if(ta)ta.value=s.text;sw('coverage');toast('Script loaded into Evaluator.');}
+function srUseForCoverage(){const s=srScripts.find(x=>x.id===srActiveId);if(!s)return;const ta=document.getElementById('cta');if(ta)ta.value=s.text;sw('coverage');toast('Script loaded into Evaluator.');}
 
 // ========== FILM DATABASE (TMDB) ==========
 let fdbKey='',fdbResults=[],fdbSel=null;
@@ -3973,8 +4072,47 @@ function fdbRenderGrid(){const el=document.getElementById('fdb-grid');if(!el)ret
 async function fdbDetail(id){if(!fdbKey)return;try{const r=await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${fdbKey}&append_to_response=credits`);fdbSel=await r.json();fdbRenderPanel();}catch(e){toast('Could not load film details.');}}
 function fdbRenderPanel(){const el=document.getElementById('fdb-panel');if(!el||!fdbSel)return;const m=fdbSel;const img=m.poster_path?`https://image.tmdb.org/t/p/w342${m.poster_path}`:null;const yr=m.release_date?m.release_date.substring(0,4):'';const genres=(m.genres||[]).map(g=>g.name).join(' · ');const cast=(m.credits?.cast||[]).slice(0,6).map(c=>c.name).join(', ');const dir=(m.credits?.crew||[]).find(c=>c.job==='Director')?.name||'';const budget=m.budget>0?'$'+m.budget.toLocaleString():'—';const revenue=m.revenue>0?'$'+m.revenue.toLocaleString():'—';const logline=_fdbLogline(m,dir);const SB=(l,v)=>`<div style="background:#0F172A;border-radius:5px;padding:7px 8px;"><div style="font-size:7px;color:#374151;font-family:monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px;">${l}</div><div style="font-size:9px;color:#94A3B8;font-weight:700;font-family:monospace;">${v}</div></div>`;el.innerHTML=`<div style="padding:16px;"><div style="display:flex;gap:12px;margin-bottom:14px;">${img?`<img src="${img}" style="width:90px;flex-shrink:0;border-radius:6px;object-fit:cover;" alt="">`:'<div style="width:90px;flex-shrink:0;background:#0F172A;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#1E293B;font-family:monospace;">NO IMG</div>'}<div style="min-width:0;"><div style="font-size:14px;font-weight:900;color:#E2E8F0;font-family:monospace;line-height:1.2;margin-bottom:4px;">${m.title}</div><div style="font-size:9px;color:#475569;font-family:monospace;margin-bottom:4px;">${yr}${dir?' · Dir. '+dir:''}</div><div style="font-size:9px;color:#334155;font-family:monospace;">${genres}</div>${m.tagline?`<div style="font-size:9px;color:#7C3AED;font-style:italic;margin-top:5px;font-family:monospace;">"${m.tagline}"</div>`:''}</div></div><div style="font-size:8px;color:#374151;font-family:monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;">Logline</div><div style="font-size:9px;color:#94A3B8;font-family:monospace;line-height:1.7;margin-bottom:12px;padding:9px;background:#0F172A;border-radius:5px;border-left:2px solid #7C3AED;">${logline}</div><div style="font-size:8px;color:#374151;font-family:monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;">Synopsis</div><div style="font-size:9px;color:#475569;font-family:monospace;line-height:1.8;margin-bottom:12px;">${m.overview||'No synopsis available.'}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">${SB('Budget',budget)}${SB('Revenue',revenue)}${SB('Runtime',(m.runtime||0)+' min')}${SB('Rating',m.vote_average?'★'+m.vote_average.toFixed(1):'—')}</div>${cast?`<div style="font-size:8px;color:#374151;font-family:monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;">Cast</div><div style="font-size:9px;color:#475569;font-family:monospace;margin-bottom:12px;">${cast}</div>`:''}<div style="display:flex;gap:6px;flex-wrap:wrap;"><button onclick="fdbUsePitch()" style="background:rgba(124,58,237,.18);color:#A78BFA;border:1px solid #6D28D9;border-radius:4px;padding:4px 10px;font-size:9px;font-family:monospace;cursor:pointer;font-weight:700;"><i class="fa-solid fa-images mr-1"></i>Use for Pitch</button><button onclick="fdbUseOutreach()" style="background:rgba(16,185,129,.12);color:#34D399;border:1px solid #065F46;border-radius:4px;padding:4px 10px;font-size:9px;font-family:monospace;cursor:pointer;font-weight:700;"><i class="fa-solid fa-envelope-open-text mr-1"></i>Find Distrib.</button></div></div>`;}
 function _fdbLogline(m,dir){const g=(m.genres||[]).map(x=>x.name);const yr=m.release_date?m.release_date.substring(0,4):'';const tone=g.includes('Horror')?'harrowing':g.includes('Comedy')?'comedic':g.includes('Action')?'visceral':g.includes('Romance')?'heartfelt':'compelling';let s=`A ${tone} ${yr?yr+' ':''}film${g.length?' set in the '+g.slice(0,2).join('/')+ ' genre':''}`;if(dir)s+=`, directed by ${dir}`;if(m.overview){const f=m.overview.split('.')[0];if(f.length>20&&f.length<200)s+='. '+f+'.';}return s.trim()+'.';}
-function fdbUsePitch(){if(!fdbSel)return;sw('pitch');toast(fdbSel.title+' loaded — update pitch deck title.');}
+function fdbUsePitch(){if(!fdbSel)return;const m=fdbSel;const yr=m.release_date?m.release_date.substring(0,4):'';const dir=(m.credits?.crew||[]).find(c=>c.job==='Director')?.name||'';const logline=_fdbLogline(m,dir);const g=(m.genres||[]);const genreVal=g.length?g[0].name.toLowerCase():'drama';const pitchGenreMap={action:'action',adventure:'action',comedy:'comedy',crime:'crime',horror:'horror',romance:'romance',drama:'drama',thriller:'thriller','science fiction':'sci-fi',western:'western',biography:'biopic'};const mappedGenre=pitchGenreMap[genreVal]||'drama';const tf=document.getElementById('pitch-title');const lf=document.getElementById('pitch-logline');const gf=document.getElementById('pitch-genre');if(tf)tf.value=m.title+(yr?' ('+yr+')':'');if(lf)lf.value=logline;if(gf)gf.value=mappedGenre;sw('pitch');toast(m.title+' loaded into Pitch Deck.');}
 function fdbUseOutreach(){if(!fdbSel)return;const g=(fdbSel.genres||[]).map(x=>x.name.toLowerCase());document.getElementById('ob-search').value=g[0]||'';obSetFilter('open');sw('outreach');toast('Showing distributors for '+((fdbSel.genres||[])[0]?.name||'this genre')+'.');}
+
+// ========== FILM DB — SCRIPT READER MODAL ==========
+let fdbSrSearchQ='';
+function openFdbSrModal(){
+  const m=document.getElementById('fdb-sr-modal');
+  if(!m)return;
+  if(!srScripts||!srScripts.length){toast('No scripts loaded — upload scripts in the Script Reader view first.');return;}
+  const sel=document.getElementById('fdb-sr-select');
+  if(sel){sel.innerHTML=srScripts.map(s=>`<option value="${s.id}">${s.name.substring(0,32)}</option>`).join('');}
+  if(!srActiveId&&srScripts.length)srActiveId=srScripts[0].id;
+  if(sel&&srActiveId)sel.value=srActiveId;
+  const si=document.getElementById('fdb-sr-search');
+  if(si){si.value=fdbSrSearchQ='';}
+  fdbSrRender();
+  m.style.display='flex';
+}
+function closeFdbSrModal(){const m=document.getElementById('fdb-sr-modal');if(m)m.style.display='none';}
+function fdbSrSelect(id){srActiveId=id;fdbSrRender();}
+function fdbSrSearch(q){fdbSrSearchQ=q;fdbSrRender();}
+function fdbSrRender(){
+  const s=srScripts&&srScripts.find(x=>x.id===srActiveId);
+  const el=document.getElementById('fdb-sr-reader');
+  const an=document.getElementById('fdb-sr-analysis');
+  const mc=document.getElementById('fdb-sr-match');
+  if(!el)return;
+  if(!s){
+    el.innerHTML='<div style="color:#1E293B;text-align:center;margin-top:80px;font-size:13px;">No script selected.</div>';
+    if(an)an.innerHTML='<div style="color:#1E293B;font-size:9px;font-family:monospace;">No script selected.</div>';
+    return;
+  }
+  el.innerHTML=s.lines.map(l=>srLineHTML(l,fdbSrSearchQ)).join('');
+  if(mc&&fdbSrSearchQ.length>1){const n=(el.innerHTML.match(/<mark/g)||[]).length;mc.textContent=n?n+' match'+(n!==1?'es':''):'';}
+  else if(mc)mc.textContent='';
+  if(an){
+    const st=s.stats,col=SR_TC[st.budgetTier],bg=SR_TB[st.budgetTier];
+    const SR=(l,v)=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #0F172A;font-family:monospace;font-size:9px;"><span style="color:#4B5563;">${l}</span><span style="color:#E2E8F0;font-weight:600;">${v}</span></div>`;
+    an.innerHTML=`<div style="background:${bg};border:2px solid ${col};border-radius:6px;padding:8px;text-align:center;margin-bottom:10px;"><div style="font-size:7px;color:${col}99;font-family:monospace;letter-spacing:.1em;margin-bottom:2px;">BUDGET TIER</div><div style="font-size:22px;font-weight:900;color:${col};font-family:monospace;">${st.budgetTier}</div><div style="font-size:8px;color:#374151;font-family:monospace;">Score ${st.budgetScore}</div></div>${SR('Scenes',st.sceneCount)}${SR('Cast',st.castSize)}${SR('Pages',st.pageEst)}${SR('Days',st.shootDays)}${SR('INT/EXT',st.intCount+'/'+st.extCount)}<div style="margin-top:8px;padding-top:6px;border-top:1px solid #1E293B;font-size:8px;color:#374151;font-family:monospace;letter-spacing:.08em;margin-bottom:5px;">GENRE</div><div style="margin-bottom:12px;">${st.genreTags.length?st.genreTags.map(g=>`<span style="display:inline-block;background:rgba(99,102,241,.12);color:#818CF8;border:1px solid #3730A3;border-radius:3px;padding:1px 5px;font-size:8px;font-family:monospace;margin:2px;">${g}</span>`).join(''):'<span style="color:#1E293B;font-size:9px;font-family:monospace;">—</span>'}</div><button onclick="srUseForCoverage();closeFdbSrModal();" style="display:block;width:100%;background:rgba(190,27,125,.12);color:#F472B6;border:1px solid #9D174D;border-radius:4px;padding:4px 8px;font-size:9px;font-family:monospace;cursor:pointer;font-weight:700;margin-bottom:4px;">→ Use for Coverage</button><button onclick="srUseForBoard();closeFdbSrModal();" style="display:block;width:100%;background:rgba(232,123,48,.12);color:#FB923C;border:1px solid #92400E;border-radius:4px;padding:4px 8px;font-size:9px;font-family:monospace;cursor:pointer;font-weight:700;margin-bottom:4px;">→ Use for Storyboard</button>`;
+  }
+}
 
 // ========== OUTREACH TRACKER ==========
 const OB_SEED=[
