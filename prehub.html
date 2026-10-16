@@ -1213,6 +1213,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       </div>
     </div>
     <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;">
+      <div id="ob-nudge" style="display:none;background:rgba(120,53,15,.22);border-bottom:1px solid #92400E;padding:10px 16px;flex-shrink:0;align-items:center;gap:10px;"></div>
       <div style="flex:1;overflow-y:auto;" id="ob-detail"><div style="color:#1E293B;text-align:center;margin-top:80px;font-family:monospace;font-size:12px;">Select a company from the list.</div></div>
       <div id="ob-letter" style="display:none;border-top:1px solid #1E293B;padding:14px;background:#080B12;flex-shrink:0;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
@@ -1228,7 +1229,10 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
     <div style="width:250px;flex-shrink:0;background:#0A0D14;border-left:1px solid #1E293B;display:flex;flex-direction:column;overflow:hidden;">
       <div style="padding:10px 14px;border-bottom:1px solid #1E293B;display:flex;align-items:center;justify-content:space-between;">
         <div style="font-size:9px;font-weight:700;color:#94A3B8;letter-spacing:.1em;font-family:monospace;">OUTREACH LOG</div>
-        <button onclick="obExportLog()" style="font-size:8px;color:#374151;font-family:monospace;background:none;border:none;cursor:pointer;" title="Copy log as CSV"><i class="fa-solid fa-download"></i></button>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button onclick="obScheduleNotif()" style="background:rgba(251,191,36,.1);color:#FCD34D;border:1px solid #92400E;border-radius:3px;padding:2px 7px;font-size:8px;font-family:monospace;cursor:pointer;font-weight:700;" title="Set weekly calendar reminder"><i class="fa-solid fa-bell mr-1"></i>REMIND</button>
+          <button onclick="obExportLog()" style="font-size:8px;color:#374151;font-family:monospace;background:none;border:none;cursor:pointer;" title="Copy log as CSV"><i class="fa-solid fa-download"></i></button>
+        </div>
       </div>
       <div id="ob-log" style="flex:1;overflow-y:auto;"><div style="color:#1E293B;font-size:9px;font-family:monospace;padding:16px;text-align:center;">No outreach logged yet.</div></div>
     </div>
@@ -4068,6 +4072,54 @@ function obAddCompany(){const name=prompt('Company name:');if(!name)return;const
 function obCopyLetter(){const el=document.getElementById('ob-letter-text');if(!el)return;navigator.clipboard.writeText(el.value).then(()=>toast('Letter copied to clipboard!')).catch(()=>{el.select();document.execCommand('copy');toast('Letter copied!');});}
 function obExportLog(){if(!obLetters.length)return toast('No outreach logged yet.');const csv='Company,Project,Date,Status,Email\n'+obLetters.map(l=>`"${l.company}","${l.project}","${l.date}","${l.status}","${l.email||''}"`).join('\n');navigator.clipboard.writeText(csv).then(()=>toast('Outreach log copied as CSV!')).catch(()=>toast('Copy failed.'));}
 
+// ========== OUTREACH WEEKLY NUDGE ==========
+function obCheckWeeklyNudge(){
+  try{
+    const last=parseInt(localStorage.getItem('ob_last_nudge')||'0');
+    const WEEK=7*24*60*60*1000;
+    if(Date.now()-last<WEEK)return;
+    const contacted=new Set(obLetters.map(l=>l.company));
+    const picks=_obDb.map(c=>({...c,_pri:_obPriority(c)})).filter(c=>!contacted.has(c.name)).sort((a,b)=>b._pri-a._pri).slice(0,3);
+    if(picks.length)obShowNudge(picks);
+  }catch(e){}
+}
+function obShowNudge(picks){
+  const el=document.getElementById('ob-nudge');if(!el)return;
+  const names=picks.map(c=>`<strong style="color:#FCD34D;">${c.name}</strong>${c.accept&&c.email?`<span style="color:#475569;font-size:8px;font-family:monospace;"> ·  ${c.email}</span>`:c.accept?'<span style="color:#4ADE80;font-size:8px;"> · OPEN</span>':''}`).join('&ensp;/&ensp;');
+  el.style.display='flex';
+  el.innerHTML=`<div style="flex:1;min-width:0;"><div style="font-size:9px;font-weight:700;color:#FCD34D;font-family:monospace;letter-spacing:.05em;margin-bottom:3px;"><i class="fa-solid fa-bell mr-2"></i>WEEKLY QUERY LETTER REMINDER</div><div style="font-size:9px;color:#94A3B8;font-family:monospace;line-height:1.6;">This week's top picks: ${names}</div></div><div style="display:flex;gap:6px;flex-shrink:0;align-items:center;margin-left:12px;">${picks[0]?.accept?`<button onclick="obOpen('${picks[0].id}');obDraftLetter('${picks[0].id}');obDismissNudge()" style="background:rgba(124,58,237,.2);color:#A78BFA;border:1px solid #6D28D9;border-radius:4px;padding:4px 10px;font-size:8px;font-family:monospace;cursor:pointer;font-weight:700;white-space:nowrap;"><i class="fa-solid fa-pen mr-1"></i>Draft Now</button>`:''}<button onclick="obDismissNudge()" style="background:none;border:1px solid #334155;color:#475569;border-radius:4px;padding:4px 8px;font-size:8px;font-family:monospace;cursor:pointer;">✕</button></div>`;
+  if('Notification'in window&&Notification.permission==='granted'){
+    try{new Notification('preHUB — Weekly Outreach',{body:'Time to send a query letter.\nTop picks: '+picks.map(c=>c.name).join(', ')});}catch(e){}
+  }
+}
+function obDismissNudge(){try{localStorage.setItem('ob_last_nudge',String(Date.now()));}catch(e){}const el=document.getElementById('ob-nudge');if(el)el.style.display='none';}
+function obScheduleNotif(){
+  const doExport=()=>{
+    obExportICS();
+    try{localStorage.setItem('ob_notif_enabled','1');}catch(e){}
+  };
+  if(!('Notification'in window)){doExport();return;}
+  Notification.requestPermission().then(p=>{
+    if(p==='granted'){toast('Browser notifications enabled!');doExport();}
+    else{toast('Calendar event exported — open the .ics to add to your calendar.');obExportICS();}
+  }).catch(()=>doExport());
+}
+function obExportICS(){
+  const proj=S.projectName||'Screenplay Project',writer=S.writerName||'Writer';
+  const now=new Date();
+  const nextMon=new Date(now);nextMon.setDate(now.getDate()+((8-now.getDay())%7||7));nextMon.setHours(9,0,0,0);
+  const end=new Date(nextMon);end.setMinutes(30);
+  const fmt=d=>{const z=n=>String(n).padStart(2,'0');return d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+'T'+z(d.getHours())+z(d.getMinutes())+'00';};
+  const top3=_obDb.filter(c=>c.accept).sort((a,b)=>_obPriority(b)-_obPriority(a)).slice(0,3);
+  const descLines=top3.map((c,i)=>`${i+1}. ${c.name}${c.contact?' — '+c.contact:''}${c.email?'\\n   '+c.email:''}`).join('\\n');
+  const ics=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//preHUB//Outreach Reminder//EN\r\nBEGIN:VEVENT\r\nUID:prohub-outreach-weekly-${Date.now()}@prohub\r\nDTSTART:${fmt(nextMon)}\r\nDTEND:${fmt(end)}\r\nRRULE:FREQ=WEEKLY;BYDAY=MO\r\nSUMMARY:📬 Send Query Letter — ${proj}\r\nDESCRIPTION:Weekly outreach reminder for "${proj}" by ${writer}.\\n\\nThis week's top contacts:\\n${descLines}\\n\\nOpen preHUB → Outreach tab to draft your letter.\r\nSTATUS:CONFIRMED\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n`;
+  const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='prohub-weekly-outreach.ics';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  toast('📅 Weekly reminder exported — open .ics to add to Google/Apple Calendar.');
+}
 // ========== BUDGET ==========
 function renderBudget(){const tb=document.getElementById('bb');if(!tb)return;let tot=0;tb.innerHTML=S.budget.map(b=>{tot+=b.amt;return`<tr><td class="p-3 font-bold">${b.cat}</td><td class="p-3 text-right text-emerald-400 font-bold">$${b.amt.toLocaleString()}</td></tr>`;}).join('');const el=document.getElementById('bt');if(el)el.innerText='$'+tot.toLocaleString();}
 // ========== TRANSMIT ==========
@@ -4076,7 +4128,7 @@ function txProHub(){const r=document.getElementById('script-editable-node-rows-s
 let asTimer=120;
 setInterval(()=>{asTimer--;const m=Math.floor(asTimer/60),s=asTimer%60,el=document.getElementById('asc');if(el)el.innerText=`${m}:${String(s).padStart(2,'0')}`;if(asTimer<=0){autoSave();asTimer=S.autosaveInterval;toast('Auto-sync complete.');}},1000);
 // ========== INIT ==========
-function init(){try{const raw=localStorage.getItem('prehub_v3');if(raw){const p=JSON.parse(raw);S={...S,...p};if(S.projectName)document.getElementById('pni').value=S.projectName;if(S.writerName)document.getElementById('wni').value=S.writerName;updateGUI();setAS(S.autosaveInterval||120);}}catch(e){}syncT();renderBudget();renderVV();recSBH('Init');ScreenplayEditorCore.initializeEditorSystem();obSetFilter('all');obRenderLog();}
+function init(){try{const raw=localStorage.getItem('prehub_v3');if(raw){const p=JSON.parse(raw);S={...S,...p};if(S.projectName)document.getElementById('pni').value=S.projectName;if(S.writerName)document.getElementById('wni').value=S.writerName;updateGUI();setAS(S.autosaveInterval||120);}}catch(e){}syncT();renderBudget();renderVV();recSBH('Init');ScreenplayEditorCore.initializeEditorSystem();obSetFilter('all');obRenderLog();obCheckWeeklyNudge();}
 window.addEventListener('keydown',e=>{if(e.key==='Escape'){closeVault();const ingestModal=document.getElementById('ui-ingest-modal-overlay');if(ingestModal)ingestModal.classList.add('hidden');const emailModal=document.getElementById('ui-email-modal-overlay');if(emailModal)emailModal.classList.add('hidden');}});
 document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
 // Load YouTube API
