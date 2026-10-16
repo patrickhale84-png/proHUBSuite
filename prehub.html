@@ -56,20 +56,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 .epn{margin:0;padding-left:1.6in;padding-right:1.6in;font-style:italic;}
 .edl{margin-top:0;margin-bottom:4pt;padding-left:1.0in;padding-right:1.5in;line-height:130%;}
 .etr{text-transform:uppercase;font-weight:700;margin:12pt 0;text-align:right;}
-@media(max-width:768px){
-  .pp{padding:14px 12px 40px;width:100%;min-height:auto;font-size:11pt;}
-  /* Short-class overrides (legacy) */
-  .ech{padding-left:32%!important;}
-  .edl{padding-left:8%!important;padding-right:8%!important;}
-  .epn{padding-left:22%!important;padding-right:12%!important;}
-  /* Primary editor element classes — these are what the editor actually renders */
-  .element-scene-heading{margin-top:14pt!important;}
-  .element-character{padding-left:32%!important;}
-  .element-dialogue{padding-left:8%!important;padding-right:8%!important;}
-  .element-parenthetical{padding-left:22%!important;padding-right:12%!important;}
-  .element-action{padding-left:0!important;padding-right:0!important;}
-  .element-transition{padding-left:0!important;text-align:right!important;}
-}
+/* (screenplay mobile overrides consolidated in MOBILE FIXES block below) */
 /* Coverage */
 .mcard{background:#050810;padding:14px 10px;border-radius:8px;border:1px solid #1E293B;text-align:center;}
 /* ===== HALION CV ENGINE ===== */
@@ -528,18 +515,30 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       /* Writer section: scrollable, not trapped */
       #v-writer{overflow-y:auto!important;height:auto!important;min-height:100svh!important;}
       .esr{flex:none!important;overflow-y:visible!important;padding:12px 4px 60px!important;}
-      /* Script paper: narrower on mobile */
-      .pp{padding:14px 10px!important;width:100%!important;max-width:100%!important;}
       /* Mobile-only back button inside writer */
       #mob-writer-back{display:flex!important;}
       /* Dashboard tiles: 2 col */
       .mtile-grid,.mtiles{grid-template-columns:repeat(2,1fr)!important;}
+      /* ── SCREENPLAY PAPER: kill fixed 8.5in width, fill screen ── */
+      #editor-scroller-viewport{align-items:stretch!important;padding-left:4px!important;padding-right:4px!important;overflow-x:hidden!important;}
+      .paper-sheet-container{width:100%!important;min-width:0!important;box-sizing:border-box!important;
+        padding-top:14px!important;padding-bottom:60px!important;
+        padding-left:10px!important;padding-right:10px!important;}
+      /* Screenplay elements: % indents relative to full-screen container */
+      .element-character{padding-left:28%!important;padding-right:0!important;}
+      .element-dialogue{padding-left:8%!important;padding-right:10%!important;}
+      .element-parenthetical{padding-left:18%!important;padding-right:14%!important;}
+      .element-action{padding-left:0!important;padding-right:0!important;}
+      .element-transition{padding-left:0!important;text-align:right!important;}
+      .element-scene-heading{margin-top:14pt!important;}
+      .line-editable-box{font-size:11pt!important;}
     }
     @media(max-width:480px){
-      .pp{padding:12px 6px!important;font-size:10pt!important;}
-      .ech{padding-left:10%!important;}
-      .edl{padding-left:5%!important;padding-right:5%!important;}
-      .epn{padding-left:8%!important;padding-right:8%!important;}
+      .paper-sheet-container{padding-left:6px!important;padding-right:6px!important;}
+      .line-editable-box{font-size:10pt!important;}
+      .element-character{padding-left:22%!important;}
+      .element-dialogue{padding-left:6%!important;padding-right:8%!important;}
+      .element-parenthetical{padding-left:12%!important;padding-right:10%!important;}
     }
 </style>
 </head>
