@@ -1144,7 +1144,16 @@ She throws it in reverse!`;
           });
 
           const sortedYs = Object.keys(lineBuckets).map(Number).sort((a, b) => b - a);
-          sortedYs.forEach(y => {
+
+          // Detect blank-line gaps: screenplay Courier 12pt ≈ 14pt line height.
+          // A gap > 20pt between consecutive Y positions = an intentional blank line.
+          // Insert a blank sentinel so normalizeRawTokensToScriptNodes resets
+          // speakerActive — otherwise dialogue bleeds into action after every speaker.
+          sortedYs.forEach((y, idx) => {
+            if (idx > 0) {
+              const prevY = sortedYs[idx - 1];
+              if ((prevY - y) > 20) rawAccumulatedLines.push({ text: '', x: 0 });
+            }
             const tokens = lineBuckets[y].sort((a, b) => a.x - b.x);
             const lineText = tokens.map(t => t.str).join(' ').trim();
             if (lineText) {
@@ -1152,6 +1161,8 @@ She throws it in reverse!`;
               rawAccumulatedLines.push({ text: lineText, x: tokens[0].x });
             }
           });
+          // Blank sentinel between pages resets speaker state across page breaks
+          rawAccumulatedLines.push({ text: '', x: 0 });
         }
 
         onProgress(85, "Normalizing screenplay grammar from PDF coordinates...");
@@ -1164,6 +1175,16 @@ She throws it in reverse!`;
         let resultLines = [];
         let speakerActive = false;
 
+        // PDF X-coordinate thresholds (72pt/in basis, typical screenplay PDF layout)
+        // Action / Scene Heading starts at ~108pt (1.5in left margin)
+        // Character name starts at ~257pt (~3.57in from left edge)
+        // Dialogue starts at ~180pt (~2.5in from left edge)
+        // Parenthetical starts at ~230pt (~3.2in)
+        // These are used as a soft tie-breaker when text analysis is ambiguous.
+        const X_LEFT    = 120;  // anything ≤ this = action / scene heading territory
+        const X_CHAR    = 230;  // center indent threshold for character name
+        const X_DIAL    = 150;  // dialogue / parenthetical indent (between left and char)
+
         tokenLines.forEach(item => {
           const t = item.text.trim();
           if (!t) {
@@ -1172,6 +1193,7 @@ She throws it in reverse!`;
           }
 
           let type = "ACTION";
+          const x = item.x || 0;
           // Strip leading scene numbers for detection only (e.g. "1 EXT." → "EXT.")
           const ht = t.replace(/^\d+\s+/, '');
 
@@ -1186,9 +1208,11 @@ She throws it in reverse!`;
           } else if (t === t.toUpperCase() && t.length < 35 && !t.endsWith(":") && !/^\d+$/.test(t) && !/^(THE|A|AN|AND|IN|ON)\b/.test(t) && !/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(ht)) {
             type = "CHARACTER";
             speakerActive = true;
-          } else if (speakerActive) {
+          } else if (speakerActive && x > X_LEFT) {
+            // Still in a speaker block AND indented beyond action column → DIALOGUE
             type = "DIALOGUE";
           } else {
+            // Either not in speaker block, or x is back at left margin → ACTION
             type = "ACTION";
             speakerActive = false;
           }
