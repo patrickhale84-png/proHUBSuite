@@ -1062,6 +1062,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       <button onclick="addFrame()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-lime-400 font-mono font-bold text-[10px] rounded transition flex items-center gap-1"><i class="fa-solid fa-plus"></i> Add Frame</button>
       <button onclick="generateSBFromScript()" class="px-3 py-1 bg-teal-900/60 hover:bg-teal-900/80 border border-teal-700 text-teal-300 font-bold text-[10px] uppercase tracking-wider rounded" title="Generate fresh board from script using rules engine"><i class="fa-solid fa-gears mr-1"></i>From Script</button>
       <button onclick="syncBoardToScript()" class="px-3 py-1 bg-indigo-900/60 hover:bg-indigo-900/80 border border-indigo-700 text-indigo-300 font-bold text-[10px] uppercase tracking-wider rounded" title="Reconcile existing board with updated script — reorders, orphans removed scenes, adds new ones"><i class="fa-solid fa-rotate mr-1"></i>Sync Board</button><button onclick="loadSampleBoards()" class="px-3 py-1 bg-orange-900/40 hover:bg-orange-900/60 border border-orange-800/60 text-orange-300 font-mono font-bold text-[10px] rounded transition flex items-center gap-1"><i class="fa-solid fa-film"></i> Sample</button>
+      <button onclick="openWorldMap()" class="px-3 py-1 bg-sky-900/50 hover:bg-sky-900/70 border border-sky-800 text-sky-300 font-bold text-[10px] uppercase tracking-wider rounded" title="Spatial world map — locations, characters, framing hints"><i class="fa-solid fa-earth-americas mr-1"></i>World Map</button>
       <button onclick="sbUndo()" class="px-2 py-1 bg-slate-900 border border-slate-800 text-slate-400 text-[10px] rounded transition hover:bg-slate-800" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
       <button onclick="sbRedo()" class="px-2 py-1 bg-slate-900 border border-slate-800 text-slate-400 text-[10px] rounded transition hover:bg-slate-800" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
       <div class="relative group">
@@ -1149,6 +1150,10 @@ let wH=[],wHI=-1,wHM=false;
 let sbH=[],sbHI=-1,sbHM=false,sbAsp='asp169',sbImgCard=null,sbDrawColor='#D4A034',sbDrawSize=2.5,sbDrawMode='pen';
 let sbLibraryTargetCard=null,sbLibCurrentKW=[],SB_IMAGE_DB=[];
 (function(){try{SB_IMAGE_DB=JSON.parse(localStorage.getItem('sb_img_db')||'[]');}catch(e){SB_IMAGE_DB=[];}})();
+let sbMapPos={},sbMapSel=null,_sbWLocs={},_sbWPos={};
+(function(){try{sbMapPos=JSON.parse(localStorage.getItem('sb_map_pos')||'{}')}catch(e){}})();
+const _SB_CPAL=['#60A5FA','#34D399','#F87171','#FBBF24','#A78BFA','#F472B6','#4ADE80','#38BDF8','#FB923C','#E879F9'];
+let _sbCCol={};
 if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 let ytP=null,ytPnd=null;
 function onYouTubeIframeAPIReady(){ytP=new YT.Player('yt-player',{height:'120',width:'200',videoId:'',playerVars:{autoplay:1,controls:0,playsinline:1,enablejsapi:1},events:{onReady:()=>{if(ytPnd){playZ(ytPnd);ytPnd=null;}}}});}
@@ -3480,6 +3485,122 @@ function switchSBLibTab(tab){
   const cnt=document.getElementById('sbl-count');if(cnt)cnt.textContent=SB_IMAGE_DB.length+' image'+(SB_IMAGE_DB.length!==1?'s':'');
   if(tab==='manage')renderSBManage();
 }
+// ========== WORLD MAP ==========
+// Rules-based spatial map: parse scene headings → location nodes, char sets → journey edges
+function _sbCC(n){if(!_sbCCol[n]){_sbCCol[n]=_SB_CPAL[Object.keys(_sbCCol).length%_SB_CPAL.length];}return _sbCCol[n];}
+function parseWorldLocs(){
+  const locs={};
+  Array.from(document.getElementById('sbcc')?.children||[]).forEach((card,i)=>{
+    const raw=(card.querySelector('.ssi')?.value||'').trim().toUpperCase();
+    const chars=(card.querySelector('.sch')?.value||'').split(',').map(s=>s.trim()).filter(Boolean);
+    const m=raw.match(/^(INT|EXT)\.?\s+(.+?)(?:\s+-\s+(.*?))?$/);
+    const ie=m?m[1]:'INT',ln=(m?m[2]:raw).trim(),tod=m&&m[3]?m[3].trim():'';
+    const id=(ln||'UNKNOWN').replace(/[^A-Z0-9]/g,'_');
+    if(!locs[id])locs[id]={id,label:ln||raw||'UNKNOWN',intExt:ie,timeOfDay:tod,frames:[],chars:new Set()};
+    locs[id].frames.push(i+1);chars.forEach(c=>locs[id].chars.add(c));
+  });
+  return locs;
+}
+function _sbWLayout(locs){
+  const NW=160,GX=55,GY=55,COLS=3,NH=72;
+  const ids=Object.keys(locs);
+  const ints=ids.filter(id=>locs[id].intExt==='INT'),exts=ids.filter(id=>locs[id].intExt!=='INT');
+  const pos={};
+  const place=(list,ox)=>list.forEach((id,i)=>{pos[id]=sbMapPos[id]?{...sbMapPos[id]}:{x:ox+(i%COLS)*(NW+GX),y:72+Math.floor(i/COLS)*(NH+GY)};});
+  place(ints,40);place(exts,40+COLS*(NW+GX)+80);
+  return pos;
+}
+function _sbWEdges(locs,pos){
+  const cl={};Object.values(locs).forEach(l=>l.chars.forEach(c=>{if(!cl[c])cl[c]=[];if(!cl[c].includes(l.id))cl[c].push(l.id);}));
+  const seen=new Set(),out=[];
+  Object.entries(cl).forEach(([c,ids])=>{for(let i=0;i<ids.length-1;i++){const k=[ids[i],ids[i+1]].sort().join('|');if(!seen.has(k)){seen.add(k);out.push({from:ids[i],to:ids[i+1],c});}}});
+  return out.filter(e=>pos[e.from]&&pos[e.to]).map(e=>{const f=pos[e.from],t=pos[e.to],col=_sbCC(e.c);return`<line x1="${f.x+80}" y1="${f.y+32}" x2="${t.x+80}" y2="${t.y+32}" stroke="${col}" stroke-width="1.5" stroke-dasharray="5 3" stroke-opacity="0.45"/>`;}).join('');
+}
+function _sbWNode(loc,p,sel){
+  const NW=160,chars=Array.from(loc.chars),rows=Math.ceil(chars.length/3);
+  const NH=60+Math.max(0,rows)*16,ie=loc.intExt==='EXT';
+  const sc=ie?'#0D9488':'#D97706',bg=ie?'rgba(17,94,89,.2)':'rgba(120,53,15,.16)',tc=ie?'#2DD4BF':'#FCD34D';
+  let chips='';chars.forEach((c,ci)=>{const col=_sbCC(c),cx=6+(ci%3)*52,cy=47+Math.floor(ci/3)*16;chips+=`<rect x="${cx}" y="${cy}" width="47" height="12" rx="3" fill="${col}18" stroke="${col}" stroke-width="0.6"/><text x="${cx+23}" y="${cy+9}" text-anchor="middle" fill="${col}" font-family="monospace" font-size="8" font-weight="600">${c.substring(0,7)}</text>`;});
+  const glow=sel?`<rect width="${NW}" height="${NH}" rx="7" fill="none" stroke="${sc}" stroke-width="5" stroke-opacity="0.22" filter="url(#sbgw)"/>`:'';
+  const fstr=loc.frames.join(',');const tod=loc.timeOfDay?' · '+loc.timeOfDay:'';
+  return`<g class="wm-node" data-id="${loc.id}" transform="translate(${p.x},${p.y})" style="cursor:pointer;">${glow}<rect width="${NW}" height="${NH}" rx="7" fill="${bg}" stroke="${sc}" stroke-width="${sel?2.5:1.5}"/><rect width="${NW}" height="19" rx="7" fill="${sc}16"/><rect y="12" width="${NW}" height="7" fill="${sc}16"/><text x="8" y="13" fill="${tc}" font-family="monospace" font-size="9" font-weight="700">${loc.intExt}</text><text x="32" y="13" fill="#E2E8F0" font-family="monospace" font-size="9" font-weight="700">${loc.label.substring(0,16)}</text><text x="8" y="29" fill="#475569" font-family="monospace" font-size="8">FRAMES ${fstr.substring(0,20)}${fstr.length>20?'…':''}${tod}</text><text x="8" y="41" fill="#374151" font-family="monospace" font-size="8">${chars.length?chars.length+' char'+(chars.length!==1?'s':''):'no characters'}</text>${chips}</g>`;
+}
+function renderWorldMap(){
+  const locs=parseWorldLocs();_sbWLocs=locs;const locKeys=Object.keys(locs);
+  const svg=document.getElementById('sb-map-svg');if(!svg)return;
+  if(!locKeys.length){svg.innerHTML='<text x="50%" y="50%" fill="#374151" text-anchor="middle" font-family="monospace" font-size="13">No frames on the board yet.</text>';_sbWMapDetail(null);return;}
+  const pos=_sbWLayout(locs);_sbWPos=pos;
+  let mxX=300,mxY=200;locKeys.forEach(id=>{const p=pos[id];const NH=60+Math.ceil(Array.from(locs[id].chars).length/3)*16;if(p){mxX=Math.max(mxX,p.x+200);mxY=Math.max(mxY,p.y+NH+60);}});
+  let grid='';for(let x=0;x<mxX;x+=40)grid+=`<line x1="${x}" y1="0" x2="${x}" y2="${mxY}" stroke="#080E1A" stroke-width="1"/>`;for(let y=0;y<mxY;y+=40)grid+=`<line x1="0" y1="${y}" x2="${mxX}" y2="${y}" stroke="#080E1A" stroke-width="1"/>`;
+  const ints=locKeys.filter(id=>locs[id].intExt==='INT'),exts=locKeys.filter(id=>locs[id].intExt!=='INT');
+  let lbls='';
+  if(ints.length)lbls+=`<text x="40" y="54" fill="#78350F90" font-family="monospace" font-size="8" font-weight="700" letter-spacing="3">INTERIORS</text>`;
+  if(exts.length)lbls+=`<text x="765" y="54" fill="#13494490" font-family="monospace" font-size="8" font-weight="700" letter-spacing="3">EXTERIORS</text>`;
+  svg.setAttribute('viewBox',`0 0 ${mxX} ${mxY}`);svg.style.cssText=`display:block;width:${mxX}px;height:${mxY}px;min-width:600px;min-height:400px;`;
+  svg.innerHTML=`<defs><filter id="sbgw" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g>${grid}</g>${lbls}<g id="wm-edges">${_sbWEdges(locs,pos)}</g><g id="wm-nodes">${locKeys.map(id=>_sbWNode(locs[id],pos[id],sbMapSel===id)).join('')}</g>`;
+  _sbWInitDrag(locs,pos);_sbWMapDetail(sbMapSel);
+}
+function _sbWInitDrag(locs,pos){
+  const svg=document.getElementById('sb-map-svg');if(!svg)return;
+  let drag=null;
+  svg.querySelectorAll('.wm-node').forEach(node=>{
+    node.addEventListener('mousedown',e=>{
+      e.stopPropagation();const id=node.dataset.id,p=pos[id];
+      const vb=svg.getAttribute('viewBox').split(' ').map(Number);
+      const r=svg.getBoundingClientRect();
+      drag={id,sx:e.clientX,sy:e.clientY,ox:p.x,oy:p.y,scX:vb[2]/r.width,scY:vb[3]/r.height,moved:false};
+    });
+    node.addEventListener('mouseup',e=>{
+      if(drag&&drag.id===node.dataset.id&&!drag.moved){sbMapSel=drag.id;_sbWMapDetail(drag.id);}
+    });
+  });
+  const mv=e=>{
+    if(!drag)return;const dx=(e.clientX-drag.sx)*drag.scX,dy=(e.clientY-drag.sy)*drag.scY;
+    if(!drag.moved&&Math.hypot(dx,dy)<4)return;drag.moved=true;
+    const nx=Math.max(2,drag.ox+dx),ny=Math.max(2,drag.oy+dy);
+    sbMapPos[drag.id]={x:nx,y:ny};pos[drag.id]={x:nx,y:ny};_sbWPos[drag.id]={x:nx,y:ny};
+    const g=svg.querySelector(`[data-id="${drag.id}"]`);if(g)g.setAttribute('transform',`translate(${nx},${ny})`);
+    const eg=svg.querySelector('#wm-edges');if(eg)eg.innerHTML=_sbWEdges(locs,pos);
+  };
+  const mu=()=>{if(drag&&drag.moved){try{localStorage.setItem('sb_map_pos',JSON.stringify(sbMapPos));}catch(e){}}drag=null;};
+  svg.addEventListener('mousemove',mv);svg.addEventListener('mouseup',mu);
+}
+function _sbWMapDetail(selId){
+  const panel=document.getElementById('sb-map-detail');if(!panel)return;
+  const locs=_sbWLocs;
+  if(!selId||!locs[selId]){panel.innerHTML='<div style="color:#1E293B;font-size:11px;font-family:monospace;padding:28px 16px;text-align:center;line-height:2.2;">Click a location<br>node to see details<br>and framing hints.</div>';return;}
+  const loc=locs[selId],chars=Array.from(loc.chars),ie=loc.intExt==='EXT';
+  let hint,sub;
+  if(!chars.length){hint=ie?'Establishing shot — ELS or WS.':'Insert or location reveal.';sub='No characters present. Emphasize environment and mood.';}
+  else if(chars.length===1){hint='Single character — MCU or CU.';sub=ie?'Try backlit silhouette or natural/golden hour lighting.':'Use motivated practical or low-key INT lighting.';}
+  else if(chars.length===2){hint='Two characters — OTS or two-shot.';sub='Cross-cut on CU reactions. OTS favors the listener.';}
+  else{hint=`Group of ${chars.length} — WS master first.`;sub='Open wide to establish positions, then cut to MCU/MS coverage per pair.';}
+  const conns=[];Object.values(locs).forEach(o=>{if(o.id===selId)return;const sh=chars.filter(c=>o.chars.has(c));if(sh.length)conns.push({o,sh});});
+  if(conns.length)sub+=` <em>${conns[0].sh[0]}</em> also at ${conns[0].o.label} — consider intercutting or a tracking transition.`;
+  const frameChips=loc.frames.map(n=>`<span onclick="goToSBFrame(${n})" style="background:rgba(51,65,85,.5);color:#94A3B8;border:1px solid #334155;border-radius:3px;padding:2px 7px;font-size:9px;font-family:monospace;cursor:pointer;display:inline-block;margin:2px;" title="Jump to frame ${n}">F${String(n).padStart(2,'0')}</span>`).join('');
+  const charChips=chars.map(c=>`<span style="background:${_sbCC(c)}15;color:${_sbCC(c)};border:1px solid ${_sbCC(c)}50;border-radius:4px;padding:2px 8px;font-size:9px;font-family:monospace;display:inline-block;margin:2px;">${c}</span>`).join('');
+  const connItems=conns.slice(0,4).map(({o,sh})=>`<div onclick="sbMapSel='${o.id}';renderWorldMap();" style="cursor:pointer;padding:5px 8px;background:rgba(15,23,42,.5);border:1px solid #0F172A;border-radius:4px;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center;"><span style="color:#94A3B8;font-size:9px;font-family:monospace;">${o.label}</span><span style="color:#475569;font-size:8px;font-family:monospace;">${sh.slice(0,2).join(', ')}</span></div>`).join('');
+  panel.innerHTML=`<div style="padding:14px;display:flex;flex-direction:column;gap:12px;"><div><div style="font-size:8px;color:#374151;font-family:monospace;letter-spacing:.1em;margin-bottom:3px;text-transform:uppercase;">${loc.intExt}${loc.timeOfDay?' · '+loc.timeOfDay:''}</div><div style="font-size:14px;font-weight:700;color:#F1F5F9;font-family:monospace;line-height:1.3;">${loc.label}</div></div><div><div style="font-size:8px;color:#374151;font-family:monospace;letter-spacing:.08em;margin-bottom:5px;text-transform:uppercase;">Frames</div><div>${frameChips}</div></div>${chars.length?`<div><div style="font-size:8px;color:#374151;font-family:monospace;letter-spacing:.08em;margin-bottom:5px;text-transform:uppercase;">Characters</div><div>${charChips}</div></div>`:''}<div style="background:rgba(6,182,212,.06);border:1px solid #0E749040;border-radius:6px;padding:10px 12px;"><div style="font-size:8px;color:#67E8F9;font-family:monospace;letter-spacing:.08em;margin-bottom:6px;text-transform:uppercase;"><i class="fa-solid fa-film" style="margin-right:4px;"></i>Framing Hint</div><div style="font-size:10px;color:#E2E8F0;font-family:monospace;font-weight:600;margin-bottom:4px;">${hint}</div><div style="font-size:9px;color:#94A3B8;font-family:monospace;line-height:1.6;">${sub}</div></div>${conns.length?`<div><div style="font-size:8px;color:#374151;font-family:monospace;letter-spacing:.08em;margin-bottom:5px;text-transform:uppercase;">Connected Locations</div>${connItems}</div>`:''}<button onclick="resetSBMapLoc('${selId}')" style="background:rgba(30,41,59,.4);color:#475569;border:1px solid #1E293B;border-radius:4px;padding:4px 10px;font-size:9px;font-family:monospace;cursor:pointer;align-self:flex-start;margin-top:2px;">Reset Position</button></div>`;
+}
+function resetSBMapLoc(id){delete sbMapPos[id];try{localStorage.setItem('sb_map_pos',JSON.stringify(sbMapPos));}catch(e){}renderWorldMap();}
+function goToSBFrame(n){
+  document.getElementById('sb-world-map').style.display='none';
+  setTimeout(()=>{const cards=document.getElementById('sbcc')?.children;if(cards&&cards[n-1])cards[n-1].scrollIntoView({behavior:'smooth',block:'center'});},120);
+}
+function buildWorldMapModal(){
+  const m=document.createElement('div');m.id='sb-world-map';
+  m.style.cssText='display:none;position:fixed;inset:0;background:rgba(2,5,12,.95);z-index:9998;flex-direction:column;backdrop-filter:blur(8px);';
+  m.innerHTML=`<div style="display:flex;flex-direction:column;height:100%;"><div style="display:flex;align-items:center;gap:10px;padding:10px 20px;border-bottom:1px solid #0D1117;flex-shrink:0;background:#020609;"><i class="fa-solid fa-earth-americas" style="color:#38BDF8;font-size:13px;"></i><span style="font-size:11px;font-weight:700;color:#E2E8F0;letter-spacing:.1em;font-family:monospace;">ROOKS PRODUCTIONS — WORLD MAP</span><span style="font-size:8px;color:#1E293B;font-family:monospace;margin-left:6px;">drag nodes · click to inspect · dashed lines = character journeys</span><div style="flex:1;"></div><button onclick="sbMapPos={};try{localStorage.removeItem('sb_map_pos');}catch(e){}sbMapSel=null;renderWorldMap();" style="background:rgba(30,41,59,.5);color:#475569;border:1px solid #1E293B;border-radius:4px;padding:4px 10px;font-size:9px;font-family:monospace;cursor:pointer;margin-right:4px;">Reset Layout</button><button onclick="renderWorldMap()" style="background:rgba(6,182,212,.1);color:#67E8F9;border:1px solid #0E7490;border-radius:4px;padding:4px 10px;font-size:9px;font-family:monospace;cursor:pointer;margin-right:4px;"><i class="fa-solid fa-rotate" style="margin-right:4px;"></i>Refresh</button><button onclick="document.getElementById('sb-world-map').style.display='none'" style="background:rgba(127,29,29,.3);color:#FCA5A5;border:1px solid #7F1D1D40;border-radius:5px;padding:5px 10px;font-size:9px;font-family:monospace;cursor:pointer;">✕</button></div><div style="display:flex;flex:1;min-height:0;"><div style="flex:1;overflow:auto;background:#020608;"><svg id="sb-map-svg" style="display:block;"></svg></div><div id="sb-map-detail" style="width:250px;flex-shrink:0;background:#020609;border-left:1px solid #0D1117;overflow-y:auto;"></div></div><div style="padding:5px 16px;background:#020609;border-top:1px solid #0D1117;display:flex;align-items:center;gap:14px;flex-shrink:0;"><span style="display:flex;align-items:center;gap:5px;font-size:8px;color:#1E293B;font-family:monospace;"><span style="display:inline-block;width:10px;height:10px;background:rgba(120,53,15,.2);border:1px solid #92400E;border-radius:2px;"></span>INT · Interior</span><span style="display:flex;align-items:center;gap:5px;font-size:8px;color:#1E293B;font-family:monospace;"><span style="display:inline-block;width:10px;height:10px;background:rgba(17,94,89,.2);border:1px solid #134E4A;border-radius:2px;"></span>EXT · Exterior</span><span style="display:flex;align-items:center;gap:5px;font-size:8px;color:#1E293B;font-family:monospace;"><span style="display:inline-block;width:18px;height:0;border-top:1.5px dashed #334155;"></span>Character journey</span></div></div>`;
+  document.body.appendChild(m);
+}
+function openWorldMap(){
+  _sbCCol={};
+  let m=document.getElementById('sb-world-map');
+  if(!m){buildWorldMapModal();m=document.getElementById('sb-world-map');}
+  m.style.display='flex';
+  renderWorldMap();
+}
+
 // ========== STORYBOARD RULES ENGINE ==========
 // Deterministic scored-rule inference — no AI. Each rule [regex, value, points].
 // All matching rules accumulate points; highest total wins.
