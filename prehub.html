@@ -287,6 +287,11 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       .element-dialogue { padding-left: 0.9in !important; padding-right: 1.2in !important; }
       #ui-page-footer-counter-wrap { color: #000000 !important; }
     }
+    /* animate-fade-in utility — used by script line rows and collab badge */
+    @keyframes fadeInRow{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+    .animate-fade-in{animation:fadeInRow .18s ease-out both;}
+    /* collaboration-drawer layout */
+    #collab-drawer-simulator-view{display:flex;flex-direction:column;height:100%;overflow:hidden;}
 </style>
 </head>
 <body>
@@ -388,7 +393,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 <aside class="psb" id="psb">
   <div class="p-3 border-b border-gray-800 flex flex-col gap-2">
     <button class="w-full bg-[#1f2937] hover:bg-[#374151] text-white text-xs py-2 rounded-lg font-bold flex items-center justify-center gap-2 transition" onclick="sw('dashboard')"><i class="fa-solid fa-border-all text-amber-400"></i> Hub Dashboard</button>
-    <button class="w-full bg-[#374151] hover:bg-[#4b5563] text-gray-200 text-xs py-2 rounded-lg font-bold flex items-center justify-center gap-2 transition" onclick="openIM()"><i class="fa-solid fa-file-import text-blue-400"></i> Import Script</button>
+    <button class="w-full bg-[#374151] hover:bg-[#4b5563] text-gray-200 text-xs py-2 rounded-lg font-bold flex items-center justify-center gap-2 transition" onclick="(function(){var m=document.getElementById('ui-ingest-modal-overlay');if(m){sw('writer');m.classList.remove('hidden');}else{toast('Switch to Writer Studio first');}})()"><i class="fa-solid fa-file-import text-blue-400"></i> Import Script</button>
     <button class="w-full text-black text-xs py-2 rounded-lg font-extrabold flex items-center justify-center gap-2 transition shadow-lg" style="background:linear-gradient(to right,#D97706,#B45309)" onclick="txProHub()"><i class="fa-solid fa-rocket"></i> Transmit to proHUB</button>
   </div>
   <div class="p-3 border-b border-white/5">
