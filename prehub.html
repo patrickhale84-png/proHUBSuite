@@ -3067,8 +3067,8 @@ function _compFilms(parsed, finalScores) {
   return comps.slice(0, 3);
 }
 
-function _blacklistScores(finalScores) {
-  /* Map HALION axis scores to Blacklist-style 1-10 categories */
+function _coverageScores(finalScores) {
+  /* Map HALION axis scores to 6-category 1-10 coverage scores */
   const clamp = v => Math.max(1, Math.min(10, Math.round(v)));
   return {
     premise:     clamp(((finalScores.ORIG||5) + (finalScores.EMOT||5)) / 2),
@@ -3102,7 +3102,7 @@ function _craftVoice(finalScores, parsed) {
 function renderHalionCoverage(parsed,finalScores,axisResults,allResults){const v=verdictFromScore(finalScores.OVERALL);const pctl=computePercentile(finalScores.OVERALL);
   const vColors={recommend:'#A3E635',consider:'#D4A034',pass:'#EF4444'};
   const vColor=vColors[v.cls]||'#888';
-  const blScores=_blacklistScores(finalScores);
+  const blScores=_coverageScores(finalScores);
   const compFilms=_compFilms(parsed,finalScores);
   const citable=_findCitableLines(parsed);
   const craftVoice=_craftVoice(finalScores,parsed);
@@ -3116,7 +3116,7 @@ function renderHalionCoverage(parsed,finalScores,axisResults,allResults){const v
   const suggestions=PROSE.suggestions(parsed,finalScores,axisResults);
   const market=PROSE.marketDiagnostic(parsed,finalScores,parsed.fmt);
 
-  /* Blacklist-style score tiles */
+  /* 6-category coverage score tiles */
   const blHtml=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;">
     ${[['Premise',blScores.premise],['Plot/Structure',blScores.plot],['Character',blScores.character],['Dialogue',blScores.dialogue],['Originality',blScores.originality],['Overall',blScores.overall]].map(([lbl,sc])=>{
       const col=sc>=8?'#A3E635':sc>=6?'#D4A034':sc>=4?'#FB923C':'#EF4444';
