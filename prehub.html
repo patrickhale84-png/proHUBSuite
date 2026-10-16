@@ -444,58 +444,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
     /* Separator */
     .nle-sep{width:1px;height:16px;background:var(--nle-bd);flex-shrink:0;margin:0 2px;}
 
-    /* ---- Global Interior Overrides ---- */
-    /* Topbar: NLE density */
-    .tmb{min-height:38px!important;padding:4px 12px!important;background:#060910!important;border-bottom:1px solid #15202E!important;}
-    /* Sidebar: tighter NLE left panel */
-    .psb{background:#0A0D16!important;border-right:1px solid #15202E!important;}
-    .nl{padding:6px 10px!important;font-size:11px!important;margin-bottom:1px!important;border-radius:var(--nle-r)!important;font-family:var(--nle-mono)!important;letter-spacing:.03em!important;}
-    .nl:hover{background:rgba(255,255,255,.04)!important;}
-    .nl.ac{border-left:2px solid var(--nle-acc)!important;border-radius:0 var(--nle-r) var(--nle-r) 0!important;background:rgba(212,160,52,.09)!important;}
-    /* All view backgrounds */
-    .vs{background:var(--nle-deep)!important;}
-    /* Interior inputs / selects */
-    .vs input:not([type=file]):not([type=checkbox]):not([type=radio]),
-    .vs select,
-    #psl-modal input:not([type=file]),
-    #psl-modal select,
-    #psl-modal textarea{
-      background:var(--nle-ctrl)!important;
-      border:1px solid var(--nle-bd)!important;
-      color:var(--nle-t1)!important;
-      border-radius:var(--nle-r)!important;
-      font-family:var(--nle-mono)!important;
-      font-size:11px!important;
-    }
-    .vs input:not([type=file]):focus,.vs select:focus,
-    #psl-modal input:not([type=file]):focus,
-    #psl-modal select:focus,
-    #psl-modal textarea:focus{border-color:var(--nle-acc)!important;outline:none!important;}
-    /* Table heads */
-    .vs table thead th{
-      background:var(--nle-hdr)!important;
-      border-bottom:1px solid var(--nle-bd)!important;
-      font-family:var(--nle-mono)!important;
-      font-size:9px!important;
-      text-transform:uppercase!important;
-      letter-spacing:.1em!important;
-      color:var(--nle-t2)!important;
-      padding:5px 8px!important;
-      font-weight:600!important;
-    }
-    .vs table tbody tr{border-bottom:1px solid var(--nle-bd)!important;}
-    .vs table tbody tr:hover{background:var(--nle-hover)!important;}
-    /* Dashboard tiles: NLE condensed */
-    .mtile{border-radius:var(--nle-r2)!important;min-height:125px!important;padding:14px 12px!important;}
-    .mtit{font-family:var(--nle-disp)!important;font-size:15px!important;letter-spacing:.07em!important;text-transform:uppercase!important;}
-    .msub{font-family:var(--nle-mono)!important;font-size:9px!important;letter-spacing:.06em!important;}
-    .mbadge{font-family:var(--nle-mono)!important;font-size:9px!important;letter-spacing:.1em!important;}
-    /* Budget panels */
-    #v-budget{background:var(--nle-deep)!important;}
-    #v-budget .rounded-xl{border-radius:var(--nle-r2)!important;}
-    /* Storyboard cards: NLE panel */
-    .sbc{border-radius:var(--nle-r)!important;border-color:var(--nle-bd)!important;}
-    /* Shot list modal: NLE Edit Desk style */
+    /* Shot list modal: NLE Edit Desk style (postHUB NLE — not applied globally) */
     #psl-modal>div{
       border-radius:var(--nle-r2)!important;
       background:#0E1320!important;
@@ -507,11 +456,6 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       padding:8px 12px!important;
       border-bottom:1px solid var(--nle-bd)!important;
     }
-    /* Scrollbars: ultra-thin NLE */
-    ::-webkit-scrollbar{width:4px;height:4px;}
-    ::-webkit-scrollbar-track{background:var(--nle-deep);}
-    ::-webkit-scrollbar-thumb{background:#1E2E44;border-radius:2px;}
-    ::-webkit-scrollbar-thumb:hover{background:#2A3F5E;}
 
     /* ===== MOBILE: SHOT LIST + GLOBAL HUB ===== */
     @media(max-width:768px){
@@ -1285,52 +1229,292 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 </section>
 
 <!-- VIEW 3: PITCH DECK -->
-<section id="v-pitch" class="vs overflow-y-auto" style="background:#0A0D14;">
-<div class="max-w-7xl mx-auto w-full p-5 space-y-5">
+<section id="v-pitch" class="vs" style="background:#07090E;flex-direction:column;">
+<style>
+  .pd-tab{height:38px;padding:0 18px;background:transparent;border:none;border-bottom:2px solid transparent;color:#6A7F9A;font-family:'IBM Plex Mono','Courier New',monospace;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0;}
+  .pd-tab:hover{color:#D4DCE8;background:rgba(255,255,255,.03);}
+  .pd-tab.ac{border-bottom-color:#D4A034;color:#D4DCE8;}
+  .pd-panel{display:none;flex:1;overflow-y:auto;}
+  .pd-panel.ac{display:flex;flex-direction:column;}
+  .pd-slide-card{background:#0E1320;border:1px solid #1B2335;border-radius:5px;overflow:hidden;margin-bottom:14px;}
+  .pd-slide-head{padding:14px 18px 10px;border-bottom:1px solid #1B2335;}
+  .pd-slide-num{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.18em;color:#D4A034;text-transform:uppercase;margin-bottom:5px;}
+  .pd-slide-name{font-family:Georgia,'Times New Roman',serif;font-size:17px;font-weight:700;color:#D4DCE8;}
+  .pd-slide-preview{height:80px;background:#070A10;border-bottom:1px solid #1B2335;padding:14px 18px;display:flex;flex-direction:column;justify-content:center;gap:7px;}
+  .pd-bar{height:8px;background:#1B2335;border-radius:2px;max-width:100%;}
+  .pd-slide-body{padding:12px 18px;}
+  .pd-slide-desc{font-family:Georgia,'Times New Roman',serif;font-size:12.5px;color:#94A8BF;line-height:1.7;margin-bottom:8px;}
+  .pd-slide-tip{border-left:2px solid rgba(212,160,52,.4);padding-left:12px;font-family:Georgia,serif;font-size:11.5px;font-style:italic;color:#6A7F9A;}
+  .pd-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#6A7F9A;display:block;margin-bottom:5px;}
+  .pd-inp{width:100%;background:#0A0D16;border:1px solid #1B2335;border-radius:3px;color:#D4DCE8;font-size:12px;padding:7px 10px;font-family:'IBM Plex Mono',monospace;outline:none;box-sizing:border-box;}
+  .pd-inp:focus{border-color:#D4A034;}
+  .pd-sel{width:100%;background:#0A0D16;border:1px solid #1B2335;border-radius:3px;color:#D4DCE8;font-size:12px;padding:7px 10px;font-family:'IBM Plex Mono',monospace;outline:none;box-sizing:border-box;}
+  .pd-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;border:1px solid;transition:all .15s;}
+  .pd-btn-gold{background:rgba(212,160,52,.12);border-color:rgba(212,160,52,.4);color:#D4A034;}
+  .pd-btn-gold:hover{background:rgba(212,160,52,.22);}
+  .pd-btn-dim{background:#0A0D16;border-color:#1B2335;color:#6A7F9A;}
+  .pd-btn-dim:hover{border-color:#D4A034;color:#D4DCE8;}
+  .pd-type-card{background:#0E1320;border:1px solid #1B2335;border-radius:5px;padding:16px 18px;margin-bottom:12px;}
+  .pd-pal-swatch{height:36px;border-radius:3px;margin-bottom:8px;}
+  .pd-principle-card{background:#0E1320;border:1px solid #1B2335;border-left:3px solid #D4A034;border-radius:0 5px 5px 0;padding:14px 16px;margin-bottom:10px;}
+  /* per-slide image upload inside generated deck */
+  .pitch-img-upload{position:absolute;bottom:8px;right:10px;z-index:5;}
+  .pitch-img-upload label{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(0,0,0,.7);border:1px solid rgba(212,160,52,.4);color:#D4A034;padding:3px 8px;border-radius:2px;cursor:pointer;}
+  .pitch-img-upload label:hover{background:rgba(212,160,52,.15);}
+</style>
 
-  <!-- Header -->
-  <div class="pitch-header-row flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-3">
-    <div>
-      <h2 class="text-xl font-black text-white uppercase tracking-wider flex items-center gap-2" style="font-family:var(--fds)"><i class="fa-solid fa-film mr-2 text-purple-400"></i>PITCH DECK BUILDER</h2>
-      <p class="text-xs text-gray-500">Build a complete pitch package. Images sourced from Unsplash by genre &amp; mood keywords.</p>
+<!-- Studio Header -->
+<div style="background:#0A0D16;border-bottom:1px solid #1B2335;padding:0 18px;display:flex;align-items:center;justify-content:space-between;min-height:46px;flex-shrink:0;">
+  <div style="display:flex;align-items:baseline;gap:6px;">
+    <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:.07em;color:#D4DCE8;text-transform:uppercase;">Pitch Deck</span>
+    <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:.07em;color:#D4A034;text-transform:uppercase;">Studio</span>
+  </div>
+  <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.15em;color:#D4A034;border:1px solid rgba(212,160,52,.3);padding:4px 10px;border-radius:3px;text-transform:uppercase;">Rooks Productions</div>
+</div>
+<!-- Tab Bar -->
+<div style="display:flex;background:#0A0D18;border-bottom:1px solid #1B2335;flex-shrink:0;overflow-x:auto;">
+  <button class="pd-tab ac" id="pdt-method" onclick="pdTab('method')">Method</button>
+  <button class="pd-tab" id="pdt-studio" onclick="pdTab('studio')">Studio</button>
+  <button class="pd-tab" id="pdt-typography" onclick="pdTab('typography')">Typography</button>
+  <button class="pd-tab" id="pdt-palettes" onclick="pdTab('palettes')">Palettes</button>
+  <button class="pd-tab" id="pdt-principles" onclick="pdTab('principles')">Principles</button>
+</div>
+
+<!-- ── METHOD PANEL ─────────────────────────────────────────── -->
+<div id="pdp-method" class="pd-panel ac" style="padding:24px 20px;">
+<div style="max-width:780px;width:100%;margin:0 auto;">
+  <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:28px;font-weight:700;color:#D4DCE8;margin-bottom:6px;">The 10-Slide Method</h2>
+  <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6A7F9A;line-height:1.75;margin-bottom:22px;">Pitch deck architecture used by studios, financiers, and production companies. Each slide has a clear job — respect the sequence.</p>
+  <div style="border-top:1px solid #1B2335;padding-top:20px;">
+
+    <div class="pd-slide-card">
+      <div class="pd-slide-head"><div class="pd-slide-num">Slide 01</div><div class="pd-slide-name">Title Page</div></div>
+      <div class="pd-slide-preview"><div class="pd-bar" style="width:68%"></div><div class="pd-bar" style="width:42%"></div></div>
+      <div class="pd-slide-body"><p class="pd-slide-desc">The first impression. Title, writer name, genre, and budget tier. No clutter. The visual identity of the entire deck starts here.</p><blockquote class="pd-slide-tip">Treat this like a movie poster — the title should carry weight. Use the display typeface at maximum size.</blockquote></div>
     </div>
-    <div class="flex gap-2">
-      <button onclick="genPitch()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs px-4 py-2 rounded uppercase tracking-wider"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Generate Deck</button>
-      <button onclick="exportPitchPDF()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold text-xs px-4 py-2 rounded uppercase tracking-wider"><i class="fa-solid fa-file-pdf mr-1"></i>Print / PDF</button>
+
+    <div class="pd-slide-card">
+      <div class="pd-slide-head"><div class="pd-slide-num">Slide 02</div><div class="pd-slide-name">Logline</div></div>
+      <div class="pd-slide-preview"><div class="pd-bar" style="width:90%"></div><div class="pd-bar" style="width:75%"></div><div class="pd-bar" style="width:55%"></div></div>
+      <div class="pd-slide-body"><p class="pd-slide-desc">One to two sentences. Protagonist, goal, obstacle, stakes. A room should understand the entire film from these lines alone.</p><blockquote class="pd-slide-tip">Read it aloud. If it takes more than one breath, it's too long.</blockquote></div>
+    </div>
+
+    <div class="pd-slide-card">
+      <div class="pd-slide-head"><div class="pd-slide-num">Slide 03</div><div class="pd-slide-name">The Story</div></div>
+      <div class="pd-slide-preview"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;height:52px;"><div style="background:#1B2335;border-radius:2px;"></div><div style="background:#1B2335;border-radius:2px;"></div><div style="background:#1B2335;border-radius:2px;"></div></div></div>
+      <div class="pd-slide-body"><p class="pd-slide-desc">Three acts in three paragraphs. Setup, escalation, resolution. Don't summarize every scene — hit the structural peaks and emotional turns that make financiers lean in.</p><blockquote class="pd-slide-tip">End each act description on a question that only the next act can answer.</blockquote></div>
+    </div>
+
+    <div class="pd-slide-card">
+      <div class="pd-slide-head"><div class="pd-slide-num">Slide 04</div><div class="pd-slide-name">Protagonist</div></div>
+      <div class="pd-slide-preview"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;height:52px;"><div style="background:#1B2335;border-radius:2px;"></div><div style="background:#1B2335;border-radius:2px;"></div></div></div>
+      <div class="pd-slide-body"><p class="pd-slide-desc">Want (external goal) vs. Need (internal wound). The flaw that creates all their problems. The transformation that makes the ending meaningful.</p><blockquote class="pd-slide-tip">If you can't articulate the protagonist's wound in one sentence, the screenplay has a character problem.</blockquote></div>
+    </div>
+
+    <div class="pd-slide-card">
+      <div class="pd-slide-head"><div class="pd-slide-num">Slide 05</div><div class="pd-slide-name">World &amp; Tone</div></div>
+      <div class="pd-slide-preview"><div class="pd-bar" style="width:100%;height:52px;border-radius:3px;"></div></div>
+      <div class="pd-slide-body"><p class="pd-slide-desc">The visual and emotional world of the film. Time period, setting, atmosphere. This slide should feel like the trailer — immersive, specific, unmistakable.</p><blockquote class="pd-slide-tip">Tone keywords should be contradictions: "intimate epic," "funny bleak," "quiet explosive."</blockquote></div>
+    </div>
+
+    <div class="pd-slide-card">
+      <div class="pd-slide-head"><div class="pd-slide-num">Slide 06</div><div class="pd-slide-name">Comparable Films</div></div>
+      <div class="pd-slide-preview"><div style="display:flex;gap:8px;align-items:center;height:52px;"><div style="background:#1B2335;flex:1;border-radius:2px;height:28px;"></div><div style="color:#D4A034;font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;">×</div><div style="background:#1B2335;flex:1;border-radius:2px;height:28px;"></div></div></div>
+      <div class="pd-slide-body"><p class="pd-slide-desc">Two to three films that bracket the tone, budget range, and audience. Not "I want my film to be as successful as…" — these are reference points for the buyer, not aspirations.</p><blockquote class="pd-slide-tip">The formula: "A meets B, set in C" works only when A and B are genuinely unexpected together.</blockquote></div>
+    </div>
+
+    <div class="pd-slide-card">
+      <div class="pd-slide-head"><div class="pd-slide-num">Slide 07</div><div class="pd-slide-name">Why Now</div></div>
+      <div class="pd-slide-preview"><div class="pd-bar" style="width:82%"></div><div class="pd-bar" style="width:60%"></div></div>
+      <div class="pd-slide-body"><p class="pd-slide-desc">Cultural timing, audience need, market gap. Why does this story resonate in this specific moment? Specificity signals research. Generality signals filler.</p><blockquote class="pd-slide-tip">Cite a real cultural phenomenon, not a mood. "In an era of…" is a red flag.</blockquote></div>
+    </div>
+
+    <div class="pd-slide-card">
+      <div class="pd-slide-head"><div class="pd-slide-num">Slide 08</div><div class="pd-slide-name">Target Market</div></div>
+      <div class="pd-slide-preview"><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;height:52px;"><div style="background:#1B2335;border-radius:2px;"></div><div style="background:#1B2335;border-radius:2px;"></div></div></div>
+      <div class="pd-slide-body"><p class="pd-slide-desc">Primary audience, secondary audience, distribution target (theatrical / streaming / festival), MPAA rating target, budget range. This is the business slide — make it look like you've done the math.</p><blockquote class="pd-slide-tip">Name the platform you're pitching toward. "Netflix-ready" tells them more than "wide release."</blockquote></div>
+    </div>
+
+    <div class="pd-slide-card">
+      <div class="pd-slide-head"><div class="pd-slide-num">Slide 09</div><div class="pd-slide-name">The Team</div></div>
+      <div class="pd-slide-preview"><div style="display:flex;gap:8px;height:52px;"><div style="background:#1B2335;border-radius:2px;width:52px;"></div><div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:6px;"><div class="pd-bar" style="width:55%"></div><div class="pd-bar" style="width:38%"></div></div></div></div>
+      <div class="pd-slide-body"><p class="pd-slide-desc">Writer bio, director (attached or seeking), producer, key talent. Leads with credits, not aspirations. If the team is emerging, lead with the story's strength and the comp titles.</p><blockquote class="pd-slide-tip">One strong producing credit is worth more than five festival mentions. Lead with it.</blockquote></div>
+    </div>
+
+    <div class="pd-slide-card">
+      <div class="pd-slide-head"><div class="pd-slide-num">Slide 10</div><div class="pd-slide-name">Contact &amp; Next Steps</div></div>
+      <div class="pd-slide-preview"><div style="display:flex;justify-content:center;align-items:center;height:52px;"><div style="display:flex;gap:16px;"><div class="pd-bar" style="width:60px;height:20px;border-radius:3px;"></div><div class="pd-bar" style="width:60px;height:20px;border-radius:3px;"></div><div class="pd-bar" style="width:60px;height:20px;border-radius:3px;"></div></div></div></div>
+      <div class="pd-slide-body"><p class="pd-slide-desc">Clean contact block: email, WGA registration, website / IMDb. State that the full screenplay is available on request under WGA submission agreement. End confidently — no hedging.</p><blockquote class="pd-slide-tip">This slide should feel like the last frame of a great trailer. Leave them wanting to make the call.</blockquote></div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ── STUDIO PANEL ─────────────────────────────────────────── -->
+<div id="pdp-studio" class="pd-panel" style="padding:20px;">
+<div style="max-width:900px;width:100%;margin:0 auto;">
+
+  <!-- Controls bar -->
+  <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #1B2335;">
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;color:#6A7F9A;text-transform:uppercase;letter-spacing:.1em;"><i class="fa-solid fa-sliders" style="color:#D4A034;margin-right:6px;"></i>Project Details</span>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="pd-btn pd-btn-gold" onclick="genPitch()"><i class="fa-solid fa-wand-magic-sparkles"></i>Generate Deck</button>
+      <button class="pd-btn pd-btn-dim" onclick="exportPitchPDF()"><i class="fa-solid fa-file-pdf"></i>Print / PDF</button>
     </div>
   </div>
 
   <!-- Input panel -->
-  <div id="pitch-inputs" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/50 border border-slate-800 rounded-xl p-5">
-    <div class="space-y-3">
-      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Title</label><input id="pitch-title" placeholder="Script Title" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2 placeholder-slate-600"></div>
-      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Logline (1-2 sentences)</label><textarea id="pitch-logline" rows="2" placeholder="When X happens to Y, they must Z before Q..." class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2 placeholder-slate-600 resize-none"></textarea></div>
-      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Genre</label><select id="pitch-genre" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2"><option value="drama">Drama</option><option value="thriller">Thriller</option><option value="crime">Crime / Noir</option><option value="horror">Horror</option><option value="sci-fi">Sci-Fi</option><option value="action">Action / Adventure</option><option value="comedy">Comedy</option><option value="romance">Romance</option><option value="biopic">Biopic / True Story</option><option value="western">Western</option></select></div>
-      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Tone / Mood</label><select id="pitch-tone" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2"><option value="dark,cinematic">Dark &amp; Cinematic</option><option value="gritty,urban">Gritty Urban</option><option value="atmospheric,mysterious">Atmospheric &amp; Mysterious</option><option value="warm,intimate">Warm &amp; Intimate</option><option value="tense,suspense">High-Tension</option><option value="epic,grand">Epic &amp; Grand</option><option value="minimalist,quiet">Minimalist &amp; Quiet</option><option value="neon,stylized">Neon &amp; Stylized</option></select></div>
+  <div id="pitch-inputs" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;background:#0A0D16;border:1px solid #1B2335;border-radius:5px;padding:16px;margin-bottom:18px;">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div><label class="pd-lbl">Title</label><input id="pitch-title" placeholder="Script Title" class="pd-inp"></div>
+      <div><label class="pd-lbl">Logline</label><textarea id="pitch-logline" rows="2" placeholder="When X happens to Y, they must Z before Q..." class="pd-inp" style="height:auto;resize:none;"></textarea></div>
+      <div><label class="pd-lbl">Genre</label><select id="pitch-genre" class="pd-sel"><option value="drama">Drama</option><option value="thriller">Thriller</option><option value="crime">Crime / Noir</option><option value="horror">Horror</option><option value="sci-fi">Sci-Fi</option><option value="action">Action / Adventure</option><option value="comedy">Comedy</option><option value="romance">Romance</option><option value="biopic">Biopic / True Story</option><option value="western">Western</option></select></div>
+      <div><label class="pd-lbl">Tone / Mood</label><select id="pitch-tone" class="pd-sel"><option value="dark,cinematic">Dark &amp; Cinematic</option><option value="gritty,urban">Gritty Urban</option><option value="atmospheric,mysterious">Atmospheric &amp; Mysterious</option><option value="warm,intimate">Warm &amp; Intimate</option><option value="tense,suspense">High-Tension</option><option value="epic,grand">Epic &amp; Grand</option><option value="minimalist,quiet">Minimalist &amp; Quiet</option><option value="neon,stylized">Neon &amp; Stylized</option></select></div>
     </div>
-    <div class="space-y-3">
-      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Writer Name</label><input id="pitch-writer" placeholder="Writer Name" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2 placeholder-slate-600"></div>
-      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Comparable Films (Comp Titles)</label><input id="pitch-comps" placeholder="e.g. Heat (1995), No Country for Old Men" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2 placeholder-slate-600"></div>
-      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Target Audience / Market</label><input id="pitch-market" placeholder="e.g. Adult drama, prestige cable / A24 / streaming" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2 placeholder-slate-600"></div>
-      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Budget Range</label><select id="pitch-budget" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2"><option>Micro-budget (under $500K)</option><option>Low-budget ($500K-$5M)</option><option selected>Mid-range ($5M-$30M)</option><option>Studio ($30M+)</option></select></div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div><label class="pd-lbl">Writer Name</label><input id="pitch-writer" placeholder="Writer Name" class="pd-inp"></div>
+      <div style="position:relative;">
+        <label class="pd-lbl">Comp Titles</label>
+        <div style="display:flex;gap:6px;">
+          <input id="pitch-comps" placeholder="e.g. Heat (1995), No Country for Old Men" class="pd-inp" style="flex:1;">
+          <button class="pd-btn pd-btn-dim" onclick="(async()=>{const q=document.getElementById('pitch-comps').value.split(',').pop().trim();if(!q){toast('Type a title to search TMDB.');return;}await tmdbSearchAndShow(q,'tmdb-comp-drop');})()" style="flex-shrink:0;height:32px;margin-top:auto;" title="Search TMDB for comp title"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+        <div id="tmdb-comp-drop" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#0E1320;border:1px solid #1B2335;border-radius:3px;z-index:99;max-height:260px;overflow-y:auto;"></div>
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#3A5070;margin-top:3px;">Search TMDB to pull posters &amp; data. Free API key: <a href="https://www.themoviedb.org/settings/api" target="_blank" style="color:#D4A034;">themoviedb.org/settings/api</a></p>
+      </div>
+      <div><label class="pd-lbl">Target Market</label><input id="pitch-market" placeholder="e.g. Adult drama / prestige / A24 / streaming" class="pd-inp"></div>
+      <div><label class="pd-lbl">Budget Range</label><select id="pitch-budget" class="pd-sel"><option>Micro-budget (under $500K)</option><option>Low-budget ($500K–$5M)</option><option selected>Mid-range ($5M–$30M)</option><option>Studio ($30M+)</option></select></div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#3A5070;letter-spacing:.06em;margin:0;">Images: <strong style="color:#4A6880;">LoremFlickr</strong> (free, keyword) · upload per slide · or use TMDB posters for comps.</p>
+    <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
+      <input id="pitch-tmdb-key" type="password" placeholder="TMDB API Key (shared with Film DB)" oninput="tmdbSetKey(this.value)" style="background:#0A0D16;border:1px solid #1B2335;border-radius:3px;color:#D4DCE8;font-family:'IBM Plex Mono',monospace;font-size:9px;padding:4px 8px;width:200px;outline:none;">
+      <a href="https://www.themoviedb.org/settings/api" target="_blank" style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:#D4A034;text-decoration:none;white-space:nowrap;">Get Free Key ↗</a>
     </div>
   </div>
 
   <!-- Deck output -->
-  <div id="pg" class="space-y-4">
-    <div class="text-center text-gray-500 italic py-16 flex flex-col items-center gap-3"><i class="fa-solid fa-film text-4xl text-gray-700"></i><span>Fill in details above and click <strong class="text-purple-400">Generate Deck</strong>.</span></div>
+  <div id="pg" style="display:flex;flex-direction:column;gap:14px;">
+    <div style="text-align:center;color:#2E3D52;padding:48px 0;font-family:'IBM Plex Mono',monospace;font-size:11px;font-style:italic;"><i class="fa-solid fa-film" style="font-size:28px;display:block;margin-bottom:12px;color:#1B2A3A;"></i>Fill in the details above and click <strong style="color:#D4A034;">Generate Deck</strong>.</div>
   </div>
 
-  <!-- Query Letter section -->
-  <div id="pitch-query-section" class="hidden border border-violet-900/50 rounded-xl p-5 bg-violet-950/20">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-sm font-black text-violet-300 uppercase tracking-wider"><i class="fa-solid fa-envelope mr-2"></i>Producer Query Letter</h3>
-      <button onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('pitch-query-text').innerText).then(()=>toast('Copied!'))" class="text-[10px] bg-violet-900/40 border border-violet-700 text-violet-300 px-3 py-1 rounded hover:bg-violet-900/70">Copy Letter</button>
+  <!-- Query Letter -->
+  <div id="pitch-query-section" style="display:none;border:1px solid rgba(212,160,52,.2);border-radius:5px;padding:16px;margin-top:18px;background:rgba(212,160,52,.04);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;color:#D4A034;text-transform:uppercase;letter-spacing:.1em;"><i class="fa-solid fa-envelope" style="margin-right:6px;"></i>Producer Query Letter</span>
+      <button class="pd-btn pd-btn-dim" onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('pitch-query-text').innerText).then(()=>toast('Copied!'))">Copy Letter</button>
     </div>
-    <div id="pitch-query-text" class="bg-slate-950 border border-slate-800 rounded p-5 text-xs leading-relaxed text-slate-300 whitespace-pre-wrap" style="font-family:Georgia,serif"></div>
+    <div id="pitch-query-text" style="background:#07090E;border:1px solid #1B2335;border-radius:3px;padding:16px;font-size:12px;line-height:1.75;color:#94A8BF;white-space:pre-wrap;font-family:Georgia,serif;"></div>
   </div>
 
 </div>
+</div>
+
+<!-- ── TYPOGRAPHY PANEL ─────────────────────────────────────── -->
+<div id="pdp-typography" class="pd-panel" style="padding:24px 20px;">
+<div style="max-width:760px;width:100%;margin:0 auto;">
+  <h2 style="font-family:Georgia,serif;font-size:24px;font-weight:700;color:#D4DCE8;margin-bottom:6px;">Typography</h2>
+  <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6A7F9A;margin-bottom:22px;">Type choices tell the reader what kind of film this is before a single word of story lands.</p>
+
+  <div class="pd-type-card">
+    <div class="pd-slide-num" style="margin-bottom:8px;">Display / Title</div>
+    <div style="font-family:'Barlow Condensed','Montserrat',sans-serif;font-size:36px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#D4DCE8;line-height:1.1;margin-bottom:8px;">BARLOW CONDENSED</div>
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6A7F9A;">Use for film title, act labels, section headers. All caps. Maximum weight. Condensed sans gives scale without clutter — the language of the theatrical poster.</p>
+  </div>
+
+  <div class="pd-type-card">
+    <div class="pd-slide-num" style="margin-bottom:8px;">Body / Story Text</div>
+    <div style="font-family:Georgia,'Times New Roman',serif;font-size:20px;color:#D4DCE8;line-height:1.5;margin-bottom:8px;">Georgia — story and description copy</div>
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6A7F9A;">Serif body text signals craft and permanence. Use Georgia for logline, story description, and any long-form copy. Set at 13–15px with 1.7 line-height minimum.</p>
+  </div>
+
+  <div class="pd-type-card">
+    <div class="pd-slide-num" style="margin-bottom:8px;">Labels / Metadata</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;letter-spacing:.12em;color:#D4A034;text-transform:uppercase;margin-bottom:8px;">IBM PLEX MONO — SLIDE 01 — GENRE</div>
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6A7F9A;">Monospace for all metadata, labels, tags, and functional annotation. Creates technical precision that reads as authority. Use gold (#D4A034) for key labels only.</p>
+  </div>
+
+  <div class="pd-type-card">
+    <div class="pd-slide-num" style="margin-bottom:8px;">Quote / Tip</div>
+    <blockquote style="font-family:Georgia,serif;font-size:14px;font-style:italic;color:#94A8BF;border-left:2px solid rgba(212,160,52,.4);padding-left:14px;margin:0 0 8px;">"The title should carry weight. Use the display typeface at maximum size."</blockquote>
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6A7F9A;">Italic Georgia for blockquotes and director's notes. Left border in muted gold. This creates hierarchy without competing with primary content.</p>
+  </div>
+</div>
+</div>
+
+<!-- ── PALETTES PANEL ─────────────────────────────────────────── -->
+<div id="pdp-palettes" class="pd-panel" style="padding:24px 20px;">
+<div style="max-width:760px;width:100%;margin:0 auto;">
+  <h2 style="font-family:Georgia,serif;font-size:24px;font-weight:700;color:#D4DCE8;margin-bottom:6px;">Visual Palettes</h2>
+  <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6A7F9A;margin-bottom:22px;">Choose one palette per project. Consistency signals professionalism. Mixing palettes signals amateur work.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <div style="background:#0E1320;border:1px solid #1B2335;border-radius:5px;padding:14px;">
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <div style="flex:1;height:32px;border-radius:3px;background:#07090E;"></div>
+        <div style="flex:1;height:32px;border-radius:3px;background:#0E1320;"></div>
+        <div style="flex:1;height:32px;border-radius:3px;background:#D4A034;"></div>
+        <div style="flex:1;height:32px;border-radius:3px;background:#D4DCE8;"></div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;color:#D4A034;text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px;">Studio Dark</div>
+      <p style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#6A7F9A;">Default Rooks palette. Deep navy-black backgrounds, gold accent. Used for drama, crime, prestige.</p>
+    </div>
+    <div style="background:#0E1320;border:1px solid #1B2335;border-radius:5px;padding:14px;">
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <div style="flex:1;height:32px;border-radius:3px;background:#0A0018;"></div>
+        <div style="flex:1;height:32px;border-radius:3px;background:#1A0035;"></div>
+        <div style="flex:1;height:32px;border-radius:3px;background:#7137C8;"></div>
+        <div style="flex:1;height:32px;border-radius:3px;background:#E8DCFF;"></div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;color:#7137C8;text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px;">Midnight Purple</div>
+      <p style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#6A7F9A;">Sci-fi, horror, psychological thriller. Deep indigo with violet highlight. High-contrast feel.</p>
+    </div>
+    <div style="background:#0E1320;border:1px solid #1B2335;border-radius:5px;padding:14px;">
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <div style="flex:1;height:32px;border-radius:3px;background:#0D1A10;"></div>
+        <div style="flex:1;height:32px;border-radius:3px;background:#152B18;"></div>
+        <div style="flex:1;height:32px;border-radius:3px;background:#3DA55C;"></div>
+        <div style="flex:1;height:32px;border-radius:3px;background:#CCEBD4;"></div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;color:#3DA55C;text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px;">Forest / Natural</div>
+      <p style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#6A7F9A;">Westerns, outdoor survival, coming-of-age. Earth tones with natural green. Intimate and grounded.</p>
+    </div>
+    <div style="background:#0E1320;border:1px solid #1B2335;border-radius:5px;padding:14px;">
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <div style="flex:1;height:32px;border-radius:3px;background:#0F0A00;"></div>
+        <div style="flex:1;height:32px;border-radius:3px;background:#1E1000;"></div>
+        <div style="flex:1;height:32px;border-radius:3px;background:#C44B00;"></div>
+        <div style="flex:1;height:32px;border-radius:3px;background:#FFD4A8;"></div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;color:#C44B00;text-transform:uppercase;letter-spacing:.12em;margin-bottom:4px;">Amber / Neo-Noir</div>
+      <p style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:#6A7F9A;">Crime, biopic, action. Warm amber-orange on near-black. High tension, street-level energy.</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── PRINCIPLES PANEL ─────────────────────────────────────── -->
+<div id="pdp-principles" class="pd-panel" style="padding:24px 20px;">
+<div style="max-width:760px;width:100%;margin:0 auto;">
+  <h2 style="font-family:Georgia,serif;font-size:24px;font-weight:700;color:#D4DCE8;margin-bottom:6px;">Deck Principles</h2>
+  <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6A7F9A;margin-bottom:22px;">Rules that separate professional decks from amateur ones. Break them consciously — but know them first.</p>
+
+  <div class="pd-principle-card"><div style="font-family:Georgia,serif;font-size:14px;font-weight:700;color:#D4DCE8;margin-bottom:5px;">One image per slide — maximum.</div><p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6A7F9A;line-height:1.7;">A mood board belongs in a separate document. Every image on a pitch slide must earn its place by communicating something words cannot. More than one image per slide creates chaos.</p></div>
+
+  <div class="pd-principle-card"><div style="font-family:Georgia,serif;font-size:14px;font-weight:700;color:#D4DCE8;margin-bottom:5px;">White space is not wasted space.</div><p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6A7F9A;line-height:1.7;">A financier reading a dense deck loses the thread. A clean slide makes the one idea on it land harder. Resist filling every corner — your restraint signals confidence in the material.</p></div>
+
+  <div class="pd-principle-card"><div style="font-family:Georgia,serif;font-size:14px;font-weight:700;color:#D4DCE8;margin-bottom:5px;">Every slide has one job. Name it before you design it.</div><p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6A7F9A;line-height:1.7;">Before placing a single element, write the slide's job in one sentence: "This slide makes them believe the character's wound is real." If you can't write that sentence, you don't know what the slide is for.</p></div>
+
+  <div class="pd-principle-card"><div style="font-family:Georgia,serif;font-size:14px;font-weight:700;color:#D4DCE8;margin-bottom:5px;">Comp titles are positioning, not aspiration.</div><p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6A7F9A;line-height:1.7;">Citing The Godfather tells a financier you don't understand how pitching works. Comp titles bracket a commercial range and an audience expectation — not a quality target. Use films from the last five to seven years.</p></div>
+
+  <div class="pd-principle-card"><div style="font-family:Georgia,serif;font-size:14px;font-weight:700;color:#D4DCE8;margin-bottom:5px;">The deck is not the screenplay. Don't summarize every beat.</div><p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6A7F9A;line-height:1.7;">A pitch deck creates desire to read the screenplay — it doesn't replace it. Three sentences of story are enough. If the deck tells the whole film, there's no reason to ask for the script.</p></div>
+
+  <div class="pd-principle-card"><div style="font-family:Georgia,serif;font-size:14px;font-weight:700;color:#D4DCE8;margin-bottom:5px;">End on confidence, not on hope.</div><p style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#6A7F9A;line-height:1.7;">The last slide is a statement of availability, not a plea. "The screenplay is available immediately for review under standard WGA agreement." Full stop. Never "I hope you'll consider…" — that sentence belongs in the cover email, not the deck.</p></div>
+</div>
+</div>
+
 </section>
 
 <!-- VIEW 4: STORYBOARDS -->
@@ -3748,10 +3932,109 @@ function exportPitchPDF(){printView('pitch');}
 function printView(view){document.body.setAttribute('data-print-view',view);window.print();document.body.removeAttribute('data-print-view');}
 function exportCoveragePDF(){printView('coverage');}
 function exportBudgetPDF(){printView('budget');}
-function _unsplashUrl(keywords, w, h) {
-  /* Unsplash Source API — free, no key required */
-  const kw = encodeURIComponent(keywords.replace(/[,]+/g,' '));
-  return `https://source.unsplash.com/featured/${w}x${h}/?${kw}`;
+
+/* ── Pitch Deck Tab Navigation ── */
+function pdTab(name){
+  ['method','studio','typography','palettes','principles'].forEach(t=>{
+    const btn=document.getElementById('pdt-'+t);
+    const panel=document.getElementById('pdp-'+t);
+    if(btn){btn.classList.toggle('ac',t===name);}
+    if(panel){panel.classList.toggle('ac',t===name);panel.style.display=t===name?'flex':'none';}
+  });
+  // init method panel display
+  const mp=document.getElementById('pdp-method');if(mp&&name==='method')mp.style.display='flex';
+}
+
+/* ── Free image URL (LoremFlickr — keyword-based, no API key) ── */
+function _pitchImgUrl(keywords,w,h){
+  const kw=keywords.replace(/[^a-zA-Z0-9, ]/g,'').trim().replace(/\s+/g,',').split(',').filter(Boolean).slice(0,3).join(',');
+  return `https://loremflickr.com/${w}/${h}/${kw||'cinema'}?lock=${Math.floor(Math.random()*9999)}`;
+}
+
+/* ── TMDB API Integration ── */
+let tmdbKey=null;
+function tmdbGetKey(){
+  if(tmdbKey)return tmdbKey;
+  // share key with Film DB section (fdb_tmdb_key) — one key across all modules
+  try{tmdbKey=localStorage.getItem('fdb_tmdb_key')||localStorage.getItem('prehub_tmdb_key')||null;}catch(e){}
+  return tmdbKey;
+}
+function tmdbSetKey(k){
+  tmdbKey=k.trim();
+  try{localStorage.setItem('fdb_tmdb_key',tmdbKey);localStorage.setItem('prehub_tmdb_key',tmdbKey);}catch(e){}
+  toast('TMDB key saved across all modules.');
+}
+async function tmdbSearch(query){
+  const key=tmdbGetKey();
+  if(!key){toast('Add your free TMDB API key in Settings → Integrations.');return null;}
+  try{
+    const r=await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${encodeURIComponent(key)}&query=${encodeURIComponent(query)}&include_adult=false`);
+    if(!r.ok)return null;
+    const d=await r.json();
+    return d.results||[];
+  }catch(e){return null;}
+}
+async function tmdbSearchAndShow(query,targetEl){
+  const results=await tmdbSearch(query);
+  if(!results||!results.length){toast('No TMDB results for: '+query);return;}
+  const el=document.getElementById(targetEl);
+  if(!el)return;
+  el.innerHTML=results.slice(0,6).map(m=>`
+    <div onclick="tmdbSelectComp('${(m.title||'').replace(/'/g,"\\'")}','${m.release_date?m.release_date.slice(0,4):''}','${m.poster_path?'https://image.tmdb.org/t/p/w300'+m.poster_path:''}','${(m.overview||'').replace(/'/g,"\\'").slice(0,120)}')"
+      style="display:flex;gap:10px;align-items:center;padding:8px;cursor:pointer;border-radius:3px;border-bottom:1px solid #1B2335;" onmouseover="this.style.background='#141C2E'" onmouseout="this.style.background=''">
+      ${m.poster_path?`<img src="https://image.tmdb.org/t/p/w92${m.poster_path}" style="width:32px;height:48px;object-fit:cover;border-radius:2px;flex-shrink:0;" loading="lazy">`:'<div style="width:32px;height:48px;background:#1B2335;border-radius:2px;flex-shrink:0;"></div>'}
+      <div><div style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:700;color:#D4DCE8;">${m.title||'Untitled'}</div><div style="font-family:\'IBM Plex Mono\',monospace;font-size:9px;color:#6A7F9A;">${m.release_date?m.release_date.slice(0,4):''}</div></div>
+    </div>`).join('');
+  el.style.display='block';
+}
+function tmdbSelectComp(title,year,poster,overview){
+  const compInp=document.getElementById('pitch-comps');
+  if(compInp){const cur=compInp.value.trim();compInp.value=cur?(cur+', '+title+(year?' ('+year+')':'')):(title+(year?' ('+year+')':''));}
+  const drop=document.getElementById('tmdb-comp-drop');if(drop)drop.style.display='none';
+  toast('Added: '+title+(year?' ('+year+')':''));
+  // store poster for use in pitch deck
+  window._tmdbLastPoster=poster;
+}
+
+/* ── Per-slide image controls (filter / flip / upload) ── */
+function pitchImgFilter(imgEl,filter){
+  const filters={normal:'',invert:'invert(1)',grayscale:'grayscale(1)',sepia:'sepia(.85)',warm:'sepia(.4) saturate(1.5) brightness(1.05)',cool:'hue-rotate(180deg) saturate(.7)',dramatic:'contrast(1.3) brightness(.85) saturate(1.2)'};
+  imgEl.style.filter=filters[filter]||'';
+  imgEl.dataset.filter=filter;
+}
+function pitchImgFlipH(imgEl){
+  const cur=imgEl.dataset.fliph==='1';
+  imgEl.style.transform=(cur?'':'scaleX(-1) ')+(imgEl.style.transform||'').replace(/scaleX\(-1\)\s*/g,'').replace(/scaleY\(-1\)\s*/g,'');
+  imgEl.dataset.fliph=cur?'0':'1';
+  // reapply full transform
+  const fh=imgEl.dataset.fliph==='1'?'scaleX(-1) ':'';
+  const fv=imgEl.dataset.flipv==='1'?'scaleY(-1) ':'';
+  imgEl.style.transform=(fh+fv).trim()||'none';
+}
+function pitchImgFlipV(imgEl){
+  const cur=imgEl.dataset.flipv==='1';
+  imgEl.dataset.flipv=cur?'0':'1';
+  const fh=imgEl.dataset.fliph==='1'?'scaleX(-1) ':'';
+  const fv=imgEl.dataset.flipv==='1'?'scaleY(-1) ':'';
+  imgEl.style.transform=(fh+fv).trim()||'none';
+}
+function pitchImgOpacity(imgEl,val){imgEl.style.opacity=val;}
+function pitchUploadImg(fileInp,imgEl){
+  const file=fileInp.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{imgEl.src=e.target.result;};
+  reader.readAsDataURL(file);
+}
+function _pitchImgControls(imgId){
+  return `<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.9));padding:8px 10px 6px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;z-index:5;">
+    <select onchange="pitchImgFilter(document.getElementById('${imgId}'),this.value)" style="background:#07090E;border:1px solid #1B2335;border-radius:2px;color:#D4A034;font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 6px;cursor:pointer;">
+      <option value="normal">Normal</option><option value="dramatic">Dramatic</option><option value="grayscale">B&amp;W</option><option value="sepia">Sepia</option><option value="warm">Warm</option><option value="cool">Cool</option><option value="invert">Invert</option>
+    </select>
+    <button onclick="pitchImgFlipH(document.getElementById('${imgId}'))" style="background:#07090E;border:1px solid #1B2335;border-radius:2px;color:#94A8BF;font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 7px;cursor:pointer;" title="Flip Horizontal">↔</button>
+    <button onclick="pitchImgFlipV(document.getElementById('${imgId}'))" style="background:#07090E;border:1px solid #1B2335;border-radius:2px;color:#94A8BF;font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 7px;cursor:pointer;" title="Flip Vertical">↕</button>
+    <input type="range" min="0.1" max="1" step="0.05" value="0.55" oninput="pitchImgOpacity(document.getElementById('${imgId}'),this.value)" style="width:60px;accent-color:#D4A034;cursor:pointer;" title="Opacity">
+    <label style="background:#07090E;border:1px solid rgba(212,160,52,.4);border-radius:2px;color:#D4A034;font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 7px;cursor:pointer;">Upload<input type="file" accept="image/*" style="display:none;" onchange="pitchUploadImg(this,document.getElementById('${imgId}'))"></label>
+  </div>`;
 }
 function genPitch(){const g=document.getElementById('pg');if(!g)return;const wn=document.getElementById('wni')?.value||document.getElementById('pitch-writer')?.value||S.writerName;const genre=document.getElementById('pitch-genre')?.value||'drama';
   const tone=document.getElementById('pitch-tone')?.value||'dark,cinematic';
@@ -3760,7 +4043,7 @@ function genPitch(){const g=document.getElementById('pg');if(!g)return;const wn=
   const market=document.getElementById('pitch-market')?.value||'Adult drama / prestige';
   const budgetRange=document.getElementById('pitch-budget')?.value||'Mid-range ($5M–$30M)';
   const title=document.getElementById('pitch-title')?.value||'UNTITLED PROJECT';
-  const imgKw = (kw) => _unsplashUrl(`${genre},${tone},${kw},cinematic,film`, 900, 500);
+  const imgKw = (kw) => _pitchImgUrl(`${genre},${kw},cinematic,film`, 900, 500);
   const tmpls=[
     {ti:'TITLE PAGE',kw:'cinematic title credits dark film noir',body:`<div class="pitch-hero" style="text-align:center;padding:24px 0"><div style="font-size:32px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#fff;font-family:var(--fds);text-shadow:0 2px 20px rgba(0,0,0,.8)">${title||'UNTITLED PROJECT'}</div><div style="margin-top:8px;font-size:13px;color:#94A3B8;font-style:italic">Written by ${wn||'[Writer]'}</div><div style="margin-top:4px;font-size:11px;color:#4B5563;text-transform:uppercase;letter-spacing:.15em">${genre.toUpperCase()} · ${budgetRange}</div></div>`},
     {ti:'LOGLINE',kw:`${genre} ${tone} story character`,body:`<div class="pitch-body-text" style="font-size:16px;line-height:1.75;color:#E2E8F0;font-style:italic;padding:12px 0;border-left:3px solid #7C3AED;padding-left:16px">"${logline}"</div>`},
@@ -3777,8 +4060,9 @@ function genPitch(){const g=document.getElementById('pg');if(!g)return;const wn=
   tmpls.forEach((tmpl,idx)=>{
     const card=document.createElement('div');
     card.className='pitch-slide';
-    card.style.cssText='background:#0F1420;border:1px solid #1E293B;border-radius:12px;overflow:hidden;margin-bottom:20px;';
-    const heroImg=`<div class="pitch-img-wrap" style="position:relative;height:220px;overflow:hidden;background:#070A12"><img src="${imgKw(tmpl.kw)}" alt="${tmpl.ti}" style="width:100%;height:100%;object-fit:cover;opacity:.55" onerror="this.style.display='none'" loading="lazy"><div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,#0F1420 100%)"></div><div style="position:absolute;bottom:14px;left:16px;display:flex;align-items:center;gap:10px"><span style="background:#7C3AED;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:12px;text-transform:uppercase;letter-spacing:.12em">Slide ${idx+1}</span><span style="font-size:13px;font-weight:900;color:#fff;font-family:var(--fds);text-transform:uppercase;letter-spacing:.08em">${tmpl.ti}</span></div></div>`;
+    card.style.cssText='background:#0E1320;border:1px solid #1B2335;border-radius:5px;overflow:hidden;margin-bottom:16px;';
+    const iid='pimg_'+idx;
+    const heroImg=`<div class="pitch-img-wrap" style="position:relative;height:220px;overflow:hidden;background:#070A12"><img id="${iid}" src="${imgKw(tmpl.kw)}" alt="${tmpl.ti}" style="width:100%;height:100%;object-fit:cover;opacity:.55;transition:filter .2s,opacity .2s,transform .2s;" onerror="this.src=''" loading="lazy"><div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,#0F1420 100%);pointer-events:none;"></div><div style="position:absolute;bottom:54px;left:16px;display:flex;align-items:center;gap:10px;z-index:6;"><span style="background:rgba(212,160,52,.9);color:#000;font-size:9px;font-weight:700;padding:2px 8px;border-radius:2px;text-transform:uppercase;letter-spacing:.12em;font-family:'IBM Plex Mono',monospace;">Slide ${idx+1}</span><span style="font-size:13px;font-weight:900;color:#fff;font-family:var(--fds);text-transform:uppercase;letter-spacing:.08em;">${tmpl.ti}</span></div>${_pitchImgControls(iid)}</div>`;
     const body=`<div class="pitch-slide-body" style="padding:20px">${tmpl.body}</div>`;
     card.innerHTML=heroImg+body;
     g.appendChild(card);
