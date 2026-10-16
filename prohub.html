@@ -13,6 +13,20 @@
   --fm:'IBM Plex Mono','Courier New',monospace;
 }
 *{box-sizing:border-box;}
+/* Kill browser focus rings — use custom focus styles */
+*:focus{outline:none;}
+*:focus-visible{outline:2px solid var(--acc);outline-offset:2px;}
+button,a,input,select,textarea{font-family:inherit;}
+/* Base button style for the hub */
+.hbtn{display:inline-flex;align-items:center;gap:6px;font-family:var(--fui);font-size:12px;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;cursor:pointer;border-radius:5px;padding:5px 12px;
+  background:var(--bg3);border:1px solid var(--bd);color:var(--tx);transition:background .15s,border-color .15s;
+  white-space:nowrap;text-decoration:none;}
+.hbtn:hover{background:#1A2336;border-color:var(--acc2);}
+.hbtn.acc{background:rgba(232,123,48,.15);border-color:rgba(232,123,48,.5);color:var(--acc);}
+.hbtn.acc:hover{background:rgba(232,123,48,.25);border-color:var(--acc);}
+.hbtn.back{border-color:#26344E;color:#8794A6;}
+.hbtn.back:hover{color:var(--tx);border-color:var(--mu);}
 body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;display:flex;flex-direction:column;height:100vh;overflow:hidden;font-size:13px;}
 ::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:#1E2A3A;border-radius:2px;}
 /* TOPBAR */
@@ -159,11 +173,11 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
   <div class="text-xs text-slate-500 font-mono">Production Command Center</div>
   <div class="flex items-center gap-2 ml-auto">
     <div id="bridge-status" class="bridge-pill hidden"><i class="fa-solid fa-satellite-dish text-[9px]"></i> preHUB Bridge: <span id="bridge-proj">—</span></div>
-    <button onclick="loadBridgeData()" class="text-xs bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 border border-amber-800/60 px-2.5 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5">
+    <button onclick="loadBridgeData()" class="hbtn acc">
       <i class="fa-solid fa-satellite-dish"></i><span>Sync preHUB</span>
     </button>
-    <a href="prehub.html" class="text-xs bg-gray-800/80 hover:bg-gray-700 text-gray-300 border border-gray-700 px-2.5 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5">
-      <i class="fa-solid fa-arrow-left text-cyan-400"></i> preHUB
+    <a href="prehub.html" class="hbtn back">
+      <i class="fa-solid fa-arrow-left"></i> preHUB
     </a>
   </div>
 </div>

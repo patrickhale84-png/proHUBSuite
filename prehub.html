@@ -13,6 +13,7 @@
 <style>
 :root{--bg:#0B0F19;--bg-sb:#131822;--bg-bar:#0A0E17;--bg-cv:#0A0D14;--acc:#D4A034;--bd:#1F2937;--tx:#E0E6ED;--mu:#8B9FB1;--fui:'Inter',sans-serif;--fsc:'Courier Prime',monospace;--fds:'Montserrat',sans-serif;}
 *{box-sizing:border-box;}
+*:focus{outline:none;}*:focus-visible{outline:2px solid #E5A93C;outline-offset:2px;}button,a{font-family:inherit;}
 body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;display:flex;flex-direction:column;height:100vh;overflow:hidden;font-size:13px;-webkit-tap-highlight-color:transparent;}
 ::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--bg-bar);border-radius:3px;}
 .tmb{position:sticky;top:0;z-index:100;min-height:52px;background:var(--bg-bar);display:flex;align-items:center;padding:6px 14px;border-bottom:1px solid var(--bd);gap:10px;flex-shrink:0;z-index:50;}
@@ -745,9 +746,15 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 <!-- VIEW 1: SCREENWRITER STUDIO -->
 <section id="v-writer" class="vs" style="background:#090D16; flex:1; overflow-y:auto;">
 <!-- MOBILE BACK BUTTON (hidden on desktop) -->
-<div id="mob-writer-back" style="display:none;align-items:center;gap:8px;padding:8px 12px;background:#070A14;border-bottom:1px solid #1B2436;flex-shrink:0;">
-  <button onclick="document.querySelector('.nl[data-view=\'dashboard\']')&&document.querySelector('.nl[data-view=\'dashboard\']').click();document.getElementById('v-dashboard')&&(document.querySelectorAll('.vs').forEach(v=>v.classList.remove('ac')),document.getElementById('v-dashboard').classList.add('ac'))" style="background:#131A28;border:1px solid #26344E;color:#A3E635;padding:6px 14px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:system-ui;">← preHUB</button>
-  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8794A6;letter-spacing:.05em;">SCREENWRITER STUDIO</span>
+<div id="mob-writer-back" style="display:none;align-items:center;justify-content:space-between;padding:8px 14px;background:#070A14;border-bottom:1px solid #1B2436;flex-shrink:0;position:sticky;top:52px;z-index:40;">
+  <button onclick="(function(){document.querySelectorAll('.vs').forEach(function(v){v.classList.remove('ac')});var d=document.getElementById('v-dashboard');if(d)d.classList.add('ac');})()" style="display:inline-flex;align-items:center;gap:7px;background:#0E1320;border:1px solid #26344E;color:#D4DCE8;padding:7px 14px;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--fui,system-ui);letter-spacing:.06em;text-transform:uppercase;">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="flex-shrink:0"><path d="M8 1L3 6l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    preHUB
+  </button>
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#556B8A;letter-spacing:.12em;text-transform:uppercase;">Screenwriter Studio</span>
+  <button onclick="if(document.querySelector('.psb')){document.querySelector('.psb').classList.toggle('mo')}" style="display:inline-flex;align-items:center;gap:5px;background:#0E1320;border:1px solid #26344E;color:#8794A6;padding:7px 10px;border-radius:5px;font-size:12px;cursor:pointer;">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M2 7h10M2 10h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+  </button>
 </div>
 <!-- DRAG AND DROP FILE INGEST OVERLAY -->
   <div id="dropzone-drag-overlay">
