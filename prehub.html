@@ -95,6 +95,198 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 @keyframes pa{0%,100%{opacity:1;}50%{opacity:.4;}}
 .pa{animation:pa 2s infinite;}
 @media print{body{background:#fff!important;color:#000!important;}header,.psb,.tbr,#rib,footer,.np{display:none!important;}.esr{padding:0!important;background:#fff!important;overflow:visible!important;}.pp{border:none!important;box-shadow:none!important;background:#fff!important;color:#000!important;width:100%!important;min-height:0!important;}.leb{color:#000!important;}}
+
+    /* 100% ACCURATE SCREENPLAY PAGE METRICS ARCHITECTURE (8.5" x 11") */
+    .paper-sheet-container {
+      width: 8.5in;
+      min-height: 11in;
+      background-color: #0E131F;
+      border: 1px solid #1E293B;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      padding-top: 1.0in;
+      padding-bottom: 1.0in;
+      padding-left: 1.5in; /* 1.5 inch left margin for brass brads / binding */
+      padding-right: 1.0in; /* 1.0 inch right margin */
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-sizing: border-box;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .script-line-row {
+      position: relative;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      display: block;
+      transition: background-color 0.15s ease;
+    }
+
+    .script-line-row.line-selected {
+      background-color: rgba(139, 92, 246, 0.18);
+      border-radius: 2px;
+    }
+
+    .line-editable-box {
+      font-size: 12pt; /* True industry standard Courier Prime sizing */
+      line-height: 100%; /* Single line spacing mechanics */
+      outline: none;
+      width: 100%;
+      display: block;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      word-break: break-word;
+      min-height: 1.25rem;
+      color: #F3F4F6;
+      box-sizing: border-box;
+    }
+
+    .line-editable-box:empty:before {
+      content: attr(data-placeholder);
+      color: #334155;
+      pointer-events: none;
+      display: block;
+    }
+
+    /* INDUSTRY STANDARD ELEMENT MARGIN INDENTATIONS */
+    .element-scene-heading { 
+      text-transform: uppercase; 
+      font-weight: bold; 
+      margin-top: 24pt; 
+      margin-bottom: 12pt; 
+      padding-left: 0; 
+      padding-right: 0;
+    }
+    .element-action { 
+      text-transform: none; 
+      font-weight: normal; 
+      margin-top: 12pt; 
+      margin-bottom: 12pt; 
+      padding-left: 0; 
+      padding-right: 0;
+      line-height: 140%;
+    }
+    .element-character { 
+      text-transform: uppercase; 
+      font-weight: bold; 
+      margin-top: 12pt; 
+      margin-bottom: 0; 
+      padding-left: 2.2in; /* 2.2 inches from page margin */
+      padding-right: 0;
+    }
+    .element-parenthetical { 
+      text-transform: none; 
+      font-weight: normal; 
+      margin-top: 0; 
+      margin-bottom: 0; 
+      padding-left: 1.6in; /* 1.6 inches from page margin */
+      padding-right: 1.6in;
+      font-style: italic;
+    }
+    .element-dialogue { 
+      text-transform: none; 
+      font-weight: normal; 
+      margin-top: 0; 
+      margin-bottom: 4pt; 
+      padding-left: 1.0in; /* 1.0 inch from page margin */
+      padding-right: 1.5in; /* Caps width to industry standard 3.5 inches maximum */
+      line-height: 130%;
+    }
+    .element-transition { 
+      text-transform: uppercase; 
+      font-weight: bold; 
+      margin-top: 12pt; 
+      margin-bottom: 12pt; 
+      padding-left: 0;
+      text-align: right;
+    }
+
+    /* DUAL DIALOGUE ARCHITECTURE */
+    .dual-dialogue-wrapper {
+      display: flex;
+      width: 100%;
+      gap: 0.35in;
+      margin-top: 12pt;
+      margin-bottom: 6pt;
+    }
+    .dual-dialogue-col {
+      flex: 1;
+      min-width: 0;
+    }
+    .dual-dialogue-col .element-character {
+      padding-left: 0.6in !important;
+      text-align: left;
+    }
+    .dual-dialogue-col .element-parenthetical {
+      padding-left: 0.3in !important;
+      padding-right: 0.2in !important;
+    }
+    .dual-dialogue-col .element-dialogue {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+
+    /* Alignment utilities */
+    .align-left { text-align: left !important; }
+    .align-center { text-align: center !important; }
+    .align-right { text-align: right !important; }
+
+    /* Linguistic Grammar and Punctuation Misspelling Alerts */
+    .lint-error-cliche { border-bottom: 2px wavy #D97706; }
+    .lint-error-punctuation { border-bottom: 2px wavy #DC2626; }
+    .lint-error-spell { border-bottom: 2px dotted #EF4444; }
+
+    .menu-dropdown { 
+      display: none; 
+      position: absolute; 
+      top: 100%; 
+      left: 0; 
+      min-width: 250px; 
+      background-color: #0F172A; 
+      border: 1px solid #1E293B; 
+      box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.7); 
+      z-index: 50; 
+    }
+    .menu-item-wrapper:hover .menu-dropdown { display: block; }
+
+    /* Drag and drop overlay */
+    #dropzone-drag-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(14, 19, 31, 0.92);
+      backdrop-filter: blur(8px);
+      border: 3px dashed #8B5CF6;
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+    #dropzone-drag-overlay.active { display: flex; }
+
+    /* Print View Definition Layout Sheet */
+    @media print {
+      body { background-color: #FFFFFF !important; color: #000000 !important; font-family: 'Courier Prime', monospace !important; }
+      header, footer, #quick-action-ribbon, #coverage-alert-sidebar-pane, #collab-drawer-simulator-view, .no-print, #ui-ingest-modal-overlay { display: none !important; }
+      #editor-scroller-viewport { padding: 0 !important; overflow: visible !important; background-color: #FFFFFF !important; }
+      .paper-sheet-container { 
+        border: none !important; 
+        box-shadow: none !important; 
+        background-color: #FFFFFF !important; 
+        color: #000000 !important; 
+        width: 100% !important; 
+        min-height: 0 !important; 
+        padding: 0.8in 1in 0.8in 1.4in !important; 
+        page-break-after: always;
+      }
+      .line-editable-box { color: #000000 !important; }
+      .element-character { padding-left: 2.0in !important; }
+      .element-parenthetical { padding-left: 1.4in !important; padding-right: 1.4in !important; }
+      .element-dialogue { padding-left: 0.9in !important; padding-right: 1.2in !important; }
+      #ui-page-footer-counter-wrap { color: #000000 !important; }
+    }
 </style>
 </head>
 <body>
@@ -143,29 +335,6 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 </div>
 </div>
 
-<!-- INGEST MODAL -->
-<div id="im" class="mo" onclick="if(event.target===this)closeIM()">
-<div class="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-2xl space-y-4" onclick="event.stopPropagation()">
-  <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-    <div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-lg bg-purple-600/20 border border-purple-500/40 flex items-center justify-center text-purple-400"><i class="fa-solid fa-file-import"></i></div><div><h3 class="text-sm font-bold text-white uppercase tracking-wider">Universal Ingest Engine</h3><p class="text-[11px] text-slate-400 font-mono">PDF · FDX · WriterDuet JSON · Fountain TXT</p></div></div>
-    <button onclick="closeIM()" class="text-slate-500 hover:text-white"><i class="fa-solid fa-xmark text-sm"></i></button>
-  </div>
-  <div id="idz" class="border-2 border-dashed border-slate-700 hover:border-purple-500 bg-slate-950/70 rounded-xl p-8 text-center cursor-pointer transition" onclick="document.getElementById('ifi').click()">
-    <i class="fa-solid fa-cloud-arrow-up text-3xl text-purple-400 mb-2 block"></i>
-    <div class="text-sm font-bold text-slate-200">Click to Browse or Drop File Here</div>
-    <div class="text-[11px] text-slate-400 font-mono mt-1">PDF · FDX · JSON · TXT / Fountain</div>
-  </div>
-  <input type="file" id="ifi" class="hidden" accept=".pdf,.fdx,.json,.txt,.fountain">
-  <div id="ipw" class="hidden space-y-1.5">
-    <div class="flex justify-between text-[11px] text-slate-300"><span id="ipl">Processing...</span><span id="ipp" class="text-purple-400 font-bold">0%</span></div>
-    <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-800"><div id="ipb" class="bg-purple-500 h-full w-0 transition-all duration-200"></div></div>
-  </div>
-  <div class="pt-2 flex justify-between items-center border-t border-slate-800">
-    <span class="text-[10px] text-slate-500 font-mono"><i class="fa-solid fa-shield-halved text-lime-400 mr-1"></i> Client-Side · 100% Private</span>
-    <button onclick="closeIM()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded transition">Cancel</button>
-  </div>
-</div>
-</div>
 
 <!-- YouTube hidden player -->
 <div style="position:fixed;bottom:0;right:0;width:200px;height:120px;opacity:.001;pointer-events:none;z-index:-50;overflow:hidden;"><div id="yt-player"></div></div>
@@ -288,105 +457,448 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 </section>
 
 <!-- VIEW 1: SCREENWRITER STUDIO -->
-<section id="v-writer" class="vs" style="background:#0B0F19;">
-  <!-- Menu bar -->
-  <div class="bg-[#0A0E17] border-b border-slate-900 px-4 py-1 flex items-center justify-between flex-shrink-0 np z-30" style="min-height:32px;">
-    <nav class="flex items-center gap-0 text-xs text-slate-400 font-medium">
-      <div class="relative mdi px-3 py-1 hover:bg-slate-900 hover:text-white rounded cursor-default">File
-        <div class="mdd py-1">
-          <button class="mib" onclick="openIM()"><span>Universal Ingest...</span><span class="text-[9px] bg-purple-950 border border-purple-700/60 text-purple-300 px-1 rounded font-mono">PDF/FDX/JSON</span></button>
-          <button class="mib" onclick="window.print()"><span>Quick Export PDF</span><span class="text-slate-500 text-[10px]">⌘P</span></button>
-          <div class="border-t border-slate-800 my-1"></div>
-          <button class="mib" onclick="loadSample()"><span class="text-lime-400">Load Sample Scene</span></button>
-          <button class="mib" onclick="saveBak()"><span>Backup (.txt)</span><span class="text-slate-500 text-[10px]">⌘S</span></button>
+<section id="v-writer" class="vs" style="background:#090D16; flex:1; overflow:hidden;">
+<!-- DRAG AND DROP FILE INGEST OVERLAY -->
+  <div id="dropzone-drag-overlay">
+    <div class="w-20 h-20 rounded-full bg-purple-950/80 border-2 border-purple-400 flex items-center justify-center text-purple-300 text-3xl mb-4 animate-bounce">
+      <i class="fa-solid fa-file-import"></i>
+    </div>
+    <div class="text-xl font-bold font-sans text-white uppercase tracking-wider">Drop Screenplay File to Ingest</div>
+    <div class="text-xs font-mono text-slate-400 mt-2">Supports PDF (.pdf), Final Draft (.fdx), WriterDuet (.json), Fountain & Plain Text (.txt)</div>
+  </div>
+
+  <!-- STANDARD SYSTEM BAR TOP CONTAINER -->
+  <header class="bg-[#0A0E17] border-b border-slate-900 px-4 py-1.5 flex items-center justify-between shrink-0 sans-ui select-none z-30">
+    <div class="flex items-center gap-6">
+      <!-- preHUB Bauhaus Vector Brand Logo -->
+      <div class="h-6 w-24 flex items-center justify-start select-none cursor-pointer" onclick="location.reload()">
+        <svg viewBox="0 0 130 36" class="h-full w-full" xmlns="http://www.w3.org/2000/svg">
+          <text x="2" y="27" font-family="'Century Gothic', 'Futura', 'Montserrat', sans-serif" font-weight="800" font-size="26" fill="#A3E635" letter-spacing="-1.5">pre</text>
+          <text x="44" y="27" font-family="'Century Gothic', 'Futura', 'Montserrat', sans-serif" font-weight="900" font-size="26" fill="#FFFFFF" letter-spacing="-0.5">HUB</text>
+        </svg>
+      </div>
+
+      <!-- Professional Desktop Menu Dropdown Architecture Bar -->
+      <nav class="flex items-center gap-1 text-xs text-slate-400 font-medium">
+        <div class="relative menu-item-wrapper px-3 py-1 hover:bg-slate-900 hover:text-white rounded cursor-default">
+          File
+          <div class="menu-dropdown py-1 rounded-b border-t-2 border-purple-500 font-sans text-xs">
+            <button id="menu-file-universal-ingest" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-purple-300 font-bold flex justify-between items-center">
+              <span>Universal Ingest File...</span>
+              <span class="text-[9px] bg-purple-950 border border-purple-700/60 text-purple-300 px-1 rounded font-mono">PDF/FDX/JSON/TXT</span>
+            </button>
+            <button id="menu-file-quick-pdf" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-rose-300 font-bold flex justify-between items-center">
+              <span>Quick Export PDF...</span>
+              <span class="text-rose-400 font-mono text-[10px]">⌘P</span>
+            </button>
+            <button id="menu-file-new-title" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-300 flex justify-between items-center">
+              <span>Toggle Title Page</span>
+              <span class="text-slate-500 font-mono text-[10px]">⌥T</span>
+            </button>
+            <div class="border-t border-slate-800 my-1"></div>
+            <button id="menu-file-sample" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-lime-400 flex justify-between items-center">
+              <span>Load Sci-Fi Scene Sample</span>
+              <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
+            </button>
+            <button id="menu-file-save" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-300 flex justify-between items-center">
+              <span>Backup Recovery (.txt)</span>
+              <span class="text-slate-500 font-mono text-[10px]">⌘S</span>
+            </button>
+            <div class="border-t border-slate-800 my-1"></div>
+            <button id="menu-file-invite-email" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-300 flex justify-between items-center">
+              <span>Invite via Email...</span>
+              <i class="fa-solid fa-envelope text-[10px] text-slate-400"></i>
+            </button>
+            <button id="menu-file-collab" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-400 flex justify-between items-center">
+              <span>Initialize Live Session</span>
+              <i class="fa-solid fa-tower-broadcast text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="relative menu-item-wrapper px-3 py-1 hover:bg-slate-900 hover:text-white rounded cursor-default">
+          Edit
+          <div class="menu-dropdown py-1 rounded-b border-t-2 border-purple-500 font-sans text-xs">
+            <button id="menu-edit-select-all" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-300 flex justify-between items-center">
+              <span>Select All</span>
+              <span class="font-mono text-slate-500 text-[10px]">⌘A</span>
+            </button>
+            <button id="menu-edit-copy" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-300 flex justify-between items-center">
+              <span>Copy Selection</span>
+              <span class="font-mono text-slate-500 text-[10px]">⌘C</span>
+            </button>
+            <button id="menu-edit-paste" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-300 flex justify-between items-center">
+              <span>Paste Clipboard</span>
+              <span class="font-mono text-slate-500 text-[10px]">⌘V</span>
+            </button>
+            <div class="border-t border-slate-800 my-1"></div>
+            <button id="menu-edit-undo" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-300 flex justify-between items-center">
+              <span>Undo Lines Change</span>
+              <span class="font-mono text-slate-500 text-[10px]">⌘Z</span>
+            </button>
+            <button id="menu-edit-redo" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-300 flex justify-between items-center">
+              <span>Redo Lines Change</span>
+              <span class="font-mono text-slate-500 text-[10px]">⌘Y</span>
+            </button>
+            <div class="border-t border-slate-800 my-1"></div>
+            <button id="menu-edit-reformat-sync" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-purple-300 font-bold flex justify-between items-center">
+              <span>Reformat & Sync Script</span>
+              <span class="text-purple-400 text-[10px] font-mono">⌘R</span>
+            </button>
+            <button id="menu-edit-spellcheck" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-300 flex justify-between items-center">
+              <span>Force Spell & Format Check</span>
+              <span class="text-rose-400 text-[10px] font-mono">F7</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="relative menu-item-wrapper px-3 py-1 hover:bg-slate-900 hover:text-white rounded cursor-default">
+          View
+          <div class="menu-dropdown py-1 rounded-b border-t-2 border-purple-500 font-sans text-xs">
+            <button id="menu-view-studio" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-300 flex justify-between items-center">
+              <span>Studio Mode (Left)</span>
+              <span class="text-lime-400 font-mono" id="check-studio-mode">✓</span>
+            </button>
+            <button id="menu-view-block" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-400 flex justify-between items-center">
+              <span>Block Mode Layout</span>
+              <span class="text-lime-400 font-mono hidden" id="check-block-mode">✓</span>
+            </button>
+            <div class="border-t border-slate-800 my-1"></div>
+            <button id="menu-view-alerts" class="w-full text-left px-4 py-2 hover:bg-slate-800 text-slate-400 flex justify-between items-center">
+              <span>Coverage Alerts Drawer</span>
+              <i class="fa-solid fa-chart-pie text-[10px] text-purple-400"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="relative menu-item-wrapper px-3 py-1 hover:bg-slate-900 hover:text-white rounded cursor-default">
+          History
+          <div class="menu-dropdown py-1 rounded-b border-t-2 border-purple-500 font-sans text-xs max-h-56 overflow-y-auto custom-scroll" id="menu-history-list">
+            <span class="block px-4 py-1 text-[10px] text-slate-500 uppercase tracking-tight font-bold">Version History Log</span>
+            <div class="px-4 py-1.5 text-slate-300 text-[11px] font-mono border-l-2 border-lime-400 bg-slate-900/40" id="menu-history-active-stamp">v1.0-ORIGINAL</div>
+            <div id="history-items-container" class="space-y-0.5"></div>
+          </div>
+        </div>
+      </nav>
+    </div>
+
+    <!-- Right HUD Status Descriptors -->
+    <div class="flex items-center gap-3 text-xs font-medium text-slate-500 sans-ui select-none">
+      <button id="btn-quick-export-pdf-top" class="px-2.5 py-1 bg-rose-950/70 hover:bg-rose-900 border border-rose-800 text-rose-200 font-mono text-[11px] font-bold rounded transition flex items-center gap-1.5 shadow-sm">
+        <i class="fa-solid fa-file-pdf text-rose-400 text-[10px]"></i> Quick PDF
+      </button>
+
+      <button id="btn-quick-ingest-trigger" class="px-2.5 py-1 bg-purple-950/60 hover:bg-purple-900 border border-purple-800 text-purple-200 font-mono text-[11px] font-bold rounded transition flex items-center gap-1.5">
+        <i class="fa-solid fa-cloud-arrow-up text-[10px] text-purple-400"></i> Ingest Script
+      </button>
+
+      <div id="ui-collab-active-badge" class="hidden text-lime-400 flex items-center gap-1.5 font-mono text-[11px] font-bold bg-lime-950/40 px-2 py-0.5 rounded border border-lime-900/60 animate-fade-in">
+        <i class="fa-solid fa-circle text-[7px] animate-pulse"></i> COLLAB ROOM ACTIVE
+      </div>
+      
+      <div class="font-mono text-xs text-slate-400 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded flex items-center gap-1.5" id="ui-top-version-badge">
+        <i class="fa-solid fa-code-commit text-[10px] text-purple-400"></i>
+        <span>v1.0-ORIGINAL</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- SPECIALIZED HIGH-DENSITY EDITING CONTROLS TOOLBAR RIBBON -->
+  <div id="quick-action-ribbon" class="bg-[#0B0F19] border-b border-slate-800/80 px-4 py-1.5 flex items-center justify-between shrink-0 sans-ui text-xs text-slate-300 select-none overflow-x-auto custom-scroll gap-4">
+    <!-- Clipboard & Selection Group -->
+    <div class="flex items-center gap-1 shrink-0">
+      <button id="ribbon-btn-select-all" title="Select All (⌘A)" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono flex items-center gap-1.5 transition">
+        <i class="fa-solid fa-object-ungroup text-purple-400 text-[10px]"></i> Select All
+      </button>
+      <button id="ribbon-btn-copy" title="Copy Selected Lines (⌘C)" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono flex items-center gap-1.5 transition">
+        <i class="fa-solid fa-copy text-slate-400 text-[10px]"></i> Copy
+      </button>
+      <button id="ribbon-btn-paste" title="Paste Clipboard Text (⌘V)" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono flex items-center gap-1.5 transition">
+        <i class="fa-solid fa-paste text-slate-400 text-[10px]"></i> Paste
+      </button>
+    </div>
+
+    <div class="h-4 w-px bg-slate-800 shrink-0"></div>
+
+    <!-- Text Justification Group -->
+    <div class="flex items-center gap-1 shrink-0">
+      <span class="text-[10px] font-mono text-slate-500 uppercase mr-1">Align:</span>
+      <button id="ribbon-btn-align-left" title="Align Left" class="w-7 h-7 rounded bg-purple-950/60 border border-purple-800/80 text-purple-300 flex items-center justify-center hover:bg-purple-900 transition">
+        <i class="fa-solid fa-align-left text-xs"></i>
+      </button>
+      <button id="ribbon-btn-align-center" title="Align Center" class="w-7 h-7 rounded bg-slate-900 border border-slate-800 text-slate-400 flex items-center justify-center hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-align-center text-xs"></i>
+      </button>
+      <button id="ribbon-btn-align-right" title="Align Right" class="w-7 h-7 rounded bg-slate-900 border border-slate-800 text-slate-400 flex items-center justify-center hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-align-right text-xs"></i>
+      </button>
+    </div>
+
+    <div class="h-4 w-px bg-slate-800 shrink-0"></div>
+
+    <!-- Dual Dialogue & Intelligent Sync/Reformat Group -->
+    <div class="flex items-center gap-1.5 shrink-0">
+      <button id="ribbon-btn-dual-dialogue" title="Combine Adjacent Speakers into Dual Dialogue" class="px-3 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-600 text-slate-300 font-mono text-[11px] flex items-center gap-1.5 transition">
+        <i class="fa-solid fa-columns text-emerald-400 text-[10px]"></i> Dual Dialogue
+      </button>
+      <button id="ribbon-btn-reformat-sync" title="Reformat & Sync Selected Lines or Entire Script (⌘R)" class="px-3 py-1 rounded bg-purple-600 hover:bg-purple-500 text-white font-mono font-bold text-[11px] flex items-center gap-1.5 transition shadow-sm">
+        <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Reformat / Sync
+      </button>
+      <button id="ribbon-btn-spellcheck" title="Run Spell & Syntax Verification (F7)" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono text-[11px] flex items-center gap-1.5 transition">
+        <i class="fa-solid fa-spell-check text-amber-400 text-[10px]"></i> Spell Check
+      </button>
+    </div>
+
+    <div class="h-4 w-px bg-slate-800 shrink-0"></div>
+
+    <!-- Fast Action Quick Export PDF -->
+    <div class="flex items-center gap-2 shrink-0 ml-auto">
+      <button id="ribbon-btn-quick-export-pdf" title="Quick PDF Export Print Sheet" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-mono font-bold text-[11px] rounded transition flex items-center gap-1.5 shadow-sm">
+        <i class="fa-solid fa-file-pdf text-[10px]"></i> Quick Export PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- UNIVERSAL INGEST MODAL DIALOG -->
+  <div id="ui-ingest-modal-overlay" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 sans-ui select-none">
+    <div class="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-2xl space-y-4 text-xs">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-purple-600/20 border border-purple-500/40 flex items-center justify-center text-purple-400">
+            <i class="fa-solid fa-file-import text-sm"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Universal Screenplay Ingest Engine</h3>
+            <p class="text-[11px] text-slate-400 font-mono">Normalize industry screenplay formats straight into the live canvas</p>
+          </div>
+        </div>
+        <button id="btn-close-ingest-modal" class="text-slate-500 hover:text-white transition text-sm"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Drag & Drop Zone Container -->
+      <div id="modal-drop-clickable-zone" class="border-2 border-dashed border-slate-700 hover:border-purple-500 bg-slate-950/70 rounded-xl p-8 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-2">
+        <i class="fa-solid fa-cloud-arrow-up text-3xl text-purple-400 mb-1"></i>
+        <div class="text-sm font-bold text-slate-200">Click to Browse or Drag & Drop File Here</div>
+        <div class="text-[11px] text-slate-400 font-mono">Supports <span class="text-purple-300 font-bold">PDF (.pdf)</span>, <span class="text-blue-300 font-bold">Final Draft (.fdx)</span>, <span class="text-emerald-300 font-bold">WriterDuet (.json)</span>, and <span class="text-amber-300 font-bold">Plain Text / Fountain (.txt)</span></div>
+      </div>
+
+      <!-- Ingest Format Spec Matrix Grid -->
+      <div class="grid grid-cols-4 gap-2 text-center font-mono text-[10px]">
+        <div class="p-2 rounded bg-slate-950 border border-slate-800">
+          <div class="text-rose-400 font-bold mb-0.5"><i class="fa-solid fa-file-pdf"></i> PDF</div>
+          <div class="text-slate-500">Spatial text line parser</div>
+        </div>
+        <div class="p-2 rounded bg-slate-950 border border-slate-800">
+          <div class="text-blue-400 font-bold mb-0.5"><i class="fa-solid fa-file-code"></i> FDX</div>
+          <div class="text-slate-500">Final Draft XML mapping</div>
+        </div>
+        <div class="p-2 rounded bg-slate-950 border border-slate-800">
+          <div class="text-emerald-400 font-bold mb-0.5"><i class="fa-solid fa-file-lines"></i> JSON</div>
+          <div class="text-slate-500">WriterDuet schema parsing</div>
+        </div>
+        <div class="p-2 rounded bg-slate-950 border border-slate-800">
+          <div class="text-amber-400 font-bold mb-0.5"><i class="fa-solid fa-font"></i> TXT</div>
+          <div class="text-slate-500">Fountain / Industry rules</div>
         </div>
       </div>
-      <div class="relative mdi px-3 py-1 hover:bg-slate-900 hover:text-white rounded cursor-default">Edit
-        <div class="mdd py-1">
-          <button class="mib" onclick="wUndo()"><span>Undo</span><span class="text-slate-500 text-[10px]">⌘Z</span></button>
-          <button class="mib" onclick="wRedo()"><span>Redo</span><span class="text-slate-500 text-[10px]">⌘Y</span></button>
-          <div class="border-t border-slate-800 my-1"></div>
-          <button class="mib" onclick="rfSync()"><span class="text-purple-300 font-bold">Reformat &amp; Sync</span><span class="text-[10px] text-purple-400">⌘R</span></button>
-          <button class="mib" onclick="spCheck(true)"><span>Spell Check</span><span class="text-[10px]">F7</span></button>
+
+      <!-- Extraction Progress Bar & Status -->
+      <div id="ingest-progress-container" class="hidden space-y-1.5 font-mono">
+        <div class="flex justify-between text-[11px] text-slate-300">
+          <span id="ingest-progress-label">Extracting text stream...</span>
+          <span id="ingest-progress-percent" class="text-purple-400 font-bold">0%</span>
+        </div>
+        <div class="w-full bg-slate-950 h-1.5 rounded-full overflow-hidden border border-slate-800">
+          <div id="ingest-progress-bar" class="bg-purple-500 h-full w-0 transition-all duration-200"></div>
         </div>
       </div>
-      <div class="relative mdi px-3 py-1 hover:bg-slate-900 hover:text-white rounded cursor-default">View
-        <div class="mdd py-1">
-          <button class="mib" onclick="togPaper()">Toggle Light/Dark Paper</button>
-          <button class="mib" onclick="togTitle()">Toggle Title Page</button>
+
+      <div class="pt-2 flex justify-between items-center border-t border-slate-800">
+        <span class="text-[10px] text-slate-500 font-mono"><i class="fa-solid fa-shield-halved text-lime-400 mr-1"></i> Client-Side Processing • 100% Private</span>
+        <button id="btn-cancel-ingest-modal" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs uppercase rounded transition">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMAIL INVITATION MODAL GATEWAY FRAME -->
+  <div id="ui-email-modal-overlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 sans-ui select-none">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-2xl space-y-4 text-xs">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-envelope-open-text text-purple-400"></i> Invite Co-Author to Project
+        </h3>
+        <button id="btn-close-email-modal" class="text-slate-500 hover:text-white transition"><i class="fa-solid fa-xmark text-sm"></i></button>
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-tight">Collaborator Email Address</label>
+        <input type="email" id="input-collab-email" placeholder="partner@productionhouse.com" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-xs text-white focus:outline-none focus:border-purple-500">
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-tight">Initial Access Permissions</label>
+        <select id="input-collab-permission" class="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-xs text-slate-300 focus:outline-none focus:border-purple-500 cursor-pointer">
+          <option value="EDIT">Full Editor Rights (Can Type & Erase)</option>
+          <option value="VIEW">Reviewer Only Mode (Read & Comment Only)</option>
+        </select>
+      </div>
+      <div class="pt-2 flex justify-end gap-2 border-t border-slate-800">
+        <button id="btn-cancel-invite" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs uppercase rounded transition">Cancel</button>
+        <button id="btn-dispatch-invite" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs uppercase rounded transition shadow-md">Send Secure Link</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN VIEWPORT GRAPHIC BOARD CONTAINER -->
+  <main class="flex-1 flex overflow-hidden relative">
+    
+    <!-- COVERAGE ANALYSIS DRAWER -->
+    <div id="coverage-alert-sidebar-pane" class="w-0 opacity-0 bg-[#05080E] border-r border-slate-900 flex flex-col shrink-0 overflow-hidden relative transition-all duration-300 z-20">
+      <div class="bg-slate-950/80 text-[10px] font-mono font-bold tracking-widest text-slate-400 uppercase border-b border-slate-900 px-4 py-2.5 select-none flex items-center justify-between shrink-0 sans-ui">
+        <div class="flex items-center gap-2 text-purple-400">
+          <i class="fa-solid fa-square-poll-vertical"></i> Inbound Anomaly Manifest
+        </div>
+        <button id="btn-close-sidebar-x" class="text-slate-500 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="alert-items-scroll-stack" class="flex-1 p-3 space-y-2.5 overflow-y-auto custom-scroll font-mono text-xs">
+        <div class="p-3 rounded bg-slate-900/40 border border-slate-800/60 text-slate-500 text-center select-none sans-ui">
+          No active coverage scores loaded. Run evaluation matrix inside Tile 2 to populate alerts drawer.
         </div>
       </div>
-      <div class="relative mdi px-3 py-1 hover:bg-slate-900 hover:text-white rounded cursor-default">History
-        <div class="mdd py-1 max-h-56 overflow-y-auto" id="hdd"><div class="px-4 py-1 text-[10px] text-slate-500 uppercase font-bold">Draft Versions</div><div id="hi"></div></div>
+    </div>
+
+    <!-- PRIMARY SCREENPLAY WRITING CANVAS DESK VIEWPORT -->
+    <div class="flex-1 bg-[#090D16] overflow-y-auto custom-scroll flex flex-col items-center pt-8 pb-24 px-4 relative" id="editor-scroller-viewport">
+      
+      <!-- TITLE PAGE LAYER COMPONENT (TOGGLEABLE VIA FILE MENU) -->
+      <div id="screenplay-title-page-view" class="hidden paper-sheet-container justify-between shrink-0 select-text mb-12">
+        <div class="w-full text-center mt-[2.0in] space-y-6">
+          <div class="text-2xl uppercase font-bold tracking-wider text-white border-b border-slate-800/60 pb-4 outline-none min-w-[50px] font-mono focus:border-purple-500" contenteditable="true" id="title-page-main-heading">STELLAR NURSERY</div>
+          <div class="text-sm text-slate-400 italic font-sans lowercase">written by</div>
+          <div class="text-md uppercase text-slate-200 outline-none min-w-[30px] font-mono focus:border-purple-500" contenteditable="true" id="title-page-author-name">PATRICK HALE & PETER COLTER</div>
+        </div>
+
+        <div class="w-full flex justify-between items-end text-xs text-slate-500 font-sans tracking-tight">
+          <div class="text-left space-y-1 outline-none min-w-[50px] leading-relaxed font-mono text-[11px]" contenteditable="true" id="title-page-contact-block">
+            CARRION CREEK PRODUCTIONS<br>
+            Email: patrick@carrioncreek.com<br>
+            Phone: (703) 887-6106
+          </div>
+          <div class="text-right text-[10px] tracking-widest font-mono text-slate-600 uppercase font-bold select-none">
+            [ preHUB SCRIPT STANDARD ]
+          </div>
+        </div>
       </div>
-    </nav>
-    <div class="flex items-center gap-2">
-      <button onclick="saveSnap()" class="px-2.5 py-1 bg-amber-950/50 hover:bg-amber-900 border border-amber-800/60 text-amber-300 font-mono text-[10px] font-bold rounded transition flex items-center gap-1"><i class="fa-solid fa-camera"></i> Snapshot</button>
-      <button onclick="window.print()" class="px-2.5 py-1 bg-rose-950/70 hover:bg-rose-900 border border-rose-800 text-rose-200 font-mono text-[10px] font-bold rounded transition flex items-center gap-1.5"><i class="fa-solid fa-file-pdf text-rose-400"></i> PDF</button>
-      <div class="font-mono text-[10px] text-slate-400 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded flex items-center gap-1"><i class="fa-solid fa-code-commit text-[9px] text-purple-400"></i><span id="wvb">v1.0</span></div>
+
+      <!-- MAIN CONTINUOUS PRODUCTION WORKING PAPER CONTAINER (8.5" X 11" STANDARD) -->
+      <div id="screenplay-paper-sheet" class="paper-sheet-container justify-between h-fit">
+        <div class="w-full flex-1">
+          <!-- Dynamic Core Screenplay Editing Line Stack Node Deck -->
+          <div id="script-editable-node-rows-stack" class="w-full overflow-hidden">
+            <!-- Programmatic rows materialize natively inside this wrapper -->
+          </div>
+        </div>
+
+        <!-- STUDIO STAMP PAGE INDEX ANCHORED PURELY UNDERNEATH THE WORDS -->
+        <div id="ui-page-footer-counter-wrap" class="w-full text-center pt-8 select-none text-xs text-slate-600 font-sans tracking-widest mt-16 shrink-0 border-t border-slate-900/40">
+          — SCRIPT PAGE <span id="ui-page-footer-counter" class="text-slate-400 font-bold font-mono">1</span> —
+        </div>
+      </div>
+
     </div>
-  </div>
-  <!-- Ribbon -->
-  <div id="rib" class="bg-[#0B0F19] border-b border-slate-800/80 px-3 py-1.5 flex items-center gap-2.5 flex-shrink-0 overflow-x-auto np" style="min-height:38px;">
-    <div class="flex items-center gap-1 shrink-0">
-      <button class="tbtn" onclick="selAll()"><i class="fa-solid fa-object-ungroup text-purple-400 text-[10px]"></i> All</button>
-      <button class="tbtn" onclick="cpSel()"><i class="fa-solid fa-copy text-[10px]"></i> Copy</button>
-      <button class="tbtn" onclick="pasteP()"><i class="fa-solid fa-paste text-[10px]"></i> Paste</button>
-    </div>
-    <div class="dvd"></div>
-    <div class="flex items-center gap-1 shrink-0">
-      <span class="text-[9px] text-slate-500 uppercase">Align:</span>
-      <button id="alL" class="tbtn w-7 h-7 p-0 justify-center ac" onclick="apAl('left')"><i class="fa-solid fa-align-left text-xs"></i></button>
-      <button id="alC" class="tbtn w-7 h-7 p-0 justify-center" onclick="apAl('center')"><i class="fa-solid fa-align-center text-xs"></i></button>
-      <button id="alR" class="tbtn w-7 h-7 p-0 justify-center" onclick="apAl('right')"><i class="fa-solid fa-align-right text-xs"></i></button>
-    </div>
-    <div class="dvd"></div>
-    <div class="flex items-center gap-1 shrink-0">
-      <button class="tbtn" onclick="dualDlg()"><i class="fa-solid fa-columns text-emerald-400 text-[10px]"></i> Dual Dlg</button>
-      <button class="tbtn" style="background:rgba(139,92,246,.2);color:#C4B5FD;font-weight:700;" onclick="rfSync()"><i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i> Reformat</button>
-      <button class="tbtn" onclick="spCheck(true)"><i class="fa-solid fa-spell-check text-amber-400 text-[10px]"></i> Spell</button>
-    </div>
-    <div class="dvd"></div>
-    <div class="flex items-center gap-1 shrink-0">
-      <span class="text-[9px] text-slate-500 uppercase">Element:</span>
-      <button class="tbtn" onclick="chType('SCENE_HEADING')"><i class="fa-solid fa-clapperboard text-yellow-400 text-[10px]"></i> Scene</button>
-      <button class="tbtn ac" id="t-action" onclick="chType('ACTION')"><i class="fa-solid fa-align-left text-blue-400 text-[10px]"></i> Action</button>
-      <button class="tbtn" onclick="chType('CHARACTER')"><i class="fa-solid fa-user text-green-400 text-[10px]"></i> Char</button>
-      <button class="tbtn" onclick="chType('PARENTHETICAL')"><i class="fa-solid fa-quote-left text-purple-400 text-[10px]"></i> Paren</button>
-      <button class="tbtn" onclick="chType('DIALOGUE')"><i class="fa-solid fa-comment-dots text-cyan-400 text-[10px]"></i> Dial</button>
-      <button class="tbtn" onclick="chType('TRANSITION')"><i class="fa-solid fa-forward text-red-400 text-[10px]"></i> Trans</button>
-    </div>
-    <div class="ml-auto shrink-0">
-      <button onclick="window.print()" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-mono font-bold text-[11px] rounded transition flex items-center gap-1.5 shadow-sm"><i class="fa-solid fa-file-pdf text-[10px]"></i> Quick PDF</button>
-    </div>
-  </div>
-  <!-- Title page (hidden) -->
-  <div id="tpc" class="hidden flex-shrink-0 flex justify-center pt-6 pb-2 np">
-    <div class="pp dk" style="min-height:auto;">
-      <div class="text-center" style="margin-top:1.5in;margin-bottom:1.5in;">
-        <div id="tph" contenteditable="true" class="text-2xl uppercase font-bold tracking-wider outline-none mb-4 font-mono">UNTITLED PROJECT</div>
-        <div class="text-sm text-gray-400 italic mb-3">written by</div>
-        <div id="tpa" contenteditable="true" class="text-lg uppercase outline-none font-mono">SCREENWRITER</div>
+
+    <!-- SEAMLESS SIMULATED COLLABORATIVE PEER VIEWPORTS DRAWER -->
+    <div id="collab-drawer-simulator-view" class="w-0 opacity-0 bg-[#060910] border-l border-slate-900 flex flex-col shrink-0 overflow-hidden transition-all duration-300 z-20">
+      <div class="bg-slate-950/80 text-[10px] font-mono font-bold tracking-widest text-lime-400 uppercase border-b border-slate-900 px-4 py-2.5 select-none flex items-center justify-between shrink-0 sans-ui">
+        <div class="flex items-center gap-1.5"><i class="fa-solid fa-network-wired"></i> Project Network Hub</div>
+        <span class="h-1.5 w-1.5 rounded-full bg-lime-400 animate-ping"></span>
+      </div>
+      
+      <!-- Granular Connected Users Roster Panel -->
+      <div class="p-3 border-b border-slate-900 bg-slate-950/40 font-sans text-xs space-y-2 select-none">
+        <span class="block text-[10px] font-mono font-bold text-slate-500 uppercase tracking-tight">Active Room Contributors</span>
+        <div class="flex items-center justify-between bg-slate-900/80 p-2 rounded border border-slate-800">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded bg-purple-600 flex items-center justify-center font-bold text-[10px] text-white">ME</div>
+            <span class="text-slate-200 font-medium font-mono text-[11px]">You (Lead Author)</span>
+          </div>
+          <span class="text-[9px] font-bold text-purple-400 bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-900/40">HOST</span>
+        </div>
+        
+        <!-- Connected Guest Row -->
+        <div id="collab-peer-user-row" class="hidden flex items-center justify-between bg-slate-900/80 p-2 rounded border border-slate-800 animate-fade-in">
+          <div class="flex items-center gap-2 overflow-hidden mr-2">
+            <div class="w-6 h-6 rounded bg-lime-600 flex items-center justify-center font-bold text-[10px] text-slate-950 shrink-0">CO</div>
+            <span id="txt-peer-user-identity" class="text-slate-300 font-medium font-mono text-[10px] truncate">coauthor@carrioncreek.com</span>
+          </div>
+          <!-- Real-Time Permissions Toggle Rack Switch -->
+          <select id="select-peer-permission-gate" class="bg-slate-950 border border-slate-800 rounded text-[10px] text-slate-300 font-bold px-1.5 py-0.5 outline-none focus:border-lime-500 cursor-pointer shrink-0">
+            <option value="EDIT">CAN EDIT</option>
+            <option value="VIEW">VIEW ONLY</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="collab-sandbox-event-logs" class="flex-1 p-3 space-y-2.5 overflow-y-auto custom-scroll text-[11px] text-slate-400 font-mono">
+        <div class="text-center py-6 text-slate-600 font-sans">No network events recorded.</div>
+      </div>
+      <div class="p-2 bg-slate-950 border-t border-slate-900 grid grid-cols-2 gap-2 select-none sans-ui">
+        <button id="btn-sim-peer-type" class="py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded font-bold text-[9px] uppercase tracking-wide text-slate-300 transition flex items-center justify-center gap-1">
+          <i class="fa-solid fa-pen text-[8px]"></i> Sim Peer Typing
+        </button>
+        <button id="btn-sim-peer-cut" class="py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded font-bold text-[9px] uppercase tracking-wide text-rose-400 transition flex items-center justify-center gap-1">
+          <i class="fa-solid fa-trash text-[8px]"></i> Sim Peer Erase
+        </button>
       </div>
     </div>
-  </div>
-  <!-- Paper -->
-  <div class="esr" id="esr">
-    <div id="sp" class="pp dk">
-      <div id="src"></div>
-      <div class="text-center text-[10px] text-slate-700 mt-16 select-none border-t border-slate-900/40 pt-5">— SCRIPT PAGE <span id="pgc">1</span> —</div>
+
+  </main>
+
+  <!-- UTILITY BOTTOM CONSOLE ACTION DOCK HOUSING COMPREHENSIVE EXTRACTIONS -->
+  <footer class="bg-[#0A0E17] border-t border-slate-900 px-4 py-2.5 flex items-center justify-between shrink-0 sans-ui select-none z-30">
+    <div class="flex items-center gap-6 text-xs font-medium text-slate-500">
+      <div class="bg-slate-950 border border-slate-900 px-2 py-0.5 rounded font-mono text-[11px] text-slate-400 flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Element: <span id="ui-current-element-type-badge" class="text-white font-bold uppercase">ACTION</span>
+        <span class="text-slate-600 text-[10px] ml-1">[TAB to cycle]</span>
+      </div>
+      <div class="text-[11px] font-mono text-slate-400">
+        Scenes: <span id="ui-hud-scene-total-count" class="text-white font-bold">1</span> | Lines: <span id="ui-hud-elements-total-count" class="text-white font-bold">0</span>
+      </div>
+      <div class="text-[11px] font-mono text-slate-400">
+        Typos: <span id="ui-diag-spell-count" class="text-rose-400 font-bold">0</span> | Clichés: <span id="ui-diag-cliche-count" class="text-amber-500 font-bold">0</span>
+      </div>
     </div>
-  </div>
-  <!-- Status bar -->
-  <div class="bg-[#0A0E17] border-t border-slate-900 px-4 py-1.5 flex items-center justify-between text-[10px] font-mono text-slate-500 flex-shrink-0 np">
-    <div class="flex items-center gap-4">
-      <span>Element: <span id="ceb" class="text-white font-bold uppercase">ACTION</span> <span class="text-slate-700">[TAB cycle]</span></span>
-      <span>Scenes: <span id="hsc" class="text-white font-bold">1</span></span>
-      <span>Lines: <span id="hlc" class="text-white font-bold">0</span></span>
-      <span>Issues: <span id="htc" class="text-rose-400 font-bold">0</span></span>
+
+    <!-- Hidden Input Hooks for Universal File Ingestion -->
+    <input type="file" id="ui-universal-file-picker" accept=".pdf,.fdx,.json,.txt,.fountain" class="hidden">
+
+    <!-- COMPREHENSIVE DROPDOWN EXPORT MATRIX DOCK -->
+    <div class="flex items-center gap-3">
+      <div class="relative group">
+        <button class="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-mono font-bold text-xs uppercase tracking-wider rounded transition flex items-center gap-2">
+          <i class="fa-solid fa-file-export text-[10px]"></i> Export Package <i class="fa-solid fa-chevron-up text-[9px] text-slate-500"></i>
+        </button>
+        <div class="absolute bottom-full right-0 mb-1 w-56 bg-slate-950 border border-slate-800 rounded shadow-2xl py-1 hidden group-hover:block font-sans text-xs z-40">
+          <button id="export-target-pdf" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-file-pdf text-rose-500 w-4"></i> Professional PDF Print (.pdf)
+          </button>
+          <button id="export-target-fdx" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-file-lines text-blue-400 w-4"></i> Final Draft XML (.fdx)
+          </button>
+          <button id="export-target-wd" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-file-code text-purple-400 w-4"></i> WriterDuet JSON (.json)
+          </button>
+          <button id="export-target-txt" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-file-lines text-emerald-400 w-4"></i> Plain Script (.txt)
+          </button>
+        </div>
+      </div>
+
+      <button id="btn-return-evaluate" class="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 text-white font-mono font-bold text-xs uppercase tracking-wider rounded transition flex items-center gap-1.5 shadow-md">
+        <i class="fa-solid fa-chart-line text-[10px]"></i> Send to Coverage Studio (Tile 2)
+      </button>
     </div>
-    <button onclick="sw('coverage');runCov();" class="px-3 py-1 bg-purple-600 hover:bg-purple-500 text-white font-mono font-bold text-[10px] uppercase rounded transition flex items-center gap-1"><i class="fa-solid fa-chart-line text-[9px]"></i> Evaluate</button>
-  </div>
+  </footer>
+
+  <div id="toast-portal-rack" class="fixed bottom-14 left-4 z-50 flex flex-col gap-2 pointer-events-none sans-ui"></div>
 </section>
 
 <!-- VIEW 2: HALION EVALUATOR STUDIO -->
@@ -555,42 +1067,1463 @@ function exportJSON(){const d=JSON.stringify(S,null,2),b=new Blob([d],{type:'app
 function importJSON(event){const f=event.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=e=>{try{const p=JSON.parse(e.target.result);S={...S,...p};if(S.projectName)document.getElementById('pni').value=S.projectName;if(S.writerName)document.getElementById('wni').value=S.writerName;renderBudget();renderVV();updateGUI();toast('Restored JSON state.');}catch{toast('Error parsing JSON.');}};rd.readAsText(f);event.target.value='';}
 function autoSave(){try{localStorage.setItem('prehub_v3',JSON.stringify(S));}catch(e){}}
 // ========== SCREENWRITER ENGINE ==========
-function mkRow(type='ACTION',text='',at=null){const r=document.getElementById('src');const rw=document.createElement('div');rw.className='slr';const b=document.createElement('div');b.contentEditable='true';b.className='leb '+(EC[type]||'eac');b.innerText=text;b.setAttribute('data-t',type);b.setAttribute('data-ph',PH[type]||'');rw.appendChild(b);at!==null&&r.children[at]?r.insertBefore(rw,r.children[at]):r.appendChild(rw);bindRow(b,rw);updHUD();return b;}
-function bindRow(b,rw){b.addEventListener('focus',()=>{const t=b.getAttribute('data-t')||'ACTION';const el=document.getElementById('ceb');if(el)el.innerText=t.replace('_',' ');});let db=null;b.addEventListener('input',()=>{clearTimeout(db);db=setTimeout(()=>{recWH('Typing');updHUD();},400);});b.addEventListener('keydown',e=>{const r=document.getElementById('src');const t=b.getAttribute('data-t')||'ACTION';const idx=Array.from(r.children).indexOf(rw);if(e.key==='Tab'){e.preventDefault();const d=e.shiftKey?-1:1;const ni=(ET.indexOf(t)+d+ET.length)%ET.length;const nt=ET[ni];b.className='leb '+(EC[nt]||'eac');b.setAttribute('data-t',nt);b.setAttribute('data-ph',PH[nt]||'');const el=document.getElementById('ceb');if(el)el.innerText=nt.replace('_',' ');recWH('Type');updHUD();}else if(e.key==='Enter'){e.preventDefault();const nt=NX[t]||'ACTION';const sel=window.getSelection();let carry='';if(sel&&sel.rangeCount>0){const rng=sel.getRangeAt(0);const full=b.innerText;const pre=rng.cloneRange();pre.selectNodeContents(b);pre.setEnd(rng.endContainer,rng.endOffset);const pos=pre.toString().length;carry=full.slice(pos);b.innerText=full.slice(0,pos);}const nb=mkRow(nt,carry,idx+1);recWH('New Line');nb.focus();const rr=document.createRange(),ss=window.getSelection();rr.setStart(nb,0);rr.collapse(true);ss.removeAllRanges();ss.addRange(rr);}else if(e.key==='Backspace'&&b.textContent.length===0){e.preventDefault();const r2=document.getElementById('src');if(r2.children.length>1&&idx>0){const pr=r2.children[idx-1];rw.remove();recWH('Del');updHUD();const pb=pr.querySelector('.leb');if(pb){pb.focus();const rr=document.createRange(),ss=window.getSelection();rr.selectNodeContents(pb);rr.collapse(false);ss.removeAllRanges();ss.addRange(rr);}}}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='z'&&!e.shiftKey){e.preventDefault();wUndo();}if((e.metaKey||e.ctrlKey)&&(e.key.toLowerCase()==='y'||(e.shiftKey&&e.key.toLowerCase()==='z'))){e.preventDefault();wRedo();}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='r'){e.preventDefault();rfSync();}if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveBak();}if(e.key==='F7'){e.preventDefault();spCheck(true);}});}
-function rebindRows(){const r=document.getElementById('src');if(!r)return;Array.from(r.children).forEach(rw=>{const b=rw.querySelector('.leb');if(b)bindRow(b,rw);});}
-function recWH(lbl='Edit'){if(wHM)return;const r=document.getElementById('src');const snap=r?r.innerHTML:'';if(wHI<wH.length-1)wH=wH.slice(0,wHI+1);wH.push({lbl,snap,t:new Date().toLocaleTimeString()});if(wH.length>50)wH.shift();wHI=wH.length-1;renderHist();}
-function renderHist(){const c=document.getElementById('hi');if(!c)return;const show=wH.slice(-8).reverse();c.innerHTML=show.map((h,i)=>{const idx=wH.length-1-i;const cur=idx===wHI;return`<button class="mib ${cur?'text-white font-bold':''}" onclick="jumpWH(${idx})">${h.lbl} <span class="text-[9px] text-slate-500">${h.t}</span></button>`;}).join('');}
-function wUndo(){if(wHI<=0)return toast('Nothing to undo.');wHI--;apWSnap(wH[wHI]);toast('Undo: '+wH[wHI].lbl);}
-function wRedo(){if(wHI>=wH.length-1)return toast('Nothing to redo.');wHI++;apWSnap(wH[wHI]);toast('Redo: '+wH[wHI].lbl);}
-function jumpWH(idx){wHI=idx;apWSnap(wH[idx]);toast('Restored: '+wH[idx].lbl);}
-function apWSnap(sn){wHM=true;const r=document.getElementById('src');if(r){r.innerHTML=sn.snap;rebindRows();updHUD();}wHM=false;renderHist();}
-function updHUD(){const r=document.getElementById('src');if(!r)return;let sc=0,lc=0;Array.from(r.children).forEach(rw=>{lc++;const b=rw.querySelector('.leb');if(b&&b.getAttribute('data-t')==='SCENE_HEADING')sc++;});const se=document.getElementById('hsc'),le=document.getElementById('hlc'),pe=document.getElementById('pgc'),spe=document.getElementById('sbp');if(se)se.innerText=sc||1;if(le)le.innerText=lc;if(pe)pe.innerText=Math.max(1,Math.ceil(lc/22));if(spe)spe.innerText=document.getElementById('sbcc')?.children.length||0+' Setups';}
-function chType(t){const sel=window.getSelection();if(!sel||!sel.anchorNode)return;const nd=sel.anchorNode.nodeType===3?sel.anchorNode.parentElement:sel.anchorNode;const b=nd.closest?nd.closest('.leb'):null;if(!b)return;b.className='leb '+(EC[t]||'eac');b.setAttribute('data-t',t);b.setAttribute('data-ph',PH[t]||'');const el=document.getElementById('ceb');if(el)el.innerText=t.replace('_',' ');recWH('Type: '+t);}
-function rfSync(){const r=document.getElementById('src');if(!r)return;let sp=false;Array.from(r.children).forEach(rw=>{const b=rw.querySelector('.leb');if(!b)return;const raw=b.innerText.trim();if(!raw)return;let t='ACTION';if(/^(INT\.|EXT\.|EST\.|I\/E\.)/i.test(raw)){t='SCENE_HEADING';sp=false;}else if(/^(FADE IN:|FADE OUT\.|CUT TO:|SMASH CUT|DISSOLVE TO:)/i.test(raw)||raw.toUpperCase().endsWith(' TO:')){t='TRANSITION';sp=false;}else if(raw.startsWith('(')&&raw.endsWith(')')){t='PARENTHETICAL';}else if(raw===raw.toUpperCase()&&raw.length<35&&!/^\d+$/.test(raw)&&!raw.endsWith(':')&&!/^(THE|A|AN|AND|IN|ON)\b/i.test(raw)){t='CHARACTER';sp=true;}else if(sp){t='DIALOGUE';}else{t='ACTION';sp=false;}if(['SCENE_HEADING','CHARACTER','TRANSITION'].includes(t))b.innerText=raw.toUpperCase();if(t==='PARENTHETICAL')b.innerText=raw.toLowerCase();b.className='leb '+(EC[t]||'eac');b.setAttribute('data-t',t);b.setAttribute('data-ph',PH[t]||'');});recWH('Reformat');updHUD();toast('Reformat & Sync complete!');}
-function spCheck(n=false){const r=document.getElementById('src');let issues=0;const clichés=['at the end of the day','listen to me','look at me','mark my words'];Array.from(r?.children||[]).forEach(rw=>{const b=rw.querySelector('.leb');if(!b)return;const tx=b.innerText.toLowerCase();clichés.forEach(c=>{if(tx.includes(c))issues++;});if(tx.includes('  '))issues++;});const el=document.getElementById('htc');if(el)el.innerText=issues;if(n)toast('Spell check: '+issues+' issues found.');}
-function selAll(){const r=document.getElementById('src');if(!r)return;const sel=window.getSelection(),rng=document.createRange();rng.selectNodeContents(r);sel.removeAllRanges();sel.addRange(rng);toast('Selected all lines.');}
-function cpSel(){const sel=window.getSelection(),tx=sel?sel.toString():'';if(tx.trim()){const ta=document.createElement('textarea');ta.value=tx;ta.style.cssText='position:fixed;left:-999999px;top:-999999px;';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('Copied.');}else toast('No text selected.');}
-function pasteP(){const tx=prompt('Paste screenplay text here:');if(!tx||!tx.trim())return;tx.split('\n').filter(l=>l.trim()).forEach(l=>mkRow('ACTION',l.trim()));recWH('Paste');updHUD();toast('Pasted.');}
-function apAl(d){['left','center','right'].forEach(x=>{const b=document.getElementById('al'+x.charAt(0).toUpperCase());if(b)b.classList.toggle('ac',x===d);});const sel=window.getSelection();if(sel&&sel.anchorNode){const nd=sel.anchorNode.nodeType===3?sel.anchorNode.parentElement:sel.anchorNode;const b=nd.closest?nd.closest('.leb'):null;if(b){b.style.textAlign=d;recWH('Align '+d);toast('Aligned '+d+'.');}}};
-function dualDlg(){const sel=window.getSelection();if(!sel||!sel.anchorNode)return toast('Place cursor on a character line first.');const nd=sel.anchorNode.nodeType===3?sel.anchorNode.parentElement:sel.anchorNode;const rw=nd.closest?nd.closest('.slr'):null;if(!rw)return;const r=document.getElementById('src'),idx=Array.from(r.children).indexOf(rw);const wr=document.createElement('div');wr.style.cssText='display:flex;width:100%;gap:0.35in;margin:12pt 0;';const c1=document.createElement('div');c1.style.flex='1';c1.style.minWidth='0';const c2=document.createElement('div');c2.style.flex='1';c2.style.minWidth='0';r.insertBefore(wr,rw);c1.appendChild(rw);const nr=r.children[idx];if(nr&&nr.classList&&nr.classList.contains('slr')){c2.appendChild(nr);}else{const nb=mkRow('CHARACTER','CHARACTER 2');const nrw=nb.parentElement;if(nrw){r.removeChild(nrw);c2.appendChild(nrw);}}wr.appendChild(c1);wr.appendChild(c2);recWH('Dual Dialogue');toast('Dual dialogue formatted.');}
-function togPaper(){const p=document.getElementById('sp');if(p){p.classList.toggle('lt');p.classList.toggle('dk');}}
-function togTitle(){const t=document.getElementById('tpc');if(t)t.classList.toggle('hidden');}
-function loadSample(){const r=document.getElementById('src');if(!r)return;r.innerHTML='';const s=[{t:'SCENE_HEADING',x:'1 EXT. DESERT HIGHWAY - DUSK 1'},{t:'ACTION',x:'Sweeping searchlights spin across the yard. In the distance, the dog loops. INGRID charges off the porch, heavy steel cleaver raised high.'},{t:'CHARACTER',x:'INGRID'},{t:'PARENTHETICAL',x:'(whispering)'},{t:'DIALOGUE',x:"Lotus, stay with me."},{t:'SCENE_HEADING',x:'2 INT. 1989 FORD MUSTANG - CONTINUOUS 2'},{t:'ACTION',x:"Ingrid dives inside. She twists the ignition. The V8 ENGINE ROARS to life. She throws it in reverse!"},{t:'TRANSITION',x:'CUT TO BLACK.'}];s.forEach(x=>mkRow(x.t,x.x));recWH('Load Sample');updHUD();toast('Sample script loaded.');}
-function saveBak(){const r=document.getElementById('src');if(!r)return;let out='';Array.from(r.children).forEach(rw=>{const b=rw.querySelector('.leb');if(b)out+='['+b.getAttribute('data-t')+'] '+b.innerText+'\n';});const bl=new Blob([out],{type:'text/plain'}),u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=S.projectName.replace(/\s+/g,'_')+'_backup.txt';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);toast('Backup downloaded.');}
-// ========== INGEST ==========
-function openIM(){document.getElementById('im').classList.add('op');document.getElementById('ipw').classList.add('hidden');document.getElementById('ipb').style.width='0%';}
-function closeIM(){document.getElementById('im').classList.remove('op');}
-document.getElementById('ifi').addEventListener('change',e=>{if(e.target.files[0])ingestFile(e.target.files[0]);});
-const idz=document.getElementById('idz');idz.addEventListener('dragover',e=>{e.preventDefault();idz.style.borderColor='#8B5CF6';});idz.addEventListener('dragleave',()=>{idz.style.borderColor='';});idz.addEventListener('drop',e=>{e.preventDefault();idz.style.borderColor='';if(e.dataTransfer.files[0])ingestFile(e.dataTransfer.files[0]);});
-async function ingestFile(file){const ipw=document.getElementById('ipw'),ipb=document.getElementById('ipb'),ipl=document.getElementById('ipl'),ipp=document.getElementById('ipp');ipw.classList.remove('hidden');const prog=(p,m)=>{ipb.style.width=p+'%';ipp.innerText=p+'%';ipl.innerText=m;};try{const n=file.name.toLowerCase();let lines=[];if(n.endsWith('.pdf')&&window.pdfjsLib)lines=await parsePDF(file,prog);else if(n.endsWith('.fdx'))lines=await parseFDX(file,prog);else if(n.endsWith('.json'))lines=await parseJF(file,prog);else lines=await parseTXT(file,prog);prog(95,'Hydrating...');const r=document.getElementById('src');if(!r)return;r.innerHTML='';lines.forEach(l=>mkRow(l.type||'ACTION',l.text||''));recWH('Ingest '+file.name);updHUD();setTimeout(()=>{closeIM();toast('Ingested '+file.name+' ('+lines.length+' elements)!');},300);}catch(err){ipl.innerText='Error: '+(err.message||'Parse failed');toast('Ingest failed.');}}
-async function parsePDF(f,p){p(15,'Loading PDF...');const ab=await f.arrayBuffer(),pdf=await pdfjsLib.getDocument({data:ab}).promise,n=pdf.numPages;let raw=[];for(let i=1;i<=n;i++){p(15+Math.floor((i/n)*60),`Page ${i}/${n}...`);const pg=await pdf.getPage(i),tc=await pg.getTextContent(),bk={};(tc.items||[]).forEach(it=>{if(!it.str)return;const y=Math.round(it.transform[5]);if(!bk[y])bk[y]=[];bk[y].push({x:it.transform[4],s:it.str});});Object.keys(bk).map(Number).sort((a,b)=>b-a).forEach(y=>{const tx=bk[y].sort((a,b)=>a.x-b.x).map(t=>t.s).join(' ').trim();if(tx&&!/^\d{1,4}$/.test(tx))raw.push({text:tx,x:bk[y][0].x});});}p(80,'Normalizing...');let res=[],sp=false;raw.forEach(item=>{const t=item.text.trim();if(!t){sp=false;return;}let tp='ACTION';if(/^(INT\.|EXT\.|EST\.|I\/E\.)/i.test(t)){tp='SCENE_HEADING';sp=false;}else if(/^(FADE IN:|CUT TO:|DISSOLVE TO:)/i.test(t)){tp='TRANSITION';sp=false;}else if(t.startsWith('(')&&t.endsWith(')')){tp='PARENTHETICAL';}else if(t===t.toUpperCase()&&t.length<35&&!/^\d+$/.test(t)){tp='CHARACTER';sp=true;}else if(sp){tp='DIALOGUE';}res.push({type:tp,text:t});});p(100,'Done!');return res;}
-async function parseFDX(f,p){p(40,'Parsing FDX...');const tx=await f.text(),xml=new DOMParser().parseFromString(tx,'text/xml'),ps=xml.getElementsByTagName('Paragraph'),lines=[];for(let i=0;i<ps.length;i++){const rt=(ps[i].getAttribute('Type')||'Action').toLowerCase(),tns=ps[i].getElementsByTagName('Text');let pt='';for(let j=0;j<tns.length;j++)pt+=tns[j].textContent;pt=pt.trim();if(!pt)continue;let tp='ACTION';if(rt.includes('scene'))tp='SCENE_HEADING';else if(rt.includes('character'))tp='CHARACTER';else if(rt.includes('parenthetical'))tp='PARENTHETICAL';else if(rt.includes('dialogue'))tp='DIALOGUE';else if(rt.includes('transition'))tp='TRANSITION';lines.push({type:tp,text:pt});}p(100,'Done!');return lines;}
-async function parseJF(f,p){p(50,'Parsing JSON...');const d=JSON.parse(await f.text()),src=d.script?.lines||d.lines||d.linesArray||[];p(100,'Done!');return src.map(l=>({type:l.type||'ACTION',text:l.text||l.value||''}));}
-async function parseTXT(f,p){p(50,'Normalizing...');const tx=await f.text(),ls=tx.split('\n'),res=[];let sp=false;ls.forEach(l=>{const t=l.trim();if(!t){sp=false;return;}const cl=t.replace(/^\[[A-Z_]+\]\s*/,'');if(/^(INT\.|EXT\.)/i.test(cl)){res.push({type:'SCENE_HEADING',text:cl});sp=false;}else if(cl===cl.toUpperCase()&&cl.length<35&&!/^\d+$/.test(cl)){res.push({type:'CHARACTER',text:cl});sp=true;}else if(cl.startsWith('(')&&cl.endsWith(')')){res.push({type:'PARENTHETICAL',text:cl});}else if(/^(FADE IN:|FADE OUT\.|CUT TO:)/i.test(cl)){res.push({type:'TRANSITION',text:cl});sp=false;}else if(sp){res.push({type:'DIALOGUE',text:cl});}else{res.push({type:'ACTION',text:cl});sp=false;}});p(100,'Done!');return res;}
-function directImport(e){if(e.target.files[0])ingestFile(e.target.files[0]);}
+// Configure PDF.js Worker
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    const SAMPLE_SCRIPT_PAYLOAD_STRING = `1 EXT. HOUSE / CARPORT - NIGHT 1
+
+Sweeping searchlights spin across the yard. In the distance, the dog loops.
+INGRID charges off the porch, heavy steel butcher cleaver raised high.
+
+INGRID
+(whispering)
+Lotus, stay with me.
+
+2 INT. 1989 FORD MUSTANG - CONTINUOUS 2
+
+Ingrid dives inside the passenger compartment.
+She twists the ignition key. The V8 ENGINE ROARS to life.
+She throws it in reverse!`;
+
+    const SPELLING_DICTIONARY_MOCK_SET = [
+      "ext", "int", "ingrid", "lyra", "lotus", "carport", "cockpit", 
+      "continuous", "searchlights", "cleaver", "parenthetical", "scene", 
+      "heading", "fade", "cut", "mustang", "night", "day", "carrion", "creek",
+      "swaggert", "therapist", "nasa", "morphology", "nursery"
+    ];
+
+    const SCRIPT_ELEMENT_SEQUENCES = ["ACTION", "SCENE_HEADING", "CHARACTER", "PARENTHETICAL", "DIALOGUE", "TRANSITION"];
+    const LINT_CLICHE_PHRASES = ["at the end of the day", "look at me", "listen to me", "mark my words", "with all due respect", "we have company"];
+
+    /* UNIVERSAL SCRIPT INGESTION NORMALIZATION ENGINE */
+    class UniversalScriptIngestEngine {
+      static async parseFile(file, onProgress = () => {}) {
+        const fileName = file.name.toLowerCase();
+
+        if (fileName.endsWith('.pdf')) {
+          return await this.parsePdfFile(file, onProgress);
+        } else if (fileName.endsWith('.fdx')) {
+          return await this.parseFdxFile(file, onProgress);
+        } else if (fileName.endsWith('.json')) {
+          return await this.parseJsonFile(file, onProgress);
+        } else {
+          return await this.parseTxtFile(file, onProgress);
+        }
+      }
+
+      static async parsePdfFile(file, onProgress) {
+        onProgress(10, "Loading PDF stream...");
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const numPages = pdf.numPages;
+        let rawAccumulatedLines = [];
+
+        for (let i = 1; i <= numPages; i++) {
+          onProgress(10 + Math.floor((i / numPages) * 70), `Extracting page ${i} of ${numPages}...`);
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          
+          const items = textContent.items;
+          if (!items || items.length === 0) continue;
+
+          const lineBuckets = {};
+          items.forEach(item => {
+            const str = item.str;
+            if (!str) return;
+            const y = Math.round(item.transform[5]);
+            const x = item.transform[4];
+            if (!lineBuckets[y]) lineBuckets[y] = [];
+            lineBuckets[y].push({ x, str });
+          });
+
+          const sortedYs = Object.keys(lineBuckets).map(Number).sort((a, b) => b - a);
+          sortedYs.forEach(y => {
+            const tokens = lineBuckets[y].sort((a, b) => a.x - b.x);
+            const lineText = tokens.map(t => t.str).join(' ').trim();
+            if (lineText) {
+              if (/^\d+\.?$/.test(lineText) && lineText.length <= 4) return;
+              rawAccumulatedLines.push({ text: lineText, x: tokens[0].x });
+            }
+          });
+        }
+
+        onProgress(85, "Normalizing screenplay grammar from PDF coordinates...");
+        const normalized = this.normalizeRawTokensToScriptNodes(rawAccumulatedLines);
+        onProgress(100, "Done!");
+        return normalized;
+      }
+
+      static normalizeRawTokensToScriptNodes(tokenLines) {
+        let resultLines = [];
+        let speakerActive = false;
+
+        tokenLines.forEach(item => {
+          const t = item.text.trim();
+          if (!t) {
+            speakerActive = false;
+            return;
+          }
+
+          let type = "ACTION";
+
+          if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(t)) {
+            type = "SCENE_HEADING";
+            speakerActive = false;
+          } else if (/^(FADE IN:|FADE OUT\.|CUT TO:|SMASH CUT TO:|DISSOLVE TO:)/i.test(t) || t.endsWith(" TO:")) {
+            type = "TRANSITION";
+            speakerActive = false;
+          } else if (t.startsWith("(") && t.endsWith(")")) {
+            type = "PARENTHETICAL";
+          } else if (t === t.toUpperCase() && t.length < 35 && !t.endsWith(":") && !/^\d+$/.test(t) && !/^(THE|A|AN|AND|IN|ON)\b/.test(t)) {
+            type = "CHARACTER";
+            speakerActive = true;
+          } else if (speakerActive) {
+            type = "DIALOGUE";
+          } else {
+            type = "ACTION";
+            speakerActive = false;
+          }
+
+          resultLines.push({ type, text: t });
+        });
+
+        return { lines: resultLines };
+      }
+
+      static async parseFdxFile(file, onProgress) {
+        onProgress(30, "Reading Final Draft XML...");
+        const text = await file.text();
+        onProgress(60, "Parsing Final Draft element tags...");
+
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(text, "text/xml");
+        const paragraphs = xml.getElementsByTagName("Paragraph");
+
+        let extractedLines = [];
+        let extractedTitle = "";
+        let extractedAuthor = "";
+
+        const titlePageTag = xml.getElementsByTagName("TitlePage")[0];
+        if (titlePageTag) {
+          const tpTexts = titlePageTag.getElementsByTagName("Text");
+          if (tpTexts.length > 0) extractedTitle = tpTexts[0].textContent.trim();
+        }
+
+        for (let i = 0; i < paragraphs.length; i++) {
+          const p = paragraphs[i];
+          const rawType = (p.getAttribute("Type") || "Action").toLowerCase();
+          
+          const textNodes = p.getElementsByTagName("Text");
+          let pText = "";
+          for (let j = 0; j < textNodes.length; j++) {
+            pText += textNodes[j].textContent;
+          }
+          pText = pText.trim();
+          if (!pText) continue;
+
+          let normalizedType = "ACTION";
+          if (rawType.includes("scene heading")) normalizedType = "SCENE_HEADING";
+          else if (rawType.includes("character")) normalizedType = "CHARACTER";
+          else if (rawType.includes("parenthetical")) normalizedType = "PARENTHETICAL";
+          else if (rawType.includes("dialogue")) normalizedType = "DIALOGUE";
+          else if (rawType.includes("transition")) normalizedType = "TRANSITION";
+          else if (rawType.includes("action") || rawType.includes("general")) normalizedType = "ACTION";
+
+          extractedLines.push({ type: normalizedType, text: pText });
+        }
+
+        onProgress(100, "Final Draft script ingested!");
+        return {
+          title: extractedTitle,
+          author: extractedAuthor,
+          lines: extractedLines
+        };
+      }
+
+      static async parseJsonFile(file, onProgress) {
+        onProgress(40, "Parsing WriterDuet JSON tree...");
+        const text = await file.text();
+        const data = JSON.parse(text);
+
+        let lines = [];
+        let title = "";
+        let author = "";
+
+        if (data.script) {
+          title = data.script.title || "";
+          author = data.script.author || "";
+          if (Array.isArray(data.script.lines)) {
+            data.script.lines.forEach(l => {
+              lines.push({
+                type: l.type || "ACTION",
+                text: l.value || l.text || ""
+              });
+            });
+          }
+        } else if (Array.isArray(data.lines)) {
+          data.lines.forEach(l => {
+            lines.push({
+              type: l.type || "ACTION",
+              text: l.text || l.value || ""
+            });
+          });
+        } else if (Array.isArray(data.linesArray)) {
+          data.linesArray.forEach(l => {
+            lines.push({
+              type: l.type || "ACTION",
+              text: l.text || l.value || ""
+            });
+          });
+        }
+
+        onProgress(100, "WriterDuet JSON hydrated!");
+        return { title, author, lines };
+      }
+
+      static async parseTxtFile(file, onProgress) {
+        onProgress(50, "Normalizing plain text Fountain lines...");
+        const text = await file.text();
+        const rawLines = text.split('\n');
+
+        let lines = [];
+        let speakerActive = false;
+        let title = "";
+        let author = "";
+
+        rawLines.forEach(l => {
+          const trimmed = l.trim();
+          if (!trimmed) {
+            speakerActive = false;
+            return;
+          }
+
+          if (trimmed.startsWith("TITLE:")) {
+            title = trimmed.replace(/^TITLE:\s*/, '').trim();
+            return;
+          }
+          if (trimmed.startsWith("AUTHOR:")) {
+            author = trimmed.replace(/^AUTHOR:\s*/, '').trim();
+            return;
+          }
+
+          let cleanLine = trimmed;
+          let explicitType = null;
+          const matchTag = trimmed.match(/^\[([A-Z_]+)\]\s*(.*)$/);
+          if (matchTag) {
+            explicitType = matchTag[1];
+            cleanLine = matchTag[2];
+          }
+
+          if (explicitType && SCRIPT_ELEMENT_SEQUENCES.includes(explicitType)) {
+            lines.push({ type: explicitType, text: cleanLine });
+            speakerActive = (explicitType === "CHARACTER");
+            return;
+          }
+
+          if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(cleanLine)) {
+            lines.push({ type: "SCENE_HEADING", text: cleanLine });
+            speakerActive = false;
+          } else if (cleanLine === cleanLine.toUpperCase() && cleanLine.length < 35 && !cleanLine.endsWith(':') && !/^\d+$/.test(cleanLine)) {
+            lines.push({ type: "CHARACTER", text: cleanLine });
+            speakerActive = true;
+          } else if (cleanLine.startsWith("(") && cleanLine.endsWith(")")) {
+            lines.push({ type: "PARENTHETICAL", text: cleanLine });
+          } else if (/^(FADE IN:|FADE OUT\.|CUT TO:|SMASH CUT TO:|DISSOLVE TO:)/i.test(cleanLine)) {
+            lines.push({ type: "TRANSITION", text: cleanLine });
+            speakerActive = false;
+          } else if (speakerActive) {
+            lines.push({ type: "DIALOGUE", text: cleanLine });
+          } else {
+            lines.push({ type: "ACTION", text: cleanLine });
+            speakerActive = false;
+          }
+        });
+
+        onProgress(100, "Text script normalized!");
+        return { title, author, lines };
+      }
+    }
+
+let isTitlePageVisible = false;
+    let isCollaborationModeActive = false;
+    let currentVersionLevelCounter = 1;
+    let currentVersionRevisionCounter = 0;
+    let peerPermissionGateState = "EDIT";
+
+    let CommandHistoryStack = [];
+    let HistoryStackPointerIndex = -1;
+    let isHistoryTransactionMutationMufflingActive = false;
+
+    const ScreenplayEditorCore = {
+      initializeEditorSystem() {
+        this.rowsContainer = document.getElementById('script-editable-node-rows-stack');
+        this.sidebar = document.getElementById('coverage-alert-sidebar-pane');
+        this.sidebarStack = document.getElementById('alert-items-scroll-stack');
+        this.collabDrawer = document.getElementById('collab-drawer-simulator-view');
+        this.titlePage = document.getElementById('screenplay-title-page-view');
+        this.emailModal = document.getElementById('ui-email-modal-overlay');
+        this.ingestModal = document.getElementById('ui-ingest-modal-overlay');
+        this.dragOverlay = document.getElementById('dropzone-drag-overlay');
+        
+        this.versionStampTop = document.getElementById('ui-top-version-badge');
+        this.historyLogList = document.getElementById('menu-history-list');
+        this.historyItemsContainer = document.getElementById('history-items-container');
+        this.historyActiveStamp = document.getElementById('menu-history-active-stamp');
+        this.universalFilePicker = document.getElementById('ui-universal-file-picker');
+
+        // File Menu Ingestion Triggers
+        document.getElementById('menu-file-universal-ingest').addEventListener('click', () => this.toggleIngestModal(true));
+        document.getElementById('btn-quick-ingest-trigger').addEventListener('click', () => this.toggleIngestModal(true));
+        document.getElementById('btn-close-ingest-modal').addEventListener('click', () => this.toggleIngestModal(false));
+        document.getElementById('btn-cancel-ingest-modal').addEventListener('click', () => this.toggleIngestModal(false));
+
+        document.getElementById('modal-drop-clickable-zone').addEventListener('click', () => this.universalFilePicker.click());
+        this.universalFilePicker.addEventListener('change', (e) => this.handleFileSelectionForIngest(e.target.files[0]));
+
+        // PDF Quick Export buttons
+        document.getElementById('menu-file-quick-pdf').addEventListener('click', () => this.executeQuickPdfPrint());
+        document.getElementById('btn-quick-export-pdf-top').addEventListener('click', () => this.executeQuickPdfPrint());
+        document.getElementById('ribbon-btn-quick-export-pdf').addEventListener('click', () => this.executeQuickPdfPrint());
+
+        // Bind Ribbon Buttons
+        document.getElementById('ribbon-btn-select-all').addEventListener('click', () => this.executeSelectAllCommand());
+        document.getElementById('menu-edit-select-all').addEventListener('click', () => this.executeSelectAllCommand());
+
+        document.getElementById('ribbon-btn-copy').addEventListener('click', () => this.executeCopyCommand());
+        document.getElementById('menu-edit-copy').addEventListener('click', () => this.executeCopyCommand());
+
+        document.getElementById('ribbon-btn-paste').addEventListener('click', () => this.executePasteCommand());
+        document.getElementById('menu-edit-paste').addEventListener('click', () => this.executePasteCommand());
+
+        document.getElementById('ribbon-btn-align-left').addEventListener('click', () => this.applyJustificationToSelectedRows("left"));
+        document.getElementById('ribbon-btn-align-center').addEventListener('click', () => this.applyJustificationToSelectedRows("center"));
+        document.getElementById('ribbon-btn-align-right').addEventListener('click', () => this.applyJustificationToSelectedRows("right"));
+
+        document.getElementById('ribbon-btn-dual-dialogue').addEventListener('click', () => this.executeToggleDualDialogue());
+        document.getElementById('ribbon-btn-reformat-sync').addEventListener('click', () => this.executeReformatSyncCommand());
+        document.getElementById('menu-edit-reformat-sync').addEventListener('click', () => this.executeReformatSyncCommand());
+        document.getElementById('ribbon-btn-spellcheck').addEventListener('click', () => this.runRealTimeLinguisticLintingSweep(true));
+
+        // Bind Drag and Drop Window Handlers
+        window.addEventListener('dragenter', (e) => {
+          e.preventDefault();
+          this.dragOverlay.classList.add('active');
+        });
+        this.dragOverlay.addEventListener('dragleave', (e) => {
+          e.preventDefault();
+          this.dragOverlay.classList.remove('active');
+        });
+        window.addEventListener('dragover', (e) => e.preventDefault());
+        window.addEventListener('drop', (e) => {
+          e.preventDefault();
+          this.dragOverlay.classList.remove('active');
+          if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            this.handleFileSelectionForIngest(e.dataTransfer.files[0]);
+          }
+        });
+
+        // Other File Menu Actions
+        document.getElementById('menu-file-new-title').addEventListener('click', () => this.toggleTitlePageLayoutView());
+        document.getElementById('menu-file-sample').addEventListener('click', () => {
+          this.hydrateTextEditorWithPlaintextString(SAMPLE_SCRIPT_PAYLOAD_STRING);
+          this.recordActiveStateToHistorySnapshotStack("Load Sample Script");
+          this.showSystemToast("Cinematic sample script hydrated onto page.");
+        });
+
+        document.getElementById('menu-file-save').addEventListener('click', () => this.executeLocalSaveTask("txt"));
+        document.getElementById('menu-file-collab').addEventListener('click', () => this.toggleCollaborationLobbyState());
+        document.getElementById('menu-file-invite-email').addEventListener('click', () => this.toggleEmailInvitationModal(true));
+        document.getElementById('btn-close-email-modal').addEventListener('click', () => this.toggleEmailInvitationModal(false));
+        document.getElementById('btn-cancel-invite').addEventListener('click', () => this.toggleEmailInvitationModal(false));
+        document.getElementById('btn-dispatch-invite').addEventListener('click', () => this.dispatchSecureEmailInvitationLink());
+        
+        // Permissions Gate Switch Listener
+        document.getElementById('select-peer-permission-gate').addEventListener('change', (e) => {
+          peerPermissionGateState = e.target.value;
+          this.showSystemToast(`Updated peer drafting clearance matrix to: ${peerPermissionGateState}`);
+          this.logCollaborationSandboxEvent(`Host restricted guest channel clearance to: [${peerPermissionGateState}]`);
+        });
+
+        // Bind Edit Dropdowns
+        document.getElementById('menu-edit-undo').addEventListener('click', () => this.executeUndoCommandStep());
+        document.getElementById('menu-edit-redo').addEventListener('click', () => this.executeRedoCommandStep());
+        document.getElementById('menu-edit-spellcheck').addEventListener('click', () => this.runRealTimeLinguisticLintingSweep(true));
+        
+        this.alignLeftBtn = document.getElementById('menu-view-studio');
+        this.alignJustifyBtn = document.getElementById('menu-view-block');
+        this.alignLeftBtn.addEventListener('click', () => this.toggleScriptTextJustification("left"));
+        this.alignJustifyBtn.addEventListener('click', () => this.toggleScriptTextJustification("justify"));
+        
+        document.getElementById('menu-view-alerts').addEventListener('click', () => this.expandCoverageAlertSidebar());
+        document.getElementById('btn-close-sidebar-x').addEventListener('click', () => this.minimizeCoverageAlertSidebar());
+
+        document.getElementById('btn-return-evaluate').addEventListener('click', () => this.dispatchUpstreamEvaluationPayload());
+
+        // Bind Export Targets
+        document.getElementById('export-target-pdf').addEventListener('click', () => this.executeQuickPdfPrint());
+        document.getElementById('export-target-fdx').addEventListener('click', () => this.executeLocalSaveTask("fdx"));
+        document.getElementById('export-target-wd').addEventListener('click', () => this.executeLocalSaveTask("json"));
+        document.getElementById('export-target-txt').addEventListener('click', () => this.executeLocalSaveTask("txt"));
+
+        document.getElementById('btn-sim-peer-type').addEventListener('click', () => this.executeSimulatedPeerTypingEvent());
+        document.getElementById('btn-sim-peer-cut').addEventListener('click', () => this.executeSimulatedPeerRevisionEvent());
+
+        // Keyboard Shortcut Captures
+        window.addEventListener('keydown', (e) => {
+          if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+            e.preventDefault();
+            this.executeUndoCommandStep();
+          }
+          if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+            e.preventDefault();
+            this.executeRedoCommandStep();
+          }
+          if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+            e.preventDefault();
+            this.executeLocalSaveTask("txt");
+          }
+          if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'p') {
+            e.preventDefault();
+            this.executeQuickPdfPrint();
+          }
+          if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'r') {
+            e.preventDefault();
+            this.executeReformatSyncCommand();
+          }
+          if (e.key === "F7") {
+            e.preventDefault();
+            this.runRealTimeLinguisticLintingSweep(true);
+          }
+        });
+
+        window.addEventListener('message', (e) => this.handleInboundCrossTilePipelineMessages(e));
+
+        // Initial setup
+        this.hydrateTextEditorWithPlaintextString(SAMPLE_SCRIPT_PAYLOAD_STRING);
+        this.recordActiveStateToHistorySnapshotStack("Initial Draft");
+      },
+
+      executeQuickPdfPrint() {
+        this.showSystemToast("Generating formatted Screenplay PDF...");
+        setTimeout(() => {
+          window.print();
+        }, 150);
+      },
+
+      executeSelectAllCommand() {
+        const selection = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(this.rowsContainer);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        this.showSystemToast("Selected all screenplay lines.");
+      },
+
+      executeCopyCommand() {
+        const selection = window.getSelection();
+        const selectedText = selection.toString();
+
+        if (selectedText && selectedText.trim().length > 0) {
+          this.copyStringToClipboard(selectedText);
+          this.showSystemToast("Copied selection to clipboard!");
+        } else {
+          // Fallback: Copy full screenplay content
+          let compiledPlaintextOutput = [];
+          Array.from(this.rowsContainer.children).forEach(row => {
+            const box = row.querySelector('.line-editable-box');
+            if (box) compiledPlaintextOutput.push(box.innerText.trim());
+          });
+          const fullText = compiledPlaintextOutput.join('\n\n');
+          this.copyStringToClipboard(fullText);
+          this.showSystemToast("Copied entire script text to clipboard.");
+        }
+      },
+
+      copyStringToClipboard(textToCopy) {
+        // Iframe-compliant fallback for clipboard copying
+        const textArea = document.createElement("textarea");
+        textArea.value = textToCopy;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand('copy');
+        } catch (err) {
+          console.warn('Fallback copy error:', err);
+        }
+        document.body.removeChild(textArea);
+      },
+
+      async executePasteCommand() {
+        // Attempt paste via prompt/dialog fallback to avoid browser iFrame permissions block
+        const pasteContent = prompt("Paste your screenplay text here:");
+        if (pasteContent && pasteContent.trim().length > 0) {
+          const lines = pasteContent.split('\n').filter(l => l.trim().length > 0);
+          lines.forEach(lineText => {
+            this.injectScreenplayLineRowNode("ACTION", lineText.trim());
+          });
+          this.recordActiveStateToHistorySnapshotStack("Paste Lines");
+          this.recalculatePageHUDCounters();
+          this.showSystemToast(`Pasted ${lines.length} script elements into canvas.`);
+        }
+      },
+
+      applyJustificationToSelectedRows(alignCode) {
+        // Determine focused or highlighted element
+        const sel = window.getSelection();
+        let targetBoxes = [];
+
+        if (sel && sel.anchorNode) {
+          const focusedRow = sel.anchorNode.nodeType === 1 
+            ? sel.anchorNode.closest('.script-line-row') 
+            : sel.anchorNode.parentElement.closest('.script-line-row');
+          if (focusedRow) {
+            const b = focusedRow.querySelector('.line-editable-box');
+            if (b) targetBoxes.push(b);
+          }
+        }
+
+        // If no single focused row found, apply to active selection inside canvas
+        if (targetBoxes.length === 0) {
+          const boxes = Array.from(this.rowsContainer.querySelectorAll('.line-editable-box'));
+          if (boxes.length > 0) targetBoxes.push(boxes[0]);
+        }
+
+        targetBoxes.forEach(b => {
+          b.classList.remove('align-left', 'align-center', 'align-right');
+          b.classList.add(`align-${alignCode}`);
+        });
+
+        this.recordActiveStateToHistorySnapshotStack(`Align ${alignCode.toUpperCase()}`);
+        this.showSystemToast(`Set alignment to: ${alignCode.toUpperCase()}`);
+      },
+
+      executeToggleDualDialogue() {
+        const sel = window.getSelection();
+        let anchor = null;
+        if (sel && sel.anchorNode) {
+          anchor = sel.anchorNode.nodeType === 1 ? sel.anchorNode.closest('.script-line-row') : sel.anchorNode.parentElement.closest('.script-line-row');
+        }
+        if (!anchor) {
+          anchor = this.rowsContainer.querySelector('.script-line-row');
+        }
+
+        if (!anchor) {
+          return this.showSystemToast("No screenplay lines available to format into dual dialogue.", true);
+        }
+
+        // Check if already in a dual dialogue wrapper
+        const existingDualWrapper = anchor.closest('.dual-dialogue-wrapper');
+        if (existingDualWrapper) {
+          // Collapse back to linear rows
+          const rowsToExtract = Array.from(existingDualWrapper.querySelectorAll('.script-line-row'));
+          rowsToExtract.forEach(r => {
+            existingDualWrapper.parentElement.insertBefore(r, existingDualWrapper);
+          });
+          existingDualWrapper.remove();
+          this.recordActiveStateToHistorySnapshotStack("Collapse Dual Dialogue");
+          this.showSystemToast("Collapsed dual dialogue into linear script rows.");
+          return;
+        }
+
+        // Build dual dialogue container with two side-by-side columns
+        const nextRow = anchor.nextElementSibling;
+        const wrapper = document.createElement('div');
+        wrapper.className = "dual-dialogue-wrapper group";
+
+        const colLeft = document.createElement('div');
+        colLeft.className = "dual-dialogue-col";
+
+        const colRight = document.createElement('div');
+        colRight.className = "dual-dialogue-col";
+
+        // Place anchor in left column
+        anchor.parentElement.insertBefore(wrapper, anchor);
+        colLeft.appendChild(anchor);
+
+        // If next row exists, place it in right column, else create a sample second character
+        if (nextRow && nextRow.classList.contains('script-line-row')) {
+          colRight.appendChild(nextRow);
+        } else {
+          const dummy = document.createElement('div');
+          dummy.className = "script-line-row group animate-fade-in";
+          const dummyBox = document.createElement('div');
+          dummyBox.contentEditable = "true";
+          dummyBox.className = "line-editable-box element-character";
+          dummyBox.innerText = "CHARACTER 2";
+          dummyBox.setAttribute('data-element-type', "CHARACTER");
+          dummy.appendChild(dummyBox);
+          colRight.appendChild(dummy);
+        }
+
+        wrapper.appendChild(colLeft);
+        wrapper.appendChild(colRight);
+
+        this.recordActiveStateToHistorySnapshotStack("Create Dual Dialogue");
+        this.recalculatePageHUDCounters();
+        this.showSystemToast("Formatted dual dialogue side-by-side block.");
+      },
+
+      executeReformatSyncCommand() {
+        const sel = window.getSelection();
+        let targetRows = [];
+
+        // Check if user has highlighted text across rows
+        if (sel && !sel.isCollapsed && sel.rangeCount > 0) {
+          const range = sel.getRangeAt(0);
+          const allRows = Array.from(this.rowsContainer.querySelectorAll('.script-line-row'));
+          targetRows = allRows.filter(row => range.intersectsNode(row));
+        }
+
+        // If none highlighted, reformat ALL rows in editor
+        if (targetRows.length === 0) {
+          targetRows = Array.from(this.rowsContainer.querySelectorAll('.script-line-row'));
+        }
+
+        if (targetRows.length === 0) {
+          return this.showSystemToast("No lines to reformat.", true);
+        }
+
+        let updatedCount = 0;
+        let speakerActive = false;
+
+        targetRows.forEach((row) => {
+          const box = row.querySelector('.line-editable-box');
+          if (!box) return;
+          const rawText = box.innerText.trim();
+          if (!rawText) return;
+
+          let newType = "ACTION";
+          let formattedText = rawText;
+
+          // 1. Scene Headings check
+          if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(rawText)) {
+            newType = "SCENE_HEADING";
+            formattedText = rawText.toUpperCase();
+            speakerActive = false;
+          } 
+          // 2. Transitions check
+          else if (/^(FADE IN:|FADE OUT\.|CUT TO:|SMASH CUT TO:|DISSOLVE TO:)/i.test(rawText) || rawText.toUpperCase().endsWith(" TO:")) {
+            newType = "TRANSITION";
+            formattedText = rawText.toUpperCase();
+            speakerActive = false;
+          } 
+          // 3. Parentheticals check
+          else if (rawText.startsWith("(") && rawText.endsWith(")")) {
+            newType = "PARENTHETICAL";
+            formattedText = rawText.toLowerCase();
+          } 
+          // 4. Character names check (all caps, under 35 chars, not slugline)
+          else if (rawText === rawText.toUpperCase() && rawText.length < 35 && !rawText.endsWith(':') && !/^\d+$/.test(rawText)) {
+            newType = "CHARACTER";
+            formattedText = rawText.toUpperCase();
+            speakerActive = true;
+          } 
+          // 5. Dialogue after character
+          else if (speakerActive) {
+            newType = "DIALOGUE";
+          } 
+          // 6. Action default
+          else {
+            newType = "ACTION";
+            speakerActive = false;
+          }
+
+          box.innerText = formattedText;
+          box.className = `line-editable-box ${this.getStyleClassForElementType(newType)}`;
+          box.setAttribute('data-element-type', newType);
+          box.setAttribute('data-placeholder', this.getPlaceholderForType(newType));
+          updatedCount++;
+        });
+
+        this.recordActiveStateToHistorySnapshotStack("Reformat & Sync");
+        this.runRealTimeLinguisticLintingSweep();
+        this.recalculatePageHUDCounters();
+        this.showSystemToast(`Reformat & Sync Complete: Normalized ${updatedCount} screenplay lines!`);
+      },
+
+      toggleIngestModal(visible) {
+        if (visible) {
+          this.ingestModal.classList.remove('hidden');
+          document.getElementById('ingest-progress-container').classList.add('hidden');
+        } else {
+          this.ingestModal.classList.add('hidden');
+          this.universalFilePicker.value = "";
+        }
+      },
+
+      async handleFileSelectionForIngest(file) {
+        if (!file) return;
+
+        this.toggleIngestModal(true);
+        const progressContainer = document.getElementById('ingest-progress-container');
+        const progressBar = document.getElementById('ingest-progress-bar');
+        const progressLabel = document.getElementById('ingest-progress-label');
+        const progressPercent = document.getElementById('ingest-progress-percent');
+
+        progressContainer.classList.remove('hidden');
+
+        try {
+          const parsed = await UniversalScriptIngestEngine.parseFile(file, (percent, statusText) => {
+            progressBar.style.width = `${percent}%`;
+            progressPercent.textContent = `${percent}%`;
+            progressLabel.textContent = statusText;
+          });
+
+          if (!parsed || !parsed.lines || parsed.lines.length === 0) {
+            throw new Error("No readable dialogue, character names, or scene headings could be parsed.");
+          }
+
+          // Hydrate Editor Canvas
+          this.rowsContainer.innerHTML = "";
+          parsed.lines.forEach(lineNode => {
+            this.injectScreenplayLineRowNode(lineNode.type, lineNode.text);
+          });
+
+          if (parsed.title) {
+            document.getElementById('title-page-main-heading').textContent = parsed.title.toUpperCase();
+          }
+          if (parsed.author) {
+            document.getElementById('title-page-author-name').textContent = parsed.author.toUpperCase();
+          }
+
+          currentVersionLevelCounter++;
+          currentVersionRevisionCounter = 0;
+          const stamp = `v${currentVersionLevelCounter}.0-INGESTED`;
+          this.versionStampTop.querySelector('span').textContent = stamp;
+          this.historyActiveStamp.textContent = stamp;
+
+          this.recordActiveStateToHistorySnapshotStack(`Ingested ${file.name}`);
+          this.runRealTimeLinguisticLintingSweep();
+          this.recalculatePageHUDCounters();
+
+          setTimeout(() => {
+            this.toggleIngestModal(false);
+            this.showSystemToast(`Successfully ingested ${file.name} (${parsed.lines.length} script elements)!`);
+          }, 400);
+
+        } catch (err) {
+          progressLabel.textContent = `Error: ${err.message || 'File could not be parsed'}`;
+          progressBar.classList.add('bg-rose-500');
+          this.showSystemToast(`Ingest Failed: ${err.message}`, true);
+        }
+      },
+
+      toggleEmailInvitationModal(shouldDisplayVisible) {
+        if (shouldDisplayVisible) {
+          this.emailModal.classList.remove('hidden');
+          setTimeout(() => document.getElementById('input-collab-email').focus(), 50);
+        } else {
+          this.emailModal.classList.add('hidden');
+          document.getElementById('input-collab-email').value = "";
+        }
+      },
+
+      dispatchSecureEmailInvitationLink() {
+        const mail = document.getElementById('input-collab-email').value.trim();
+        const initialPerm = document.getElementById('input-collab-permission').value;
+        if (!mail || !mail.includes("@")) {
+          return this.showSystemToast("Please provide a valid destination email address.", true);
+        }
+
+        this.toggleEmailInvitationModal(false);
+        if (!isCollaborationModeActive) {
+          this.toggleCollaborationLobbyState();
+        }
+
+        peerPermissionGateState = initialPerm;
+        document.getElementById('select-peer-permission-gate').value = initialPerm;
+        
+        const peerRow = document.getElementById('collab-peer-user-row');
+        const peerIdentity = document.getElementById('txt-peer-user-identity');
+        if (peerRow) peerRow.classList.remove('hidden');
+        if (peerIdentity) peerIdentity.textContent = mail;
+
+        this.showSystemToast(`Dispatched secure access token directly to: ${mail}`);
+        this.logCollaborationSandboxEvent(`Lobby invite transmitted to [${mail}] with [${initialPerm}] clearance.`);
+      },
+
+      toggleTitlePageLayoutView() {
+        isTitlePageVisible = !isTitlePageVisible;
+        const btn = document.getElementById('menu-file-new-title');
+        if (isTitlePageVisible) {
+          this.titlePage.classList.remove('hidden');
+          btn.innerHTML = `<span>Toggle Title Page</span><span class="text-lime-400 font-mono text-[10px]">✓ ACTIVE</span>`;
+          this.showSystemToast("Mounted front title page sheet block layout.");
+        } else {
+          this.titlePage.classList.add('hidden');
+          btn.innerHTML = `<span>Toggle Title Page</span><span class="text-slate-500 font-mono text-[10px]">⌥T</span>`;
+          this.showSystemToast("Unmounted title page layout segment.");
+        }
+        this.recordActiveStateToHistorySnapshotStack(isTitlePageVisible ? "Show Title Page" : "Hide Title Page");
+      },
+
+      minimizeCoverageAlertSidebar() {
+        this.sidebar.className = "w-0 opacity-0 bg-[#05080E] border-r border-slate-900 flex flex-col shrink-0 overflow-hidden relative transition-all duration-300 z-20";
+      },
+
+      expandCoverageAlertSidebar() {
+        this.sidebar.className = "w-72 opacity-100 bg-[#05080E] border-r border-slate-900 flex flex-col shrink-0 overflow-hidden relative transition-all duration-300 z-20";
+      },
+
+      showSystemToast(messageText, isErrorNotification = false) {
+        const portal = document.getElementById('toast-portal-rack');
+        if (!portal) return;
+
+        const toastCard = document.createElement('div');
+        toastCard.className = `p-3 rounded shadow-2xl text-xs font-mono border transition duration-300 transform translate-y-0 flex items-center gap-2 pointer-events-auto ${
+          isErrorNotification ? 'bg-rose-950/95 border-rose-900 text-rose-200' : 'bg-slate-950/95 border-slate-800 text-slate-100'
+        }`;
+        toastCard.innerHTML = `<i class="${isErrorNotification ? 'fa-solid fa-circle-exclamation text-rose-500' : 'fa-solid fa-circle-check text-lime-400'}"></i><span>${messageText}</span>`;
+        
+        portal.appendChild(toastCard);
+        setTimeout(() => {
+          toastCard.style.opacity = '0';
+          setTimeout(() => toastCard.remove(), 300);
+        }, 3200);
+      },
+
+      logCollaborationSandboxEvent(logMessageString) {
+        const logger = document.getElementById('collab-sandbox-event-logs');
+        if (!logger) return;
+        if (logger.innerHTML.includes("No network events recorded")) logger.innerHTML = "";
+
+        const frame = document.createElement('div');
+        frame.className = "p-1.5 border-b border-slate-900/60 text-slate-400 leading-normal font-mono text-[10px]";
+        frame.innerHTML = `<span class="text-slate-600 mr-1">[${new Date().toLocaleTimeString()}]</span>${logMessageString}`;
+        logger.appendChild(frame);
+        logger.scrollTop = logger.scrollHeight;
+      },
+
+      recordActiveStateToHistorySnapshotStack(actionLabel = "Edit Screenplay") {
+        if (isHistoryTransactionMutationMufflingActive) return;
+
+        let linesDataSnapshot = [];
+        Array.from(this.rowsContainer.children).forEach(row => {
+          const box = row.querySelector('.line-editable-box');
+          if (box) {
+            linesDataSnapshot.push({
+              type: box.getAttribute('data-element-type') || "ACTION",
+              text: box.textContent || "",
+              align: box.classList.contains('align-center') ? 'center' : (box.classList.contains('align-right') ? 'right' : 'left')
+            });
+          }
+        });
+
+        if (HistoryStackPointerIndex < CommandHistoryStack.length - 1) {
+          CommandHistoryStack = CommandHistoryStack.slice(0, HistoryStackPointerIndex + 1);
+        }
+
+        const snapshot = {
+          label: actionLabel,
+          timestamp: new Date().toLocaleTimeString(),
+          titlePageActive: isTitlePageVisible,
+          titleText: document.getElementById('title-page-main-heading').textContent,
+          authorText: document.getElementById('title-page-author-name').textContent,
+          contactText: document.getElementById('title-page-contact-block').innerText,
+          elementsTree: linesDataSnapshot
+        };
+
+        CommandHistoryStack.push(snapshot);
+        if (CommandHistoryStack.length > 50) CommandHistoryStack.shift();
+        HistoryStackPointerIndex = CommandHistoryStack.length - 1;
+
+        this.renderHistoryMenu();
+      },
+
+      renderHistoryMenu() {
+        if (!this.historyItemsContainer) return;
+        this.historyItemsContainer.innerHTML = "";
+
+        const maxDisplay = Math.min(CommandHistoryStack.length, 8);
+        for (let i = CommandHistoryStack.length - 1; i >= CommandHistoryStack.length - maxDisplay; i--) {
+          const item = CommandHistoryStack[i];
+          const isCurrent = i === HistoryStackPointerIndex;
+
+          const row = document.createElement('div');
+          row.className = `px-4 py-1 font-mono text-[11px] cursor-pointer flex justify-between items-center transition ${
+            isCurrent ? 'bg-purple-950/40 border-l-2 border-purple-400 text-white font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+          }`;
+          row.innerHTML = `<span class="truncate mr-2">${item.label}</span><span class="text-[9px] text-slate-500">${item.timestamp}</span>`;
+          row.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.jumpToHistoryIndex(i);
+          });
+          this.historyItemsContainer.appendChild(row);
+        }
+
+        if (this.historyActiveStamp && CommandHistoryStack[HistoryStackPointerIndex]) {
+          this.historyActiveStamp.textContent = `${CommandHistoryStack[HistoryStackPointerIndex].label} (${CommandHistoryStack[HistoryStackPointerIndex].elementsTree.length} lines)`;
+        }
+      },
+
+      jumpToHistoryIndex(targetIndex) {
+        if (targetIndex < 0 || targetIndex >= CommandHistoryStack.length) return;
+        HistoryStackPointerIndex = targetIndex;
+        this.applyHistoricalStateSnapshotToInterface(CommandHistoryStack[HistoryStackPointerIndex]);
+        this.showSystemToast(`Restored: ${CommandHistoryStack[HistoryStackPointerIndex].label}`);
+      },
+
+      executeUndoCommandStep() {
+        if (HistoryStackPointerIndex <= 0) {
+          return this.showSystemToast("Baseline state reached. Nothing to undo.", true);
+        }
+        HistoryStackPointerIndex--;
+        this.applyHistoricalStateSnapshotToInterface(CommandHistoryStack[HistoryStackPointerIndex]);
+        this.showSystemToast(`Undo: ${CommandHistoryStack[HistoryStackPointerIndex].label}`);
+      },
+
+      executeRedoCommandStep() {
+        if (HistoryStackPointerIndex >= CommandHistoryStack.length - 1) {
+          return this.showSystemToast("Latest state active. Nothing to redo.", true);
+        }
+        HistoryStackPointerIndex++;
+        this.applyHistoricalStateSnapshotToInterface(CommandHistoryStack[HistoryStackPointerIndex]);
+        this.showSystemToast(`Redo: ${CommandHistoryStack[HistoryStackPointerIndex].label}`);
+      },
+
+      applyHistoricalStateSnapshotToInterface(stateObjectNode) {
+        isHistoryTransactionMutationMufflingActive = true;
+
+        if (stateObjectNode.titlePageActive !== isTitlePageVisible) {
+          isTitlePageVisible = stateObjectNode.titlePageActive;
+          const btn = document.getElementById('menu-file-new-title');
+          if (isTitlePageVisible) {
+            this.titlePage.classList.remove('hidden');
+            btn.innerHTML = `<span>Toggle Title Page</span><span class="text-lime-400 font-mono text-[10px]">✓ ACTIVE</span>`;
+          } else {
+            this.titlePage.classList.add('hidden');
+            btn.innerHTML = `<span>Toggle Title Page</span><span class="text-slate-500 font-mono text-[10px]">⌥T</span>`;
+          }
+        }
+        document.getElementById('title-page-main-heading').textContent = stateObjectNode.titleText;
+        document.getElementById('title-page-author-name').textContent = stateObjectNode.authorText;
+        document.getElementById('title-page-contact-block').innerText = stateObjectNode.contactText;
+
+        this.rowsContainer.innerHTML = "";
+        stateObjectNode.elementsTree.forEach(node => {
+          const el = this.injectScreenplayLineRowNode(node.type, node.text);
+          if (node.align && el) {
+            el.classList.add(`align-${node.align}`);
+          }
+        });
+
+        this.runRealTimeLinguisticLintingSweep();
+        this.recalculatePageHUDCounters();
+        this.renderHistoryMenu();
+
+        isHistoryTransactionMutationMufflingActive = false;
+      },
+
+      hydrateTextEditorWithPlaintextString(sourceScriptBlob) {
+        this.rowsContainer.innerHTML = "";
+        const targetLines = sourceScriptBlob.split('\n');
+        
+        let speakerContext = null;
+        targetLines.forEach(line => {
+          const trimmed = line.trim();
+          if (!trimmed) {
+            speakerContext = null;
+            return;
+          }
+
+          let cleanLine = trimmed.replace(/^\[[A-Z_]+\]\s*/, '');
+
+          if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(cleanLine)) {
+            this.injectScreenplayLineRowNode("SCENE_HEADING", cleanLine);
+            speakerContext = null;
+          } else if (cleanLine === cleanLine.toUpperCase() && cleanLine.length < 35 && !cleanLine.endsWith(':') && !/^\d+$/.test(cleanLine)) {
+            this.injectScreenplayLineRowNode("CHARACTER", cleanLine);
+            speakerContext = cleanLine;
+          } else if (cleanLine.startsWith("(") && cleanLine.endsWith(")")) {
+            this.injectScreenplayLineRowNode("PARENTHETICAL", cleanLine);
+          } else if (/^(FADE IN:|FADE OUT\.|CUT TO:|SMASH CUT TO:|DISSOLVE TO:)/i.test(cleanLine)) {
+            this.injectScreenplayLineRowNode("TRANSITION", cleanLine);
+            speakerContext = null;
+          } else if (speakerContext) {
+            this.injectScreenplayLineRowNode("DIALOGUE", cleanLine);
+          } else {
+            this.injectScreenplayLineRowNode("ACTION", cleanLine);
+            speakerContext = null;
+          }
+        });
+
+        if (this.rowsContainer.children.length === 0) {
+          this.injectScreenplayLineRowNode("SCENE_HEADING", "1 EXT. LOCATION - DAY 1");
+        }
+
+        this.runRealTimeLinguisticLintingSweep();
+        this.recalculatePageHUDCounters();
+      },
+
+      getPlaceholderForType(type) {
+        switch (type) {
+          case "SCENE_HEADING": return "INT. SCENE LOCATION - DAY";
+          case "CHARACTER": return "CHARACTER NAME";
+          case "PARENTHETICAL": return "(whispering)";
+          case "DIALOGUE": return "Spoken dialogue line...";
+          case "TRANSITION": return "CUT TO:";
+          default: return "Describe action, setting, or camera cues...";
+        }
+      },
+
+      injectScreenplayLineRowNode(elementTypeLabel, defaultContentString = "", insertionIndexRef = null) {
+        const rowNodeWrapper = document.createElement('div');
+        rowNodeWrapper.className = "script-line-row group animate-fade-in";
+        
+        const textEditableContainer = document.createElement('div');
+        textEditableContainer.contentEditable = "true";
+        textEditableContainer.className = `line-editable-box ${this.getStyleClassForElementType(elementTypeLabel)}`;
+        textEditableContainer.innerText = defaultContentString;
+        textEditableContainer.setAttribute('data-element-type', elementTypeLabel);
+        textEditableContainer.setAttribute('data-placeholder', this.getPlaceholderForType(elementTypeLabel));
+
+        rowNodeWrapper.appendChild(textEditableContainer);
+
+        textEditableContainer.addEventListener('keydown', (e) => this.handleKeyboardRoutingRules(e, rowNodeWrapper, textEditableContainer));
+        
+        let debounceTimer = null;
+        textEditableContainer.addEventListener('input', () => {
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            this.recordActiveStateToHistorySnapshotStack("Typing");
+            this.runRealTimeLinguisticLintingSweep();
+            this.recalculatePageHUDCounters();
+          }, 400);
+        });
+        
+        textEditableContainer.addEventListener('focus', () => {
+          const activeType = textEditableContainer.getAttribute('data-element-type') || "ACTION";
+          document.getElementById('ui-current-element-type-badge').textContent = activeType;
+        });
+
+        if (insertionIndexRef !== null && this.rowsContainer.children[insertionIndexRef]) {
+          this.rowsContainer.insertBefore(rowNodeWrapper, this.rowsContainer.children[insertionIndexRef]);
+        } else {
+          this.rowsContainer.appendChild(rowNodeWrapper);
+        }
+
+        return textEditableContainer;
+      },
+
+      getStyleClassForElementType(typeLabel) {
+        switch (typeLabel) {
+          case "SCENE_HEADING": return "element-scene-heading";
+          case "ACTION": return "element-action";
+          case "CHARACTER": return "element-character";
+          case "PARENTHETICAL": return "element-parenthetical";
+          case "DIALOGUE": return "element-dialogue";
+          case "TRANSITION": return "element-transition";
+          default: return "element-action";
+        }
+      },
+
+      handleKeyboardRoutingRules(event, rowNodeWrapper, textEditableContainer) {
+        const currentType = textEditableContainer.getAttribute('data-element-type') || "ACTION";
+        const currentIndex = Array.from(this.rowsContainer.children).indexOf(rowNodeWrapper);
+
+        if (event.key === "Tab") {
+          event.preventDefault();
+          const step = event.shiftKey ? -1 : 1;
+          let nextTypeIndex = (SCRIPT_ELEMENT_SEQUENCES.indexOf(currentType) + step + SCRIPT_ELEMENT_SEQUENCES.length) % SCRIPT_ELEMENT_SEQUENCES.length;
+          let transformedType = SCRIPT_ELEMENT_SEQUENCES[nextTypeIndex];
+          
+          textEditableContainer.className = `line-editable-box ${this.getStyleClassForElementType(transformedType)}`;
+          textEditableContainer.setAttribute('data-element-type', transformedType);
+          textEditableContainer.setAttribute('data-placeholder', this.getPlaceholderForType(transformedType));
+          document.getElementById('ui-current-element-type-badge').textContent = transformedType;
+          
+          this.recordActiveStateToHistorySnapshotStack(`Change to ${transformedType}`);
+          this.recalculatePageHUDCounters();
+          return;
+        }
+
+        if (event.key === "Enter") {
+          event.preventDefault();
+
+          let downstreamSuggestedType = "ACTION";
+          if (currentType === "CHARACTER") downstreamSuggestedType = "DIALOGUE";
+          else if (currentType === "DIALOGUE") downstreamSuggestedType = "ACTION";
+          else if (currentType === "SCENE_HEADING") downstreamSuggestedType = "ACTION";
+          else if (currentType === "PARENTHETICAL") downstreamSuggestedType = "DIALOGUE";
+
+          const sel = window.getSelection();
+          let carryOverText = "";
+          if (sel && sel.rangeCount > 0) {
+            const range = sel.getRangeAt(0);
+            const fullText = textEditableContainer.innerText;
+            
+            const preCaretRange = range.cloneRange();
+            preCaretRange.selectNodeContents(textEditableContainer);
+            preCaretRange.setEnd(range.endContainer, range.endOffset);
+            const caretPos = preCaretRange.toString().length;
+
+            carryOverText = fullText.slice(caretPos);
+            textEditableContainer.innerText = fullText.slice(0, caretPos);
+          }
+
+          const newEditable = this.injectScreenplayLineRowNode(downstreamSuggestedType, carryOverText, currentIndex + 1);
+          this.recordActiveStateToHistorySnapshotStack("New Line");
+          this.recalculatePageHUDCounters();
+          
+          if (newEditable) {
+            newEditable.focus();
+            const range = document.createRange();
+            const selObj = window.getSelection();
+            range.setStart(newEditable, 0);
+            range.collapse(true);
+            selObj.removeAllRanges();
+            selObj.addRange(range);
+          }
+          return;
+        }
+
+        if (event.key === "Backspace" && textEditableContainer.textContent.length === 0) {
+          event.preventDefault();
+          if (this.rowsContainer.children.length > 1 && currentIndex > 0) {
+            const rowTargetToFocus = this.rowsContainer.children[currentIndex - 1];
+            rowNodeWrapper.remove();
+            this.recordActiveStateToHistorySnapshotStack("Delete Line");
+            this.recalculatePageHUDCounters();
+            
+            if (rowTargetToFocus) {
+              const prevBox = rowTargetToFocus.querySelector('.line-editable-box');
+              if (prevBox) {
+                prevBox.focus();
+                const selectRange = document.createRange();
+                const textSelection = window.getSelection();
+                selectRange.selectNodeContents(prevBox);
+                selectRange.collapse(false);
+                textSelection.removeAllRanges();
+                textSelection.addRange(selectRange);
+              }
+            }
+          }
+        }
+      },
+
+      toggleScriptTextJustification(alignmentModeCode) {
+        const checkStudio = document.getElementById('check-studio-mode');
+        const checkBlock = document.getElementById('check-block-mode');
+        
+        if (alignmentModeCode === "justify") {
+          this.rowsContainer.style.textAlign = "justify";
+          if (checkStudio) checkStudio.classList.add('hidden');
+          if (checkBlock) checkBlock.classList.remove('hidden');
+          this.showSystemToast("Paragraph logic set to dynamic block justification.");
+        } else {
+          this.rowsContainer.style.textAlign = "left";
+          if (checkStudio) checkStudio.classList.remove('hidden');
+          if (checkBlock) checkBlock.classList.add('hidden');
+          this.showSystemToast("Restored standard Hollywood left-justified formatting.");
+        }
+      },
+
+      runRealTimeLinguisticLintingSweep(forceDictionaryScan = false) {
+        let clicheCounter = 0;
+        let punctuationCounter = 0;
+        let spellIssueCounter = 0;
+
+        Array.from(this.rowsContainer.children).forEach(row => {
+          const box = row.querySelector('.line-editable-box');
+          if (!box) return;
+          let text = box.textContent || "";
+          if (!text) return;
+
+          let hasCliche = false;
+          let hasPunctuationAnomalies = false;
+          let hasSpellingFlaw = false;
+
+          LINT_CLICHE_PHRASES.forEach(phrase => {
+            if (text.toLowerCase().includes(phrase)) {
+              clicheCounter++;
+              hasCliche = true;
+            }
+          });
+
+          const checkOpen = text.includes("(");
+          const checkClose = text.includes(")");
+          if ((checkOpen && !checkClose) || (checkClose && !checkOpen) || text.includes("  ")) {
+            punctuationCounter++;
+            hasPunctuationAnomalies = true;
+          }
+
+          if (forceDictionaryScan) {
+            const rawWords = text.toLowerCase().replace(/[^a-zA-Z\s]/g, "").split(/\s+/);
+            rawWords.forEach(w => {
+              if (w && w.length > 2 && !SPELLING_DICTIONARY_MOCK_SET.includes(w)) {
+                spellIssueCounter++;
+                hasSpellingFlaw = true;
+              }
+            });
+          }
+
+          box.classList.remove('lint-error-cliche', 'lint-error-punctuation', 'lint-error-spell');
+          if (hasSpellingFlaw) box.classList.add('lint-error-spell');
+          else if (hasPunctuationAnomalies) box.classList.add('lint-error-punctuation');
+          else if (hasCliche) box.classList.add('lint-error-cliche');
+        });
+
+        document.getElementById('ui-diag-cliche-count').textContent = clicheCounter;
+        document.getElementById('ui-diag-spell-count').textContent = spellIssueCounter;
+        if (forceDictionaryScan) {
+          this.showSystemToast(`Spell & grammar sweep completed (${spellIssueCounter} issues found).`);
+        }
+      },
+
+      recalculatePageHUDCounters() {
+        let sceneCounter = 0;
+        let elementCounter = 0;
+
+        Array.from(this.rowsContainer.children).forEach(row => {
+          elementCounter++;
+          const box = row.querySelector('.line-editable-box');
+          if (box && box.getAttribute('data-element-type') === "SCENE_HEADING") {
+            sceneCounter++;
+          }
+        });
+
+        document.getElementById('ui-hud-scene-total-count').textContent = sceneCounter || 1;
+        document.getElementById('ui-hud-elements-total-count').textContent = elementCounter;
+        
+        let computedPageNum = Math.max(1, Math.ceil(elementCounter / 22));
+        document.getElementById('ui-page-footer-counter').textContent = computedPageNum;
+      },
+
+      toggleCollaborationLobbyState() {
+        isCollaborationModeActive = !isCollaborationModeActive;
+        const badge = document.getElementById('ui-collab-active-badge');
+        const drawSim = document.getElementById('collab-drawer-simulator-view');
+
+        if (isCollaborationModeActive) {
+          const room = Math.random().toString(36).substring(2,6).toUpperCase();
+          badge.classList.remove('hidden');
+          drawSim.className = "w-80 opacity-100 bg-[#060910] border-l border-slate-900 flex flex-col shrink-0 overflow-hidden transition-all duration-300 z-20";
+          document.getElementById('menu-file-collab').textContent = `Disconnect Room (${room})`;
+          this.showSystemToast(`Live channel mounted. Room key: ${room}`);
+          this.logCollaborationSandboxEvent(`Lobby initialized securely. Room token: [${room}]`);
+        } else {
+          badge.classList.add('hidden');
+          drawSim.className = "w-0 opacity-0 bg-[#060910] border-l border-slate-900 flex flex-col shrink-0 overflow-hidden transition-all duration-300 z-20";
+          document.getElementById('menu-file-collab').textContent = "Initialize Live Session";
+          document.getElementById('collab-peer-user-row').classList.add('hidden');
+          this.showSystemToast("Collaboration network session closed.");
+        }
+      },
+
+      executeLocalSaveTask(formatExtensionCode) {
+        let textLinesArray = [];
+        let exportBlobTypeString = "text/plain";
+        let finalOutputStringString = "";
+
+        Array.from(this.rowsContainer.children).forEach(row => {
+          const box = row.querySelector('.line-editable-box');
+          if (box) {
+            const type = box.getAttribute('data-element-type') || "ACTION";
+            const value = box.innerText || "";
+            textLinesArray.push({ type, value });
+          }
+        });
+
+        const title = document.getElementById('title-page-main-heading').textContent.trim() || "UNTITLED SCREENPLAY";
+        const author = document.getElementById('title-page-author-name').textContent.trim() || "AUTHOR";
+
+        if (formatExtensionCode === "json") {
+          exportBlobTypeString = "application/json";
+          let schemaObject = {
+            application: "preHUB_Screenwriter_Studio",
+            versionContextCode: this.versionStampTop.querySelector('span').textContent,
+            generatedTimestamp: Date.now(),
+            script: {
+              title: title,
+              author: author,
+              hasTitlePage: isTitlePageVisible,
+              lines: textLinesArray
+            }
+          };
+          finalOutputStringString = JSON.stringify(schemaObject, null, 2);
+        } else if (formatExtensionCode === "fdx") {
+          exportBlobTypeString = "application/xml";
+          let xmlLines = [];
+          xmlLines.push('<?xml version="1.0" encoding="UTF-8"?>');
+          xmlLines.push('<FinalDraft DocumentType="Script" Version="3">');
+          xmlLines.push('  <Content>');
+          textLinesArray.forEach(l => {
+            let fdxType = "Action";
+            if (l.type === "SCENE_HEADING") fdxType = "Scene Heading";
+            else if (l.type === "CHARACTER") fdxType = "Character";
+            else if (l.type === "PARENTHETICAL") fdxType = "Parenthetical";
+            else if (l.type === "DIALOGUE") fdxType = "Dialogue";
+            else if (l.type === "TRANSITION") fdxType = "Transition";
+
+            xmlLines.push(`    <Paragraph Type="${fdxType}">\n      <Text>${l.value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</Text>\n    </Paragraph>`);
+          });
+          xmlLines.push('  </Content>');
+          xmlLines.push('</FinalDraft>');
+          finalOutputStringString = xmlLines.join('\n');
+        } else {
+          let plaintextPayload = [];
+          if (isTitlePageVisible) {
+            plaintextPayload.push(`TITLE: ${title}`);
+            plaintextPayload.push(`AUTHOR: ${author}`);
+            plaintextPayload.push(`CONTACT: ${document.getElementById('title-page-contact-block').innerText.replace(/\n/g, ' | ')}\n\n`);
+          }
+          textLinesArray.forEach(l => {
+            plaintextPayload.push(`[${l.type}] ${l.value}`);
+          });
+          finalOutputStringString = plaintextPayload.join('\n');
+        }
+
+        const dataBlob = new Blob([finalOutputStringString], { type: exportBlobTypeString });
+        const objUrl = URL.createObjectURL(dataBlob);
+        const a = document.createElement('a');
+        a.href = objUrl;
+        a.download = `screenplay_draft_${Date.now()}.${formatExtensionCode}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(objUrl);
+        this.showSystemToast(`Exported .${formatExtensionCode} screenplay asset.`);
+      },
+
+      handleInboundCrossTilePipelineMessages(event) {
+        const payloadPacket = event.data;
+        if (!payloadPacket || payloadPacket.origin !== "HALION_LOGIC_EVALUATOR_STUDIO") return;
+
+        if (payloadPacket.event === "HALION_ANOMALY_MANIFEST_LOAD") {
+          this.expandCoverageAlertSidebar();
+          const anomaliesData = payloadPacket.data.anomaliesList || [];
+          
+          this.sidebarStack.innerHTML = "";
+          if (!anomaliesData.length) {
+            this.sidebarStack.innerHTML = `
+              <div class="p-3 rounded bg-slate-900/60 border border-slate-800/80 text-slate-400 text-center leading-relaxed">
+                <i class="fa-solid fa-shield-halved text-lime-400 block mb-1 text-sm"></i> Script text formatting verified clean by rules coverage matrix.
+              </div>
+            `;
+            return;
+          }
+
+          anomaliesData.forEach(anomaly => {
+            const card = document.createElement('div');
+            card.className = "p-3 rounded bg-slate-900/40 border border-slate-800/80 space-y-2 text-slate-300 animate-fade-in";
+            card.innerHTML = `
+              <div class="flex justify-between font-bold text-amber-500 uppercase text-[10px] tracking-wider">
+                <span><i class="fa-solid fa-triangle-exclamation"></i> ${anomaly.type}</span>
+                <span class="text-slate-500">LINE ${anomaly.fileIndexLine || 1}</span>
+              </div>
+              <p class="text-slate-400 leading-normal font-sans text-[11px]">${anomaly.description}</p>
+              <button class="w-full py-1 bg-slate-800 hover:bg-slate-700 font-sans font-bold text-[10px] rounded uppercase transition border border-slate-700">
+                Trace Issue
+              </button>
+            `;
+            card.querySelector('button').addEventListener('click', () => {
+              const targetIdx = Math.max(0, Math.min(this.rowsContainer.children.length - 1, (anomaly.fileIndexLine || 1) - 1));
+              const targetRow = this.rowsContainer.children[targetIdx];
+              if (targetRow) {
+                const box = targetRow.querySelector('.line-editable-box');
+                if (box) {
+                  box.focus();
+                  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  this.showSystemToast(`Focused row ${targetIdx + 1}`);
+                }
+              }
+            });
+            this.sidebarStack.appendChild(card);
+          });
+          this.showSystemToast(`Loaded ${anomaliesData.length} anomaly reports from Coverage Studio.`);
+        }
+      },
+
+      dispatchUpstreamEvaluationPayload() {
+        let compiledPlaintextOutput = [];
+        Array.from(this.rowsContainer.children).forEach(row => {
+          const box = row.querySelector('.line-editable-box');
+          if (!box) return;
+          const type = box.getAttribute('data-element-type') || "ACTION";
+          const txt = box.innerText.trim();
+          if (!txt) return;
+
+          if (type === "SCENE_HEADING") compiledPlaintextOutput.push(`\n\n${txt}`);
+          else if (type === "CHARACTER") compiledPlaintextOutput.push(`\n\n${" ".repeat(22)}${txt}`);
+          else if (type === "PARENTHETICAL") compiledPlaintextOutput.push(`\n${" ".repeat(16)}${txt}`);
+          else if (type === "DIALOGUE") compiledPlaintextOutput.push(`\n${" ".repeat(10)}${txt}`);
+          else if (type === "TRANSITION") compiledPlaintextOutput.push(`\n\n${" ".repeat(60)}${txt}`);
+          else compiledPlaintextOutput.push(`\n\n${txt}`);
+        });
+
+        const scriptBody = compiledPlaintextOutput.join("").trim();
+        if (!scriptBody) {
+          return this.showSystemToast("Cannot evaluate an empty screenplay.", true);
+        }
+
+        const upstreamPacket = {
+          origin: "HALION_SCRIPTWRITER_STUDIO_TILE",
+          event: "HALION_UPDATED_SCRIPT_STREAM",
+          timestamp: Date.now(),
+          versionContext: this.versionStampTop.querySelector('span').textContent,
+          data: {
+            rawScriptString: scriptBody
+          }
+        };
+
+        window.postMessage(upstreamPacket, "*");
+        // prehub HALION bridge — forward compiled script to Coverage Studio (Tile 2)
+        const ta = document.getElementById('cta');
+        if (ta && scriptBody) ta.value = scriptBody;
+        if (typeof sw === 'function') sw('coverage');
+        if (typeof runCov === 'function') setTimeout(() => runCov(), 100);
+        this.showSystemToast("Dispatched updated script stream payload to Coverage Studio!");
+      },
+
+      executeSimulatedPeerTypingEvent() {
+        if (!isCollaborationModeActive) {
+          return this.showSystemToast("Initialize a live session before simulating network peer inputs.", true);
+        }
+
+        if (peerPermissionGateState === "VIEW") {
+          this.showSystemToast("Write event rejected: Guest user restricted to VIEW ONLY mode.", true);
+          this.logCollaborationSandboxEvent("<span class='text-rose-500 font-bold'>[BLOCKED]</span> Guest user attempted stroke insertion but was denied.");
+          return;
+        }
+
+        this.logCollaborationSandboxEvent("Guest user updated row: <span class='text-white'>'3 EXT. DESERT HIGHWAY - DUSK'</span>");
+        this.injectScreenplayLineRowNode("SCENE_HEADING", "3 EXT. DESERT HIGHWAY - DUSK");
+        this.recordActiveStateToHistorySnapshotStack("Peer Added Scene");
+        this.recalculatePageHUDCounters();
+
+        this.showSystemToast("Remote typing event synchronized into editor canvas.");
+      },
+
+      executeSimulatedPeerRevisionEvent() {
+        if (!isCollaborationModeActive) {
+          return this.showSystemToast("Initialize a live session before simulating network peer inputs.", true);
+        }
+
+        if (peerPermissionGateState === "VIEW") {
+          this.showSystemToast("Erase event rejected: Guest user restricted to VIEW ONLY mode.", true);
+          this.logCollaborationSandboxEvent("<span class='text-rose-500 font-bold'>[BLOCKED]</span> Guest user attempted line erasure but was denied.");
+          return;
+        }
+
+        this.logCollaborationSandboxEvent("Guest user removed last draft row line node.");
+        if (this.rowsContainer.children.length > 2) {
+          this.rowsContainer.lastChild.remove();
+          this.recordActiveStateToHistorySnapshotStack("Peer Line Erasure");
+          this.recalculatePageHUDCounters();
+          this.showSystemToast("Remote line erasure synchronized into layout.");
+        }
+      }
+    };
+
 // ========== HALION COVERAGE ==========
 function autoDetectFmt(text){const words=text.split(/\s+/).filter(Boolean).length;const pages=Math.ceil(words/185);if(pages<=20)return'SHORT';if(pages<=35)return'TV30';if(pages<=65)return'TV60';if(pages<=75)return'PILOT';return'FEATURE';}
-function syncFromWriter(){const r=document.getElementById('src');if(!r)return;let out=[];Array.from(r.children).forEach(rw=>{const b=rw.querySelector('.leb');if(!b||!b.innerText.trim())return;const t=b.getAttribute('data-t')||'ACTION';if(t==='CHARACTER')out.push('\n\n'+' '.repeat(22)+b.innerText.trim());else if(t==='DIALOGUE')out.push('\n'+' '.repeat(10)+b.innerText.trim());else if(t==='SCENE_HEADING')out.push('\n\n'+b.innerText.trim());else out.push('\n\n'+b.innerText.trim());});const text=out.join('').trim();document.getElementById('cta').value=text;const detected=autoDetectFmt(text);const sel=document.getElementById('cff');if(sel)sel.value=detected;const charSlugs=Array.from(r.querySelectorAll('.leb[data-t="CHARACTER"]')).length;const el=document.getElementById('cv-chars');if(el)el.innerText=charSlugs+' character slug'+(charSlugs===1?'':'s')+' · '+text.split(/\s+/).filter(Boolean).length+' words';toast('Synced from Screenwriter Studio — format auto-detected: '+detected);}
+function syncFromWriter(){const r=document.getElementById('script-editable-node-rows-stack');if(!r)return toast('No writer content found.');let out='';Array.from(r.children).forEach(rw=>{const b=rw.querySelector('.line-editable-box');if(!b)return;const type=b.getAttribute('data-element-type')||'ACTION';const txt=b.innerText.trim();if(!txt)return;if(type==='SCENE_HEADING')out+='\n\n'+txt;else if(type==='CHARACTER')out+='\n\n'+' '.repeat(22)+txt;else if(type==='PARENTHETICAL')out+='\n'+' '.repeat(16)+txt;else if(type==='DIALOGUE')out+='\n'+' '.repeat(10)+txt;else if(type==='TRANSITION')out+='\n\n'+' '.repeat(60)+txt;else out+='\n\n'+txt;});const scriptBody=out.trim();const ta=document.getElementById('cta');if(ta)ta.value=scriptBody;const detected=autoDetectFmt(scriptBody);const sel=document.getElementById('cff');if(sel)sel.value=detected;const chars=r.querySelectorAll('[data-element-type="CHARACTER"]');const charNames=[...new Set(Array.from(chars).map(b=>b.innerText.trim()))].filter(Boolean);const el=document.getElementById('cv-chars');if(el)el.innerText=charNames.length>0?charNames.length+' character slug'+(charNames.length===1?'':'s')+' · '+scriptBody.split(/\s+/).filter(Boolean).length+' words':'';toast('Synced from Screenwriter Studio — format auto-detected: '+detected);}
 const HalionParser={parse(raw,fmt){const lines=raw.split('\n').map(l=>l.trimEnd());const scenes=[],chars=new Set(),dialogue=[],action=[],transitions=[],parentheticals=[];let mode='action',lastChar=null,sceneIdx=0;const sceneRx=/^\s*(INT\.|EXT\.|INT\/EXT\.|I\/E\.)/i;const charRx=/^[A-Z][A-Z0-9 ''\-\.]{1,40}$(?!\s*:)/;const transRx=/^\s*(FADE (IN|OUT|TO)|CUT TO|SMASH CUT|MATCH CUT|DISSOLVE TO|TITLE CARD)[\s:\.]*$/i;const parenRx=/^\s*\((.+)\)\s*$/;for(let i=0;i<lines.length;i++){const ln=lines[i];const tr=ln.trim();if(!tr){mode='action';lastChar=null;continue;}if(sceneRx.test(tr)){scenes.push({heading:tr,line:i,dialogueCount:0,actionLines:0});sceneIdx=scenes.length-1;mode='action';lastChar=null;}else if(transRx.test(tr)){transitions.push(tr);mode='action';lastChar=null;}else if(parenRx.test(tr)&&mode==='char'){parentheticals.push(tr);mode='paren';}else if(charRx.test(tr)&&tr.length>1&&tr===tr.toUpperCase()&&!/^\d+$/.test(tr)){const cname=tr.replace(/\s*\(V\.O\.\)|\s*\(O\.S\.\)|\s*\(CONT'D\)/gi,'').trim();if(cname.length>1){chars.add(cname);lastChar=cname;mode='char';}}else if(mode==='char'||mode==='paren'||mode==='dialogue'){if(lastChar){dialogue.push({char:lastChar,text:tr,line:i});if(scenes[sceneIdx])scenes[sceneIdx].dialogueCount++;mode='dialogue';}}else{action.push({text:tr,line:i});if(scenes[sceneIdx])scenes[sceneIdx].actionLines++;mode='action';}}const totalLines=lines.filter(l=>l.trim()).length;const wordCount=raw.split(/\s+/).filter(Boolean).length;const pageEst=Math.max(1,Math.round(wordCount/185));const intScenes=scenes.filter(s=>/^INT\./i.test(s.heading.trim())).length;const extScenes=scenes.filter(s=>/^EXT\./i.test(s.heading.trim())).length;const charDialogue={};dialogue.forEach(d=>{charDialogue[d.char]=(charDialogue[d.char]||0)+d.text.split(/\s+/).length;});const charList=Object.entries(charDialogue).sort((a,b)=>b[1]-a[1]);const protagonistName=charList.length?charList[0][0]:'THE PROTAGONIST';let deadZones=0,consecutiveAction=0;for(let i=0;i<lines.length;i++){const t=lines[i].trim();if(!t){consecutiveAction=0;continue;}if(sceneRx.test(t)||charRx.test(t)){consecutiveAction=0;}else if(!charRx.test(t)&&mode!=='dialogue'){consecutiveAction++;}if(consecutiveAction>14){deadZones++;consecutiveAction=0;}}const dlgWords=dialogue.map(d=>d.text.split(/\s+/).length);const dlgMean=dlgWords.length?dlgWords.reduce((a,b)=>a+b,0)/dlgWords.length:0;const dlgStdev=dlgWords.length>1?Math.sqrt(dlgWords.map(w=>(w-dlgMean)**2).reduce((a,b)=>a+b,0)/dlgWords.length):0;const themeWords=['love','death','truth','freedom','identity','power','fear','betrayal','sacrifice','justice','memory','loss','redemption','survival','loyalty','duty','desire','guilt','hope','grief','rage','devotion','trust','change','longing','protection'];const rawLow=raw.toLowerCase();const themeHits=themeWords.filter(w=>rawLow.includes(w)).length;const sensoryWords=['smell','taste','touch','hear','feel','cold','hot','dark','light','warm','weight','sharp','smooth','rough','bright','dim','soft','loud','quiet','damp','dry'];const sensoryHits=sensoryWords.filter(w=>rawLow.includes(w)).length;const flashbackRx=/\b(FLASHBACK|FLASH BACK|FLASH FORWARD|MEMORY|DREAM|VISION|EARLIER|PAST)\b/i;const nonLinear=flashbackRx.test(raw);const charVocab={};charList.slice(0,4).forEach(([cname])=>{const dlgForChar=dialogue.filter(d=>d.char===cname).map(d=>d.text.toLowerCase());const words=new Set(dlgForChar.join(' ').split(/\s+/).filter(w=>w.length>3));charVocab[cname]=words.size;});const subtextLines=dialogue.filter(d=>d.text.split(/\s+/).length<8).length;const subtextRatio=dialogue.length>0?subtextLines/dialogue.length:0;const q=Math.floor(scenes.length/4);const sceneDialogueDensity=(start,end)=>{const sl=scenes.slice(start,end);return sl.length?sl.reduce((a,b)=>a+b.dialogueCount,0)/sl.length:0;};const actOneDensity=sceneDialogueDensity(0,q);const actTwoDensity=sceneDialogueDensity(q,q*3);const actThreeDensity=sceneDialogueDensity(q*3,scenes.length);return{raw,fmt,lines,wordCount,pageEst,totalLines,scenes,chars:[...chars],dialogue,action,transitions,parentheticals,charList,protagonistName,charDialogue,charVocab,intScenes,extScenes,deadZones,dlgMean,dlgStdev,dlgWords,themeHits,sensoryHits,nonLinear,subtextRatio,actOneDensity,actTwoDensity,actThreeDensity,sceneCount:scenes.length,charCount:chars.size,dialogueCount:dialogue.length,actionCount:action.length,transitionCount:transitions.length,dialogueRatio:totalLines>0?dialogue.length/totalLines:0,parentheticalRatio:dialogue.length>0?parentheticals.length/dialogue.length:0};}};
 const PARAMETERS=[{id:'P01',axis:'CHAR',name:'Protagonist Arc Clarity',weight:1.4,evaluate(p){const has=p.charList.length>0;const top=p.charList[0];const pct=top?top[1]/Object.values(p.charDialogue).reduce((a,b)=>a+b,1):0;const raw=has?Math.min(10,4+pct*10+(p.dialogueCount>20?2:0)):2;return{raw,normalized:raw/10,evidence:top?`${top[0]} carries ${Math.round(pct*100)}% of dialogue`:'No clear protagonist found'};}},{id:'P02',axis:'CHAR',name:'Protagonist Agency',weight:1.3,evaluate(p){const actionVerbs=['grab','run','kick','open','close','pick','throw','pull','push','hit','scream','take','break','force','charge','sprint','leap','strike'];const cnt=actionVerbs.filter(v=>p.raw.toLowerCase().includes(v)).length;const raw=Math.min(10,3+cnt*0.5);return{raw,normalized:raw/10,evidence:`${cnt} distinct agency verbs detected in action lines`};}},{id:'P03',axis:'CHAR',name:'Protagonist Interiority',weight:1.2,evaluate(p){const intWords=['realizes','understands','knows','remembers','feels','senses','notices','watches','stares','hesitates','trembles','breathes'];const cnt=intWords.filter(v=>p.raw.toLowerCase().includes(v)).length;const raw=Math.min(10,2+cnt*0.7+(p.sensoryHits>5?2:0));return{raw,normalized:raw/10,evidence:`${cnt} interiority markers + ${p.sensoryHits} sensory anchors`};}},{id:'P04',axis:'CHAR',name:'Supporting Character Depth',weight:1.1,evaluate(p){const secondaries=p.charList.slice(1,5);const withLines=secondaries.filter(c=>c[1]>20).length;const raw=Math.min(10,2+withLines*2+(p.charCount>3?1:0));return{raw,normalized:raw/10,evidence:`${withLines}/${secondaries.length} secondary chars have substantial dialogue`};}},{id:'P05',axis:'CHAR',name:'Antagonist Complexity',weight:1.2,evaluate(p){const antWords=['because','believe','understand','need','want','must','fear','love','protect','only'];const antCnt=antWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const hasAnt=p.charCount>=2;const raw=hasAnt?Math.min(10,3+antCnt*0.4):1;return{raw,normalized:raw/10,evidence:hasAnt?`${antCnt} motivation-language markers detected`:'No identifiable antagonist'};}},{id:'P06',axis:'CHAR',name:'Character Voice Differentiation',weight:1.3,evaluate(p){const vocabs=Object.values(p.charVocab);if(vocabs.length<2)return{raw:3,normalized:.3,evidence:'Insufficient characters for comparison'};const spread=Math.max(...vocabs)-Math.min(...vocabs);const raw=Math.min(10,3+spread*0.04);return{raw,normalized:raw/10,evidence:`Vocabulary spread across top chars: ${spread} unique words`};}},{id:'P07',axis:'CHAR',name:'Backstory Through Action',weight:1.1,evaluate(p){const expMarkers=['explains','tells','said','when i was','back in','years ago','used to','once'];const expCnt=expMarkers.filter(w=>p.raw.toLowerCase().includes(w)).length;const objMarkers=['badge','photo','letter','ring','wallet','key','phone','note','ticket'];const objCnt=objMarkers.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,5-expCnt*0.3+objCnt*0.8);return{raw:Math.max(1,raw),normalized:Math.max(.1,raw/10),evidence:`${objCnt} object-reveals vs ${expCnt} expository markers`};}},{id:'P08',axis:'CHAR',name:'Relationship Dynamics',weight:1.0,evaluate(p){const relWords=['together','between','her','him','they','each other','both','against','with','toward'];const cnt=relWords.filter(w=>p.raw.toLowerCase().split(' ').filter(x=>x===w).length>1).length;const raw=Math.min(10,3+cnt*0.7+(p.charCount>2?1:0));return{raw,normalized:raw/10,evidence:`${cnt} relational language clusters detected`};}},{id:'P09',axis:'CHAR',name:'Character Speech Consistency',weight:1.0,evaluate(p){const raw=p.charList.length>1?Math.min(10,5+p.dlgStdev*0.3):4;return{raw,normalized:raw/10,evidence:`Dialogue cadence stdev: ${p.dlgStdev.toFixed(1)} words`};}},{id:'P10',axis:'CHAR',name:'Physical Characterization',weight:0.9,evaluate(p){const physWords=['hair','eyes','hands','face','mouth','skin','voice','tall','short','thin','heavy','pale','dark','worn','dressed','scar','jaw','shoulders'];const cnt=physWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,2+cnt*0.5);return{raw,normalized:raw/10,evidence:`${cnt} physical descriptors across all characters`};}},{id:'P11',axis:'CHAR',name:'Character Contradiction/Complexity',weight:1.1,evaluate(p){const contWords=['but','however','despite','although','even though','yet','still','contradicts','strange','unexpected'];const cnt=contWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,3+cnt*0.4);return{raw,normalized:raw/10,evidence:`${cnt} contradiction/pivot language markers`};}},{id:'P12',axis:'CHAR',name:'Minor Character Completeness',weight:0.8,evaluate(p){const minors=p.charList.slice(3);const withVoice=minors.filter(c=>c[1]>5).length;const raw=Math.min(10,4+withVoice*1.5);return{raw,normalized:raw/10,evidence:`${withVoice} minor characters with independent voice`};}},{id:'P13',axis:'CHAR',name:'Protagonist Arc Completion',weight:1.4,evaluate(p){const resWords=['finally','realized','understood','decided','chose','accepted','let go','surrendered','won','lost','became','transformed'];const cnt=resWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,3+cnt*0.8);return{raw,normalized:raw/10,evidence:`${cnt} arc-resolution language markers`};}},{id:'P14',axis:'CHAR',name:'Ensemble Screen Time Balance',weight:0.8,evaluate(p){if(p.charList.length<2)return{raw:5,normalized:.5,evidence:'Single-character script'};const top2=p.charList.slice(0,2).map(c=>c[1]);const ratio=top2[1]/top2[0];const raw=Math.min(10,ratio>0.4?7+ratio*3:3+ratio*8);return{raw,normalized:raw/10,evidence:`Secondary:primary dialogue ratio ${ratio.toFixed(2)}`};}},{id:'P15',axis:'PLOT',name:'Three-Act Structure',weight:1.3,evaluate(p){const hasSetup=p.actOneDensity>0;const hasConflic=p.actTwoDensity>0;const hasResol=p.actThreeDensity>0;const raw=(hasSetup?3:0)+(hasConflic?4:0)+(hasResol?3:0);return{raw,normalized:raw/10,evidence:`Act densities: ${p.actOneDensity.toFixed(1)} / ${p.actTwoDensity.toFixed(1)} / ${p.actThreeDensity.toFixed(1)}`};}},{id:'P16',axis:'PLOT',name:'Non-Linear Coherence',weight:1.0,evaluate(p){if(!p.nonLinear)return{raw:7,normalized:.7,evidence:'Linear structure — no penalty'};const markers=['meanwhile','earlier','later','at the same time','simultaneously','before','after'];const cnt=markers.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,4+cnt*0.8);return{raw,normalized:raw/10,evidence:`Non-linear script with ${cnt} orientation markers`};}},{id:'P17',axis:'PLOT',name:'Twist Earn-ness (Setup/Payoff)',weight:1.4,evaluate(p){const setupWords=['earlier','first','begin','open with','we see','established'];const payoffWords=['reveals','discovers','realizes','turns out','was','had been'];const setups=setupWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const payoffs=payoffWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const ratio=setups>0?payoffs/setups:0;const raw=Math.min(10,2+ratio*4+Math.min(setups,payoffs)*0.4);return{raw,normalized:raw/10,evidence:`${setups} setups, ${payoffs} payoffs (ratio ${ratio.toFixed(2)})`};}},{id:'P18',axis:'PLOT',name:'Pacing — No Dead Zones',weight:1.3,evaluate(p){const raw=Math.max(1,10-p.deadZones*2);return{raw,normalized:raw/10,evidence:`${p.deadZones} extended action-only dead zone(s) detected`};}},{id:'P19',axis:'PLOT',name:'Scene Economy (Multi-function)',weight:1.2,evaluate(p){const avgDlg=p.scenes.length>0?p.dialogueCount/p.scenes.length:0;const avgAct=p.scenes.length>0?p.actionCount/p.scenes.length:0;const raw=Math.min(10,3+avgDlg*0.3+(avgAct>2?2:0));return{raw,normalized:raw/10,evidence:`Avg ${avgDlg.toFixed(1)} dialogue + ${avgAct.toFixed(1)} action lines/scene`};}},{id:'P20',axis:'PLOT',name:'Inciting Incident Placement',weight:1.2,evaluate(p){const incitingWords=['suddenly','everything changed','wrong','found','discovered','heard','saw','realized'];const firstQuarter=p.raw.substring(0,p.raw.length*0.2).toLowerCase();const cnt=incitingWords.filter(w=>firstQuarter.includes(w)).length;const raw=Math.min(10,cnt>0?5+cnt*1:2);return{raw,normalized:raw/10,evidence:`${cnt} inciting-event markers in opening 20%`};}},{id:'P21',axis:'PLOT',name:'Midpoint Shift',weight:1.0,evaluate(p){const midText=p.raw.substring(p.raw.length*0.4,p.raw.length*0.65).toLowerCase();const shiftWords=['but now','instead','no longer','changed','turned','shifted','revealed'];const cnt=shiftWords.filter(w=>midText.includes(w)).length;const raw=Math.min(10,3+cnt*1.5);return{raw,normalized:raw/10,evidence:`${cnt} shift-language markers at midpoint`};}},{id:'P22',axis:'PLOT',name:'Climax Character Logic',weight:1.4,evaluate(p){const climaxText=p.raw.substring(p.raw.length*0.8).toLowerCase();const logicWords=['because','her','his','she','he','only','must','finally','choice'];const cnt=logicWords.filter(w=>climaxText.includes(w)).length;const raw=Math.min(10,3+cnt*0.6);return{raw,normalized:raw/10,evidence:`${cnt} character-logic anchors in final 20%`};}},{id:'P23',axis:'PLOT',name:'Resolution Clarity',weight:1.2,evaluate(p){const resText=p.raw.substring(p.raw.length*0.85).toLowerCase();const resWords=['end','over','done','gone','free','safe','lost','won','home','left','stays'];const cnt=resWords.filter(w=>resText.includes(w)).length;const raw=Math.min(10,3+cnt*1);return{raw,normalized:raw/10,evidence:`${cnt} resolution markers in final 15%`};}},{id:'P24',axis:'PLOT',name:'Subplot Integration',weight:1.0,evaluate(p){const subplotChars=p.charList.slice(1,4).filter(c=>c[1]>10).length;const raw=Math.min(10,3+subplotChars*2);return{raw,normalized:raw/10,evidence:`${subplotChars} secondary chars with enough presence for subplot`};}},{id:'P25',axis:'PLOT',name:'World-Rule Consistency',weight:1.1,evaluate(p){const estWords=['the rule is','always','never','can only','cannot','impossible','only way'];const cnt=estWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,5+cnt*0.5);return{raw,normalized:raw/10,evidence:`${cnt} world-rule establishment markers`};}},{id:'P26',axis:'PLOT',name:'Foreshadowing Density',weight:1.1,evaluate(p){const foreWords=['soon','one day','if only','wonder','what if','when the time','before it'];const cnt=foreWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,3+cnt*1);return{raw,normalized:raw/10,evidence:`${cnt} foreshadowing language instances`};}},{id:'P27',axis:'PLOT',name:'Plot Repetition Avoidance',weight:1.2,evaluate(p){let reps=0;for(let i=1;i<p.scenes.length;i++){const a=p.scenes[i-1].heading.replace(/\d+|DAY|NIGHT|MORNING|EVENING/gi,'').trim();const b=p.scenes[i].heading.replace(/\d+|DAY|NIGHT|MORNING|EVENING/gi,'').trim();if(a===b)reps++;}const raw=Math.max(1,10-reps*1.5);return{raw,normalized:raw/10,evidence:`${reps} repeated-location consecutive scenes`};}},{id:'P28',axis:'PLOT',name:'Exposition Distribution',weight:1.3,evaluate(p){const expCnt=p.dialogue.filter(d=>d.text.split(/\s+/).length>25).length;const ratio=p.dialogue.length>0?expCnt/p.dialogue.length:0;const raw=Math.max(1,Math.min(10,10-ratio*20));return{raw,normalized:raw/10,evidence:`${expCnt} dialogue lines >25 words (exposition risk ${Math.round(ratio*100)}%)`};}},{id:'P29',axis:'DIAL',name:'Voice Differentiation',weight:1.4,evaluate(p){const vocabs=Object.values(p.charVocab);if(vocabs.length<2)return{raw:4,normalized:.4,evidence:'Insufficient chars to compare'};const cv=Math.sqrt(vocabs.map(v=>(v-vocabs.reduce((a,b)=>a+b,0)/vocabs.length)**2).reduce((a,b)=>a+b,0)/vocabs.length);const raw=Math.min(10,3+cv*0.05);return{raw,normalized:raw/10,evidence:`Voice coefficient of variation: ${cv.toFixed(1)}`};}},{id:'P30',axis:'DIAL',name:'Subtext Density',weight:1.3,evaluate(p){const raw=Math.min(10,3+p.subtextRatio*14);return{raw,normalized:raw/10,evidence:`${Math.round(p.subtextRatio*100)}% of lines are compressed (<8 words)`};}},{id:'P31',axis:'DIAL',name:'Exposition Ratio',weight:1.2,evaluate(p){const expLines=p.dialogue.filter(d=>d.text.split(/\s+/).length>20).length;const ratio=p.dialogue.length>0?expLines/p.dialogue.length:0;const raw=Math.max(1,Math.min(10,10-ratio*15));return{raw,normalized:raw/10,evidence:`Exposition lines: ${expLines}/${p.dialogue.length} (${Math.round(ratio*100)}%)`};}},{id:'P32',axis:'DIAL',name:'Thematic Dialogue',weight:1.2,evaluate(p){const raw=Math.min(10,2+p.themeHits*0.5);return{raw,normalized:raw/10,evidence:`${p.themeHits} thematic concept words across dialogue`};}},{id:'P33',axis:'DIAL',name:'Dialogue Compression',weight:1.1,evaluate(p){const short=p.dialogue.filter(d=>d.text.split(/\s+/).length<12).length;const ratio=p.dialogue.length>0?short/p.dialogue.length:0;const raw=Math.min(10,3+ratio*9);return{raw,normalized:raw/10,evidence:`${Math.round(ratio*100)}% of lines are 1-11 words (compression rate)`};}},{id:'P34',axis:'DIAL',name:'Emotional Authenticity',weight:1.3,evaluate(p){const emoWords=["can't","won't","don't","I just","please","stop","no","why","I know","fine"];const cnt=emoWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,2+cnt*0.8);return{raw,normalized:raw/10,evidence:`${cnt} colloquial emotional markers`};}},{id:'P35',axis:'DIAL',name:'Memorable Lines',weight:1.4,evaluate(p){const memorial=p.dialogue.filter(d=>{const w=d.text.split(/\s+/).length;return w>=5&&w<=15&&/[A-Z]/.test(d.text);}).length;const raw=Math.min(10,2+memorial*0.3);return{raw,normalized:raw/10,evidence:`${memorial} candidates for memorable dialogue`};}},{id:'P36',axis:'DIAL',name:'Non-Verbal Communication',weight:0.9,evaluate(p){const nv=['nods','shakes','sighs','smiles','frowns','stares','looks away','laughs','cries','beats'];const cnt=nv.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,3+cnt*0.7);return{raw,normalized:raw/10,evidence:`${cnt} non-verbal behavior markers in action lines`};}},{id:'P37',axis:'DIAL',name:'Non-Human Voice Authenticity',weight:0.8,evaluate(p){const alienMarkers=['...','—','spacing','silence','beat','pause'];const cnt=alienMarkers.filter(w=>p.raw.includes(w)).length;const raw=Math.min(10,3+cnt*1.2);return{raw,normalized:raw/10,evidence:`${cnt} stylized speech markers`};}},{id:'P38',axis:'DIAL',name:'Period/Cultural Accuracy',weight:0.8,evaluate(p){return{raw:7,normalized:.7,evidence:'Period accuracy requires external validation — baseline score assigned'};}},{id:'P39',axis:'DIAL',name:'Dialogue Reveals Character',weight:1.3,evaluate(p){const revWords=['actually','honestly','always','never','hate','love','afraid','I wish','believe'];const cnt=revWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,3+cnt*0.6);return{raw,normalized:raw/10,evidence:`${cnt} character-revealing speech markers`};}},{id:'P40',axis:'DIAL',name:'Climactic Dialogue Power',weight:1.4,evaluate(p){const climaxDlg=p.dialogue.filter((_,i)=>i>p.dialogue.length*0.8);const powerCnt=climaxDlg.filter(d=>d.text.split(/\s+/).length>=5&&d.text.split(/\s+/).length<=20).length;const raw=climaxDlg.length>0?Math.min(10,3+powerCnt/climaxDlg.length*12):4;return{raw,normalized:raw/10,evidence:`${powerCnt}/${climaxDlg.length} strong lines in final dialogue`};}},{id:'P41',axis:'ORIG',name:'Logline Uniqueness',weight:1.4,evaluate(p){const clichéPremises=['unlikely hero','chosen one','reluctant hero','save the world','secret agent','time travel reversal','haunted house','zombie apocalypse'];const rawText=p.raw.toLowerCase();const clichéHits=clichéPremises.filter(c=>rawText.includes(c.split(' ')[0])).length;const raw=Math.max(3,9-clichéHits*1.5);return{raw,normalized:raw/10,evidence:`${clichéHits} recognizable premise clichés detected`};}},{id:'P42',axis:'ORIG',name:'Genre Subversion',weight:1.3,evaluate(p){const subverWords=['instead','unexpected','surprising','unlike','different','reversal','twist','invert'];const cnt=subverWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,4+cnt*0.6);return{raw,normalized:raw/10,evidence:`${cnt} subversion/inversion markers`};}},{id:'P43',axis:'ORIG',name:'Visual/Sonic Signature',weight:1.3,evaluate(p){const sigWords=['sound','click','hum','echo','light','shadow','glow','pulse','flicker','static','roar','silence','tone','frequency','vibrate'];const cnt=sigWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,2+cnt*0.6);return{raw,normalized:raw/10,evidence:`${cnt} distinctive sensory signature markers`};}},{id:'P44',axis:'ORIG',name:'Thematic Reframing of Genre',weight:1.4,evaluate(p){const raw=Math.min(10,2+p.themeHits*0.5+(p.sensoryHits>4?2:0));return{raw,normalized:raw/10,evidence:`${p.themeHits} theme markers + ${p.sensoryHits} sensory grounds`};}},{id:'P45',axis:'ORIG',name:'Setting Specificity',weight:1.1,evaluate(p){const specWords=['street','road','highway','county','creek','bay','hill','ridge','hollow','block','district','borough','neighborhood'];const cnt=specWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const intExt=p.intScenes+p.extScenes;const raw=Math.min(10,3+cnt*0.4+(intExt>3?2:0));return{raw,normalized:raw/10,evidence:`${cnt} location-specific anchors, ${intExt} scene headings`};}},{id:'P46',axis:'ORIG',name:'Narrative Device Originality',weight:1.1,evaluate(p){const devices=p.nonLinear?2:0;const frameDevice=/interrogat|therapist|debri(ef|efing)|session/i.test(p.raw)?2:0;const raw=Math.min(10,4+devices+frameDevice);return{raw,normalized:raw/10,evidence:`Non-linear: ${p.nonLinear}, framing device: ${frameDevice>0}`};}},{id:'P47',axis:'ORIG',name:'Concept-Execution Alignment',weight:1.3,evaluate(p){const ambition=p.themeHits+p.sensoryHits;const craft=p.sceneCount+p.charCount;const ratio=craft>0?ambition/craft:0;const raw=Math.min(10,3+ratio*3);return{raw,normalized:raw/10,evidence:`Ambition/craft ratio: ${ratio.toFixed(2)}`};}},{id:'P48',axis:'ORIG',name:'Cultural Currency',weight:1.0,evaluate(p){const culturalWords=['trauma','grief','mental health','identity','belonging','justice','race','gender','climate','surveillance','technology','motherhood','fatherhood','addiction','loss'];const cnt=culturalWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,3+cnt*1);return{raw,normalized:raw/10,evidence:`${cnt} culturally resonant concept anchors`};}},{id:'P49',axis:'ORIG',name:'Aesthetic Identity Consistency',weight:1.0,evaluate(p){const raw=Math.min(10,4+(p.sensoryHits>3?2:0)+(p.nonLinear?1:0)+(p.themeHits>5?1:0)+(p.sceneCount>5?1:0));return{raw,normalized:raw/10,evidence:`Aesthetic markers: ${p.sensoryHits} sensory + ${p.themeHits} theme + ${p.sceneCount} scenes`};}},{id:'P50',axis:'ORIG',name:'Comparable Differentiation',weight:1.2,evaluate(p){const raw=Math.min(10,4+(p.themeHits>3?2:0)+(p.nonLinear?1:0)+(p.sceneCount>4?1:0));return{raw,normalized:raw/10,evidence:'Differentiation from genre norms (structural + thematic)'};}},{id:'P51',axis:'EMOT',name:'Stakes Clarity',weight:1.4,evaluate(p){const stakeWords=['lose','life','death','kill','destroy','end','gone','never','only chance'];const cnt=stakeWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,2+cnt*0.8);return{raw,normalized:raw/10,evidence:`${cnt} stakes-language markers`};}},{id:'P52',axis:'EMOT',name:'Sensory Specificity',weight:1.4,evaluate(p){const raw=Math.min(10,2+p.sensoryHits*0.7);return{raw,normalized:raw/10,evidence:`${p.sensoryHits} sensory anchors (sight/sound/touch/smell)`};}},{id:'P53',axis:'EMOT',name:'Dread Construction (Accumulation)',weight:1.3,evaluate(p){const dreadWords=['slowly','creeping','growing','building','spreading','closing in','gets louder'];const cnt=dreadWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,3+cnt*1.2);return{raw,normalized:raw/10,evidence:`${cnt} accumulative dread language markers`};}},{id:'P54',axis:'EMOT',name:'Empathy Anchor (Early)',weight:1.3,evaluate(p){const firstQuarter=p.raw.substring(0,p.raw.length*0.25).toLowerCase();const empathyWords=['child','baby','mother','father','lost','afraid','love','protect','alone','scared'];const cnt=empathyWords.filter(w=>firstQuarter.includes(w)).length;const raw=Math.min(10,2+cnt*1.2);return{raw,normalized:raw/10,evidence:`${cnt} empathy anchors in opening quarter`};}},{id:'P55',axis:'EMOT',name:'Emotional Register Range',weight:1.2,evaluate(p){const registers={terror:['scream','terror','horror','panic','dread'].filter(w=>p.raw.toLowerCase().includes(w)).length,grief:['grief','mourn','cry','tears','loss','miss'].filter(w=>p.raw.toLowerCase().includes(w)).length,hope:['hope','believe','possible','could','maybe','will'].filter(w=>p.raw.toLowerCase().includes(w)).length,rage:['anger','rage','hate','fury','explode','scream'].filter(w=>p.raw.toLowerCase().includes(w)).length};const activeRegisters=Object.values(registers).filter(v=>v>0).length;const raw=Math.min(10,2+activeRegisters*2);return{raw,normalized:raw/10,evidence:`${activeRegisters}/4 emotional registers present`};}},{id:'P56',axis:'EMOT',name:'Catharsis Delivery',weight:1.3,evaluate(p){const catWords=['finally','release','free','over','okay','safe','done','peace','home','hold'];const lastTenth=p.raw.substring(p.raw.length*0.9).toLowerCase();const cnt=catWords.filter(w=>lastTenth.includes(w)).length;const raw=Math.min(10,3+cnt*1.5);return{raw,normalized:raw/10,evidence:`${cnt} catharsis markers in final 10%`};}},{id:'P57',axis:'EMOT',name:'Emotional Restraint',weight:1.1,evaluate(p){const overWords=['so much','too much','incredibly','devastatingly','overwhelmingly','absolute'];const cnt=overWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.max(2,10-cnt*1.5);return{raw,normalized:raw/10,evidence:`${cnt} over-explanation markers detected`};}},{id:'P58',axis:'EMOT',name:'Physical Embodiment of Emotion',weight:1.2,evaluate(p){const bodyWords=['hands','stomach','chest','throat','knees','breath','pulse','heart','gut','jaw'];const cnt=bodyWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,2+cnt*0.6);return{raw,normalized:raw/10,evidence:`${cnt} body-as-emotion markers`};}},{id:'P59',axis:'EMOT',name:'Trauma/Grief Authenticity',weight:1.2,evaluate(p){const traumaWords=['intrusive','flashback','dissociat','numb','avoid','hypervigilant','react','triggered','freeze','fight','flight','cortisol','anxiety'];const cnt=traumaWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,3+cnt*1.5);return{raw,normalized:raw/10,evidence:`${cnt} trauma-language markers (clinical accuracy signals)`};}},{id:'P60',axis:'EMOT',name:'Tonal Relief Presence',weight:1.0,evaluate(p){const reliefWords=['laugh','smile','joke','funny','ironic','absurd','ridiculous','wry','grin','humor'];const cnt=reliefWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=cnt>0?Math.min(10,5+cnt*0.8):2;return{raw,normalized:raw/10,evidence:`${cnt} tonal-relief markers (dark humor / irony / levity)`};}},{id:'P61',axis:'THEME',name:'Central Theme Clarity',weight:1.4,evaluate(p){const raw=Math.min(10,2+p.themeHits*0.5);return{raw,normalized:raw/10,evidence:`${p.themeHits} theme-concept words identified`};}},{id:'P62',axis:'THEME',name:'Theme Through Action (Not Dialogue)',weight:1.4,evaluate(p){const actionTheme=p.action.filter(a=>['love','devotion','power','control','free','protect','surrender','chose'].some(w=>a.text.toLowerCase().includes(w))).length;const raw=Math.min(10,3+actionTheme*0.5);return{raw,normalized:raw/10,evidence:`${actionTheme} action lines carry thematic weight`};}},{id:'P63',axis:'THEME',name:'Thematic Consistency',weight:1.2,evaluate(p){const raw=Math.min(10,3+p.themeHits*0.4+(p.sceneCount>5?1:0));return{raw,normalized:raw/10,evidence:`${p.themeHits} thematic anchors across ${p.sceneCount} scenes`};}},{id:'P64',axis:'THEME',name:'Thematic Complexity (Multiple Positions)',weight:1.2,evaluate(p){const contrastWords=['however','but','yet','despite','on the other','both','either','neither'];const cnt=contrastWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,3+cnt*0.5);return{raw,normalized:raw/10,evidence:`${cnt} dialectical/contrast language markers`};}},{id:'P65',axis:'THEME',name:'Subtheme Layering',weight:1.0,evaluate(p){const themes=['power','love','identity','loss','betrayal','survival','truth','justice','belonging'];const found=themes.filter(t=>p.raw.toLowerCase().includes(t));const raw=Math.min(10,2+found.length*1);return{raw,normalized:raw/10,evidence:`${found.length} distinct subthemes: ${found.join(', ')}`};}},{id:'P66',axis:'THEME',name:'Metaphor Integration',weight:1.1,evaluate(p){const metaWords=['like a','as if','as though','resembles','mirrors','echoes','reflects'];const cnt=metaWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,3+cnt*0.8);return{raw,normalized:raw/10,evidence:`${cnt} extended metaphor/simile language instances`};}},{id:'P67',axis:'THEME',name:'Social/Cultural Resonance',weight:1.1,evaluate(p){const socWords=['society','system','government','institution','family','community','culture','hospital','police','media','corporation','religion','race','class','gender'];const cnt=socWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,3+cnt*0.9);return{raw,normalized:raw/10,evidence:`${cnt} societal/institutional reference markers`};}},{id:'P68',axis:'THEME',name:'Moral Ambiguity',weight:1.2,evaluate(p){const ambigWords=['maybe','perhaps','not sure','complicated','complex','not that simple'];const cnt=ambigWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,3+cnt*0.6);return{raw,normalized:raw/10,evidence:`${cnt} moral-ambiguity markers`};}},{id:'P69',axis:'THEME',name:'Thematic Payoff at Ending',weight:1.4,evaluate(p){const endText=p.raw.substring(p.raw.length*0.85).toLowerCase();const themeEnd=['love','truth','power','freedom','devotion','survive','choice','meaning'].filter(w=>endText.includes(w)).length;const raw=Math.min(10,3+themeEnd*1.5);return{raw,normalized:raw/10,evidence:`${themeEnd} theme words in final 15%`};}},{id:'P70',axis:'THEME',name:'Universality',weight:1.1,evaluate(p){const univWords=['everyone','we all','human','people','world','life','death','love','fear','hope'];const cnt=univWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,3+cnt*0.7);return{raw,normalized:raw/10,evidence:`${cnt} universalizing language markers`};}},{id:'P71',axis:'COMM',name:'Format Adherence',weight:1.0,evaluate(p){const hasHeadings=p.sceneCount>0;const hasChars=p.charCount>0;const raw=(hasHeadings?5:0)+(hasChars?3:0)+(p.transitionCount>0?2:0);return{raw,normalized:raw/10,evidence:`${p.sceneCount} scene headings, ${p.charCount} chars, ${p.transitionCount} transitions`};}},{id:'P72',axis:'COMM',name:'Page Count Appropriateness',weight:1.0,evaluate(p){const ranges={FEATURE:[85,115],TV60:[42,58],TV30:[20,35],SHORT:[1,15],PILOT:[45,65]};const[lo,hi]=ranges[p.fmt]||[85,115];const raw=p.pageEst>=lo&&p.pageEst<=hi?9:p.pageEst<lo*0.7||p.pageEst>hi*1.4?3:6;return{raw,normalized:raw/10,evidence:`Est. ${p.pageEst} pages (target ${lo}-${hi} for ${p.fmt})`};}},{id:'P73',axis:'COMM',name:'Genre Market Viability',weight:1.0,evaluate(p){return{raw:7,normalized:.7,evidence:'Market viability requires genre classification — baseline assigned'};}},{id:'P74',axis:'COMM',name:'Comparable Title Proximity',weight:0.8,evaluate(p){return{raw:7,normalized:.7,evidence:'Comparable proximity requires title identification — baseline assigned'};}},{id:'P75',axis:'COMM',name:'Series/Pilot Hook Strength',weight:1.3,evaluate(p){const hookText=p.raw.substring(p.raw.length*0.85).toLowerCase();const hookWords=['next','what happens','to be continued','series','season','will she','will he','what they','when she','now that'];const cnt=hookWords.filter(w=>hookText.includes(w)).length;const raw=Math.min(10,3+cnt*1.5);return{raw,normalized:raw/10,evidence:`${cnt} serialization hook markers in final act`};}},{id:'P76',axis:'COMM',name:'Anthology/Universe Scalability',weight:1.0,evaluate(p){const worldWords=['world','universe','others','everyone','beyond','more','history','mythology','lore'];const cnt=worldWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,3+cnt*0.6);return{raw,normalized:raw/10,evidence:`${cnt} world-expansion language markers`};}},{id:'P77',axis:'COMM',name:'Budget Tier Legibility',weight:0.8,evaluate(p){const bigBudget=['explosion','army','spaceship','thousands','crowd','stadium','CGI','VFX'];const lowBudget=['room','house','car','phone','night','day','two people','alone','office'];const big=bigBudget.filter(w=>p.raw.toLowerCase().includes(w)).length;const lo=lowBudget.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=lo>big?8:big>lo?5:6;return{raw,normalized:raw/10,evidence:`Budget signals: ${big} high-cost, ${lo} low-cost elements`};}},{id:'P78',axis:'COMM',name:'Logline Marketability',weight:1.2,evaluate(p){const protag=p.protagonistName;const hasProtag=protag.length>2;const hasConflict=p.raw.toLowerCase().includes('must')||p.raw.toLowerCase().includes('has to')||p.raw.toLowerCase().includes('forced');const hasStake=p.raw.toLowerCase().includes('lose')||p.raw.toLowerCase().includes('save')||p.raw.toLowerCase().includes('survive');const raw=(hasProtag?3:0)+(hasConflict?4:0)+(hasStake?3:0);return{raw,normalized:raw/10,evidence:`Protagonist: ✓ Conflict: ${hasConflict} Stakes: ${hasStake}`};}},{id:'P79',axis:'COMM',name:'Cold Open Effectiveness',weight:1.1,evaluate(p){const openText=p.raw.substring(0,Math.min(p.raw.length,1200)).toLowerCase();const openHooks=['suddenly','darkness','silence','opens on','cold','in media','we find','the camera'].filter(w=>openText.includes(w)).length;const raw=Math.min(10,3+openHooks*1.5);return{raw,normalized:raw/10,evidence:`${openHooks} cold-open engagement hooks in opening pages`};}},{id:'P80',axis:'COMM',name:'Final Image Power',weight:1.3,evaluate(p){const finalText=p.raw.substring(p.raw.length*0.93).toLowerCase();const finalCnt=['silence','cut to black','fade out','alone','together','stands','walks','looks','smiles','tears','holds'].filter(w=>finalText.includes(w)).length;const raw=Math.min(10,3+finalCnt*1.5);return{raw,normalized:raw/10,evidence:`${finalCnt} resonant final-image markers`};}},{id:'P81',axis:'CRAFT',name:'Scene Heading Consistency',weight:0.8,evaluate(p){const raw=p.sceneCount>2?8:p.sceneCount>0?5:2;return{raw,normalized:raw/10,evidence:`${p.sceneCount} properly formatted scene headings`};}},{id:'P82',axis:'CRAFT',name:'Action Line Economy',weight:1.0,evaluate(p){const long=p.action.filter(a=>a.text.split(/\s+/).length>30).length;const raw=Math.max(2,10-long*0.5);return{raw,normalized:raw/10,evidence:`${long} action lines exceed 30 words`};}},{id:'P83',axis:'CRAFT',name:'White Space Ratio',weight:0.9,evaluate(p){const ratio=p.dialogueRatio;const raw=ratio>0.25&&ratio<0.6?9:ratio<0.15?4:7;return{raw,normalized:raw/10,evidence:`Dialogue density: ${Math.round(ratio*100)}% of non-blank lines`};}},{id:'P84',axis:'CRAFT',name:'Parenthetical Restraint',weight:0.8,evaluate(p){const raw=p.parentheticalRatio<0.15?9:p.parentheticalRatio<0.3?7:4;return{raw,normalized:raw/10,evidence:`Parentheticals: ${Math.round(p.parentheticalRatio*100)}% of dialogue lines`};}},{id:'P85',axis:'CRAFT',name:'Transition Economy',weight:0.7,evaluate(p){const raw=p.transitionCount===0?5:Math.min(10,5+p.transitionCount);return{raw,normalized:raw/10,evidence:`${p.transitionCount} explicit transitions used`};}},{id:'P86',axis:'CRAFT',name:'Active Voice in Action Lines',weight:0.9,evaluate(p){const passive=p.action.filter(a=>/\b(is|are|was|were|being|been)\b.{1,15}\b(ed|en)\b/i.test(a.text)).length;const raw=Math.max(2,10-passive*0.5);return{raw,normalized:raw/10,evidence:`${passive} potentially passive-voice action lines`};}},{id:'P87',axis:'CRAFT',name:'Opening Pages Engagement',weight:1.1,evaluate(p){const firstPage=p.raw.substring(0,1100).toLowerCase();const engageWords=['suddenly','dark','silence','black','opens','reveal','cut to','ext.','int.'];const cnt=engageWords.filter(w=>firstPage.includes(w)).length;const raw=Math.min(10,3+cnt*1);return{raw,normalized:raw/10,evidence:`${cnt} opening engagement hooks on page 1`};}},{id:'P88',axis:'CRAFT',name:'Final Line/Image Crystallization',weight:1.2,evaluate(p){const lastLines=p.raw.split('\n').filter(l=>l.trim()).slice(-6).join(' ').toLowerCase();const crystallize=['black','silence','alone','together','smiles','holds','walks','stands','end'];const cnt=crystallize.filter(w=>lastLines.includes(w)).length;const raw=Math.min(10,3+cnt*1.5);return{raw,normalized:raw/10,evidence:`${cnt} crystallizing markers in final lines`};}},{id:'P89',axis:'CRAFT',name:'Scene Count Appropriateness',weight:0.8,evaluate(p){const ranges={FEATURE:[30,80],TV60:[15,40],TV30:[8,22],SHORT:[2,12],PILOT:[15,40]};const[lo,hi]=ranges[p.fmt]||[30,80];const raw=p.sceneCount>=lo&&p.sceneCount<=hi?9:p.sceneCount<lo*0.5||p.sceneCount>hi*1.5?3:6;return{raw,normalized:raw/10,evidence:`${p.sceneCount} scenes (target ${lo}-${hi} for ${p.fmt})`};}},{id:'P90',axis:'CRAFT',name:'INT/EXT Ratio',weight:0.7,evaluate(p){const total=p.intScenes+p.extScenes;const ratio=total>0?p.intScenes/total:0.5;const raw=ratio>0.3&&ratio<0.85?8:5;return{raw,normalized:raw/10,evidence:`INT:EXT ratio ${p.intScenes}:${p.extScenes}`};}},{id:'P91',axis:'CRAFT',name:'Protagonist Change Measurability',weight:1.2,evaluate(p){const open=p.raw.substring(0,p.raw.length*0.15).toLowerCase();const close=p.raw.substring(p.raw.length*0.85).toLowerCase();const openEmot=['afraid','alone','lost','confused','desperate','searching'].filter(w=>open.includes(w)).length;const closeEmot=['decided','chose','determined','clear','calm','strong','knows'].filter(w=>close.includes(w)).length;const raw=Math.min(10,3+openEmot*0.8+closeEmot*1);return{raw,normalized:raw/10,evidence:`Open-state markers: ${openEmot}, close-state markers: ${closeEmot}`};}},{id:'P92',axis:'CRAFT',name:'Antagonist as Mirror',weight:1.0,evaluate(p){const mirrorWords=['like you','just like','same','not so different','both','either of us'];const cnt=mirrorWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.min(10,3+cnt*1.5);return{raw,normalized:raw/10,evidence:`${cnt} protagonist-antagonist mirror language instances`};}},{id:'P93',axis:'CRAFT',name:'No Redundant Scenes',weight:1.0,evaluate(p){const raw=Math.max(3,10-p.deadZones*1.5);return{raw,normalized:raw/10,evidence:`${p.deadZones} low-function scene stretches detected`};}},{id:'P94',axis:'CRAFT',name:'Dialogue-Action Flow Rhythm',weight:1.0,evaluate(p){const raw=p.dialogueRatio>0.2&&p.dialogueRatio<0.6?8:5;return{raw,normalized:raw/10,evidence:`Flow ratio: ${Math.round(p.dialogueRatio*100)}% dialogue`};}},{id:'P95',axis:'CRAFT',name:'Cadence Variation',weight:0.9,evaluate(p){const raw=Math.min(10,3+p.dlgStdev*0.4);return{raw,normalized:raw/10,evidence:`Dialogue length std dev: ${p.dlgStdev.toFixed(1)} words`};}},{id:'P96',axis:'CRAFT',name:'Vocabulary Differentiation',weight:1.0,evaluate(p){const vocabs=Object.entries(p.charVocab).slice(0,3);if(vocabs.length<2)return{raw:5,normalized:.5,evidence:'Insufficient characters'};const spread=Math.max(...vocabs.map(v=>v[1]))-Math.min(...vocabs.map(v=>v[1]));const raw=Math.min(10,3+spread*0.03);return{raw,normalized:raw/10,evidence:`Top-3 vocab spread: ${spread} unique words`};}},{id:'P97',axis:'CRAFT',name:'Cultural Sensitivity',weight:1.0,evaluate(p){const flagWords=['exotic','savage','primitive','crazy','insane','hysterical','colored','foreign'];const cnt=flagWords.filter(w=>p.raw.toLowerCase().includes(w)).length;const raw=Math.max(2,10-cnt*2);return{raw,normalized:raw/10,evidence:`${cnt} potentially insensitive language flags`};}},{id:'P98',axis:'CRAFT',name:'Stakes Escalation Per Act',weight:1.2,evaluate(p){const acts=[p.actOneDensity,p.actTwoDensity,p.actThreeDensity];const escalates=acts[2]>=acts[1]||acts[1]>=acts[0];const raw=escalates?8:5;return{raw,normalized:raw/10,evidence:`Act densities: ${acts.map(a=>a.toFixed(1)).join(' → ')}`};}},{id:'P99',axis:'CRAFT',name:'Thematic Unity Score',weight:1.1,evaluate(p){const raw=Math.min(10,2+p.themeHits*0.4+(p.sensoryHits>3?1:0)+(p.nonLinear?1:0));return{raw,normalized:raw/10,evidence:`Unified theme score from ${p.themeHits} concept + ${p.sensoryHits} sensory markers`};}},{id:'P100',axis:'CRAFT',name:'Composite Originality Index',weight:1.3,evaluate(p){const raw=Math.min(10,(p.themeHits+p.sensoryHits)*0.25+(p.sceneCount>3?1:0)+(p.nonLinear?1:0)+(p.charCount>3?1:0)+3);return{raw,normalized:raw/10,evidence:'Composite: theme + sensory + structure + character range'};}}];
 const AXIS_CONFIG={CHAR:{label:'Character Dev.',color:'#3ABFBF',cls:'ch',maxParams:14},PLOT:{label:'Plot Construction',color:'#7C5CBF',cls:'pl',maxParams:14},DIAL:{label:'Dialogue',color:'#E07B39',cls:'dl',maxParams:12},ORIG:{label:'Originality',color:'#D4A034',cls:'or',maxParams:10},EMOT:{label:'Emotional Engage.',color:'#E84393',cls:'em',maxParams:10},THEME:{label:'Theme & Message',color:'#2E86AB',cls:'th',maxParams:10},COMM:{label:'Commercial',color:'#888888',cls:'cm',maxParams:10},CRAFT:{label:'Craft',color:'#888888',cls:'cf',maxParams:20}};
@@ -622,13 +2555,13 @@ function exportSBJ(){const c=document.getElementById('sbcc');if(!c)return;const 
 // ========== BUDGET ==========
 function renderBudget(){const tb=document.getElementById('bb');if(!tb)return;let tot=0;tb.innerHTML=S.budget.map(b=>{tot+=b.amt;return`<tr><td class="p-3 font-bold">${b.cat}</td><td class="p-3 text-right text-emerald-400 font-bold">$${b.amt.toLocaleString()}</td></tr>`;}).join('');const el=document.getElementById('bt');if(el)el.innerText='$'+tot.toLocaleString();}
 // ========== TRANSMIT ==========
-function txProHub(){const r=document.getElementById('src');const lines=r?Array.from(r.children).map(rw=>{const b=rw.querySelector('.leb');return b?{type:b.getAttribute('data-t'),text:b.innerText}:null;}).filter(Boolean):[];if(!lines.length)return toast('Write a screenplay before transmitting.');try{localStorage.setItem('prehub_master_v1',JSON.stringify({origin:'preHUB',target:'proHUB',projectName:S.projectName,lines,ts:new Date().toISOString()}));autoSave();toast('Transmitted to proHUB bridge!');}catch{toast('Transmission failed.');}}
+function txProHub(){const r=document.getElementById('script-editable-node-rows-stack');const lines=r?Array.from(r.children).map(rw=>{const b=rw.querySelector('.line-editable-box');return b?{type:b.getAttribute('data-element-type'),text:b.innerText}:null;}).filter(Boolean):[];if(!lines.length)return toast('Write a screenplay before transmitting.');try{localStorage.setItem('prehub_master_v1',JSON.stringify({origin:'preHUB',target:'proHUB',projectName:S.projectName,lines,ts:new Date().toISOString()}));autoSave();toast('Transmitted to proHUB bridge!');}catch{toast('Transmission failed.');}}
 // ========== AUTOSAVE ==========
 let asTimer=120;
 setInterval(()=>{asTimer--;const m=Math.floor(asTimer/60),s=asTimer%60,el=document.getElementById('asc');if(el)el.innerText=`${m}:${String(s).padStart(2,'0')}`;if(asTimer<=0){autoSave();asTimer=S.autosaveInterval;toast('Auto-sync complete.');}},1000);
 // ========== INIT ==========
-function init(){try{const raw=localStorage.getItem('prehub_v3');if(raw){const p=JSON.parse(raw);S={...S,...p};if(S.projectName)document.getElementById('pni').value=S.projectName;if(S.writerName)document.getElementById('wni').value=S.writerName;updateGUI();setAS(S.autosaveInterval||120);}}catch(e){}syncT();renderBudget();renderVV();recSBH('Init');loadSample();}
-window.addEventListener('keydown',e=>{if(e.key==='Escape'){closeVault();closeIM();}});
+function init(){try{const raw=localStorage.getItem('prehub_v3');if(raw){const p=JSON.parse(raw);S={...S,...p};if(S.projectName)document.getElementById('pni').value=S.projectName;if(S.writerName)document.getElementById('wni').value=S.writerName;updateGUI();setAS(S.autosaveInterval||120);}}catch(e){}syncT();renderBudget();renderVV();recSBH('Init');ScreenplayEditorCore.initializeEditorSystem();}
+window.addEventListener('keydown',e=>{if(e.key==='Escape'){closeVault();const ingestModal=document.getElementById('ui-ingest-modal-overlay');if(ingestModal)ingestModal.classList.add('hidden');const emailModal=document.getElementById('ui-email-modal-overlay');if(emailModal)emailModal.classList.add('hidden');}});
 document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
 // Load YouTube API
 const ys=document.createElement('script');ys.src='https://www.youtube.com/iframe_api';document.head.appendChild(ys);
