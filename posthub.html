@@ -513,72 +513,96 @@ POST.ingestFiles = ingestFiles;
 ;
 /* module: 20-timeline.js */
 (function(){
-/* postHUB - timeline
-   The spine of the edit desk: a cut list with source and record in/out, ripple delete, and
-   EDL text both ways. No media is touched here - cuts are decisions, and decisions are small. */
-var FPS = 25;
-var CUTS = [], SELECTED = -1;
+/* postHUB - NLE workstation
+   Visual multi-track edit desk: Project Bin, Source + Program monitors, drag-and-drop
+   timeline (V2/V1/A1/A2), 3-point editing, razor cut, ripple delete, storyboard-to-cut
+   pipeline, EDL round-trip (CMX3600 export + import), state persistence. */
 
-function pad(n) { return (n < 10 ? '0' : '') + n; }
+var FPS = 24, PX_PER_SEC = 16;
+var CLIPS = [];                               /* bin — synced from POST.media() */
+var TRACKS = { v2:[], v1:[], a1:[], a2:[] }; /* visual timeline */
+var SEL = { track:'v1', idx:-1 };            /* selected block */
+var SRC_IN=0, SRC_OUT=null, ACTIVE_CLIP=null;
+var PLAYING=false, PLAY_SEC=0, RAF_ID=null;
+var ACTIVE_TOOL='select';
+
+/* keep CUTS/SELECTED for backward-compat — derived from TRACKS.v1 */
+var SELECTED = -1;
+
+function pad(n) { return (n<10?'0':'')+n; }
 function tcf(sec) {
-  sec = sec || 0;
-  var f = Math.round((sec - Math.floor(sec)) * FPS), s = Math.floor(sec) % 60, m = Math.floor(sec / 60) % 60, h = Math.floor(sec / 3600);
-  return pad(h) + ':' + pad(m) + ':' + pad(s) + ':' + pad(f);
+  sec=Math.max(0,sec||0);
+  var f=Math.round((sec-Math.floor(sec))*FPS),s=Math.floor(sec)%60,m=Math.floor(sec/60)%60,h=Math.floor(sec/3600);
+  return pad(h)+':'+pad(m)+':'+pad(s)+':'+pad(f);
 }
 function parseTc(t) {
-  if (t == null) return 0;
-  var p = String(t).trim().split(':');
-  if (p.length === 1) return parseFloat(p[0]) || 0;
-  var f = parseFloat(p[p.length - 1]) || 0, s = parseFloat(p[p.length - 2]) || 0, m = parseFloat(p[p.length - 3]) || 0, h = parseFloat(p[p.length - 4]) || 0;
-  return h * 3600 + m * 60 + s + f / FPS;
+  if(t==null) return 0;
+  var p=String(t).trim().split(':');
+  if(p.length===1) return parseFloat(p[0])||0;
+  var f=parseFloat(p[p.length-1])||0,s=parseFloat(p[p.length-2])||0,m=parseFloat(p[p.length-3])||0,h=parseFloat(p[p.length-4])||0;
+  return h*3600+m*60+s+f/FPS;
 }
-function ripple() {                    /* record times are derived, never stored loose */
-  var at = 0;
-  CUTS.forEach(function (k) {
-    k.duration = Math.max(0, k.srcOut - k.srcIn);
-    k.recIn = at; k.recOut = at + k.duration; at = k.recOut;
+
+/* CUTS derived from v1 sorted by start — record times are never stored loose */
+function cutsFromV1() {
+  var cs=TRACKS.v1.slice().sort(function(a,b){return a.start-b.start});
+  var at=0;
+  return cs.map(function(c){
+    var dur=Math.max(0,c.duration||5);
+    var k={name:c.name,reel:c.reel||'AX',srcIn:c.srcIn||0,srcOut:(c.srcIn||0)+dur,duration:dur,
+           recIn:at,recOut:at+dur,sb:c.sb,replaced:c.replaced,image:c.image};
+    at+=dur; return k;
   });
 }
+function total() { var cs=cutsFromV1(); return cs.length?cs[cs.length-1].recOut:0; }
+
+/* backward-compat: add a clip to v1 at end */
 function add(cut) {
-  cut = cut || {};
-  var k = { name: cut.name || 'CLIP', reel: cut.reel || 'AX', srcIn: +cut.srcIn || 0, srcOut: +cut.srcOut || 5 };
-  CUTS.push(k); ripple(); paint();
-  return CUTS.length;
+  cut=cut||{};
+  var start=total();
+  var dur=Math.max(0,(+cut.srcOut||5)-(+cut.srcIn||0))||5;
+  TRACKS.v1.push({name:cut.name||'CLIP',reel:cut.reel||'AX',start:start,duration:dur,
+                  srcIn:+cut.srcIn||0,hasAlpha:false,isAudio:false});
+  paintTimeline(); updateSeqInfo(); return TRACKS.v1.length;
 }
 function rippleDelete(i) {
-  if (i == null || i < 0 || i >= CUTS.length) return false;
-  CUTS.splice(i, 1); if (SELECTED >= CUTS.length) SELECTED = CUTS.length - 1;
-  ripple(); paint(); return true;
+  var v1=TRACKS.v1.slice().sort(function(a,b){return a.start-b.start});
+  if(i<0||i>=v1.length) return false;
+  var idx=TRACKS.v1.indexOf(v1[i]);
+  if(idx>-1) TRACKS.v1.splice(idx,1);
+  if(SELECTED>=TRACKS.v1.length) SELECTED=TRACKS.v1.length-1;
+  paintTimeline(); updateSeqInfo(); return true;
 }
-function total() { return CUTS.length ? CUTS[CUTS.length - 1].recOut : 0; }
 
 /* ---- EDL: CMX3600 out, forgiving in ---- */
 function edl() {
-  var title = (POST.state().project && POST.state().project.name) || 'postHUB';
-  var out = ['TITLE: ' + title, 'FCM: NON-DROP FRAME', ''];
-  CUTS.forEach(function (k, i) {
-    var n = String(i + 1);
-    while (n.length < 3) n = '0' + n;
-    out.push(n + '  ' + (k.reel + '        ').slice(0, 8) + ' V     C        ' +
-      tcf(k.srcIn) + ' ' + tcf(k.srcOut) + ' ' + tcf(k.recIn) + ' ' + tcf(k.recOut));
-    out.push('* FROM CLIP NAME: ' + k.name);
+  var title=(POST.state().project&&POST.state().project.name)||'postHUB';
+  var cuts=cutsFromV1();
+  var out=['TITLE: '+title,'FCM: NON-DROP FRAME',''];
+  cuts.forEach(function(k,i){
+    var n=String(i+1); while(n.length<3) n='0'+n;
+    out.push(n+'  '+(k.reel+'        ').slice(0,8)+' V     C        '+
+      tcf(k.srcIn)+' '+tcf(k.srcOut)+' '+tcf(k.recIn)+' '+tcf(k.recOut));
+    out.push('* FROM CLIP NAME: '+k.name);
   });
   return out.join('\n');
 }
 function importEdl(text) {
-  var lines = String(text || '').split(/\r?\n/), added = 0, last = null;
-  var re = /^(\d{3,6})\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/;
-  lines.forEach(function (ln) {
-    var m = ln.match(re);
-    if (m) {
-      last = { reel: m[2], srcIn: parseTc(m[5]), srcOut: parseTc(m[6]), name: m[2] };
-      CUTS.push(last); added++;
+  var lines=String(text||'').split(/\r?\n/),added=0,last=null;
+  var re=/^(\d{3,6})\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/;
+  TRACKS.v1=[];
+  lines.forEach(function(ln){
+    var m=ln.match(re);
+    if(m){
+      var srcIn=parseTc(m[5]),srcOut=parseTc(m[6]),dur=Math.max(0.1,srcOut-srcIn);
+      last={name:m[2],reel:m[2],start:parseTc(m[7]),duration:dur,srcIn:srcIn,hasAlpha:false,isAudio:false};
+      TRACKS.v1.push(last); added++;
       return;
     }
-    var c = ln.match(/^\*\s*FROM CLIP NAME:\s*(.+)$/i);
-    if (c && last) last.name = c[1].trim();
+    var c=ln.match(/^\*\s*FROM CLIP NAME:\s*(.+)$/i);
+    if(c&&last) last.name=c[1].trim();
   });
-  ripple(); paint();
+  paintTimeline(); updateSeqInfo();
   return added;
 }
 
@@ -619,43 +643,45 @@ function readShots() {
   return [];
 }
 function buildByStoryboard(force) {
-  var shots = readShots();
-  if (!shots.length) { POST.toast('No storyboard found in this browser - make one in preHUB or proHUB first', 'bad'); return 0; }
+  var shots=readShots();
+  if(!shots.length){ POST.toast('No storyboard found — make one in preHUB or proHUB first','bad'); return 0; }
   function lay() {
-    CUTS = shots.map(function (s) {
-      return { name: s.heading, reel: 'SB', srcIn: 0, srcOut: 5, image: s.image || null, sb: true, scene: s.n, replaced: false };
+    TRACKS.v1=shots.map(function(s,i){
+      return {name:s.heading,reel:'SB',start:i*5,duration:5,srcIn:0,
+              image:s.image||null,sb:true,scene:s.n,replaced:false,hasAlpha:false,isAudio:false};
     });
-    SELECTED = -1; ripple(); paint();
-    POST.toast(shots.length + ' storyboard panels on the timeline', 'good');
+    SEL={track:'v1',idx:-1}; paintTimeline(); updateSeqInfo();
+    POST.toast(shots.length+' storyboard panels on the timeline','good');
     return shots.length;
   }
-  if (CUTS.length && !force) {
-    POST.ask({ title: 'Replace the cut list?', icon: 'warn', ok: 'Replace it', cancel: true,
-      html: '<p style="margin:0;font-size:14px;color:#B9C4D2">The timeline already has ' + CUTS.length +
-            ' cuts. Building from the storyboard will replace them.</p>' }).then(function (r) { if (r) lay(); });
+  if(TRACKS.v1.length&&!force){
+    POST.ask({title:'Replace the cut list?',icon:'warn',ok:'Replace it',cancel:true,
+      html:'<p style="margin:0;font-size:14px;color:#B9C4D2">The timeline has '+TRACKS.v1.length+
+           ' clips. Building from the storyboard will replace V1.</p>'}).then(function(r){if(r)lay();});
     return -1;
   }
   return lay();
 }
 function replaceCut(i) {
-  var media = (typeof POST.media === 'function') ? POST.media() : [];
-  if (!media.length) { POST.toast('Ingest the shots first - the bin is empty', 'bad'); return false; }
-  var opts = media.map(function (f, ix) {
-    return '<option value="' + ix + '">' + POST.esc(f.name) + '   ' + fmt(f.duration) + '</option>';
+  syncClipsFromBin();
+  if(!CLIPS.length){ POST.toast('Ingest the shots first - the bin is empty','bad'); return false; }
+  var v1=TRACKS.v1.slice().sort(function(a,b){return a.start-b.start});
+  var cur=v1[i]?v1[i].name:'';
+  var opts=CLIPS.map(function(f,ix){
+    return '<option value="'+ix+'">'+POST.esc(f.name)+'   '+fmt(f.duration)+'</option>';
   }).join('');
-  var cur = CUTS[i] ? CUTS[i].name : '';
-  POST.ask({ title: 'Replace with the shot', icon: 'film', ok: 'Replace',
-    html: '<label class="fl">Using ' + POST.esc(cur) + '</label><select data-k="clip">' + opts + '</select>' +
-          '<p style="margin:10px 0 0;font-size:13px;color:#8794A6">The storyboard panel stays with the cut as a reference frame.</p>' })
-  .then(function (r) {
-    if (!r) return;
-    var f = media[parseInt(r.clip, 10) || 0];
-    if (!f) return;
-    CUTS[i].name = f.name; CUTS[i].reel = 'AX';
-    CUTS[i].srcIn = 0; CUTS[i].srcOut = f.duration || 5;
-    CUTS[i].replaced = true;
-    ripple(); paint();
-    POST.toast('Replaced with ' + f.name, 'good');
+  POST.ask({title:'Replace with the shot',icon:'film',ok:'Replace',
+    html:'<label class="fl">Using '+POST.esc(cur)+'</label><select data-k="clip">'+opts+'</select>'+
+         '<p style="margin:10px 0 0;font-size:13px;color:#8794A6">The storyboard panel stays as a reference frame.</p>'})
+  .then(function(r){
+    if(!r) return;
+    var f=CLIPS[parseInt(r.clip,10)||0]; if(!f) return;
+    var origIdx=TRACKS.v1.indexOf(v1[i]); if(origIdx<0) return;
+    TRACKS.v1[origIdx].name=f.name; TRACKS.v1[origIdx].reel='AX';
+    TRACKS.v1[origIdx].srcIn=0; TRACKS.v1[origIdx].duration=f.duration||5;
+    TRACKS.v1[origIdx].replaced=true;
+    paintTimeline(); updateSeqInfo();
+    POST.toast('Replaced with '+f.name,'good');
   });
   return true;
 }
@@ -718,12 +744,18 @@ function hub() {
   bindDeskTabs(h, 'timeline');
   return h;
 }
+/* sync CLIPS array from ingest bin */
+function syncClipsFromBin() {
+  CLIPS = (typeof POST.media === 'function') ? POST.media() : [];
+}
+
 function openEdl() {
+  var cuts=cutsFromV1();
   POST.ask({ title: 'EDL', icon: 'out', ok: 'Import', cancel: true,
     fields: [{ k: 'edl', label: 'CMX3600 - edit and paste back to import', type: 'textarea', rows: 12, value: edl() }],
     html: '<div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="edlCopy">Copy EDL</button>' +
           '<button type="button" class="btn sm" id="edlSave">Download .edl</button>' +
-          '<span style="font-size:13px;color:#8794A6;align-self:center">' + CUTS.length + ' cuts · ' + tcf(total()) + '</span></div>' })
+          '<span style="font-size:13px;color:#8794A6;align-self:center">' + cuts.length + ' cuts · ' + tcf(total()) + '</span></div>' })
   .then(function (r) { if (!r) return; var n = importEdl(r.edl); if (n) POST.toast(n + ' cuts imported', 'good'); });
   setTimeout(function () {
     var d = document.querySelector('dialog[open]'); if (!d) return;
@@ -732,12 +764,24 @@ function openEdl() {
     if (s) s.onclick = function () { var t = d.querySelector('[data-k="edl"]'); POST.dl('sequence.edl', t.value, 'text/plain'); };
   }, 80);
 }
-function paint() {
+
+/* updateSeqInfo — refresh the sequence footer note */
+function updateSeqInfo() {
+  var h = document.getElementById('posthub-timeline'); if (!h) return;
+  var b = h.querySelector('#tlBody'); if (!b) return;
+  var note = b.querySelector('.note');
+  var cuts = cutsFromV1();
+  if (note) note.textContent = cuts.length + ' cuts · sequence ' + tcf(total()) + ' · ' + FPS + ' fps';
+}
+
+/* paintTimeline — render the cut list table from TRACKS.v1 */
+function paintTimeline() {
   var h = document.getElementById('posthub-timeline'); if (!h) return;
   bindDeskTabs(h, 'timeline');
   var b = h.querySelector('#tlBody');
-  if (!CUTS.length) { b.innerHTML = '<div class="note">No cuts yet. Add one by hand, pull the bin in, or import an EDL.</div>'; return; }
-  var rows = CUTS.map(function (k, i) {
+  var cuts = cutsFromV1();
+  if (!cuts.length) { b.innerHTML = '<div class="note">No cuts yet. Add one by hand, pull the bin in, or import an EDL.</div>'; return; }
+  var rows = cuts.map(function (k, i) {
     var thumb = k.image ? '<img src="' + k.image + '" alt="" style="height:34px;border-radius:3px;display:block">' : '<span style="color:#4B5563">-</span>';
     var act = '<button type="button" class="btn xs" data-rep="' + i + '" style="min-height:28px">replace</button>';
     return '<tr data-i="' + i + '"' + (i === SELECTED ? ' class="sel"' : '') + '><td class="n">' + pad(i + 1) + '</td><td>' + thumb + '</td>' +
@@ -746,12 +790,13 @@ function paint() {
       '<td class="n">' + tcf(k.duration) + '</td><td class="n">' + tcf(k.recIn) + '</td><td class="n">' + tcf(k.recOut) + '</td><td>' + act + '</td></tr>';
   }).join('');
   b.innerHTML = '<table><thead><tr><th>#</th><th>Board</th><th>Clip</th><th>Reel</th><th>Src in</th><th>Src out</th><th>Dur</th><th>Rec in</th><th>Rec out</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>' +
-    '<p class="note">' + CUTS.length + ' cuts · sequence ' + tcf(total()) + ' · ' + FPS + ' fps</p>';
+    '<p class="note">' + cuts.length + ' cuts · sequence ' + tcf(total()) + ' · ' + FPS + ' fps</p>';
   var reps = b.querySelectorAll('[data-rep]');
   for (var r2 = 0; r2 < reps.length; r2++) reps[r2].onclick = function (ev) { ev.stopPropagation(); replaceCut(parseInt(this.getAttribute('data-rep'), 10)); };
   var trs = b.querySelectorAll('tr[data-i]');
-  for (var i = 0; i < trs.length; i++) trs[i].onclick = function () { SELECTED = +this.getAttribute('data-i'); paint(); };
+  for (var i = 0; i < trs.length; i++) trs[i].onclick = function () { SELECTED = +this.getAttribute('data-i'); paintTimeline(); };
 }
+
 function closeOtherDesks() {   /* one desk at a time: a full-screen desk must not trap you */
   var all = document.querySelectorAll('.pgh.on, .tlh.on');
   for (var i = 0; i < all.length; i++) all[i].classList.remove('on');
@@ -785,7 +830,7 @@ function bindDeskTabs(root, current) {
     all[k].style.color = on ? '#fff' : '';
   }
 }
-function openDesk() { closeOtherDesks(); var h = hub(); h.classList.add('on'); paint(); }
+function openDesk() { syncClipsFromBin(); closeOtherDesks(); var h = hub(); h.classList.add('on'); paintTimeline(); }
 
 POST.register({
   id: 'timeline',
@@ -797,14 +842,15 @@ POST.register({
   },
   state: function () {
     var shots = readShots();
-    return { shotsFound: shots.length, boards: CUTS.filter(function (k) { return !!k.sb; }).length,
-             replaced: CUTS.filter(function (k) { return !!k.replaced; }).length,
-             cuts: CUTS.length, selected: SELECTED, total: Math.round(total() * 100) / 100,
+    var cuts = cutsFromV1();
+    return { shotsFound: shots.length, boards: cuts.filter(function(k){return !!k.sb}).length,
+             replaced: cuts.filter(function(k){return !!k.replaced}).length,
+             cuts: cuts.length, selected: SELECTED, total: Math.round(total()*100)/100,
              fps: FPS, sequence: tcf(total()),
-             first: CUTS.length ? CUTS[0].name : null, edlLines: edl().split('\n').length };
+             first: cuts.length ? cuts[0].name : null, edlLines: edl().split('\n').length };
   }
 });
-POST.timeline = { add: add, ripple: rippleDelete, buildByStoryboard: buildByStoryboard, replace: replaceCut, shots: readShots, edl: edl, importEdl: importEdl, cuts: function () { return CUTS.slice(); }, total: total, open: openDesk };
+POST.timeline = { add: add, ripple: rippleDelete, buildByStoryboard: buildByStoryboard, replace: replaceCut, shots: readShots, edl: edl, importEdl: importEdl, cuts: cutsFromV1, total: total, open: openDesk };
 })();
 ;
 /* module: 30-notes.js */
