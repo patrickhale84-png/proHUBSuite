@@ -1071,6 +1071,8 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
           <button onclick="exportSBJ()" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-cubes text-purple-400 w-4"></i> Storyboard JSON</button>
           <button onclick="exportSBCSV()" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-table text-teal-400 w-4"></i> Shot List CSV</button>
           <button onclick="exportBoardAsScript()" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-file-lines text-indigo-400 w-4"></i> Board → Script</button>
+          <div style="margin:4px 8px;border-top:1px solid #1E293B;"></div>
+          <button onclick="openSBLibrary(null)" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-images text-cyan-400 w-4"></i> Image Library</button>
         </div>
       </div>
     </div>
@@ -1145,6 +1147,8 @@ const PH={SCENE_HEADING:'INT. SCENE LOCATION - DAY',ACTION:'Describe the scene..
 const NX={SCENE_HEADING:'ACTION',ACTION:'ACTION',CHARACTER:'DIALOGUE',PARENTHETICAL:'DIALOGUE',DIALOGUE:'ACTION',TRANSITION:'SCENE_HEADING'};
 let wH=[],wHI=-1,wHM=false;
 let sbH=[],sbHI=-1,sbHM=false,sbAsp='asp169',sbImgCard=null,sbDrawColor='#D4A034',sbDrawSize=2.5,sbDrawMode='pen';
+let sbLibraryTargetCard=null,sbLibCurrentKW=[],SB_IMAGE_DB=[];
+(function(){try{SB_IMAGE_DB=JSON.parse(localStorage.getItem('sb_img_db')||'[]');}catch(e){SB_IMAGE_DB=[];}})();
 if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 let ytP=null,ytPnd=null;
 function onYouTubeIframeAPIReady(){ytP=new YT.Player('yt-player',{height:'120',width:'200',videoId:'',playerVars:{autoplay:1,controls:0,playsinline:1,enablejsapi:1},events:{onReady:()=>{if(ytPnd){playZ(ytPnd);ytPnd=null;}}}});}
@@ -3292,8 +3296,9 @@ function _sbShotPanel(data) {
     ${_sbMetaRow('Movement',moves,data.movement||'static','movement')}
   </div>`;
 }
-function addFrame(data={}){const c=document.getElementById('sbcc');if(!c)return;document.getElementById('sbe').classList.add('hidden');document.getElementById('sbg').classList.remove('hidden');const idx=c.children.length+1,card=document.createElement('div');card.className='sbc';const tc=sbAsp;const has=(n,v)=>n===v?'selected':'';card.innerHTML=`<div class="sbthumb ${tc} bg-[#050810] border-b border-slate-800 flex flex-col items-center justify-center text-slate-700 relative overflow-hidden" style="width:100%;cursor:crosshair;">${data.imgSrc?`<img src="${data.imgSrc}" class="sbi absolute inset-0 w-full h-full object-cover">`:'<i class="fa-solid fa-mountain-sun text-2xl opacity-20"></i>'}<canvas class="sdc absolute inset-0" style="width:100%;height:100%;touch-action:none;"></canvas><div style="position:absolute;top:8px;left:8px;display:flex;gap:4px;align-items:center;"><div style="background:rgba(0,0,0,.72);color:#CBD5E1;font-size:9px;font-family:monospace;font-weight:700;padding:2px 8px;border-radius:4px;border:1px solid #1E293B;" class="sfb">FRAME ${String(idx).padStart(2,'0')}</div><div class="sstatus" onclick="cycleSBStatus(this)" style="background:rgba(71,85,105,.35);color:#64748B;font-size:8px;font-family:monospace;font-weight:700;padding:2px 6px;border-radius:3px;border:1px solid #334155;cursor:pointer;" title="Click to change status">DRAFT</div></div><div class="scc" style="position:absolute;top:6px;right:6px;display:flex;gap:4px;opacity:0;transition:opacity .2s;"><button class="sbub" style="background:rgba(139,92,246,.75);color:#fff;border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Upload ref image"><i class="fa-solid fa-camera" style="font-size:9px;"></i></button><button class="scb" style="background:rgba(30,41,59,.9);color:#9CA3AF;border:1px solid #374151;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Clear drawing"><i class="fa-solid fa-eraser" style="font-size:9px;"></i></button><button class="sdb2" style="background:rgba(30,41,59,.9);color:#9CA3AF;border:1px solid #374151;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Duplicate"><i class="fa-solid fa-clone" style="font-size:9px;"></i></button><button class="sdel" style="background:rgba(127,29,29,.85);color:#FCA5A5;border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Delete"><i class="fa-solid fa-trash" style="font-size:9px;"></i></button></div></div><div style="padding:12px;display:flex;flex-direction:column;gap:8px;flex:1;"><div style="display:flex;gap:8px;"><div style="flex:1;"><div style="font-size:9px;font-weight:700;color:#6B7280;text-transform:uppercase;margin-bottom:3px;">Scene</div><input type="text" class="ssi" value="${data.scene||'INT. LOCATION - DAY'}" style="width:100%;padding:4px 8px;background:#050810;border:1px solid #1E293B;border-radius:5px;font-family:var(--fsc);font-size:10px;color:#fff;outline:none;text-transform:uppercase;"></div><div style="flex:0 0 auto;"><div style="font-size:9px;font-weight:700;color:#6B7280;text-transform:uppercase;margin-bottom:3px;">Shot</div><select class="sss" style="padding:4px 6px;background:#0F172A;border:1px solid #1E293B;border-radius:5px;font-size:10px;color:#CBD5E1;outline:none;cursor:pointer;"><option value="WS" ${has(data.size,'WS')}>WS</option><option value="MS" ${has(data.size,'MS')}>MS</option><option value="CU" ${has(data.size,'CU')}>CU</option><option value="ECU" ${has(data.size,'ECU')}>ECU</option><option value="ELS" ${has(data.size,'ELS')}>ELS</option><option value="MCU" ${has(data.size,'MCU')}>MCU</option></select></div></div><div><div style="font-size:9px;font-weight:700;color:#6B7280;text-transform:uppercase;margin-bottom:3px;">Characters</div><input type="text" class="sch" value="${data.chars||''}" placeholder="e.g. ALEX, JORDAN" style="width:100%;padding:4px 8px;background:#050810;border:1px solid #1E293B;border-radius:5px;font-family:var(--fsc);font-size:10px;color:#CBD5E1;outline:none;"></div><textarea class="sat" style="width:100%;height:48px;padding:5px 8px;background:#050810;border:1px solid #1E293B;border-radius:5px;font-family:var(--fsc);font-size:10px;color:#D1D5DB;outline:none;resize:none;line-height:1.5;">${data.action||'Describe the shot...'}</textarea><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;"><div><div style="font-size:8px;font-weight:700;color:#4B5563;text-transform:uppercase;margin-bottom:3px;">Angle</div><select class="sas" style="width:100%;padding:3px 5px;background:#0F172A;border:1px solid #1E293B;border-radius:4px;font-size:10px;color:#9CA3AF;outline:none;cursor:pointer;"><option value="EYE" ${has(data.angle,'EYE')}>EYE LEVEL</option><option value="LOW" ${has(data.angle,'LOW')}>LOW ANGLE</option><option value="HIGH" ${has(data.angle,'HIGH')}>HIGH ANGLE</option><option value="DUTCH" ${has(data.angle,'DUTCH')}>DUTCH TILT</option><option value="POV" ${has(data.angle,'POV')}>POV</option></select></div><div><div style="font-size:8px;font-weight:700;color:#4B5563;text-transform:uppercase;margin-bottom:3px;">Lighting</div><select class="sls" style="width:100%;padding:3px 5px;background:#0F172A;border:1px solid #1E293B;border-radius:4px;font-size:10px;color:#9CA3AF;outline:none;cursor:pointer;"><option value="NATURAL" ${has(data.lighting,'NATURAL')}>NATURAL</option><option value="HIGH_KEY" ${has(data.lighting,'HIGH_KEY')}>HIGH KEY</option><option value="LOW_KEY" ${has(data.lighting,'LOW_KEY')}>LOW KEY</option><option value="GOLDEN" ${has(data.lighting,'GOLDEN')}>GOLDEN HR</option><option value="NEON" ${has(data.lighting,'NEON')}>STYLIZED</option></select></div><div><div style="font-size:8px;font-weight:700;color:#4B5563;text-transform:uppercase;margin-bottom:3px;">Movement</div><select class="smov" style="width:100%;padding:3px 5px;background:#0F172A;border:1px solid #1E293B;border-radius:4px;font-size:10px;color:#9CA3AF;outline:none;cursor:pointer;"><option value="STATIC" ${has(data.movement,'STATIC')}>STATIC</option><option value="PAN" ${has(data.movement,'PAN')}>PAN</option><option value="TILT" ${has(data.movement,'TILT')}>TILT</option><option value="DOLLY" ${has(data.movement,'DOLLY')}>DOLLY IN/OUT</option><option value="TRACK" ${has(data.movement,'TRACK')}>TRACKING</option><option value="CRANE" ${has(data.movement,'CRANE')}>CRANE/JIB</option><option value="HANDHELD" ${has(data.movement,'HANDHELD')}>HANDHELD</option><option value="STEADICAM" ${has(data.movement,'STEADICAM')}>STEADICAM</option><option value="ZOOM" ${has(data.movement,'ZOOM')}>PUSH ZOOM</option><option value="ONER" ${has(data.movement,'ONER')}>ONE'R</option></select></div></div></div>`;c.appendChild(card);bindSBCard(card);initCanvas(card);updSBHUD();recSBH('Add Frame');}
-function bindSBCard(card){card.addEventListener('mouseenter',()=>{const cc=card.querySelector('.scc');if(cc)cc.style.opacity='1';});card.addEventListener('mouseleave',()=>{const cc=card.querySelector('.scc');if(cc)cc.style.opacity='0';});const del=card.querySelector('.sdel');if(del)del.addEventListener('click',()=>{card.remove();updSBHUD();recSBH('Delete Frame');toast('Frame deleted.');});const dup=card.querySelector('.sdb2');if(dup)dup.addEventListener('click',()=>{addFrame({scene:card.querySelector('.ssi')?.value||'',action:card.querySelector('.sat')?.value+' (Var.)'||'',size:card.querySelector('.sss')?.value||'WS',angle:card.querySelector('.sas')?.value||'EYE',lighting:card.querySelector('.sls')?.value||'NATURAL',movement:card.querySelector('.smov')?.value||'STATIC',chars:card.querySelector('.sch')?.value||''});toast('Frame duplicated.');});const up=card.querySelector('.sbub');if(up)up.addEventListener('click',()=>{sbImgCard=card;document.getElementById('sbip').click();});const cl=card.querySelector('.scb');if(cl)cl.addEventListener('click',()=>{const cv=card.querySelector('.sdc');if(cv){const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);}recSBH('Clear Draw');});let db=null;card.querySelectorAll('input,select,textarea').forEach(el=>el.addEventListener('input',()=>{clearTimeout(db);db=setTimeout(()=>recSBH('Edit Frame'),600);}));}
+function addFrame(data={}){const c=document.getElementById('sbcc');if(!c)return;document.getElementById('sbe').classList.add('hidden');document.getElementById('sbg').classList.remove('hidden');const idx=c.children.length+1,card=document.createElement('div');card.className='sbc';const tc=sbAsp;const has=(n,v)=>n===v?'selected':'';card.innerHTML=`<div class="sbthumb ${tc} bg-[#050810] border-b border-slate-800 flex flex-col items-center justify-center text-slate-700 relative overflow-hidden" style="width:100%;cursor:crosshair;">${data.imgSrc?`<img src="${data.imgSrc}" class="sbi absolute inset-0 w-full h-full object-cover">`:'<i class="fa-solid fa-mountain-sun text-2xl opacity-20"></i>'}<canvas class="sdc absolute inset-0" style="width:100%;height:100%;touch-action:none;"></canvas><div style="position:absolute;top:8px;left:8px;display:flex;gap:4px;align-items:center;"><div style="background:rgba(0,0,0,.72);color:#CBD5E1;font-size:9px;font-family:monospace;font-weight:700;padding:2px 8px;border-radius:4px;border:1px solid #1E293B;" class="sfb">FRAME ${String(idx).padStart(2,'0')}</div><div class="sstatus" onclick="cycleSBStatus(this)" style="background:rgba(71,85,105,.35);color:#64748B;font-size:8px;font-family:monospace;font-weight:700;padding:2px 6px;border-radius:3px;border:1px solid #334155;cursor:pointer;" title="Click to change status">DRAFT</div></div><div class="scc" style="position:absolute;top:6px;right:6px;display:flex;gap:4px;opacity:0;transition:opacity .2s;"><button class="slibBtn" style="background:rgba(6,182,212,.75);color:#fff;border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Image Library"><i class="fa-solid fa-images" style="font-size:9px;"></i></button><button class="sbub" style="background:rgba(139,92,246,.75);color:#fff;border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Upload ref image"><i class="fa-solid fa-camera" style="font-size:9px;"></i></button><button class="scb" style="background:rgba(30,41,59,.9);color:#9CA3AF;border:1px solid #374151;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Clear drawing"><i class="fa-solid fa-eraser" style="font-size:9px;"></i></button><button class="sdb2" style="background:rgba(30,41,59,.9);color:#9CA3AF;border:1px solid #374151;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Duplicate"><i class="fa-solid fa-clone" style="font-size:9px;"></i></button><button class="sdel" style="background:rgba(127,29,29,.85);color:#FCA5A5;border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Delete"><i class="fa-solid fa-trash" style="font-size:9px;"></i></button></div></div><div style="padding:12px;display:flex;flex-direction:column;gap:8px;flex:1;"><div style="display:flex;gap:8px;"><div style="flex:1;"><div style="font-size:9px;font-weight:700;color:#6B7280;text-transform:uppercase;margin-bottom:3px;">Scene</div><input type="text" class="ssi" value="${data.scene||'INT. LOCATION - DAY'}" style="width:100%;padding:4px 8px;background:#050810;border:1px solid #1E293B;border-radius:5px;font-family:var(--fsc);font-size:10px;color:#fff;outline:none;text-transform:uppercase;"></div><div style="flex:0 0 auto;"><div style="font-size:9px;font-weight:700;color:#6B7280;text-transform:uppercase;margin-bottom:3px;">Shot</div><select class="sss" style="padding:4px 6px;background:#0F172A;border:1px solid #1E293B;border-radius:5px;font-size:10px;color:#CBD5E1;outline:none;cursor:pointer;"><option value="WS" ${has(data.size,'WS')}>WS</option><option value="MS" ${has(data.size,'MS')}>MS</option><option value="CU" ${has(data.size,'CU')}>CU</option><option value="ECU" ${has(data.size,'ECU')}>ECU</option><option value="ELS" ${has(data.size,'ELS')}>ELS</option><option value="MCU" ${has(data.size,'MCU')}>MCU</option></select></div></div><div><div style="font-size:9px;font-weight:700;color:#6B7280;text-transform:uppercase;margin-bottom:3px;">Characters</div><input type="text" class="sch" value="${data.chars||''}" placeholder="e.g. ALEX, JORDAN" style="width:100%;padding:4px 8px;background:#050810;border:1px solid #1E293B;border-radius:5px;font-family:var(--fsc);font-size:10px;color:#CBD5E1;outline:none;"></div><textarea class="sat" style="width:100%;height:48px;padding:5px 8px;background:#050810;border:1px solid #1E293B;border-radius:5px;font-family:var(--fsc);font-size:10px;color:#D1D5DB;outline:none;resize:none;line-height:1.5;">${data.action||'Describe the shot...'}</textarea><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;"><div><div style="font-size:8px;font-weight:700;color:#4B5563;text-transform:uppercase;margin-bottom:3px;">Angle</div><select class="sas" style="width:100%;padding:3px 5px;background:#0F172A;border:1px solid #1E293B;border-radius:4px;font-size:10px;color:#9CA3AF;outline:none;cursor:pointer;"><option value="EYE" ${has(data.angle,'EYE')}>EYE LEVEL</option><option value="LOW" ${has(data.angle,'LOW')}>LOW ANGLE</option><option value="HIGH" ${has(data.angle,'HIGH')}>HIGH ANGLE</option><option value="DUTCH" ${has(data.angle,'DUTCH')}>DUTCH TILT</option><option value="POV" ${has(data.angle,'POV')}>POV</option></select></div><div><div style="font-size:8px;font-weight:700;color:#4B5563;text-transform:uppercase;margin-bottom:3px;">Lighting</div><select class="sls" style="width:100%;padding:3px 5px;background:#0F172A;border:1px solid #1E293B;border-radius:4px;font-size:10px;color:#9CA3AF;outline:none;cursor:pointer;"><option value="NATURAL" ${has(data.lighting,'NATURAL')}>NATURAL</option><option value="HIGH_KEY" ${has(data.lighting,'HIGH_KEY')}>HIGH KEY</option><option value="LOW_KEY" ${has(data.lighting,'LOW_KEY')}>LOW KEY</option><option value="GOLDEN" ${has(data.lighting,'GOLDEN')}>GOLDEN HR</option><option value="NEON" ${has(data.lighting,'NEON')}>STYLIZED</option></select></div><div><div style="font-size:8px;font-weight:700;color:#4B5563;text-transform:uppercase;margin-bottom:3px;">Movement</div><select class="smov" style="width:100%;padding:3px 5px;background:#0F172A;border:1px solid #1E293B;border-radius:4px;font-size:10px;color:#9CA3AF;outline:none;cursor:pointer;"><option value="STATIC" ${has(data.movement,'STATIC')}>STATIC</option><option value="PAN" ${has(data.movement,'PAN')}>PAN</option><option value="TILT" ${has(data.movement,'TILT')}>TILT</option><option value="DOLLY" ${has(data.movement,'DOLLY')}>DOLLY IN/OUT</option><option value="TRACK" ${has(data.movement,'TRACK')}>TRACKING</option><option value="CRANE" ${has(data.movement,'CRANE')}>CRANE/JIB</option><option value="HANDHELD" ${has(data.movement,'HANDHELD')}>HANDHELD</option><option value="STEADICAM" ${has(data.movement,'STEADICAM')}>STEADICAM</option><option value="ZOOM" ${has(data.movement,'ZOOM')}>PUSH ZOOM</option><option value="ONER" ${has(data.movement,'ONER')}>ONE'R</option></select></div></div></div>`;c.appendChild(card);bindSBCard(card);initCanvas(card);updSBHUD();recSBH('Add Frame');}
+function bindSBCard(card){card.addEventListener('mouseenter',()=>{const cc=card.querySelector('.scc');if(cc)cc.style.opacity='1';});card.addEventListener('mouseleave',()=>{const cc=card.querySelector('.scc');if(cc)cc.style.opacity='0';});const del=card.querySelector('.sdel');if(del)del.addEventListener('click',()=>{card.remove();updSBHUD();recSBH('Delete Frame');toast('Frame deleted.');});const dup=card.querySelector('.sdb2');if(dup)dup.addEventListener('click',()=>{addFrame({scene:card.querySelector('.ssi')?.value||'',action:card.querySelector('.sat')?.value+' (Var.)'||'',size:card.querySelector('.sss')?.value||'WS',angle:card.querySelector('.sas')?.value||'EYE',lighting:card.querySelector('.sls')?.value||'NATURAL',movement:card.querySelector('.smov')?.value||'STATIC',chars:card.querySelector('.sch')?.value||''});toast('Frame duplicated.');});const up=card.querySelector('.sbub');if(up)up.addEventListener('click',()=>{sbImgCard=card;document.getElementById('sbip').click();});
+const lib=card.querySelector('.slibBtn');if(lib)lib.addEventListener('click',()=>openSBLibrary(card));const cl=card.querySelector('.scb');if(cl)cl.addEventListener('click',()=>{const cv=card.querySelector('.sdc');if(cv){const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);}recSBH('Clear Draw');});let db=null;card.querySelectorAll('input,select,textarea').forEach(el=>el.addEventListener('input',()=>{clearTimeout(db);db=setTimeout(()=>recSBH('Edit Frame'),600);}));}
 function initCanvas(card){const cv=card.querySelector('.sdc');if(!cv)return;const th=card.querySelector('.sbthumb');const sz=()=>{if(th){cv.width=th.offsetWidth||400;cv.height=th.offsetHeight||225;}};sz();const ctx=cv.getContext('2d');ctx.lineCap='round';ctx.lineJoin='round';let dwg=false;const gp=e=>{const rc=cv.getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX;const cy=e.touches?e.touches[0].clientY:e.clientY;return{x:(cx-rc.left)*(cv.width/rc.width),y:(cy-rc.top)*(cv.height/rc.height)};};const st=e=>{dwg=true;if(sbDrawMode==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.lineWidth=sbDrawSize*5;}else{ctx.globalCompositeOperation='source-over';ctx.strokeStyle=sbDrawColor;ctx.lineWidth=sbDrawSize;}const p=gp(e);ctx.beginPath();ctx.moveTo(p.x,p.y);};const dr=e=>{if(!dwg)return;e.preventDefault();const p=gp(e);ctx.lineTo(p.x,p.y);ctx.stroke();};const sp=()=>{if(dwg){dwg=false;ctx.globalCompositeOperation='source-over';recSBH('Draw');}};cv.addEventListener('mousedown',st);cv.addEventListener('mousemove',dr);cv.addEventListener('mouseup',sp);cv.addEventListener('mouseleave',sp);cv.addEventListener('touchstart',st,{passive:false});cv.addEventListener('touchmove',dr,{passive:false});cv.addEventListener('touchend',sp);}
 function handleSBImg(e){const f=e.target.files[0];if(!f||!sbImgCard)return;const rd=new FileReader();rd.onload=ev=>{let img=sbImgCard.querySelector('.sbi');const th=sbImgCard.querySelector('.sbthumb');if(!img&&th){img=document.createElement('img');img.className='sbi absolute inset-0 w-full h-full object-cover';th.prepend(img);}if(img)img.src=ev.target.result;recSBH('Set Image');toast('Reference image attached.');};rd.readAsDataURL(f);e.target.value='';}
 function rebindSB(){const c=document.getElementById('sbcc');if(!c)return;Array.from(c.children).forEach(card=>{bindSBCard(card);initCanvas(card);});updSBHUD();}
@@ -3305,6 +3310,176 @@ function cycleSBStatus(el){const s=[{lbl:'DRAFT',bg:'rgba(71,85,105,.35)',col:'#
 function setSBDrawMode(m){sbDrawMode=m;document.querySelectorAll('.sbdm').forEach(b=>{b.style.borderColor='#334155';b.style.background='rgba(15,23,42,.8)';b.style.color='#6B7280';});const btn=document.getElementById('sbm-'+m);if(btn){btn.style.borderColor=m==='eraser'?'#EF4444':'#D97706';btn.style.background=m==='eraser'?'rgba(127,29,29,.4)':'rgba(120,53,15,.4)';btn.style.color=m==='eraser'?'#FCA5A5':'#FCD34D';}}
 function setSBDrawSize(s){sbDrawSize=s;document.querySelectorAll('.sbds').forEach(b=>{b.style.borderColor='#334155';b.style.background='rgba(15,23,42,.8)';b.style.color='#6B7280';});const m={1.5:'sbs-s',2.5:'sbs-m',5:'sbs-l',10:'sbs-xl'};const btn=document.getElementById(m[s]);if(btn){btn.style.borderColor='#0D9488';btn.style.background='rgba(17,94,89,.4)';btn.style.color='#5EEAD4';}}
 function setSBDrawColor(c){sbDrawColor=c;document.querySelectorAll('.sbdc').forEach(b=>{b.style.outline='';b.style.outlineOffset='';});event?.target?.style&&(event.target.style.outline='2px solid #fff',event.target.style.outlineOffset='1px');}
+// ========== IMAGE LIBRARY ==========
+function saveSBImageDB(){try{localStorage.setItem('sb_img_db',JSON.stringify(SB_IMAGE_DB));}catch(e){toast('Library save failed — storage may be full. Try removing some images.');}}
+function extractFrameKW(card){
+  if(!card)return[];
+  const tags=new Set();
+  const scene=(card.querySelector('.ssi')?.value||'').toUpperCase();
+  if(/\bINT\b/.test(scene))tags.add('INT');
+  if(/\bEXT\b/.test(scene))tags.add('EXT');
+  if(/\bNIGHT\b/.test(scene))tags.add('NIGHT');
+  if(/\bDAY\b/.test(scene))tags.add('DAY');
+  if(/\b(DAWN|DUSK|SUNRISE|SUNSET|GOLDEN)\b/.test(scene))tags.add('GOLDEN');
+  const size=card.querySelector('.sss')?.value;if(size)tags.add(size);
+  const angle=card.querySelector('.sas')?.value;if(angle&&angle!=='EYE')tags.add(angle);
+  const lighting=card.querySelector('.sls')?.value;if(lighting&&lighting!=='HIGH_KEY')tags.add(lighting);
+  const movement=card.querySelector('.smov')?.value;if(movement&&movement!=='STATIC')tags.add(movement);
+  const chars=(card.querySelector('.sch')?.value||'').split(',').map(s=>s.trim()).filter(Boolean);
+  if(chars.length===1)tags.add('SINGLE');else if(chars.length===2)tags.add('TWO_SHOT');else if(chars.length>2)tags.add('GROUP');
+  return Array.from(tags);
+}
+function scoreSBImage(img,kw){const k=kw.map(s=>s.toUpperCase());return(img.tags||[]).reduce((n,t)=>n+(k.includes(t.toUpperCase())?1:0),0);}
+function searchSBImages(kw){return[...SB_IMAGE_DB].map(img=>({...img,score:scoreSBImage(img,kw)})).sort((a,b)=>b.score-a.score);}
+function openSBLibrary(card){
+  sbLibraryTargetCard=card;
+  sbLibCurrentKW=extractFrameKW(card);
+  let m=document.getElementById('sb-lib-modal');
+  if(!m){buildSBLibraryModal();m=document.getElementById('sb-lib-modal');}
+  m.style.display='flex';
+  const kp=document.getElementById('sblkw');
+  if(kp){kp.innerHTML=sbLibCurrentKW.map(k=>`<span data-kw="${k}" onclick="toggleSBKW(this,'${k}')" style="background:rgba(6,182,212,.2);color:#67E8F9;border:1px solid #0E7490;border-radius:3px;padding:1px 7px;font-size:10px;font-family:monospace;cursor:pointer;" class="sbkwpill active">${k}</span>`).join('');}
+  renderSBLibrary(sbLibCurrentKW);
+}
+function toggleSBKW(el,kw){
+  if(el.classList.contains('active')){el.classList.remove('active');el.style.background='rgba(51,65,85,.4)';el.style.color='#64748B';el.style.borderColor='#334155';sbLibCurrentKW=sbLibCurrentKW.filter(k=>k!==kw);}
+  else{el.classList.add('active');el.style.background='rgba(6,182,212,.2)';el.style.color='#67E8F9';el.style.borderColor='#0E7490';sbLibCurrentKW.push(kw);}
+  renderSBLibrary(sbLibCurrentKW);
+}
+function addSBLibKW(){
+  const inp=document.getElementById('sbksearch');if(!inp)return;
+  const v=inp.value.trim().toUpperCase();if(!v)return;
+  if(!sbLibCurrentKW.includes(v)){
+    sbLibCurrentKW.push(v);
+    const kp=document.getElementById('sblkw');
+    if(kp){const pill=document.createElement('span');pill.dataset.kw=v;pill.onclick=()=>toggleSBKW(pill,v);pill.style.cssText='background:rgba(6,182,212,.2);color:#67E8F9;border:1px solid #0E7490;border-radius:3px;padding:1px 7px;font-size:10px;font-family:monospace;cursor:pointer;';pill.className='sbkwpill active';pill.textContent=v;kp.appendChild(pill);}
+  }
+  inp.value='';
+  renderSBLibrary(sbLibCurrentKW);
+}
+function renderSBLibrary(kw){
+  const grid=document.getElementById('sblgrid');if(!grid)return;
+  const images=searchSBImages(kw);
+  if(!images.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:#4B5563;padding:48px;font-size:12px;font-family:monospace;">No images in library yet.<br><br><button onclick="importSBImages()" style="background:rgba(6,182,212,.2);color:#67E8F9;border:1px solid #0E7490;border-radius:5px;padding:6px 14px;font-size:10px;font-family:monospace;cursor:pointer;margin-top:8px;"><i class=\\"fa-solid fa-file-import\\" style=\\"margin-right:5px;\\"></i>Import Images</button></div>';
+    return;
+  }
+  grid.innerHTML='';
+  images.forEach(img=>{
+    const bc=img.score>0?'#0E7490':'#1E293B';
+    const card=document.createElement('div');
+    card.style.cssText=`background:#050810;border:1px solid ${bc};border-radius:6px;overflow:hidden;cursor:pointer;transition:border-color .15s;`;
+    card.onclick=()=>selectSBLibImage(img.id);
+    card.onmouseover=function(){this.style.borderColor='#22D3EE';};
+    card.onmouseout=function(){this.style.borderColor=bc;};
+    const scoreHTML=img.score>0?`<div style="position:absolute;top:4px;right:4px;background:rgba(6,182,212,.9);color:#fff;font-size:8px;font-family:monospace;padding:1px 5px;border-radius:3px;">${img.score} match${img.score!==1?'es':''}</div>`:'';
+    const tagLabel=(img.tags||[]).slice(0,5).join(' · ');
+    card.innerHTML=`<div style="aspect-ratio:16/9;overflow:hidden;position:relative;"><img src="${img.src}" style="width:100%;height:100%;object-fit:cover;">${scoreHTML}</div><div style="padding:5px 7px;font-size:9px;color:#4B5563;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${tagLabel}</div>`;
+    grid.appendChild(card);
+  });
+}
+function selectSBLibImage(id){
+  const img=SB_IMAGE_DB.find(i=>i.id===id);if(!img)return;
+  if(!sbLibraryTargetCard){toast('Open Image Library from a frame card (cyan \u{1F5BC}️ button) to apply an image.');return;}
+  let el=sbLibraryTargetCard.querySelector('.sbi');const th=sbLibraryTargetCard.querySelector('.sbthumb');
+  if(!el&&th){el=document.createElement('img');el.className='sbi absolute inset-0 w-full h-full object-cover';th.prepend(el);}
+  if(el)el.src=img.src;
+  recSBH('Set Image');toast('Image applied from library.');
+  document.getElementById('sb-lib-modal').style.display='none';
+}
+function importSBImages(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;
+  inp.onchange=e=>{
+    const files=Array.from(e.target.files);if(!files.length)return;
+    let done=0;
+    files.forEach(file=>{
+      const rd=new FileReader();
+      rd.onload=ev=>{
+        const nameTags=file.name.replace(/\.[^.]+$/,'').split(/[\s_\-]+/).map(t=>t.toUpperCase().trim()).filter(t=>t.length>1);
+        const id='img_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+        SB_IMAGE_DB.push({id,src:ev.target.result,tags:nameTags,label:file.name.replace(/\.[^.]+$/,'')});
+        done++;
+        if(done===files.length){
+          saveSBImageDB();
+          renderSBLibrary(sbLibCurrentKW);
+          if(document.getElementById('sbltab-manage')?.style.display==='flex')renderSBManage();
+          toast(done+' image'+(done!==1?'s':'')+' imported. Tags extracted from filenames.');
+        }
+      };
+      rd.readAsDataURL(file);
+    });
+  };
+  inp.click();
+}
+function deleteSBLibImage(id){
+  if(!confirm('Remove this image from the library?'))return;
+  SB_IMAGE_DB=SB_IMAGE_DB.filter(i=>i.id!==id);
+  saveSBImageDB();
+  renderSBManage();
+}
+function updateSBImgTags(id,val){
+  const img=SB_IMAGE_DB.find(i=>i.id===id);
+  if(img){img.tags=val.split(',').map(t=>t.trim().toUpperCase()).filter(Boolean);saveSBImageDB();}
+}
+function renderSBManage(){
+  const el=document.getElementById('sbltab-manage');if(!el)return;
+  if(!SB_IMAGE_DB.length){el.innerHTML='<div style="text-align:center;color:#4B5563;padding:48px;font-size:12px;font-family:monospace;">Library is empty.<br>Switch to Browse tab and Import Images.</div>';return;}
+  el.innerHTML='';
+  SB_IMAGE_DB.forEach(img=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;gap:10px;align-items:center;padding:8px;background:#050810;border:1px solid #1E293B;border-radius:6px;';
+    const thumb=document.createElement('img');
+    thumb.src=img.src;thumb.style.cssText='width:64px;height:36px;object-fit:cover;border-radius:4px;flex-shrink:0;';
+    const meta=document.createElement('div');meta.style.cssText='flex:1;min-width:0;';
+    const lbl=document.createElement('div');lbl.style.cssText='font-size:10px;color:#CBD5E1;font-family:monospace;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';lbl.textContent=img.label||img.id;
+    const inp=document.createElement('input');inp.type='text';inp.value=img.tags.join(', ');inp.placeholder='Tags: MCU, INT, NIGHT, LOW_KEY...';inp.style.cssText='width:100%;padding:3px 6px;background:#0F172A;border:1px solid #334155;border-radius:4px;font-size:9px;color:#9CA3AF;font-family:monospace;outline:none;';inp.onchange=()=>updateSBImgTags(img.id,inp.value);
+    meta.appendChild(lbl);meta.appendChild(inp);
+    const del=document.createElement('button');del.textContent='✕';del.style.cssText='background:rgba(127,29,29,.7);color:#FCA5A5;border:none;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:11px;flex-shrink:0;';del.onclick=()=>deleteSBLibImage(img.id);
+    row.appendChild(thumb);row.appendChild(meta);row.appendChild(del);
+    el.appendChild(row);
+  });
+}
+function buildSBLibraryModal(){
+  const m=document.createElement('div');m.id='sb-lib-modal';
+  m.style.cssText='display:none;position:fixed;inset:0;background:rgba(2,6,15,.93);z-index:9999;flex-direction:column;backdrop-filter:blur(6px);';
+  m.innerHTML=`
+  <div style="display:flex;flex-direction:column;height:100%;max-width:1400px;margin:0 auto;width:100%;padding:16px 20px;gap:10px;">
+    <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+      <i class="fa-solid fa-images" style="color:#67E8F9;font-size:14px;"></i>
+      <span style="font-size:12px;font-weight:700;color:#E2E8F0;letter-spacing:.08em;font-family:monospace;">ROOKS PRODUCTIONS — IMAGE LIBRARY</span>
+      <div style="flex:1;"></div>
+      <span id="sbl-count" style="font-size:10px;color:#4B5563;font-family:monospace;"></span>
+      <button onclick="importSBImages()" style="background:rgba(6,182,212,.15);color:#67E8F9;border:1px solid #0E7490;border-radius:5px;padding:5px 12px;font-size:10px;font-family:monospace;cursor:pointer;"><i class="fa-solid fa-file-import" style="margin-right:5px;"></i>IMPORT</button>
+      <button onclick="document.getElementById('sb-lib-modal').style.display='none'" style="background:rgba(127,29,29,.4);color:#FCA5A5;border:1px solid #7F1D1D;border-radius:5px;padding:5px 10px;font-size:10px;font-family:monospace;cursor:pointer;">✕ CLOSE</button>
+    </div>
+    <div style="display:flex;border-bottom:1px solid #1E293B;flex-shrink:0;">
+      <button onclick="switchSBLibTab('browse')" id="sblt-browse" style="padding:6px 16px;font-size:10px;font-family:monospace;background:transparent;border:none;color:#67E8F9;border-bottom:2px solid #67E8F9;cursor:pointer;margin-bottom:-1px;letter-spacing:.06em;">BROWSE</button>
+      <button onclick="switchSBLibTab('manage')" id="sblt-manage" style="padding:6px 16px;font-size:10px;font-family:monospace;background:transparent;border:none;color:#4B5563;border-bottom:2px solid transparent;cursor:pointer;margin-bottom:-1px;letter-spacing:.06em;">MANAGE</button>
+    </div>
+    <div id="sbltab-browse" style="display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;">
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;">
+        <span style="font-size:9px;color:#6B7280;font-family:monospace;white-space:nowrap;">FRAME TAGS:</span>
+        <div id="sblkw" style="display:flex;gap:5px;flex-wrap:wrap;flex:1;min-width:0;"></div>
+        <input id="sbksearch" type="text" placeholder="+ keyword" style="background:#0F172A;border:1px solid #334155;border-radius:5px;padding:3px 8px;font-size:10px;color:#CBD5E1;outline:none;font-family:monospace;width:90px;" onkeydown="if(event.key==='Enter')addSBLibKW()">
+        <button onclick="addSBLibKW()" style="background:rgba(51,65,85,.6);color:#CBD5E1;border:1px solid #475569;border-radius:4px;padding:3px 8px;font-size:10px;cursor:pointer;font-family:monospace;">ADD</button>
+        <button onclick="sbLibCurrentKW=[];document.getElementById('sblkw').innerHTML='';renderSBLibrary([])" style="background:rgba(51,65,85,.3);color:#6B7280;border:1px solid #334155;border-radius:4px;padding:3px 8px;font-size:10px;cursor:pointer;font-family:monospace;">SHOW ALL</button>
+      </div>
+      <div id="sblgrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;overflow-y:auto;flex:1;align-content:start;padding-right:4px;"></div>
+    </div>
+    <div id="sbltab-manage" style="display:none;flex-direction:column;gap:8px;flex:1;overflow-y:auto;"></div>
+  </div>`;
+  document.body.appendChild(m);
+}
+function switchSBLibTab(tab){
+  document.getElementById('sbltab-browse').style.display=tab==='browse'?'flex':'none';
+  document.getElementById('sbltab-manage').style.display=tab==='manage'?'flex':'none';
+  document.getElementById('sblt-browse').style.color=tab==='browse'?'#67E8F9':'#4B5563';
+  document.getElementById('sblt-browse').style.borderBottomColor=tab==='browse'?'#67E8F9':'transparent';
+  document.getElementById('sblt-manage').style.color=tab==='manage'?'#67E8F9':'#4B5563';
+  document.getElementById('sblt-manage').style.borderBottomColor=tab==='manage'?'#67E8F9':'transparent';
+  const cnt=document.getElementById('sbl-count');if(cnt)cnt.textContent=SB_IMAGE_DB.length+' image'+(SB_IMAGE_DB.length!==1?'s':'');
+  if(tab==='manage')renderSBManage();
+}
 // ========== STORYBOARD RULES ENGINE ==========
 // Deterministic scored-rule inference — no AI. Each rule [regex, value, points].
 // All matching rules accumulate points; highest total wins.
