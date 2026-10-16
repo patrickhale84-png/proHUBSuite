@@ -1060,7 +1060,8 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
     <div class="flex items-center gap-2">
       <div class="text-[10px] font-mono text-slate-400">Frames: <span id="sfc" class="text-white font-bold">0</span></div>
       <button onclick="addFrame()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-lime-400 font-mono font-bold text-[10px] rounded transition flex items-center gap-1"><i class="fa-solid fa-plus"></i> Add Frame</button>
-      <button onclick="generateSBFromScript()" class="px-3 py-1 bg-teal-900/60 hover:bg-teal-900/80 border border-teal-700 text-teal-300 font-bold text-[10px] uppercase tracking-wider rounded" title="Auto-generate frames from script scenes"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>From Script</button><button onclick="loadSampleBoards()" class="px-3 py-1 bg-orange-900/40 hover:bg-orange-900/60 border border-orange-800/60 text-orange-300 font-mono font-bold text-[10px] rounded transition flex items-center gap-1"><i class="fa-solid fa-film"></i> Sample</button>
+      <button onclick="generateSBFromScript()" class="px-3 py-1 bg-teal-900/60 hover:bg-teal-900/80 border border-teal-700 text-teal-300 font-bold text-[10px] uppercase tracking-wider rounded" title="Generate fresh board from script using rules engine"><i class="fa-solid fa-gears mr-1"></i>From Script</button>
+      <button onclick="syncBoardToScript()" class="px-3 py-1 bg-indigo-900/60 hover:bg-indigo-900/80 border border-indigo-700 text-indigo-300 font-bold text-[10px] uppercase tracking-wider rounded" title="Reconcile existing board with updated script — reorders, orphans removed scenes, adds new ones"><i class="fa-solid fa-rotate mr-1"></i>Sync Board</button><button onclick="loadSampleBoards()" class="px-3 py-1 bg-orange-900/40 hover:bg-orange-900/60 border border-orange-800/60 text-orange-300 font-mono font-bold text-[10px] rounded transition flex items-center gap-1"><i class="fa-solid fa-film"></i> Sample</button>
       <button onclick="sbUndo()" class="px-2 py-1 bg-slate-900 border border-slate-800 text-slate-400 text-[10px] rounded transition hover:bg-slate-800" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
       <button onclick="sbRedo()" class="px-2 py-1 bg-slate-900 border border-slate-800 text-slate-400 text-[10px] rounded transition hover:bg-slate-800" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
       <div class="relative group">
@@ -1069,6 +1070,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
           <button onclick="window.print()" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-file-pdf text-rose-400 w-4"></i> Print Board (PDF)</button>
           <button onclick="exportSBJ()" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-cubes text-purple-400 w-4"></i> Storyboard JSON</button>
           <button onclick="exportSBCSV()" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-table text-teal-400 w-4"></i> Shot List CSV</button>
+          <button onclick="exportBoardAsScript()" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-file-lines text-indigo-400 w-4"></i> Board → Script</button>
         </div>
       </div>
     </div>
@@ -3303,41 +3305,242 @@ function cycleSBStatus(el){const s=[{lbl:'DRAFT',bg:'rgba(71,85,105,.35)',col:'#
 function setSBDrawMode(m){sbDrawMode=m;document.querySelectorAll('.sbdm').forEach(b=>{b.style.borderColor='#334155';b.style.background='rgba(15,23,42,.8)';b.style.color='#6B7280';});const btn=document.getElementById('sbm-'+m);if(btn){btn.style.borderColor=m==='eraser'?'#EF4444':'#D97706';btn.style.background=m==='eraser'?'rgba(127,29,29,.4)':'rgba(120,53,15,.4)';btn.style.color=m==='eraser'?'#FCA5A5':'#FCD34D';}}
 function setSBDrawSize(s){sbDrawSize=s;document.querySelectorAll('.sbds').forEach(b=>{b.style.borderColor='#334155';b.style.background='rgba(15,23,42,.8)';b.style.color='#6B7280';});const m={1.5:'sbs-s',2.5:'sbs-m',5:'sbs-l',10:'sbs-xl'};const btn=document.getElementById(m[s]);if(btn){btn.style.borderColor='#0D9488';btn.style.background='rgba(17,94,89,.4)';btn.style.color='#5EEAD4';}}
 function setSBDrawColor(c){sbDrawColor=c;document.querySelectorAll('.sbdc').forEach(b=>{b.style.outline='';b.style.outlineOffset='';});event?.target?.style&&(event.target.style.outline='2px solid #fff',event.target.style.outlineOffset='1px');}
-// ========== STORYBOARD HELPERS ==========
-function generateSBFromScript() {
-  const r = document.getElementById('script-editable-node-rows-stack');
-  if (!r) return toast('Open the Writer and load a script first.');
-  const rows = Array.from(r.children);
-  let scenes = [];
-  let currentScene = null;
-  let actionText = '';
-  rows.forEach(row => {
-    const box = row.querySelector('.line-editable-box');
-    if (!box) return;
-    const elType = box.getAttribute('data-element-type') || '';
-    const text = box.innerText || box.textContent || '';
-    if (elType === 'SCENE_HEADING') {
-      if (currentScene) { currentScene.action = actionText.trim(); scenes.push(currentScene); }
-      currentScene = { scene: text.trim(), action: '', dialogue: '' };
-      actionText = '';
-    } else if (elType === 'ACTION' && currentScene) {
-      actionText += ' ' + text.trim();
-    } else if (elType === 'DIALOGUE' && currentScene) {
-      currentScene.dialogue = text.trim().slice(0, 80);
-    }
+// ========== STORYBOARD RULES ENGINE ==========
+// Deterministic scored-rule inference — no AI. Each rule [regex, value, points].
+// All matching rules accumulate points; highest total wins.
+const SB_RULES = {
+  size: [
+    [/\b(aerial|drone shot?|birds?[\s\-]?eye|extreme wide|establishing shot?|panoram|wide landscape|horizon spans?|city below|overhead view)\b/i,'ELS',10],
+    [/\b(wide shot?|full body|full figure|full[- ]length|long shot?|entire (room|space|scene)|from a distance|character(s)? enter)\b/i,'WS',9],
+    [/\b(run(s|ning)?|chases?|sprint|fle(es?|ing)|escapes?|walk(s|ing)? away|retreats?|drives?|riding|crowd|group of|marching|charging)\b/i,'WS',6],
+    [/\bEXT\b.*\b(DAY|DUSK|DAWN|SUNRISE|SUNSET)\b/i,'WS',3],
+    [/\b(two[\s\-]shot|both of them|facing each other|across from|together in frame|side by side)\b/i,'MS',9],
+    [/\b(medium shot?|waist up|seated (conversation)?|conversation|dialogue exchange|talk(ing|s)?|interview)\b/i,'MS',7],
+    [/\b(medium close|MCU\b|chest (level)?|shoulders up|upper body|reaction shot?|react(s|ing)?|listens? to|respond(s|ing)?)\b/i,'MCU',9],
+    [/\b(close[\s\-]up|CU\b|her face|his face|their face|expression|stares?|weep(s|ing)?|cr(ies|ying)|smil(es?|ing)|grin(s|ning)?|grimac|frown|tears?\b|laugh(s|ing)?|smirk|single face)\b/i,'CU',9],
+    [/\b(extreme close|ECU\b|macro|detail shot?|insert shot?|fingernail|bullet hole|drop of|pupil|gun barrel|label\b|tiny detail|the (ring|wound|key|trigger|needle))\b/i,'ECU',10],
+    [/\b(hand(s)?|finger(s)?|grip(s|ping)?|reaches?|grab(s|bing)?|clutch(es|ing)?|holds? tightly)\b/i,'ECU',7],
+  ],
+  angle: [
+    [/\b(low angle|from below|look(s|ing)? up|looms?( over)?|towers? over|powerful figure|dominat|kneeling|ground level|upward)\b/i,'LOW',9],
+    [/\b(high angle|from above|look(s|ing)? down|overhead|survey(s|ing)?|god.?s? eye|top[\s\-]?down|bird.?s? eye)\b/i,'HIGH',9],
+    [/\b(POV|point of view|see(s)?\b|her eyes|his eyes|their eyes|watching from|first[\s\-]person|through (her|his|their) eyes|character.?s perspective)\b/i,'POV',9],
+    [/\b(dutch tilt|canted|unease|horror|disoriented|unstable|off[\s\-]kilter|tension build|menac|dread|paranoia)\b/i,'DUTCH',8],
+    [/\b(over[\s\-]the[\s\-]shoulder|OTS\b|behind (her|him|them))\b/i,'EYE',6],
+  ],
+  movement: [
+    [/\b(pan(s|ning)?|swing(s|ing)? (left|right)|sweep(s|ing)? across|reveal pan|slow pan)\b/i,'PAN',8],
+    [/\b(tilt(s|ing)? (up|down)|rack(s|ing)? up|reveal(s)? building|tilt(s|ing)? to)\b/i,'TILT',8],
+    [/\b(push(es|ing)? in|dolly in|mov(es|ing) closer|approach(es|ing) (the )?camera|dolly out|pull(s|ing)? back|pushing toward)\b/i,'DOLLY',8],
+    [/\b(follow(s|ing)?|track(ing|s)?|chases?|trail(s|ing)?|walk(s|ing) with|keep(s|ing) pace|moving alongside|side track)\b/i,'TRACK',8],
+    [/\b(crane|jib|rise(s|ing)?|soar(s|ing)?|descend(s|ing)?|boom(s)? (up|down)|aerial lift|sweep(s|ing) up|sweeping crane)\b/i,'CRANE',8],
+    [/\b(handheld|shaky|documentary|v[eé]rit[eé]|unstable camera|urgent|frantic|frenetic)\b/i,'HANDHELD',9],
+    [/\b(steadicam|glid(e|ing)|smooth(ly)?|float(ing)?|effortless|corridor walk|long take glide)\b/i,'STEADICAM',9],
+    [/\b(zoom(s|ing)?|push[\s\-]zoom|smash[\s\-]zoom|lens punch|magnif)\b/i,'ZOOM',8],
+    [/\b(one[\s\-]?r\b|single take|continuous shot|unbroken|long take|no cuts?)\b/i,'ONER',9],
+  ],
+  lighting: [
+    [/\b(golden hour|magic hour|warm light|amber light|orange glow|late afternoon glow|the last light|golden)\b/i,'GOLDEN',9],
+    [/\b(sunset|sunrise|dusk|dawn)\b/i,'GOLDEN',7],
+    [/\b(dark(ness)?|shadow(s)?|noir|moody|underlit|silhouette|candlelight|moonlit|barely lit|dim\b|pitch (black|dark)|poorly lit)\b/i,'LOW_KEY',8],
+    [/\bNIGHT\b/,'LOW_KEY',7],
+    [/\b(midnight|late night|dark alley|dead of night|after dark)\b/i,'LOW_KEY',8],
+    [/\b(neon|club\b|bar\b|rave|colored lights|rgb|pink glow|stylized light|cyberpunk|city lights at night|disco|strobe)\b/i,'NEON',9],
+    [/\b(bright|well[\s\-]lit|fluorescent|clinical|white walls|brightly|sun[\s\-]?lit|hospital|office lights)\b/i,'HIGH_KEY',7],
+    [/\bINT\b.*\bDAY\b/i,'HIGH_KEY',4],
+    [/\b(natural light|window light|outdoor|sunshine|blue sky|overcast|cloudy|diffused|open shade)\b/i,'NATURAL',7],
+    [/\bEXT\b.*\bDAY\b/i,'NATURAL',6],
+  ],
+};
+
+// Pure rules-based shot inference — deterministic, no AI
+function inferShot(heading, action) {
+  const text = ((heading||'') + ' ' + (action||'')).replace(/\s+/g,' ');
+  function topScore(rules) {
+    const acc={};
+    rules.forEach(([re,val,pts])=>{ if(re.test(text)) acc[val]=(acc[val]||0)+pts; });
+    const e=Object.entries(acc);
+    return e.length ? e.sort((a,b)=>b[1]-a[1])[0][0] : null;
+  }
+  const h=(heading||'').toUpperCase();
+  return {
+    size:     topScore(SB_RULES.size)     || (/\bEXT\b/.test(h)?'WS':'MS'),
+    angle:    topScore(SB_RULES.angle)    || 'EYE',
+    movement: topScore(SB_RULES.movement) || 'STATIC',
+    lighting: topScore(SB_RULES.lighting) || (/\bNIGHT\b/.test(h)?'LOW_KEY':/\bEXT\b/.test(h)?'NATURAL':'HIGH_KEY'),
+  };
+}
+
+// Parse script DOM into scenes array with action, chars, dialogue
+function parseScriptScenes(rowsEl) {
+  const scenes=[]; let cur=null, acts=[], chars=[], dlg=[];
+  Array.from(rowsEl.children).forEach(row=>{
+    const box=row.querySelector('.line-editable-box');
+    if(!box) return;
+    const t=box.getAttribute('data-element-type')||'';
+    const txt=(box.innerText||box.textContent||'').trim();
+    if(t==='SCENE_HEADING'){
+      if(cur){cur.action=acts.join(' ').trim();cur.chars=[...new Set(chars)].join(', ');cur.dialogue=dlg.join(' | ');scenes.push(cur);}
+      cur={scene:txt,action:'',chars:'',dialogue:''};acts=[];chars=[];dlg=[];
+    } else if(t==='ACTION'&&cur){acts.push(txt);}
+    else if(t==='CHARACTER'&&cur){chars.push(txt);}
+    else if(t==='DIALOGUE'&&cur){dlg.push(txt.slice(0,60));}
   });
-  if (currentScene) { currentScene.action = actionText.trim(); scenes.push(currentScene); }
-  if (!scenes.length) return toast('No scenes found. Format scene headings as SCENE_HEADING first.');
-  const c = document.getElementById('sbcc');
-  if (!c) return;
+  if(cur){cur.action=acts.join(' ').trim();cur.chars=[...new Set(chars)].join(', ');cur.dialogue=dlg.join(' | ');scenes.push(cur);}
+  return scenes;
+}
+
+// Extract all data from a frame card, including canvas drawing and photo
+function extractFrameData(card) {
+  const cv=card.querySelector('.sdc'); let canvasData=null;
+  if(cv&&cv.width>0){try{const d=cv.getContext('2d').getImageData(0,0,cv.width,cv.height).data;if(d.some(v=>v>0))canvasData=cv.toDataURL('image/png');}catch(e){}}
+  const img=card.querySelector('.sbi');
+  return {
+    scene:    card.querySelector('.ssi')?.value||'',
+    chars:    card.querySelector('.sch')?.value||'',
+    action:   card.querySelector('.sat')?.value||'',
+    size:     card.querySelector('.sss')?.value||'WS',
+    angle:    card.querySelector('.sas')?.value||'EYE',
+    movement: card.querySelector('.smov')?.value||'STATIC',
+    lighting: card.querySelector('.sls')?.value||'NATURAL',
+    status:   card.querySelector('.sstatus')?.textContent?.trim()||'DRAFT',
+    imgSrc:   img?.src?.startsWith('data:image')?img.src:null,
+    canvasData,
+  };
+}
+
+// Re-draw saved canvas data onto a rebuilt card
+function restoreCanvasData(card, dataURL) {
+  if(!dataURL) return;
+  const cv=card.querySelector('.sdc');
+  if(!cv) return;
+  const img=new Image();
+  img.onload=()=>requestAnimationFrame(()=>{
+    if(!cv.width){cv.width=400;cv.height=225;}
+    cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+  });
+  img.src=dataURL;
+}
+
+// Apply a named status to a .sstatus badge element
+function applyStatus(el, lbl) {
+  const map={DRAFT:{bg:'rgba(71,85,105,.35)',col:'#64748B',br:'#334155'},APPROVED:{bg:'rgba(16,185,129,.18)',col:'#34D399',br:'#065F46'},VFX:{bg:'rgba(139,92,246,.2)',col:'#A78BFA',br:'#5B21B6'},PICKUP:{bg:'rgba(251,191,36,.18)',col:'#FCD34D',br:'#92400E'},CUT:{bg:'rgba(239,68,68,.18)',col:'#F87171',br:'#7F1D1D'}};
+  const m=map[lbl]||map.DRAFT;
+  el.textContent=lbl;el.style.background=m.bg;el.style.color=m.col;el.style.borderColor=m.br;
+}
+
+// Normalize scene heading for matching (uppercase, collapse spaces, strip time-of-day suffix)
+function normHeading(s) { return (s||'').toUpperCase().replace(/\s+/g,' ').trim(); }
+function baseHeading(s) { return normHeading(s).replace(/\s*[-–—]\s*(DAY|NIGHT|DUSK|DAWN|MORNING|EVENING|AFTERNOON|CONTINUOUS|LATER|MOMENTS LATER|SAME).*$/,'').trim(); }
+
+// ========== FROM SCRIPT (rules-based fresh generation) ==========
+function generateSBFromScript() {
+  const r=document.getElementById('script-editable-node-rows-stack');
+  if(!r) return toast('Open the Writer and load a script first.');
+  const scenes=parseScriptScenes(r);
+  if(!scenes.length) return toast('No scenes found. Format headings as SCENE_HEADING first.');
+  const c=document.getElementById('sbcc');
+  if(!c) return;
+  c.innerHTML='';
   document.getElementById('sbe').classList.add('hidden');
   document.getElementById('sbg').classList.remove('hidden');
-  scenes.slice(0, 24).forEach((s, i) => {
-    addFrame({ scene: s.scene, action: s.action.slice(0, 120), dialogue: s.dialogue, shotType: i===0?'WS':'MS', angle: 'eye', movement: 'static' });
+  scenes.slice(0,36).forEach(s=>{
+    const inferred=inferShot(s.scene,s.action);
+    addFrame({scene:s.scene,chars:s.chars,action:s.action.slice(0,120),size:inferred.size,angle:inferred.angle,movement:inferred.movement,lighting:inferred.lighting});
   });
   updSBHUD();
   recSBH('Generate from Script');
-  toast(`Generated ${Math.min(scenes.length, 24)} storyboard frames from script.`);
+  toast(`Generated ${Math.min(scenes.length,36)} frames — shots inferred by rules engine.`);
+}
+
+// ========== SYNC BOARD TO SCRIPT (reconcile existing board with updated script) ==========
+function syncBoardToScript() {
+  const r=document.getElementById('script-editable-node-rows-stack');
+  if(!r) return toast('Open the Writer and load a script first.');
+  const scriptScenes=parseScriptScenes(r);
+  if(!scriptScenes.length) return toast('No scenes found in script.');
+
+  // Build lookup: normalized heading → script index
+  const exact={}, base={};
+  scriptScenes.forEach((s,i)=>{ exact[normHeading(s.scene)]=i; base[baseHeading(s.scene)]=i; });
+
+  // Match each board frame to a script scene
+  const c=document.getElementById('sbcc');
+  if(!c) return;
+  const boardData=Array.from(c.children).map(extractFrameData);
+
+  boardData.forEach(f=>{
+    const ek=normHeading(f.scene), bk=baseHeading(f.scene);
+    if(exact[ek]!==undefined)      { f._si=exact[ek]; f._ok=true; }
+    else if(base[bk]!==undefined)  { f._si=base[bk];  f._ok=true; }
+    else {
+      // Fuzzy: does any script heading start with the same base location token?
+      const loc=bk.split(' - ')[0];
+      const fuzz=Object.keys(base).find(k=>k.startsWith(loc)&&loc.length>4);
+      if(fuzz!==undefined){ f._si=base[fuzz]; f._ok=true; }
+      else { f._si=9999; f._ok=false; }
+    }
+  });
+
+  // Find script scenes with no matching board frame → new frames needed
+  const covered=new Set(boardData.filter(f=>f._ok).map(f=>f._si));
+  const newFrames=[];
+  scriptScenes.forEach((s,i)=>{
+    if(!covered.has(i)){
+      const inf=inferShot(s.scene,s.action);
+      newFrames.push({_si:i,_ok:true,_isNew:true,scene:s.scene,chars:s.chars,action:s.action.slice(0,120),size:inf.size,angle:inf.angle,movement:inf.movement,lighting:inf.lighting,status:'DRAFT',imgSrc:null,canvasData:null});
+    }
+  });
+
+  // Sort: matched frames by script order, orphans last
+  const all=[...boardData,...newFrames].sort((a,b)=>a._si-b._si);
+
+  // Rebuild board
+  c.innerHTML='';
+  document.getElementById('sbe').classList.add('hidden');
+  document.getElementById('sbg').classList.remove('hidden');
+
+  all.forEach(f=>{
+    addFrame(f);
+    const card=c.lastElementChild;
+    if(f.canvasData) restoreCanvasData(card,f.canvasData);
+    const statusEl=card.querySelector('.sstatus');
+    const finalStatus=f._ok?f.status:'CUT';
+    if(statusEl&&finalStatus!=='DRAFT') applyStatus(statusEl,finalStatus);
+  });
+
+  updSBHUD();
+  recSBH('Sync Board to Script');
+
+  const orphaned=boardData.filter(f=>!f._ok).length;
+  const added=newFrames.length;
+  const kept=boardData.filter(f=>f._ok).length;
+  toast(`Sync done — ${kept} kept/reordered · ${added} new · ${orphaned} orphaned (CUT)`);
+}
+
+// ========== EXPORT BOARD AS PRODUCTION SCRIPT ==========
+function exportBoardAsScript() {
+  const c=document.getElementById('sbcc');
+  if(!c||!c.children.length) return toast('No frames to export.');
+  const name=(typeof S!=='undefined'&&S.projectName)||'Untitled';
+  const date=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  let out=`ROOKS PRODUCTIONS\nBOARD-TO-SCRIPT EXPORT\nProject: ${name}\nDate: ${date}\n${'='.repeat(60)}\n\n`;
+  Array.from(c.children).forEach((card,i)=>{
+    const d=extractFrameData(card);
+    const st=card.querySelector('.sstatus')?.textContent?.trim()||'DRAFT';
+    out+=`FRAME ${String(i+1).padStart(2,'0')} [${st}]\n`;
+    out+=`${d.scene}\n`;
+    if(d.chars) out+=`CHARACTERS: ${d.chars}\n`;
+    out+=`\n  ${d.action}\n\n`;
+    out+=`  SHOT: ${d.size}  ANGLE: ${d.angle}  MOVE: ${d.movement}  LIGHT: ${d.lighting}\n`;
+    if(d.imgSrc)     out+=`  [VISUAL REFERENCE ATTACHED]\n`;
+    if(d.canvasData) out+=`  [SKETCH DRAWING PRESENT]\n`;
+    out+=`\n${'─'.repeat(60)}\n\n`;
+  });
+  const bl=new Blob([out],{type:'text/plain'}),u=URL.createObjectURL(bl),a=document.createElement('a');
+  a.href=u;a.download=name.replace(/\s+/g,'_')+'_Board_Script.txt';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);
+  toast('Board exported as production script.');
 }
 
 // ========== BUDGET ==========
