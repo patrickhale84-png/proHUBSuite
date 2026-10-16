@@ -16,7 +16,7 @@
 body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;display:flex;flex-direction:column;height:100vh;overflow:hidden;font-size:13px;}
 ::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:#1E2A3A;border-radius:2px;}
 /* TOPBAR */
-.tmb{height:48px;background:var(--bg2);display:flex;align-items:center;padding:0 14px;border-bottom:1px solid var(--bd);gap:10px;flex-shrink:0;z-index:50;}
+.tmb{position:sticky;top:0;z-index:100;height:48px;background:var(--bg2);display:flex;align-items:center;padding:0 14px;border-bottom:1px solid var(--bd);gap:10px;flex-shrink:0;z-index:50;}
 .logo{font-family:var(--fds);font-weight:900;font-size:15px;color:#fff;letter-spacing:.1em;display:flex;align-items:center;gap:8px;}
 .logo .hub{color:var(--acc);}
 /* LAYOUT */
@@ -124,6 +124,28 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
   .psl-tbl-wrap,.tbl-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;}
   .col-move,.col-lens{display:none!important;}
   .tmb{flex-wrap:wrap!important;height:auto!important;padding:6px 10px!important;}
+}
+/* ===== MOBILE FIXES ===== */
+@media(max-width:768px){
+  body{overflow-y:auto!important;height:auto!important;}
+  .apc{overflow:visible!important;flex-direction:column!important;height:auto!important;}
+  .mw{overflow:visible!important;}
+  .vs{display:none!important;min-height:auto!important;overflow-y:auto!important;}
+  .vs.ac{display:flex!important;flex-direction:column!important;overflow-y:auto!important;min-height:100svh!important;}
+  .tmb{flex-wrap:wrap!important;height:auto!important;padding:6px 10px!important;gap:6px!important;}
+  .psb{position:fixed!important;top:48px!important;bottom:0!important;left:0!important;
+       width:240px!important;transform:translateX(-100%)!important;z-index:200!important;
+       overflow-y:auto!important;transition:transform .25s!important;}
+  .psb.mo{transform:translateX(0)!important;}
+  /* Topbar mobile back/menu button */
+  #mob-prohub-menu{display:flex!important;}
+  /* Tables */
+  .tbl-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;}
+  /* Grid cards: 1 col */
+  .grid-4,.stats-grid{grid-template-columns:1fr 1fr!important;}
+}
+@media(max-width:480px){
+  .grid-4,.stats-grid{grid-template-columns:1fr!important;}
 }
 </style>
 </head>

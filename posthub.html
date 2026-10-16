@@ -89,6 +89,35 @@ input:focus,textarea:focus{border-color:var(--purple)}
   .btn.sm{padding:5px 8px!important;font-size:13px!important;min-height:40px!important;}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ===== MOBILE FIXES ===== */
+@media(max-width:768px){
+  body{overflow-y:auto!important;}
+  .topbar{position:sticky!important;top:0!important;z-index:300!important;flex-wrap:wrap!important;padding:8px 10px!important;}
+  .tright{flex-wrap:wrap!important;gap:6px!important;}
+  /* Main scroll area */
+  main, #ph-main{overflow-y:auto!important;}
+  /* Desk overlay panels */
+  .phd, [class*="desk-"]{overflow-y:auto!important;}
+  /* Dialog: full screen */
+  .dlg{max-width:100vw!important;max-height:100dvh!important;border-radius:0!important;margin:0!important;}
+  .dlg .db{max-height:calc(100dvh - 140px)!important;}
+  /* Tile grid: 1-2 col */
+  .tiles{grid-template-columns:repeat(2,1fr)!important;padding:10px!important;gap:8px!important;}
+  .tile{min-height:100px!important;}
+  /* Action buttons always visible at top */
+  .mob-sticky-actions{display:flex!important;position:sticky!important;top:0!important;z-index:100!important;
+    background:var(--bar,#070C15)!important;border-bottom:1px solid var(--line,#1B2436)!important;
+    padding:6px 10px!important;gap:6px!important;flex-wrap:wrap!important;}
+  /* ph-workspace grid: stack on mobile */
+  .ph-workspace{grid-template-columns:1fr!important;grid-template-rows:auto auto auto 200px!important;overflow-y:auto!important;}
+  .ph-panel{min-height:160px!important;}
+  .ph-timeline{grid-column:auto!important;}
+}
+@media(max-width:480px){
+  .tiles{grid-template-columns:1fr!important;}
+  .btn{min-height:44px!important;font-size:14px!important;}
+  .topbar .brand{font-size:20px!important;}
+}
 </style>
 </head>
 <body>

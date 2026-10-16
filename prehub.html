@@ -15,7 +15,7 @@
 *{box-sizing:border-box;}
 body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;display:flex;flex-direction:column;height:100vh;overflow:hidden;font-size:13px;-webkit-tap-highlight-color:transparent;}
 ::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--bg-bar);border-radius:3px;}
-.tmb{min-height:52px;background:var(--bg-bar);display:flex;align-items:center;padding:6px 14px;border-bottom:1px solid var(--bd);gap:10px;flex-shrink:0;z-index:50;}
+.tmb{position:sticky;top:0;z-index:100;min-height:52px;background:var(--bg-bar);display:flex;align-items:center;padding:6px 14px;border-bottom:1px solid var(--bd);gap:10px;flex-shrink:0;z-index:50;}
 .apc{display:flex;flex-grow:1;height:calc(100vh - 52px);overflow:hidden;}
 .psb{width:248px;background:var(--bg-sb);border-right:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;transition:width .3s,transform .3s;z-index:60;}
 .psb.cl{width:0;overflow:hidden;}
@@ -492,6 +492,41 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       .psl-col-thumb{width:40px!important;}
       .psl-col-thumb img{width:36px!important;height:25px!important;}
     }
+    /* ===== MOBILE FIXES ===== */
+    @media(max-width:768px){
+      /* Un-trap body on mobile — allow page to scroll */
+      body{overflow-y:auto!important;height:auto!important;}
+      .apc{height:auto!important;overflow:visible!important;flex-direction:column!important;}
+      /* Views: full-height block, scrollable */
+      .vs{overflow-y:auto!important;min-height:100svh!important;display:none!important;}
+      .vs.ac{display:flex!important;flex-direction:column!important;}
+      /* Main content area scrolls */
+      .mw{overflow:visible!important;flex:1!important;}
+      /* Sidebar overlay on mobile */
+      .psb{position:fixed!important;top:52px!important;bottom:0!important;left:0!important;
+           width:270px!important;transform:translateX(-100%)!important;z-index:200!important;
+           overflow-y:auto!important;transition:transform .25s!important;}
+      .psb.mo{transform:translateX(0)!important;}
+      /* Show a close overlay when sidebar open */
+      .psb-overlay{display:block!important;}
+      /* Topbar: wrap and shrink */
+      .tmb{flex-wrap:wrap!important;min-height:auto!important;padding:6px 10px!important;gap:6px!important;}
+      /* Writer section: scrollable, not trapped */
+      #v-writer{overflow-y:auto!important;height:auto!important;min-height:100svh!important;}
+      .esr{flex:none!important;overflow-y:visible!important;padding:12px 4px 60px!important;}
+      /* Script paper: narrower on mobile */
+      .pp{padding:14px 10px!important;width:100%!important;max-width:100%!important;}
+      /* Mobile-only back button inside writer */
+      #mob-writer-back{display:flex!important;}
+      /* Dashboard tiles: 2 col */
+      .mtile-grid,.mtiles{grid-template-columns:repeat(2,1fr)!important;}
+    }
+    @media(max-width:480px){
+      .pp{padding:12px 6px!important;font-size:10pt!important;}
+      .ech{padding-left:10%!important;}
+      .edl{padding-left:5%!important;padding-right:5%!important;}
+      .epn{padding-left:8%!important;padding-right:8%!important;}
+    }
 </style>
 </head>
 <body>
@@ -708,7 +743,12 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 </section>
 
 <!-- VIEW 1: SCREENWRITER STUDIO -->
-<section id="v-writer" class="vs" style="background:#090D16; flex:1; overflow:hidden;">
+<section id="v-writer" class="vs" style="background:#090D16; flex:1; overflow-y:auto;">
+<!-- MOBILE BACK BUTTON (hidden on desktop) -->
+<div id="mob-writer-back" style="display:none;align-items:center;gap:8px;padding:8px 12px;background:#070A14;border-bottom:1px solid #1B2436;flex-shrink:0;">
+  <button onclick="document.querySelector('.nl[data-view=\'dashboard\']')&&document.querySelector('.nl[data-view=\'dashboard\']').click();document.getElementById('v-dashboard')&&(document.querySelectorAll('.vs').forEach(v=>v.classList.remove('ac')),document.getElementById('v-dashboard').classList.add('ac'))" style="background:#131A28;border:1px solid #26344E;color:#A3E635;padding:6px 14px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:system-ui;">← preHUB</button>
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8794A6;letter-spacing:.05em;">SCREENWRITER STUDIO</span>
+</div>
 <!-- DRAG AND DROP FILE INGEST OVERLAY -->
   <div id="dropzone-drag-overlay">
     <div class="w-20 h-20 rounded-full bg-purple-950/80 border-2 border-purple-400 flex items-center justify-center text-purple-300 text-3xl mb-4 animate-bounce">
@@ -719,7 +759,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
   </div>
 
   <!-- STANDARD SYSTEM BAR TOP CONTAINER -->
-  <header class="bg-[#0A0E17] border-b border-slate-900 px-4 py-1.5 flex items-center justify-between shrink-0 sans-ui select-none z-30">
+  <header class="bg-[#0A0E17] border-b border-slate-900 px-4 py-1.5 flex items-center justify-between shrink-0 sans-ui sticky top-0 z-40 select-none z-30">
     <div class="flex items-center gap-6">
       <!-- preHUB Bauhaus Vector Brand Logo -->
       <div class="h-6 w-24 flex items-center justify-start select-none cursor-pointer" onclick="location.reload()">
@@ -855,7 +895,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
   </header>
 
   <!-- SPECIALIZED HIGH-DENSITY EDITING CONTROLS TOOLBAR RIBBON -->
-  <div id="quick-action-ribbon" class="bg-[#0B0F19] border-b border-slate-800/80 px-4 py-1.5 flex items-center justify-between shrink-0 sans-ui text-xs text-slate-300 select-none overflow-x-auto custom-scroll gap-4">
+  <div id="quick-action-ribbon" class="bg-[#0B0F19] border-b border-slate-800/80 px-4 py-1.5 sticky top-[52px] z-30 flex items-center justify-between shrink-0 sans-ui text-xs text-slate-300 select-none overflow-x-auto custom-scroll gap-4">
     <!-- Clipboard & Selection Group -->
     <div class="flex items-center gap-1 shrink-0">
       <button id="ribbon-btn-select-all" title="Select All (⌘A)" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[11px] font-mono flex items-center gap-1.5 transition">
