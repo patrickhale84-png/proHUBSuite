@@ -144,15 +144,37 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
 .desk-hd h2 { font-family: var(--fd); font-size: 20px; color: #fff; margin: 0; }
 .desk-bd { padding: 16px; }
 
-/* Mobile Touch & Layout overrides */
+/* ===== MOBILE FIXES ===== */
 @media(max-width: 768px) {
-  .nle-grid { grid-template-columns: 1fr !important; grid-template-rows: 180px 220px 240px !important; overflow-y: auto; }
+  /* Unlock body — posthub sets overflow:hidden globally */
+  html, body { overflow-y: auto !important; height: auto !important; }
+  /* Workspace fills height, allows scroll */
+  .workspace { height: auto !important; overflow-y: auto !important; }
+  /* Topbar: stack vertically, wrap buttons */
+  .topbar { flex-direction: column !important; align-items: stretch !important; height: auto !important; padding: 6px 8px !important; gap: 6px !important; }
+  .topbar > div, .topbar > a, .topbar > button { flex-wrap: wrap !important; }
+  /* NLE grid: single column, each panel auto height */
+  .nle-grid { grid-template-columns: 1fr !important; grid-template-rows: auto !important; overflow-y: auto !important; height: auto !important; }
+  .nle-grid .nle-panel { min-height: 200px; }
+  /* Hide source + text-edit panels on mobile; show master only */
   #panelSource { display: none !important; }
   #panelTextEdit { display: none !important; }
-  #panelMaster { display: flex !important; }
-  .tl-area { grid-column: auto; }
-  .topbar { flex-direction: column; align-items: stretch; height: auto; padding: 8px; }
+  #panelMaster { display: flex !important; min-height: 240px !important; }
+  /* Timeline spans full width */
+  .tl-area { grid-column: auto !important; min-height: 180px; }
+  /* Launchpad tiles: 1 col */
   .tiles { grid-template-columns: 1fr !important; }
+  /* Hide non-essential topbar controls to save space */
+  #btnProhubConform, #btnExportXml, #btnExportEdl { display: none !important; }
+  /* Keep fps + timecode + ingest visible but compact */
+  #fpsSelect { max-width: 90px; }
+  /* Layout mode buttons compact */
+  .btn.sm { font-size: 10px !important; padding: 3px 6px !important; }
+}
+@media(max-width: 480px) {
+  /* Further collapse topbar on very small phones */
+  #layoutDual, #layoutSingle, #layoutText { font-size: 9px !important; padding: 2px 5px !important; }
+  #masterTcChip { display: none !important; }
 }
 </style>
 </head>
