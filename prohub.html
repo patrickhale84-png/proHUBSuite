@@ -158,8 +158,15 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
   /* Grid cards: 1 col */
   .grid-4,.stats-grid{grid-template-columns:1fr 1fr!important;}
 }
+@media(max-width:768px){
+  .dash-inner{padding:16px 14px!important;}
+  .tile-grid{grid-template-columns:repeat(2,1fr)!important;gap:10px!important;}
+  .stats-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px!important;}
+  .mtile{min-height:90px!important;}
+}
 @media(max-width:480px){
-  .grid-4,.stats-grid{grid-template-columns:1fr!important;}
+  .tile-grid{grid-template-columns:1fr!important;}
+  .stats-grid{grid-template-columns:repeat(2,1fr)!important;}
 }
 </style>
 </head>
@@ -213,7 +220,7 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
 
 <!-- DASHBOARD -->
 <section id="v-dashboard" class="vs ac" style="background:#08090F;overflow-y:auto;">
-<div style="max-width:960px;margin:0 auto;width:100%;padding:28px 24px;">
+<div class="dash-inner" style="max-width:960px;margin:0 auto;width:100%;padding:28px 24px;">
   <div style="margin-bottom:24px;border-bottom:1px solid #1E2A3A;padding-bottom:18px;">
     <h1 style="font-family:var(--fds);font-weight:900;font-size:24px;letter-spacing:.08em;color:#fff;text-transform:uppercase;">Production Hub</h1>
     <p style="font-size:11px;color:var(--mu);margin-top:4px;">Shot list · One-liner strip · Master script · Call sheets · Dailies</p>
@@ -225,7 +232,7 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
       <div style="font-size:10px;color:var(--mu);" id="bn-sub">Loaded scenes and script data from preHUB.</div>
     </div>
   </div>
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;">
+  <div class="tile-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;">
     <div class="mtile" style="background:linear-gradient(135deg,#92400E,#D97706);" onclick="sw('shotlist')">
       <div class="mbadge">MASTER LIST</div>
       <div class="micon"><i class="fa-solid fa-list-ol"></i></div>
@@ -258,7 +265,7 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
     </div>
   </div>
   <!-- Quick stats -->
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+  <div class="stats-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
     <div style="background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center;">
       <div style="font-size:24px;font-weight:900;color:var(--acc);font-family:var(--fsc);" id="qs-shots">0</div>
       <div style="font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;">Total Shots</div>
