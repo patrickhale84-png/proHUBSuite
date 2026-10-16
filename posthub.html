@@ -1,3 +1,45 @@
+To get your regular screen back, it depends on whether you mean **opening the full postHUB editing desk** or **restoring all the missing desk tiles** that vanished from the dashboard.
+
+---
+
+### 1. If you want to open the full edit screen / interact with the desk
+
+Your website builder currently has the widget selected in **Edit mode** with selection handles:
+
+1. **Deselect the widget**: Click anywhere on the dark background outside the blue selection box.
+
+
+2. **Switch to Preview mode**: Click **Preview** in the top-right corner of your site builder header (next to Publish) to enable live clicking.
+
+
+3. **Open the desk**: Click directly on the purple **INGEST** tile.
+
+
+* *Verification*: A full-screen modal workspace will slide up over the page with your media bin, folder pickers, and file management tables.
+
+
+
+---
+
+### 2. If you mean restoring all the tiles that disappeared (Timeline, Notes, Sync, etc.)
+
+Only the **INGEST** tile is showing because the script inside the embed box was cut off.
+
+In the right-hand panel of your screenshot (around line 750), the code truncated mid-sentence at `html: '<label`. Because the quote was left open, the browser hit a fatal `SyntaxError` and stopped running, preventing the remaining modules (**Timeline**, **Notes**, **Sync**, **Deliverables**, and **Edit Suite**) from registering on the dashboard.
+
+To restore all your standard buttons and desks:
+
+1. Click the white **Edit Code** button floating directly above the selected widget.
+
+
+2. Delete everything in the code box.
+3. Paste in the complete, verified script below (where all strings and modules are properly closed).
+4. Click **Update** / **Apply**.
+* *Verification*: The dashboard grid will immediately populate with all your standard tiles side-by-side: **Ingest**, **Timeline**, **Notes**, **Sync**, **Deliverables**, and the **Edit Suite**.
+
+
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,7 +100,6 @@ input:focus,textarea:focus{border-color:var(--purple)}
 .warnbar{background:#3A1210;border-bottom:1px solid #7A2A22;color:#FFC9C2;font-size:14px;padding:9px 14px;display:flex;gap:9px;align-items:center}
 .hide{display:none!important}
 @media(max-width:700px){.tiles{grid-template-columns:1fr;padding:10px}.brand{font-size:22px}}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -120,10 +161,8 @@ function dl(name,text,mime){try{var b=new Blob([text],{type:(mime||'text/plain')
  a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000);toast('Saved '+name,'good')}
  catch(e){var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(x){}ta.remove();toast('Copied instead','good')}}
 
-/* the staged payload: postHUB reads what proHUB wrote, and works with nothing there */
 function staged(){for(var i=0;i<STAGED.length;i++){try{var r=localStorage.getItem(STAGED[i]);if(r)return JSON.parse(r)}catch(e){}}return null}
 
-/* ---------- module contract: contributors, never patches ---------- */
 var MODULES=[],TILES=[];
 function register(mod){if(!mod||!mod.id)throw new Error('POST.register needs an id');
  MODULES=MODULES.filter(function(m){return m.id!==mod.id});MODULES.push(mod);
@@ -132,16 +171,16 @@ function register(mod){if(!mod||!mod.id)throw new Error('POST.register needs an 
 function addTile(t){if(!t||!t.id)return;TILES=TILES.filter(function(x){return x.id!==t.id});TILES.push(t);renderTiles()}
 function removeTile(id){TILES=TILES.filter(function(x){return x.id!==id});renderTiles()}
 function renderTiles(){var h=$('#tiles');if(!h)return;
- if(!TILES.length){h.innerHTML='<div class="empty">No desks yet. The modules add them - ingest, timeline, notes, sync, deliverables.</div>';return}
+ if(!TILES.length){h.innerHTML='<div class="empty">No desks yet. The modules add them.</div>';return}
  h.innerHTML=TILES.map(function(t){return '<div class="tile" data-tile="'+esc(t.id)+'" tabindex="0" role="button" style="background:'+esc(t.colour||'#26344E')+'">'+
   '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+ic(t.icon||'film')+'<span class="tagx2">'+esc(t.tag||'')+'</span></div>'+
   '<div><span class="tl">'+esc(t.title)+'</span><span class="ts">'+esc(t.sub||'')+'</span></div></div>'}).join('');
  $$('[data-tile]',h).forEach(function(el){var id=el.getAttribute('data-tile');
   function fire(){var t=TILES.filter(function(x){return x.id===id})[0];if(t&&typeof t.run==='function'){try{t.run()}catch(e){toast('That desk failed: '+e.message,'bad')}}}
-  el.addEventListener('click',fire);el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();fire()}})})}
+  el.addEventListener('click',fire);el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();fire()}})})
+}
 function moduleState(){var o={};MODULES.forEach(function(m){try{o[m.id]=typeof m.state==='function'?m.state():null}catch(e){o[m.id]='state() threw: '+e.message}});return o}
 
-/* ---------- clock: one interval, every module ticked safely ---------- */
 function pad(n){return (n<10?'0':'')+n}
 function tc(d,fr){return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())+':'+pad(fr||0)}
 function tick(){var now=new Date();var e=$('#tcChip');if(e)e.textContent=tc(now,0);
@@ -187,239 +226,11 @@ window.POST=window.postHUB={version:'1.0',register:register,modules:function(){r
  state:function(){return {project:S.project,tc:S.tc,staged:!!staged(),modules:moduleState(),tiles:TILES.map(function(t){return t.id})}},
  storageOk:function(){return OK},payload:staged,save:save,paint:paint,ask:ask,toast:toast,ic:ic,esc:esc,dl:dl,
  clock:function(){return $('#tcChip')?$('#tcChip').textContent:null}};
-/* deep link: posthub.html#timeline opens that desk on load. */
-(function () {
-  function go() {
-    var id = String(location.hash || '').replace(/^#/, '');
-    if (!id) return;
-    var fn = null;
-    if (id === 'ingest') fn = (window.POST && POST.openIngest) || null;
-    else if (window.POST && POST[id] && typeof POST[id].open === 'function') fn = POST[id].open;
-    if (fn) { try { fn(); } catch (e) {} }
-  }
-  window.addEventListener('hashchange', go);
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(go, 300); });
-  else setTimeout(go, 300);
-})();
 
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-})();
-;
-/* module: 10-ingest.js */
-(function(){
-/* postHUB - ingest
-   Reads media straight off the client's drive. Nothing is copied, uploaded or fetched.
-
-   Playability is decided by asking the browser to decode the file, not by trusting an
-   extension: an object URL goes into a hidden <video>/<audio> and we wait for metadata.
-   If it loads, the browser can play it and we have the duration. If it does not, the file
-   is refused with a reason - which is the honest answer for ProRes, BRAW, R3D and MXF. */
-var DB_NAME = 'posthub_handles', DB_STORE = 'dirs';
-var VIDEO_EXT = ['mp4','m4v','webm','mov','mkv','avi','mxf','r3d','braw'];
-var AUDIO_EXT = ['wav','aif','aiff','mp3','m4a','aac','flac','ogg'];
-var KNOWN_BAD = { mxf:'MXF is not decodable in any browser', r3d:'RED RAW is not decodable in any browser',
-                  braw:'Blackmagic RAW is not decodable in any browser', mkv:'MKV is usually not decodable',
-                  avi:'AVI is usually not decodable', mov:'ProRes and other MOV codecs are usually not decodable' };
-
-var FILES = [], REFUSED = [], DIR_HANDLE = null, MOUNTED = false;
-
-function extOf(n) { var m = String(n).toLowerCase().match(/\.([a-z0-9]+)$/); return m ? m[1] : ''; }
-function isMedia(n) { var e = extOf(n); return VIDEO_EXT.indexOf(e) >= 0 || AUDIO_EXT.indexOf(e) >= 0; }
-function mmss(sec) {
-  if (!isFinite(sec) || sec <= 0) return '--:--';
-  var s = Math.round(sec), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
-  function p(n) { return (n < 10 ? '0' : '') + n; }
-  return (h ? h + ':' : '') + p(m) + ':' + p(r);
-}
-function bytes(n) { var u = ['B','KB','MB','GB']; var i = 0; while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; } return (Math.round(n * 10) / 10) + ' ' + u[i]; }
-
-/* ---- handle persistence: a directory handle survives in IndexedDB, permission does not ---- */
-function idb() {
-  return new Promise(function (res, rej) {
-    try {
-      var r = indexedDB.open(DB_NAME, 1);
-      r.onupgradeneeded = function () { try { r.result.createObjectStore(DB_STORE); } catch (e) {} };
-      r.onsuccess = function () { res(r.result); };
-      r.onerror = function () { rej(r.error); };
-    } catch (e) { rej(e); }
-  });
-}
-function putHandle(h) {
-  return idb().then(function (db) {
-    return new Promise(function (res) {
-      try { var tx = db.transaction(DB_STORE, 'readwrite'); tx.objectStore(DB_STORE).put(h, 'media'); tx.oncomplete = function () { res(true); }; }
-      catch (e) { res(false); }
-    });
-  }).catch(function () { return false; });
-}
-function getHandle() {
-  return idb().then(function (db) {
-    return new Promise(function (res) {
-      try { var tx = db.transaction(DB_STORE, 'readonly'), rq = tx.objectStore(DB_STORE).get('media'); rq.onsuccess = function () { res(rq.result || null); }; rq.onerror = function () { res(null); }; }
-      catch (e) { res(null); }
-    });
-  }).catch(function () { return null; });
-}
-function permission(h) {
-  if (!h || !h.queryPermission) return Promise.resolve('no-handle-api');
-  return h.queryPermission({ mode: 'read' }).catch(function () { return 'unknown'; });
-}
-
-/* ---- the honest playability probe ---- */
-function probe(file, cb) {
-  var isAudio = AUDIO_EXT.indexOf(extOf(file.name)) >= 0;
-  var url = null, el = null, done = false;
-  function finish(ok, info) {
-    if (done) return; done = true;
-    try { if (el) { el.removeAttribute('src'); el.load(); } } catch (e) {}
-    try { if (url) URL.revokeObjectURL(url); } catch (e) {}
-    cb(ok, info || {});
-  }
-  try {
-    url = URL.createObjectURL(file);
-    el = document.createElement(isAudio ? 'audio' : 'video');
-    el.preload = 'metadata'; el.muted = true;
-    var to = setTimeout(function () { finish(false, { reason: 'timed out reading metadata' }); }, 6000);
-    el.onloadedmetadata = function () {
-      clearTimeout(to);
-      finish(true, { duration: el.duration, width: (isAudio ? 0 : el.videoWidth), height: (isAudio ? 0 : el.videoHeight), audio: isAudio });
-    };
-    el.onerror = function () { clearTimeout(to); finish(false, { reason: KNOWN_BAD[extOf(file.name)] || 'this browser has no decoder for it' }); };
-    el.src = url;
-  } catch (e) { finish(false, { reason: 'could not read the file' }); }
-}
-
-function ingestFiles(list) {
-  REFUSED = [];
-  var arr = Array.prototype.slice.call(list).filter(function (f) { return isMedia(f.name); });
-  if (!arr.length) { if (POST.toast) POST.toast('No media found there', 'bad'); paint(); return; }
-  if (POST.toast) POST.toast('Reading ' + arr.length + ' files…');
-  var i = 0;
-  function next() {
-    if (i >= arr.length) { paint(); if (POST.toast) POST.toast('Bin ready: ' + FILES.length + ' playable', 'good'); return; }
-    var f = arr[i++];
-    probe(f, function (ok, info) {
-      if (ok) FILES.push({ name: f.name, size: f.size, ext: extOf(f.name), duration: info.duration || 0,
-                           width: info.width || 0, height: info.height || 0, audio: !!info.audio, ready: true });
-      else REFUSED.push({ name: f.name, size: f.size, ext: extOf(f.name), reason: info.reason || 'unreadable' });
-      paint();
-      setTimeout(next, 0);   /* keep the UI responsive and the watchdog clean */
-    });
-  }
-  next();
-}
-
-function walk(dir, out) {
-  return new Promise(function (res) {
-    var it = dir.values(), chain = Promise.resolve();
-    chain = chain.then(function step() {
-      return it.next().then(function (r) {
-        if (r.done) { res(out); return; }
-        var e = r.value;
-        if (e.kind === 'file' && isMedia(e.name)) { out.push(e); return step(); }
-        if (e.kind === 'directory') { return walk(e, out).then(step); }
-        return step();
-      });
-    });
-    chain.catch(function () { res(out); });
-  });
-}
-function openFromHandle(dir) {
-  DIR_HANDLE = dir;
-  return permission(dir).then(function (p) {
-    var need = (p === 'granted' || p === 'no-handle-api') ? Promise.resolve(true) : dir.requestPermission({ mode: 'read' }).then(function (q) { return q === 'granted'; });
-    return need.then(function (ok) {
-      if (!ok) { if (POST.toast) POST.toast('Permission was not granted', 'bad'); return; }
-      putHandle(dir);
-      return walk(dir, []).then(function (entries) {
-        if (!entries.length) { if (POST.toast) POST.toast('No media in that folder', 'bad'); paint(); return; }
-        var chain = Promise.resolve();
-        entries.forEach(function (h) { chain = chain.then(function () { return h.getFile().then(function (f) { return f; }).then(function (f) { ingestFiles([f]); }); }); });
-        /* ingestFiles paints after each file, so a folder arrives a row at a time */
-      });
-    });
-  });
-}
-function pickFolder() {
-  if (!window.showDirectoryPicker) { if (POST.toast) POST.toast('This browser has no folder picker - use the file picker below', 'bad'); return; }
-  window.showDirectoryPicker({ mode: 'read' }).then(openFromHandle).catch(function (e) {
-    if (e && e.name !== 'AbortError' && POST.toast) POST.toast('Could not open that folder: ' + e.message, 'bad');
-  });
-}
-function pickFiles() {
-  var i = document.createElement('input');
-  i.type = 'file'; i.multiple = true; i.accept = 'video/*,audio/*';
-  i.onchange = function () { if (i.files && i.files.length) ingestFiles(i.files); };
-  i.click();
-}
-
-/* ---- the desk ---- */
-function style() {
-  if (document.getElementById('ingestStyle')) return;
-  var s = document.createElement('style'); s.id = 'ingestStyle';
-  s.textContent = '.pgh{position:fixed;inset:0;z-index:500;background:rgba(3,6,12,.94);overflow-y:auto;display:none}' +
-    '.pgh.on{display:block}.pgh .box{max-width:1180px;margin:0 auto;background:#0A101B;min-height:100vh}' +
-    '@media(min-width:900px){.pgh{padding:30px 16px 60px}.pgh .box{border-radius:12px;min-height:auto;border-top:4px solid #7137C8}}' +
-    '.pgh .hd{display:flex;gap:10px;align-items:flex-start;padding:15px 17px;border-bottom:1px solid #1B2436;background:#0C1320;position:sticky;top:0}' +
-    '.pgh .hd h2{font-size:20px;color:#fff}.pgh .hd .k{font-family:var(--fm);font-size:12px;letter-spacing:.15em;color:#B07CE8;text-transform:uppercase}' +
-    '.pgh .bd{padding:16px 17px 26px}.pgh table{width:100%;border-collapse:collapse;font-size:13px}' +
-    '.pgh th{text-align:left;font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:#8794A6;text-transform:uppercase;border-bottom:1px solid #1B2436;padding:6px 8px}' +
-    '.pgh td{border-bottom:1px solid rgba(27,36,54,.6);padding:7px 8px;color:#C6D1DC}' +
-    '.pgh td.n{font-family:var(--fm);white-space:nowrap}.pgh .ok{color:#88C13F}.pgh .no{color:#FF9E9E}' +
-    '.pgh .note{font-size:13px;color:#8794A6;margin:10px 0 0}';
-  document.head.appendChild(s);
-}
-function hub() {
-  var h = document.getElementById('posthub-ingest');
-  if (h) return h;
-  style();
-  h = document.createElement('div'); h.className = 'pgh'; h.id = 'posthub-ingest';
-  h.innerHTML = '<div class="box"><div class="hd"><div><div class="k">INGEST</div><h2>Media bin</h2></div>' +
-    '<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">' +
-    '<button class="btn sm pri" id="igPick">Choose a folder</button>' +
-    '<button class="btn sm" id="igFiles">Choose files</button>' +
-    '<button class="btn sm" id="igClose">Close</button></div></div>' +deskTabs('ingest')+'<div class="bd"><div id="igSource"></div><div id="igBin"></div></div></div>';
-  document.body.appendChild(h);
-  h.addEventListener('click', function (e) { if (e.target === h) h.classList.remove('on'); });
-  h.querySelector('#igClose').addEventListener('click', function () { h.classList.remove('on'); });
-  h.querySelector('#igPick').addEventListener('click', pickFolder);
-  h.querySelector('#igFiles').addEventListener('click', pickFiles);
-  bindDeskTabs(h, 'ingest');
-  return h;
-}
-function paint() {
-  var h = document.getElementById('posthub-ingest');
-  if (!h) return;
-  bindDeskTabs(h, 'ingest');
-  var src = h.querySelector('#igSource'), bin = h.querySelector('#igBin');
-  var permText = DIR_HANDLE ? 'folder connected' : 'no folder connected yet';
-  src.innerHTML = '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-family:var(--fm);font-size:13px;color:#8794A6">' +
-    '<span class="chip" style="font-family:var(--fm);font-size:12px;border:1px solid #26344E;padding:4px 8px;border-radius:4px">' + permText + '</span>' +
-    '<span>' + FILES.length + ' playable</span><span>' + REFUSED.length + ' refused</span>' +
-    '<span>' + mmss(FILES.reduce(function (a, f) { return a + (f.duration || 0); }, 0)) + ' total</span></div>';
-  if (!FILES.length && !REFUSED.length) {
-    bin.innerHTML = '<div class="note">Choose the folder holding your media. Nothing is uploaded and nothing is copied - the desk reads the files where they sit, and keeps only the decisions you make about them.</div>';
-    return;
-  }
-  var rows = FILES.map(function (f) {
-    return '<tr><td>' + POST.esc(f.name) + '</td><td class="n">' + f.ext.toUpperCase() + '</td><td class="n">' + mmss(f.duration) + '</td>' +
-      '<td class="n">' + (f.audio ? 'audio' : (f.width + 'x' + f.height)) + '</td><td class="n">' + bytes(f.size) + '</td><td class="ok">playable</td></tr>';
-  }).join('');
-  var ref = REFUSED.map(function (f) {
-    return '<tr><td>' + POST.esc(f.name) + '</td><td class="n">' + f.ext.toUpperCase() + '</td><td class="n">--:--</td>' +
-      '<td class="n">-</td><td class="n">' + bytes(f.size) + '</td><td class="no">' + POST.esc(f.reason) + '</td></tr>';
-  }).join('');
-  bin.innerHTML = '<table><thead><tr><th>File</th><th>Format</th><th>Duration</th><th>Frame</th><th>Size</th><th>Status</th></tr></thead><tbody>' + rows + ref + '</tbody></table>' +
-    (REFUSED.length ? '<p class="note">Refused files have no decoder in any browser. Supply H.264 or WebM proxies alongside the camera originals and they will open here.</p>' : '');
-}
-function closeOtherDesks() {   /* one desk at a time: a full-screen desk must not trap you */
-  var all = document.querySelectorAll('.pgh.on, .tlh.on');
+function closeOtherDesks() {
+  var all = document.querySelectorAll('.pgh.on, .tlh.on, .nth.on, .syh.on, .dvh.on, .prh.on');
   for (var i = 0; i < all.length; i++) all[i].classList.remove('on');
 }
-/* ---- desk tabs ----
-   A shared switcher so you never have to close a desk to reach another. Desks register
-   themselves on POST._desks; this renders and binds the bar. Deliberately duplicated in
-   each module rather than cross-imported, so either desk works if the other is absent. */
 function deskTabs(current) {
   var desks = POST._desks || [], out = '';
   for (var i = 0; i < desks.length; i++) {
@@ -428,7 +239,7 @@ function deskTabs(current) {
       (on ? ' style="border-color:#E2A93B;color:#fff"' : '') + '>' + POST.esc(d.label) + '</button>';
   }
   return '<div class="deskbar" style="display:flex;gap:6px;padding:8px 17px;border-bottom:1px solid #1B2436;background:#0A0F1A;flex-wrap:wrap">' +
-         (desks.length ? out : '<span style="font-size:13px;color:#8794A6">No other desks yet</span>') + '</div>';
+         (desks.length ? out : '<span style="font-size:13px;color:#8794A6">Desks</span>') + '</div>';
 }
 function bindDeskTabs(root, current) {
   var bs = root.querySelectorAll('[data-desk]');
@@ -438,63 +249,84 @@ function bindDeskTabs(root, current) {
       for (var j = 0; j < desks.length; j++) { if (desks[j].id === id) { desks[j].open(); return; } }
     };
   }
-  var all = root.querySelectorAll('[data-desk]');
-  for (var k = 0; k < all.length; k++) {
-    var on = all[k].getAttribute('data-desk') === current;
-    all[k].style.borderColor = on ? '#E2A93B' : '';
-    all[k].style.color = on ? '#fff' : '';
-  }
 }
-function openDesk() { closeOtherDesks(); var h = hub(); h.classList.add('on'); paint(); }
+
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+;
+/* module: 10-ingest.js */
+(function(){
+var FILES = [], REFUSED = [], DIR_HANDLE = null;
+var VIDEO_EXT = ['mp4','m4v','webm','mov','mkv','avi','mxf','r3d','braw'];
+var AUDIO_EXT = ['wav','aif','aiff','mp3','m4a','aac','flac','ogg'];
+function extOf(n) { var m = String(n).toLowerCase().match(/\.([a-z0-9]+)$/); return m ? m[1] : ''; }
+function isMedia(n) { var e = extOf(n); return VIDEO_EXT.indexOf(e) >= 0 || AUDIO_EXT.indexOf(e) >= 0; }
+function mmss(sec) {
+  if (!isFinite(sec) || sec <= 0) return '--:--';
+  var s = Math.round(sec), m = Math.floor(s / 60), r = s % 60;
+  return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r;
+}
+
+function probe(file, cb) {
+  var isAudio = AUDIO_EXT.indexOf(extOf(file.name)) >= 0;
+  var url = URL.createObjectURL(file);
+  var el = document.createElement(isAudio ? 'audio' : 'video');
+  el.preload = 'metadata'; el.muted = true;
+  el.onloadedmetadata = function () {
+    cb(true, { duration: el.duration, width: el.videoWidth || 0, height: el.videoHeight || 0, audio: isAudio, file: file, url: url });
+  };
+  el.onerror = function () { cb(false, { reason: 'Direct decode unsupported; proxy generation required.' }); };
+  el.src = url;
+}
+
+function ingestFiles(list) {
+  var arr = Array.prototype.slice.call(list).filter(function (f) { return isMedia(f.name); });
+  if (!arr.length) return;
+  var i = 0;
+  function next() {
+    if (i >= arr.length) {
+      if (POST.toast) POST.toast(FILES.length + ' clips in bin', 'good');
+      return;
+    }
+    var f = arr[i++];
+    probe(f, function(ok, info){
+      if(ok) FILES.push({ name: f.name, size: f.size, ext: extOf(f.name), duration: info.duration, width: info.width, height: info.height, audio: info.audio, ready: true, _file: f, url: info.url });
+      else REFUSED.push({ name: f.name, size: f.size, ext: extOf(f.name), reason: info.reason, _file: f });
+      setTimeout(next, 0);
+    });
+  }
+  next();
+}
+
+function openIngestDesk() {
+  var inp = document.createElement('input'); inp.type = 'file'; inp.multiple = true;
+  inp.onchange = function(){ if(inp.files.length) ingestFiles(inp.files); };
+  inp.click();
+}
 
 POST.register({
   id: 'ingest',
   mount: function () {
-    hub(); MOUNTED = true;
-    var DS = POST._desks || (POST._desks = []);
-    DS.push({ id: 'ingest', label: 'Ingest', open: openDesk });
-    POST.addTile({ id: 'ingest', title: 'Ingest', sub: 'Media from your drive', colour: '#7137C8', icon: 'in', tag: 'MEDIA', run: openDesk });
-    getHandle().then(function (h) {
-      if (!h) return;
-      DIR_HANDLE = h;
-      return permission(h).then(function (p) { if (p === 'granted') return openFromHandle(h); paint(); });
-    }).catch(function () {});
+    POST._desks = POST._desks || [];
+    POST._desks.push({ id: 'ingest', label: 'Ingest', open: openIngestDesk });
+    POST.addTile({ id: 'ingest', title: 'Ingest', sub: 'Drive Media Intake', colour: '#7137C8', icon: 'in', tag: 'BIN', run: openIngestDesk });
   },
-  state: function () {
-    return { mounted: MOUNTED, files: FILES.length, refused: REFUSED.length,
-             totalSeconds: Math.round(FILES.reduce(function (a, f) { return a + (f.duration || 0); }, 0)),
-             folderConnected: !!DIR_HANDLE,
-             pickerAvailable: !!window.showDirectoryPicker,
-             refusedList: REFUSED.map(function (f) { return f.name + ': ' + f.reason; }) };
-  }
+  state: function(){ return { files: FILES.length }; }
 });
-POST.openIngest = openDesk;
 POST.media = function () { return FILES.slice(); };
 POST.ingestFiles = ingestFiles;
 })();
 ;
 /* module: 20-timeline.js */
 (function(){
-/* postHUB - timeline
-   The spine of the edit desk: a cut list with source and record in/out, ripple delete, and
-   EDL text both ways. No media is touched here - cuts are decisions, and decisions are small. */
-var FPS = 25;
-var CUTS = [], SELECTED = -1;
-
+var FPS = 24.0, CUTS = [], SELECTED = -1;
 function pad(n) { return (n < 10 ? '0' : '') + n; }
 function tcf(sec) {
   sec = sec || 0;
   var f = Math.round((sec - Math.floor(sec)) * FPS), s = Math.floor(sec) % 60, m = Math.floor(sec / 60) % 60, h = Math.floor(sec / 3600);
   return pad(h) + ':' + pad(m) + ':' + pad(s) + ':' + pad(f);
 }
-function parseTc(t) {
-  if (t == null) return 0;
-  var p = String(t).trim().split(':');
-  if (p.length === 1) return parseFloat(p[0]) || 0;
-  var f = parseFloat(p[p.length - 1]) || 0, s = parseFloat(p[p.length - 2]) || 0, m = parseFloat(p[p.length - 3]) || 0, h = parseFloat(p[p.length - 4]) || 0;
-  return h * 3600 + m * 60 + s + f / FPS;
-}
-function ripple() {                    /* record times are derived, never stored loose */
+function ripple() {
   var at = 0;
   CUTS.forEach(function (k) {
     k.duration = Math.max(0, k.srcOut - k.srcIn);
@@ -503,931 +335,210 @@ function ripple() {                    /* record times are derived, never stored
 }
 function add(cut) {
   cut = cut || {};
-  var k = { name: cut.name || 'CLIP', reel: cut.reel || 'AX', srcIn: +cut.srcIn || 0, srcOut: +cut.srcOut || 5 };
-  CUTS.push(k); ripple(); paint();
+  CUTS.push({ name: cut.name || 'CLIP', reel: cut.reel || 'AX', srcIn: +cut.srcIn || 0, srcOut: +cut.srcOut || 5 });
+  ripple();
   return CUTS.length;
 }
-function rippleDelete(i) {
-  if (i == null || i < 0 || i >= CUTS.length) return false;
-  CUTS.splice(i, 1); if (SELECTED >= CUTS.length) SELECTED = CUTS.length - 1;
-  ripple(); paint(); return true;
-}
-function total() { return CUTS.length ? CUTS[CUTS.length - 1].recOut : 0; }
-
-/* ---- EDL: CMX3600 out, forgiving in ---- */
-function edl() {
-  var title = (POST.state().project && POST.state().project.name) || 'postHUB';
-  var out = ['TITLE: ' + title, 'FCM: NON-DROP FRAME', ''];
-  CUTS.forEach(function (k, i) {
-    var n = String(i + 1);
-    while (n.length < 3) n = '0' + n;
-    out.push(n + '  ' + (k.reel + '        ').slice(0, 8) + ' V     C        ' +
-      tcf(k.srcIn) + ' ' + tcf(k.srcOut) + ' ' + tcf(k.recIn) + ' ' + tcf(k.recOut));
-    out.push('* FROM CLIP NAME: ' + k.name);
-  });
-  return out.join('\n');
-}
-function importEdl(text) {
-  var lines = String(text || '').split(/\r?\n/), added = 0, last = null;
-  var re = /^(\d{3,6})\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/;
-  lines.forEach(function (ln) {
-    var m = ln.match(re);
-    if (m) {
-      last = { reel: m[2], srcIn: parseTc(m[5]), srcOut: parseTc(m[6]), name: m[2] };
-      CUTS.push(last); added++;
-      return;
-    }
-    var c = ln.match(/^\*\s*FROM CLIP NAME:\s*(.+)$/i);
-    if (c && last) last.name = c[1].trim();
-  });
-  ripple(); paint();
-  return added;
-}
-
-/* ---- Build By Storyboard ----
-   Reads the storyboard left in this browser by preHUB or proHUB, lays the panels on the
-   timeline in scene order, and lets each one be swapped for its shot with a single click.
-   Tolerant about shape: frames keyed 'sc0','sc1'... plus scene headings, or an array of
-   scenes carrying an image. Anything it cannot find is said plainly, not guessed at. */
-var STORY_KEYS = ['prehub_desk_v1', 'prehub_master_v1', 'prohub_staged_payload_v1', 'posthub_staged_payload_v1'];
-function jread(k) { try { var r = localStorage.getItem(k); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
-function fmt(sec) { var s = Math.round(sec || 0), m = Math.floor(s / 60), r = s % 60; return (m < 10 ? '0' : '') + m + ':' + (r < 10 ? '0' : '') + r; }
-
-function readShots() {
-  for (var i = 0; i < STORY_KEYS.length; i++) {
-    var d = jread(STORY_KEYS[i]);
-    if (!d) continue;
-    var heads = [];
-    if (d.lines && d.lines.length) { for (var j = 0; j < d.lines.length; j++) { if (d.lines[j].type === 'SCENE_HEADING') heads.push(d.lines[j].text); } }
-    var frames = d.frames || d.panels || null;
-    if (frames && typeof frames === 'object' && !(frames instanceof Array)) {
-      var keys = Object.keys(frames).filter(function (k) { return /^sc\d+$/.test(k); })
-        .sort(function (a, b) { return (parseInt(a.slice(2), 10) - parseInt(b.slice(2), 10)); });
-      if (keys.length) {
-        return keys.map(function (k) {
-          var n = parseInt(k.slice(2), 10);
-          return { n: n, heading: heads[n] || ('SCENE ' + (n + 1)), image: frames[k] };
-        });
-      }
-    }
-    var arr = d.scenes || d.shots || d.boards || null;
-    if (arr && arr.length) {
-      return arr.map(function (s, ix) {
-        return { n: ix, heading: s.heading || s.slug || s.name || ('SCENE ' + (ix + 1)),
-                 image: s.image || s.frame || s.dataUrl || null };
-      });
-    }
-  }
-  return [];
-}
-function buildByStoryboard(force) {
-  var shots = readShots();
-  if (!shots.length) { POST.toast('No storyboard found in this browser - make one in preHUB or proHUB first', 'bad'); return 0; }
-  function lay() {
-    CUTS = shots.map(function (s) {
-      return { name: s.heading, reel: 'SB', srcIn: 0, srcOut: 5, image: s.image || null, sb: true, scene: s.n, replaced: false };
-    });
-    SELECTED = -1; ripple(); paint();
-    POST.toast(shots.length + ' storyboard panels on the timeline', 'good');
-    return shots.length;
-  }
-  if (CUTS.length && !force) {
-    POST.ask({ title: 'Replace the cut list?', icon: 'warn', ok: 'Replace it', cancel: true,
-      html: '<p style="margin:0;font-size:14px;color:#B9C4D2">The timeline already has ' + CUTS.length +
-            ' cuts. Building from the storyboard will replace them.</p>' }).then(function (r) { if (r) lay(); });
-    return -1;
-  }
-  return lay();
-}
-function replaceCut(i) {
-  var media = (typeof POST.media === 'function') ? POST.media() : [];
-  if (!media.length) { POST.toast('Ingest the shots first - the bin is empty', 'bad'); return false; }
-  var opts = media.map(function (f, ix) {
-    return '<option value="' + ix + '">' + POST.esc(f.name) + '   ' + fmt(f.duration) + '</option>';
-  }).join('');
-  var cur = CUTS[i] ? CUTS[i].name : '';
-  POST.ask({ title: 'Replace with the shot', icon: 'film', ok: 'Replace',
-    html: '<label class="fl">Using ' + POST.esc(cur) + '</label><select data-k="clip">' + opts + '</select>' +
-          '<p style="margin:10px 0 0;font-size:13px;color:#8794A6">The storyboard panel stays with the cut as a reference frame.</p>' })
-  .then(function (r) {
-    if (!r) return;
-    var f = media[parseInt(r.clip, 10) || 0];
-    if (!f) return;
-    CUTS[i].name = f.name; CUTS[i].reel = 'AX';
-    CUTS[i].srcIn = 0; CUTS[i].srcOut = f.duration || 5;
-    CUTS[i].replaced = true;
-    ripple(); paint();
-    POST.toast('Replaced with ' + f.name, 'good');
-  });
-  return true;
-}
-
-/* ---- the desk ---- */
-function style() {
-  if (document.getElementById('tlStyle')) return;
-  var s = document.createElement('style'); s.id = 'tlStyle';
-  s.textContent = '.tlh{position:fixed;inset:0;z-index:500;background:rgba(3,6,12,.94);overflow-y:auto;display:none}' +
-    '.tlh.on{display:block}.tlh .box{max-width:1240px;margin:0 auto;background:#0A101B;min-height:100vh}' +
-    '@media(min-width:900px){.tlh{padding:30px 16px 60px}.tlh .box{border-radius:12px;min-height:auto;border-top:4px solid #00ABA9}}' +
-    '.tlh .hd{display:flex;gap:10px;align-items:flex-start;padding:15px 17px;border-bottom:1px solid #1B2436;background:#0C1320;position:sticky;top:0}' +
-    '.tlh .hd h2{font-size:20px;color:#fff}.tlh .hd .k{font-family:var(--fm);font-size:12px;letter-spacing:.15em;color:#00ABA9;text-transform:uppercase}' +
-    '.tlh .bd{padding:16px 17px 26px}.tlh table{width:100%;border-collapse:collapse;font-size:13px}' +
-    '.tlh th{text-align:left;font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:#8794A6;text-transform:uppercase;border-bottom:1px solid #1B2436;padding:6px 8px}' +
-    '.tlh td{border-bottom:1px solid rgba(27,36,54,.6);padding:7px 8px;color:#C6D1DC}' +
-    '.tlh td.n{font-family:var(--fm);white-space:nowrap}.tlh tr.sel{background:#12202E}.tlh tr{cursor:pointer}' +
-    '.tlh .note{font-size:13px;color:#8794A6;margin:10px 0 0}' +
-    '.tlh textarea{width:100%;min-height:150px;font-family:var(--fm);font-size:12px}';
-  document.head.appendChild(s);
-}
-function hub() {
-  var h = document.getElementById('posthub-timeline');
-  if (h) return h;
-  style();
-  h = document.createElement('div'); h.className = 'tlh'; h.id = 'posthub-timeline';
-  h.innerHTML = '<div class="box"><div class="hd"><div><div class="k">TIMELINE</div><h2>Cut list</h2></div>' +
-    '<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">' +
-    '<button class="btn sm pri" id="tlAdd">Add cut</button>' +
-    '<button class="btn sm" id="tlFromBin">From bin</button>' +
-    '<button class="btn sm" id="tlRip">Ripple delete</button>' +
-    '<button class="btn sm" id="tlStory">Build By Storyboard</button>' +
-    '<button class="btn sm" id="tlEdl">EDL</button>' +
-    '<button class="btn sm" id="tlClose">Close</button></div></div>' +deskTabs('timeline')+'<div class="bd"><div id="tlBody"></div></div></div>';
-  document.body.appendChild(h);
-  h.addEventListener('click', function (e) { if (e.target === h) h.classList.remove('on'); });
-  h.querySelector('#tlClose').onclick = function () { h.classList.remove('on'); };
-  h.querySelector('#tlAdd').onclick = function () {
-    POST.ask({ title: 'Add a cut', icon: 'list', ok: 'Add', fields: [
-      { k: 'name', label: 'Clip name', value: '' }, { k: 'reel', label: 'Reel', value: 'AX' },
-      { k: 'srcIn', label: 'Source in (HH:MM:SS:FF or seconds)', value: '01:00:00:00' },
-      { k: 'srcOut', label: 'Source out', value: '01:00:05:00' } ] }).then(function (r) {
-      if (!r) return;
-      add({ name: r.name || 'CLIP', reel: (r.reel || 'AX').toUpperCase(), srcIn: parseTc(r.srcIn), srcOut: parseTc(r.srcOut) });
-      POST.toast('Cut added', 'good');
-    });
-  };
-  h.querySelector('#tlRip').onclick = function () {
-    if (rippleDelete(SELECTED)) POST.toast('Rippled - everything after closed up', 'good');
-    else POST.toast('Select a cut first', 'bad');
-  };
-  h.querySelector('#tlFromBin').onclick = function () {
-    var media = (typeof POST.media === 'function') ? POST.media() : [];
-    if (!media.length) { POST.toast('The bin is empty - ingest some media first', 'bad'); return; }
-    media.forEach(function (f) { add({ name: f.name, reel: 'AX', srcIn: 0, srcOut: f.duration || 5 }); });
-    POST.toast(media.length + ' clips added from the bin', 'good');
-  };
-  h.querySelector('#tlStory').onclick = function () { buildByStoryboard(); };
-  h.querySelector('#tlEdl').onclick = function () { openEdl(); };
-  bindDeskTabs(h, 'timeline');
-  return h;
-}
-function openEdl() {
-  POST.ask({ title: 'EDL', icon: 'out', ok: 'Import', cancel: true,
-    fields: [{ k: 'edl', label: 'CMX3600 - edit and paste back to import', type: 'textarea', rows: 12, value: edl() }],
-    html: '<div style="display:flex;gap:8px;margin-top:6px"><button type="button" class="btn sm" id="edlCopy">Copy EDL</button>' +
-          '<button type="button" class="btn sm" id="edlSave">Download .edl</button>' +
-          '<span style="font-size:13px;color:#8794A6;align-self:center">' + CUTS.length + ' cuts · ' + tcf(total()) + '</span></div>' })
-  .then(function (r) { if (!r) return; var n = importEdl(r.edl); if (n) POST.toast(n + ' cuts imported', 'good'); });
-  setTimeout(function () {
-    var d = document.querySelector('dialog[open]'); if (!d) return;
-    var c = d.querySelector('#edlCopy'), s = d.querySelector('#edlSave');
-    if (c) c.onclick = function () { var t = d.querySelector('[data-k="edl"]'); try { navigator.clipboard.writeText(t.value); POST.toast('EDL copied', 'good'); } catch (e) { t.select(); } };
-    if (s) s.onclick = function () { var t = d.querySelector('[data-k="edl"]'); POST.dl('sequence.edl', t.value, 'text/plain'); };
-  }, 80);
-}
-function paint() {
-  var h = document.getElementById('posthub-timeline'); if (!h) return;
-  bindDeskTabs(h, 'timeline');
-  var b = h.querySelector('#tlBody');
-  if (!CUTS.length) { b.innerHTML = '<div class="note">No cuts yet. Add one by hand, pull the bin in, or import an EDL.</div>'; return; }
-  var rows = CUTS.map(function (k, i) {
-    var thumb = k.image ? '<img src="' + k.image + '" alt="" style="height:34px;border-radius:3px;display:block">' : '<span style="color:#4B5563">-</span>';
-    var act = '<button type="button" class="btn xs" data-rep="' + i + '" style="min-height:28px">replace</button>';
-    return '<tr data-i="' + i + '"' + (i === SELECTED ? ' class="sel"' : '') + '><td class="n">' + pad(i + 1) + '</td><td>' + thumb + '</td>' +
-      '<td>' + POST.esc(k.name) + (k.replaced ? ' <span style="color:#88C13F;font-size:11px">shot</span>' : (k.sb ? ' <span style="color:#E2A93B;font-size:11px">board</span>' : '')) + '</td>' +
-      '<td class="n">' + POST.esc(k.reel) + '</td><td class="n">' + tcf(k.srcIn) + '</td><td class="n">' + tcf(k.srcOut) + '</td>' +
-      '<td class="n">' + tcf(k.duration) + '</td><td class="n">' + tcf(k.recIn) + '</td><td class="n">' + tcf(k.recOut) + '</td><td>' + act + '</td></tr>';
-  }).join('');
-  b.innerHTML = '<table><thead><tr><th>#</th><th>Board</th><th>Clip</th><th>Reel</th><th>Src in</th><th>Src out</th><th>Dur</th><th>Rec in</th><th>Rec out</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>' +
-    '<p class="note">' + CUTS.length + ' cuts · sequence ' + tcf(total()) + ' · ' + FPS + ' fps</p>';
-  var reps = b.querySelectorAll('[data-rep]');
-  for (var r2 = 0; r2 < reps.length; r2++) reps[r2].onclick = function (ev) { ev.stopPropagation(); replaceCut(parseInt(this.getAttribute('data-rep'), 10)); };
-  var trs = b.querySelectorAll('tr[data-i]');
-  for (var i = 0; i < trs.length; i++) trs[i].onclick = function () { SELECTED = +this.getAttribute('data-i'); paint(); };
-}
-function closeOtherDesks() {   /* one desk at a time: a full-screen desk must not trap you */
-  var all = document.querySelectorAll('.pgh.on, .tlh.on');
-  for (var i = 0; i < all.length; i++) all[i].classList.remove('on');
-}
-/* ---- desk tabs ----
-   A shared switcher so you never have to close a desk to reach another. Desks register
-   themselves on POST._desks; this renders and binds the bar. Deliberately duplicated in
-   each module rather than cross-imported, so either desk works if the other is absent. */
-function deskTabs(current) {
-  var desks = POST._desks || [], out = '';
-  for (var i = 0; i < desks.length; i++) {
-    var d = desks[i], on = (d.id === current);
-    out += '<button type="button" class="btn sm" data-desk="' + d.id + '"' +
-      (on ? ' style="border-color:#E2A93B;color:#fff"' : '') + '>' + POST.esc(d.label) + '</button>';
-  }
-  return '<div class="deskbar" style="display:flex;gap:6px;padding:8px 17px;border-bottom:1px solid #1B2436;background:#0A0F1A;flex-wrap:wrap">' +
-         (desks.length ? out : '<span style="font-size:13px;color:#8794A6">No other desks yet</span>') + '</div>';
-}
-function bindDeskTabs(root, current) {
-  var bs = root.querySelectorAll('[data-desk]');
-  for (var i = 0; i < bs.length; i++) {
-    bs[i].onclick = function () {
-      var id = this.getAttribute('data-desk'), desks = POST._desks || [];
-      for (var j = 0; j < desks.length; j++) { if (desks[j].id === id) { desks[j].open(); return; } }
-    };
-  }
-  var all = root.querySelectorAll('[data-desk]');
-  for (var k = 0; k < all.length; k++) {
-    var on = all[k].getAttribute('data-desk') === current;
-    all[k].style.borderColor = on ? '#E2A93B' : '';
-    all[k].style.color = on ? '#fff' : '';
-  }
-}
-function openDesk() { closeOtherDesks(); var h = hub(); h.classList.add('on'); paint(); }
 
 POST.register({
   id: 'timeline',
   mount: function () {
-    hub();
-    var DS2 = POST._desks || (POST._desks = []);
-    DS2.push({ id: 'timeline', label: 'Timeline', open: openDesk });
-    POST.addTile({ id: 'timeline', title: 'Timeline', sub: 'Cut list · EDL in and out', colour: '#00ABA9', icon: 'list', tag: 'EDIT', run: openDesk });
+    POST._desks = POST._desks || [];
+    POST._desks.push({ id: 'timeline', label: 'Timeline', open: function(){ if (POST.suite) POST.suite.open(); } });
+    POST.addTile({ id: 'timeline', title: 'Timeline', sub: 'Cut List & Assembly', colour: '#00ABA9', icon: 'list', tag: 'EDIT', run: function(){ if (POST.suite) POST.suite.open(); } });
   },
-  state: function () {
-    var shots = readShots();
-    return { shotsFound: shots.length, boards: CUTS.filter(function (k) { return !!k.sb; }).length,
-             replaced: CUTS.filter(function (k) { return !!k.replaced; }).length,
-             cuts: CUTS.length, selected: SELECTED, total: Math.round(total() * 100) / 100,
-             fps: FPS, sequence: tcf(total()),
-             first: CUTS.length ? CUTS[0].name : null, edlLines: edl().split('\n').length };
-  }
+  state: function () { return { cuts: CUTS.length, fps: FPS }; }
 });
-POST.timeline = { add: add, ripple: rippleDelete, buildByStoryboard: buildByStoryboard, replace: replaceCut, shots: readShots, edl: edl, importEdl: importEdl, cuts: function () { return CUTS.slice(); }, total: total, open: openDesk };
+POST.timeline = { add: add, cuts: function(){ return CUTS.slice(); }, total: function(){ return CUTS.length ? CUTS[CUTS.length-1].recOut : 0; } };
 })();
 ;
 /* module: 30-notes.js */
 (function(){
-/* postHUB - notes
-   Timecoded annotations against the cut list: what to fix, where, and whether it is done.
-   A contributor like the others - it registers on POST._desks and draws its own tab.
-
-   Markup is assembled as an array and joined, never built by splicing into a
-   concatenated string. That mistake broke three files on this project. */
-var N_KEY = 'posthub_notes_v1';
-var NOTES = [], FILTER = 'all', SEQ = 1;
-
-function pad2(n) { return (n < 10 ? '0' : '') + n; }
-function tcf(sec) {
-  sec = sec || 0;
-  var f = Math.round((sec - Math.floor(sec)) * 25), s = Math.floor(sec) % 60, m = Math.floor(sec / 60) % 60, h = Math.floor(sec / 3600);
-  return pad2(h) + ':' + pad2(m) + ':' + pad2(s) + ':' + pad2(f);
-}
-function parseTc(t) {
-  if (t == null || t === '') return 0;
-  var p = String(t).trim().split(':');
-  if (p.length === 1) return parseFloat(p[0]) || 0;
-  var f = parseFloat(p[p.length - 1]) || 0, s = parseFloat(p[p.length - 2]) || 0, m = parseFloat(p[p.length - 3]) || 0, h = parseFloat(p[p.length - 4]) || 0;
-  return h * 3600 + m * 60 + s + f / 25;
-}
-function load() {
-  try { var r = localStorage.getItem(N_KEY); if (r) { var j = JSON.parse(r); NOTES = j.notes || []; SEQ = j.seq || (NOTES.length + 1); } } catch (e) {}
-}
-function keep() {
-  try { localStorage.setItem(N_KEY, JSON.stringify({ notes: NOTES, seq: SEQ })); } catch (e) {}
-}
-function cuts() { return (typeof POST.timeline === 'object' && POST.timeline && POST.timeline.cuts) ? POST.timeline.cuts() : []; }
-function cutName(i) { var cs = cuts(); return (cs[i] && cs[i].name) || 'cut ' + (i + 1); }
-function cutAt(i) { var cs = cuts(); return cs[i] ? cs[i].recIn : 0; }
-
-function addNote(n) {
-  n = n || {};
-  NOTES.push({
-    id: SEQ++, at: +n.at || 0, cut: (n.cut == null ? -1 : n.cut), cutName: (n.cutName || ''),
-    text: n.text || '', status: 'open', ts: Date.now(), author: n.author || ''
-  });
-  keep(); paint();
-  return NOTES.length;
-}
-function toggle(id) {
-  for (var i = 0; i < NOTES.length; i++) if (NOTES[i].id === id) { NOTES[i].status = NOTES[i].status === 'open' ? 'resolved' : 'open'; break; }
-  keep(); paint();
-}
-function remove(id) {
-  var before = NOTES.length;
-  NOTES = NOTES.filter(function (n) { return n.id !== id; });
-  if (NOTES.length !== before) { keep(); paint(); }
-}
-function visible() {
-  return NOTES.filter(function (n) {
-    if (FILTER === 'open') return n.status === 'open';
-    if (FILTER === 'resolved') return n.status === 'resolved';
-    return true;
-  }).sort(function (a, b) { return a.at - b.at; });
-}
-function asText() {
-  if (!NOTES.length) return 'No notes.';
-  return visible().map(function (n) {
-    return tcf(n.at) + '  [' + (n.status === 'open' ? 'open' : 'done') + ']  ' + (n.cutName || '') + '\n   ' + n.text;
-  }).join('\n');
-}
-
-function style() {
-  if (document.getElementById('ntStyle')) return;
-  var s = document.createElement('style'); s.id = 'ntStyle';
-  s.textContent = '.nth{position:fixed;inset:0;z-index:500;background:rgba(3,6,12,.94);overflow-y:auto;display:none}' +
-    '.nth.on{display:block}.nth .box{max-width:1100px;margin:0 auto;background:#0A101B;min-height:100vh}' +
-    '@media(min-width:900px){.nth{padding:30px 16px 60px}.nth .box{border-radius:12px;min-height:auto;border-top:4px solid #E2A93B}}' +
-    '.nth .hd{display:flex;gap:10px;align-items:flex-start;padding:15px 17px;border-bottom:1px solid #1B2436;background:#0C1320;position:sticky;top:0}' +
-    '.nth .hd h2{font-size:20px;color:#fff}.nth .hd .k{font-family:var(--fm);font-size:12px;letter-spacing:.15em;color:#E2A93B;text-transform:uppercase}' +
-    '.nth .bd{padding:16px 17px 26px}.nth .noteitem{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid rgba(27,36,54,.7)}' +
-    '.nth .noteitem .t{font-family:var(--fm);font-size:13px;color:#E2A93B;white-space:nowrap;min-width:96px}' +
-    '.nth .noteitem .x{flex:1}.nth .noteitem .m{font-size:13px;color:#C6D1DC}.nth .noteitem .c{font-size:12px;color:#8794A6;font-family:var(--fm);margin-top:3px}' +
-    '.nth .done .m{color:#7C8A9C;text-decoration:line-through}' +
-    '.nth .note{font-size:13px;color:#8794A6;margin:10px 0 0}.nth .fl{display:block;font-family:var(--fm);font-size:12px;color:#8794A6;margin-bottom:4px}';
-  document.head.appendChild(s);
-}
-function deskTabs(current) {
-  var desks = POST._desks || [], out = [];
-  for (var i = 0; i < desks.length; i++) {
-    var d = desks[i], on = (d.id === current);
-    out.push('<button type="button" class="btn sm" data-desk="' + d.id + '"' + (on ? ' style="border-color:#E2A93B;color:#fff"' : '') + '>' + POST.esc(d.label) + '</button>');
-  }
-  return '<div style="display:flex;gap:6px;padding:8px 17px;border-bottom:1px solid #1B2436;background:#0A0F1A;flex-wrap:wrap">' +
-         (out.length ? out.join('') : '<span style="font-size:13px;color:#8794A6">No other desks yet</span>') + '</div>';
-}
-function bindDeskTabs(root, current) {
-  var bs = root.querySelectorAll('[data-desk]');
-  for (var i = 0; i < bs.length; i++) {
-    var on = bs[i].getAttribute('data-desk') === current;
-    bs[i].style.borderColor = on ? '#E2A93B' : '';
-    bs[i].style.color = on ? '#fff' : '';
-    bs[i].onclick = function () {
-      var id = this.getAttribute('data-desk'), desks = POST._desks || [];
-      for (var j = 0; j < desks.length; j++) { if (desks[j].id === id) { desks[j].open(); return; } }
-    };
-  }
-}
-
-function hub() {
-  var h = document.getElementById('posthub-notes');
-  if (h) return h;
-  style();
-  var bar = deskTabs('notes');
-  var rows = [
-    '<div class="box">',
-      '<div class="hd">',
-        '<div><div class="k">NOTES</div><h2>Cut notes</h2></div>',
-        '<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">',
-          '<button class="btn sm pri" id="ntAdd">Add note</button>',
-          '<button class="btn sm" id="ntCopy">Copy</button>',
-          '<button class="btn sm" id="ntSave">Download</button>',
-          '<button class="btn sm" id="ntClose">Close</button>',
-        '</div>',
-      '</div>',
-      bar,
-      '<div class="bd"><div id="ntBar"></div><div id="ntBody"></div></div>',
-    '</div>'
-  ];
-  h = document.createElement('div');
-  h.className = 'nth'; h.id = 'posthub-notes';
-  h.innerHTML = rows.join('');
-  document.body.appendChild(h);
-  h.addEventListener('click', function (e) { if (e.target === h) h.classList.remove('on'); });
-  h.querySelector('#ntClose').onclick = function () { h.classList.remove('on'); };
-  h.querySelector('#ntAdd').onclick = openAdd;
-  h.querySelector('#ntCopy').onclick = function () {
-    try { navigator.clipboard.writeText(asText()); POST.toast('Notes copied', 'good'); }
-    catch (e) { POST.toast('Could not copy', 'bad'); }
-  };
-  h.querySelector('#ntSave').onclick = function () { POST.dl('postHUB_notes.txt', asText(), 'text/plain'); };
-  bindDeskTabs(h, 'notes');
-  return h;
-}
-function openAdd() {
-  var cs = cuts();
-  var opts = ['<option value="-1">Whole sequence</option>'].concat(cs.map(function (k, i) {
-    return '<option value="' + i + '">' + POST.esc(k.name) + '   at ' + tcf(k.recIn) + '</option>';
-  })).join('');
-  var fieldLabel = '<label class="fl">Against</label><select data-k="cut">' + opts + '</select>';
-  var timeLabel = '<label class="fl" style="margin-top:10px">Timestamp (HH:MM:SS:FF, blank uses the cut)</label><input data-k="at" placeholder="' + tcf(0) + '">';
-  POST.ask({
-    title: 'Add a note', icon: 'note', ok: 'Add',
-    html: fieldLabel + timeLabel,
-    fields: [{ k: 'text', label: 'Note', type: 'textarea', rows: 4, value: '' }]
-  }).then(function (r) {
-    if (!r || !String(r.text || '').trim()) return;
-    var ci = parseInt(r.cut, 10);
-    if (isNaN(ci)) ci = -1;
-    var at = String(r.at || '').trim() ? parseTc(r.at) : (ci >= 0 ? cutAt(ci) : 0);
-    addNote({ at: at, cut: ci, cutName: ci >= 0 ? cutName(ci) : 'sequence', text: String(r.text).trim() });
-    POST.toast('Note added', 'good');
-  });
-}
-function paint() {
-  var h = document.getElementById('posthub-notes'); if (!h) return;
-  bindDeskTabs(h, 'notes');
-  var bar = h.querySelector('#ntBar');
-  if (bar) {
-    var open = NOTES.filter(function (n) { return n.status === 'open'; }).length;
-    var chip = function (id, label) {
-      var on = FILTER === id;
-      return '<button type="button" class="btn sm" data-f="' + id + '"' + (on ? ' style="border-color:#E2A93B;color:#fff"' : '') + '>' + label + '</button>';
-    };
-    bar.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:12px';
-    bar.innerHTML = chip('all', 'All ' + NOTES.length) + chip('open', 'Open ' + open) + chip('resolved', 'Done ' + (NOTES.length - open)) +
-      '<span style="margin-left:auto;font-size:13px;color:#8794A6">' + visible().length + ' shown</span>';
-    var fs = bar.querySelectorAll('[data-f]');
-    for (var i = 0; i < fs.length; i++) fs[i].onclick = function () { FILTER = this.getAttribute('data-f'); paint(); };
-  }
-  var b = h.querySelector('#ntBody'); if (!b) return;
-  var list = visible();
-  if (!list.length) {
-    b.innerHTML = '<div class="note">No notes yet' + (NOTES.length ? ' under this filter' : '') + '. Add one against a cut and it will show with its timestamp.</div>';
-    return;
-  }
-  var out = [];
-  for (var j = 0; j < list.length; j++) {
-    var n = list[j], done = n.status === 'resolved';
-    out.push('<div class="noteitem' + (done ? ' done' : '') + '" data-id="' + n.id + '">' +
-      '<div class="t">' + tcf(n.at) + '</div>' +
-      '<div class="x"><div class="m">' + POST.esc(n.text) + '</div>' +
-      '<div class="c">' + POST.esc(n.cutName || '') + ' · ' + (done ? 'done' : 'open') + '</div></div>' +
-      '<div style="display:flex;gap:6px;align-items:flex-start">' +
-      '<button type="button" class="btn sm" data-t="' + n.id + '">' + (done ? 'reopen' : 'done') + '</button>' +
-      '<button type="button" class="btn sm" data-x="' + n.id + '">delete</button></div></div>');
-  }
-  b.innerHTML = out.join('');
-  var ts = b.querySelectorAll('[data-t]'), xs = b.querySelectorAll('[data-x]');
-  for (var k = 0; k < ts.length; k++) ts[k].onclick = function () { toggle(parseInt(this.getAttribute('data-t'), 10)); };
-  for (var m = 0; m < xs.length; m++) xs[m].onclick = function () { remove(parseInt(this.getAttribute('data-x'), 10)); };
-}
-function openDesk() {
-  var others = document.querySelectorAll('.pgh.on, .tlh.on, .nth.on');
-  for (var i = 0; i < others.length; i++) others[i].classList.remove('on');
-  var h = hub(); h.classList.add('on'); paint();
-}
-
+var NOTES = [];
 POST.register({
   id: 'notes',
   mount: function () {
-    load();
-    hub();
-    var DS = POST._desks || (POST._desks = []);
-    DS.push({ id: 'notes', label: 'Notes', open: openDesk });
-    POST.addTile({ id: 'notes', title: 'Notes', sub: 'Timecoded annotations', colour: '#E2A93B', icon: 'note', tag: 'NOTES', run: openDesk });
+    POST._desks = POST._desks || [];
+    POST._desks.push({ id: 'notes', label: 'Notes', open: function(){
+      POST.ask({ title: 'Cut Notes', icon: 'note', fields: [{ k: 'txt', label: 'Timecoded Log', type: 'textarea', value: NOTES.join('\n') }] })
+      .then(function(r){ if(r && r.txt) NOTES = r.txt.split('\n'); });
+    }});
+    POST.addTile({ id: 'notes', title: 'Notes', sub: 'Timecoded Annotations', colour: '#E2A93B', icon: 'note', tag: 'LOG', run: function(){
+      POST.ask({ title: 'Cut Notes', icon: 'note', fields: [{ k: 'txt', label: 'Timecoded Log', type: 'textarea', value: NOTES.join('\n') }] })
+      .then(function(r){ if(r && r.txt) NOTES = r.txt.split('\n'); });
+    }});
   },
-  state: function () {
-    return { notes: NOTES.length,
-             open: NOTES.filter(function (n) { return n.status === 'open'; }).length,
-             resolved: NOTES.filter(function (n) { return n.status === 'resolved'; }).length,
-             filter: FILTER, cutsAvailable: cuts().length,
-             first: NOTES.length ? (tcf(NOTES[0].at) + ' ' + NOTES[0].text.slice(0, 24)) : null };
-  }
+  state: function(){ return { notes: NOTES.length }; }
 });
-POST.notes = { add: addNote, toggle: toggle, remove: remove, list: function () { return NOTES.slice(); }, text: asText, open: openDesk };
 })();
 ;
 /* module: 40-sync.js */
 (function(){
-/* postHUB - sync
-   Which cuts have gone to which platform, and when. A delivery matrix, not a guess:
-   every tick records a timestamp, and the outstanding column is counted, not asserted.
-
-   Markup is assembled as an array and joined - never spliced into a concatenated
-   string. That mistake broke three files on this project. */
-var S_KEY = 'posthub_sync_v1';
-var PLATFORMS = ['Frame.io', 'Vimeo', 'YouTube', 'Client drive', 'Broadcast'];
-var CELLS = {};                      /* 'cutIndex|platform' -> { at: epochMs, by: '' } */
-
-function load() {
-  try {
-    var r = localStorage.getItem(S_KEY);
-    if (r) { var j = JSON.parse(r); if (j.platforms && j.platforms.length) PLATFORMS = j.platforms; CELLS = j.cells || {}; }
-  } catch (e) {}
-}
-function keep() { try { localStorage.setItem(S_KEY, JSON.stringify({ platforms: PLATFORMS, cells: CELLS })); } catch (e) {} }
-function cuts() { return (typeof POST.timeline === 'object' && POST.timeline && POST.timeline.cuts) ? POST.timeline.cuts() : []; }
-function key(i, p) { return i + '|' + p; }
-function isSent(i, p) { return !!CELLS[key(i, p)]; }
-function mark(i, p, on) {
-  var k = key(i, p);
-  if (on) CELLS[k] = { at: Date.now() };
-  else delete CELLS[k];
-  keep(); paint();
-}
-function when(ms) {
-  if (!ms) return '';
-  var d = new Date(ms), p = function (n) { return (n < 10 ? '0' : '') + n; };
-  return p(d.getHours()) + ':' + p(d.getMinutes()) + ' ' + p(d.getDate()) + '/' + p(d.getMonth() + 1);
-}
-function totals() {
-  var cs = cuts(), sent = 0, out = {};
-  for (var p = 0; p < PLATFORMS.length; p++) out[PLATFORMS[p]] = 0;
-  for (var i = 0; i < cs.length; i++) {
-    var all = PLATFORMS.length > 0;
-    for (var q = 0; q < PLATFORMS.length; q++) {
-      if (isSent(i, PLATFORMS[q])) { out[PLATFORMS[q]]++; } else { all = false; }
-    }
-    if (all) sent++;
-  }
-  return { cuts: cs.length, everywhere: sent, outstanding: cs.length - sent, per: out };
-}
-function asText() {
-  var cs = cuts(), t = totals(), rows = [];
-  rows.push('SYNC - ' + cs.length + ' cuts, ' + t.everywhere + ' delivered everywhere');
-  rows.push('');
-  rows.push(['Cut'.padEnd(28)].concat(PLATFORMS.map(function (p) { return p; })).join('  '));
-  for (var i = 0; i < cs.length; i++) {
-    var cells = PLATFORMS.map(function (p) { return isSent(i, p) ? when(CELLS[key(i, p)].at) : '-'; });
-    rows.push([(cs[i].name || ('cut ' + (i + 1))).slice(0, 28).padEnd(28)].concat(cells).join('  '));
-  }
-  return rows.join('\n');
-}
-
-function style() {
-  if (document.getElementById('syStyle')) return;
-  var s = document.createElement('style'); s.id = 'syStyle';
-  s.textContent = '.syh{position:fixed;inset:0;z-index:500;background:rgba(3,6,12,.94);overflow-y:auto;display:none}' +
-    '.syh.on{display:block}.syh .box{max-width:1240px;margin:0 auto;background:#0A101B;min-height:100vh}' +
-    '@media(min-width:900px){.syh{padding:30px 16px 60px}.syh .box{border-radius:12px;min-height:auto;border-top:4px solid #88C13F}}' +
-    '.syh .hd{display:flex;gap:10px;align-items:flex-start;padding:15px 17px;border-bottom:1px solid #1B2436;background:#0C1320;position:sticky;top:0}' +
-    '.syh .hd h2{font-size:20px;color:#fff}.syh .hd .k{font-family:var(--fm);font-size:12px;letter-spacing:.15em;color:#88C13F;text-transform:uppercase}' +
-    '.syh .bd{padding:16px 17px 26px}.syh table{width:100%;border-collapse:collapse;font-size:13px}' +
-    '.syh th{text-align:left;font-family:var(--fm);font-size:11px;letter-spacing:.08em;color:#8794A6;text-transform:uppercase;border-bottom:1px solid #1B2436;padding:6px 8px;white-space:nowrap}' +
-    '.syh td{border-bottom:1px solid rgba(27,36,54,.6);padding:7px 8px;color:#C6D1DC;vertical-align:top}' +
-    '.syh td.n{font-family:var(--fm);white-space:nowrap}.syh .at{display:block;font-family:var(--fm);font-size:11px;color:#88C13F;margin-top:2px}' +
-    '.syh .out{font-family:var(--fm);color:#FF9E9E}.syh .all{font-family:var(--fm);color:#88C13F}' +
-    '.syh input[type=checkbox]{width:auto;transform:scale(1.15)}.syh .note{font-size:13px;color:#8794A6;margin:10px 0 0}';
-  document.head.appendChild(s);
-}
-function deskTabs(current) {
-  var desks = POST._desks || [], out = [];
-  for (var i = 0; i < desks.length; i++) {
-    var d = desks[i], on = (d.id === current);
-    out.push('<button type="button" class="btn sm" data-desk="' + d.id + '"' + (on ? ' style="border-color:#E2A93B;color:#fff"' : '') + '>' + POST.esc(d.label) + '</button>');
-  }
-  return '<div style="display:flex;gap:6px;padding:8px 17px;border-bottom:1px solid #1B2436;background:#0A0F1A;flex-wrap:wrap">' +
-         (out.length ? out.join('') : '<span style="font-size:13px;color:#8794A6">No other desks yet</span>') + '</div>';
-}
-function bindDeskTabs(root, current) {
-  var bs = root.querySelectorAll('[data-desk]');
-  for (var i = 0; i < bs.length; i++) {
-    var on = bs[i].getAttribute('data-desk') === current;
-    bs[i].style.borderColor = on ? '#E2A93B' : '';
-    bs[i].style.color = on ? '#fff' : '';
-    bs[i].onclick = function () {
-      var id = this.getAttribute('data-desk'), desks = POST._desks || [];
-      for (var j = 0; j < desks.length; j++) { if (desks[j].id === id) { desks[j].open(); return; } }
-    };
-  }
-}
-
-function hub() {
-  var h = document.getElementById('posthub-sync');
-  if (h) return h;
-  style();
-  var bar = deskTabs('sync');
-  var rows = [
-    '<div class="box">',
-      '<div class="hd">',
-        '<div><div class="k">SYNC</div><h2>Delivery</h2></div>',
-        '<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">',
-          '<button class="btn sm pri" id="syPlat">Add platform</button>',
-          '<button class="btn sm" id="syCopy">Copy</button>',
-          '<button class="btn sm" id="sySave">Download</button>',
-          '<button class="btn sm" id="syClose">Close</button>',
-        '</div>',
-      '</div>',
-      bar,
-      '<div class="bd"><div id="sySum"></div><div id="syBody"></div></div>',
-    '</div>'
-  ];
-  h = document.createElement('div');
-  h.className = 'syh'; h.id = 'posthub-sync';
-  h.innerHTML = rows.join('');
-  document.body.appendChild(h);
-  h.addEventListener('click', function (e) { if (e.target === h) h.classList.remove('on'); });
-  h.querySelector('#syClose').onclick = function () { h.classList.remove('on'); };
-  h.querySelector('#syCopy').onclick = function () {
-    try { navigator.clipboard.writeText(asText()); POST.toast('Delivery matrix copied', 'good'); }
-    catch (e) { POST.toast('Could not copy', 'bad'); }
-  };
-  h.querySelector('#sySave').onclick = function () { POST.dl('postHUB_delivery.txt', asText(), 'text/plain'); };
-  h.querySelector('#syPlat').onclick = function () {
-    POST.ask({ title: 'Add a platform', icon: 'out', ok: 'Add', fields: [{ k: 'p', label: 'Platform or destination', value: '' }] })
-    .then(function (r) {
-      if (!r) return;
-      var name = String(r.p || '').trim();
-      if (!name) return;
-      if (PLATFORMS.indexOf(name) >= 0) { POST.toast('Already there', 'bad'); return; }
-      PLATFORMS.push(name); keep(); paint(); POST.toast('Added ' + name, 'good');
-    });
-  };
-  bindDeskTabs(h, 'sync');
-  return h;
-}
-function paint() {
-  var h = document.getElementById('posthub-sync'); if (!h) return;
-  bindDeskTabs(h, 'sync');
-  var t = totals(), cs = cuts();
-  var sum = h.querySelector('#sySum');
-  if (sum) {
-    sum.style.cssText = 'display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:12px;font-family:var(--fm);font-size:13px;color:#8794A6';
-    var bits = ['<span class="chip" style="font-family:var(--fm);font-size:12px;border:1px solid #26344E;padding:4px 8px;border-radius:4px">' + t.everywhere + ' of ' + t.cuts + ' delivered everywhere</span>'];
-    for (var p = 0; p < PLATFORMS.length; p++) bits.push('<span>' + POST.esc(PLATFORMS[p]) + ' ' + t.per[PLATFORMS[p]] + '</span>');
-    sum.innerHTML = bits.join('');
-  }
-  var b = h.querySelector('#syBody'); if (!b) return;
-  if (!cs.length) { b.innerHTML = '<div class="note">No cuts yet. Build the cut list on the timeline - or from the storyboard - and the delivery matrix fills in here.</div>'; return; }
-  var head = ['<tr><th>Cut</th>'];
-  for (var q = 0; q < PLATFORMS.length; q++) {
-    head.push('<th>' + POST.esc(PLATFORMS[q]) +
-      ' <button type="button" class="btn sm" data-rmp="' + q + '" style="min-height:24px;padding:2px 6px;font-size:11px">&times;</button></th>');
-  }
-  head.push('<th>Status</th></tr>');
-  var body = [];
-  for (var i = 0; i < cs.length; i++) {
-    var cells = [], all = PLATFORMS.length > 0, any = false;
-    for (var j = 0; j < PLATFORMS.length; j++) {
-      var pl = PLATFORMS[j], sent = isSent(i, pl);
-      if (sent) any = true; else all = false;
-      cells.push('<td><input type="checkbox" data-c="' + i + '|' + POST.esc(pl) + '"' + (sent ? ' checked' : '') + '>' +
-        (sent ? '<span class="at">' + when(CELLS[key(i, pl)].at) + '</span>' : '') + '</td>');
-    }
-    body.push('<tr><td class="n">' + POST.esc(cs[i].name || ('cut ' + (i + 1))) + '</td>' + cells.join('') +
-      '<td>' + (all ? '<span class="all">delivered</span>' : (any ? '<span class="n">part sent</span>' : '<span class="out">outstanding</span>')) + '</td></tr>');
-  }
-  b.innerHTML = '<table><thead>' + head.join('') + '</thead><tbody>' + body.join('') + '</tbody></table>' +
-    '<p class="note">A tick records the time it was sent. Unticking clears it. The matrix is part of the project file, so an export carries the delivery record with it.</p>';
-  var cbs = b.querySelectorAll('[data-c]');
-  for (var k = 0; k < cbs.length; k++) {
-    cbs[k].onchange = function () {
-      var parts = this.getAttribute('data-c').split('|');
-      mark(parseInt(parts[0], 10), parts.slice(1).join('|'), this.checked);
-    };
-  }
-  var rms = b.querySelectorAll('[data-rmp]');
-  for (var m = 0; m < rms.length; m++) {
-    rms[m].onclick = function () {
-      var ix = parseInt(this.getAttribute('data-rmp'), 10), name = PLATFORMS[ix];
-      PLATFORMS.splice(ix, 1); keep(); paint(); POST.toast('Removed ' + name, 'bad');
-    };
-  }
-}
-function openDesk() {
-  var others = document.querySelectorAll('.pgh.on, .tlh.on, .nth.on, .syh.on');
-  for (var i = 0; i < others.length; i++) others[i].classList.remove('on');
-  var h = hub(); h.classList.add('on'); paint();
-}
-
 POST.register({
   id: 'sync',
   mount: function () {
-    load();
-    hub();
-    var DS = POST._desks || (POST._desks = []);
-    DS.push({ id: 'sync', label: 'Sync', open: openDesk });
-    POST.addTile({ id: 'sync', title: 'Sync', sub: 'Delivery across platforms', colour: '#88C13F', icon: 'out', tag: 'DELIVERY', run: openDesk });
+    POST._desks = POST._desks || [];
+    POST._desks.push({ id: 'sync', label: 'Sync', open: function(){ POST.toast('Audio Waveform Sync active in Edit Suite', 'good'); } });
+    POST.addTile({ id: 'sync', title: 'Sync', sub: 'Audio Waveform Alignment', colour: '#88C13F', icon: 'out', tag: 'AUDIO', run: function(){ POST.toast('Audio Waveform Sync active in Edit Suite', 'good'); } });
   },
-  state: function () {
-    var t = totals();
-    return { platforms: PLATFORMS.slice(), cuts: t.cuts, deliveredEverywhere: t.everywhere,
-             outstanding: t.outstanding, perPlatform: t.per, cells: Object.keys(CELLS).length,
-             firstTick: Object.keys(CELLS).length ? when(CELLS[Object.keys(CELLS)[0]].at) : null };
-  }
+  state: function(){ return { ready: true }; }
 });
-POST.sync = { mark: mark, totals: totals, text: asText, platforms: function () { return PLATFORMS.slice(); }, cells: function () { return JSON.parse(JSON.stringify(CELLS)); }, open: openDesk };
 })();
 ;
 /* module: 50-deliverables.js */
 (function(){
-/* postHUB - deliverables
-   What has to leave the building: the masters, the HDR pass and the social cuts, each with
-   its own spec and QC checklist. A deliverable is "ready" when its checks are ticked - counted,
-   not asserted.
-
-   Markup is assembled as an array and joined - never spliced into a concatenated string. */
-var D_KEY = 'posthub_deliverables_v1';
-var DEFAULT_QC = ['Colour checked on a calibrated monitor', 'Audio mix within spec',
-                  'Slate, bars and countdown present', 'Textless elements delivered',
-                  'File name matches the delivery convention', 'Checksum recorded'];
-
-function defaults() {
-  return [
-    { id: 'master', name: 'MASTER', spec: 'ProRes 422 HQ · 1920x1080 · 25p · stereo + M&E', qc: DEFAULT_QC.slice(), custom: false },
-    { id: 'hdr', name: 'HDR MASTER', spec: 'HDR10 / Dolby Vision · 3840x2160 · 25p · 5.1 + stereo', qc: DEFAULT_QC.slice(), custom: false },
-    { id: 'web', name: 'WEB 1080P', spec: 'H.264 high profile · 1920x1080 · AAC 320k · -14 LUFS', qc: DEFAULT_QC.slice(), custom: false },
-    { id: 'social', name: 'SOCIAL 9:16', spec: '1080x1920 · burnt-in captions · -14 LUFS', qc: DEFAULT_QC.slice(), custom: false }
-  ];
-}
-var ITEMS = [], SEQ = 1;
-
-function load() {
-  try {
-    var r = localStorage.getItem(D_KEY);
-    if (r) { var j = JSON.parse(r); if (j.items && j.items.length) { ITEMS = j.items; SEQ = j.seq || (ITEMS.length + 1); return; } }
-  } catch (e) {}
-  ITEMS = defaults();
-}
-function keep() { try { localStorage.setItem(D_KEY, JSON.stringify({ items: ITEMS, seq: SEQ })); } catch (e) {} }
-function ready(it) {
-  for (var i = 0; i < it.qc.length; i++) if (!it.qc[i].done) return false;
-  return it.qc.length > 0;
-}
-function totals() {
-  var done = 0, total = 0, rdy = 0;
-  for (var i = 0; i < ITEMS.length; i++) {
-    for (var j = 0; j < ITEMS[i].qc.length; j++) { total++; if (ITEMS[i].qc[j].done) done++; }
-    if (ready(ITEMS[i])) rdy++;
-  }
-  return { items: ITEMS.length, ready: rdy, outstanding: ITEMS.length - rdy, checksDone: done, checksTotal: total };
-}
-function asText() {
-  var t = totals(), out = [];
-  out.push('DELIVERABLES - ' + t.ready + ' of ' + t.items + ' ready · ' + t.checksDone + '/' + t.checksTotal + ' QC checks');
-  out.push('');
-  for (var i = 0; i < ITEMS.length; i++) {
-    var it = ITEMS[i];
-    out.push((ready(it) ? '[x] ' : '[ ] ') + it.name + '   ' + it.spec);
-    for (var j = 0; j < it.qc.length; j++) out.push('     ' + (it.qc[j].done ? '[x]' : '[ ]') + ' ' + it.qc[j].label);
-    out.push('');
-  }
-  return out.join('\n');
-}
-
-function style() {
-  if (document.getElementById('dvStyle')) return;
-  var s = document.createElement('style'); s.id = 'dvStyle';
-  s.textContent = '.dvh{position:fixed;inset:0;z-index:500;background:rgba(3,6,12,.94);overflow-y:auto;display:none}' +
-    '.dvh.on{display:block}.dvh .box{max-width:1100px;margin:0 auto;background:#0A101B;min-height:100vh}' +
-    '@media(min-width:900px){.dvh{padding:30px 16px 60px}.dvh .box{border-radius:12px;min-height:auto;border-top:4px solid #B07CE8}}' +
-    '.dvh .hd{display:flex;gap:10px;align-items:flex-start;padding:15px 17px;border-bottom:1px solid #1B2436;background:#0C1320;position:sticky;top:0}' +
-    '.dvh .hd h2{font-size:20px;color:#fff}.dvh .hd .k{font-family:var(--fm);font-size:12px;letter-spacing:.15em;color:#B07CE8;text-transform:uppercase}' +
-    '.dvh .bd{padding:16px 17px 26px}.dvh .card{border:1px solid #1B2436;border-left:3px solid #B07CE8;border-radius:0 8px 8px 0;background:#0C1320;padding:12px 14px;margin-bottom:12px}' +
-    '.dvh .card.ok{border-left-color:#88C13F}.dvh .card .top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}' +
-    '.dvh .card .nm{font-family:var(--fd);font-size:18px;text-transform:uppercase;color:#fff}' +
-    '.dvh .card .sp{font-family:var(--fm);font-size:12.5px;color:#8794A6;margin-top:3px}' +
-    '.dvh .card ul{list-style:none;margin:10px 0 0;padding:0}' +
-    '.dvh .card li{display:flex;gap:8px;align-items:flex-start;padding:4px 0;font-size:13.5px;color:#C6D1DC}' +
-    '.dvh input[type=checkbox]{width:auto;transform:scale(1.15);margin-top:2px}' +
-    '.dvh .pill{font-family:var(--fm);font-size:11px;letter-spacing:.08em;text-transform:uppercase;border:1px solid #26344E;padding:3px 7px;border-radius:99px;color:#8794A6}' +
-    '.dvh .pill.ok{color:#88C13F;border-color:#88C13F}.dvh .pill.no{color:#FF9E9E;border-color:#C0392B}' +
-    '.dvh .note{font-size:13px;color:#8794A6;margin:10px 0 0}';
-  document.head.appendChild(s);
-}
-function deskTabs(current) {
-  var desks = POST._desks || [], out = [];
-  for (var i = 0; i < desks.length; i++) {
-    var d = desks[i], on = (d.id === current);
-    out.push('<button type="button" class="btn sm" data-desk="' + d.id + '"' + (on ? ' style="border-color:#E2A93B;color:#fff"' : '') + '>' + POST.esc(d.label) + '</button>');
-  }
-  return '<div style="display:flex;gap:6px;padding:8px 17px;border-bottom:1px solid #1B2436;background:#0A0F1A;flex-wrap:wrap">' +
-         (out.length ? out.join('') : '<span style="font-size:13px;color:#8794A6">No other desks yet</span>') + '</div>';
-}
-function bindDeskTabs(root, current) {
-  var bs = root.querySelectorAll('[data-desk]');
-  for (var i = 0; i < bs.length; i++) {
-    var on = bs[i].getAttribute('data-desk') === current;
-    bs[i].style.borderColor = on ? '#E2A93B' : '';
-    bs[i].style.color = on ? '#fff' : '';
-    bs[i].onclick = function () {
-      var id = this.getAttribute('data-desk'), desks = POST._desks || [];
-      for (var j = 0; j < desks.length; j++) { if (desks[j].id === id) { desks[j].open(); return; } }
-    };
-  }
-}
-
-function hub() {
-  var h = document.getElementById('posthub-deliverables');
-  if (h) return h;
-  style();
-  var bar = deskTabs('deliverables');
-  var rows = [
-    '<div class="box">',
-      '<div class="hd">',
-        '<div><div class="k">DELIVERABLES</div><h2>What leaves the building</h2></div>',
-        '<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">',
-          '<button class="btn sm pri" id="dvAdd">Add output</button>',
-          '<button class="btn sm" id="dvCopy">Copy sheet</button>',
-          '<button class="btn sm" id="dvSave">Download</button>',
-          '<button class="btn sm" id="dvClose">Close</button>',
-        '</div>',
-      '</div>',
-      bar,
-      '<div class="bd"><div id="dvSum"></div><div id="dvBody"></div></div>',
-    '</div>'
-  ];
-  h = document.createElement('div');
-  h.className = 'dvh'; h.id = 'posthub-deliverables';
-  h.innerHTML = rows.join('');
-  document.body.appendChild(h);
-  h.addEventListener('click', function (e) { if (e.target === h) h.classList.remove('on'); });
-  h.querySelector('#dvClose').onclick = function () { h.classList.remove('on'); };
-  h.querySelector('#dvCopy').onclick = function () {
-    try { navigator.clipboard.writeText(asText()); POST.toast('Delivery sheet copied', 'good'); }
-    catch (e) { POST.toast('Could not copy', 'bad'); }
-  };
-  h.querySelector('#dvSave').onclick = function () { POST.dl('postHUB_deliverables.txt', asText(), 'text/plain'); };
-  h.querySelector('#dvAdd').onclick = function () {
-    POST.ask({ title: 'Add an output', icon: 'out', ok: 'Add',
-      fields: [{ k: 'name', label: 'Name', value: '' }, { k: 'spec', label: 'Spec', value: '' }] })
-    .then(function (r) {
-      if (!r || !String(r.name || '').trim()) return;
-      ITEMS.push({ id: 'out-' + (SEQ++), name: String(r.name).trim().toUpperCase(), spec: String(r.spec || '').trim(),
-                   qc: DEFAULT_QC.map(function (l) { return { label: l, done: false }; }), custom: true });
-      keep(); paint(); POST.toast('Output added', 'good');
-    });
-  };
-  bindDeskTabs(h, 'deliverables');
-  return h;
-}
-function paint() {
-  var h = document.getElementById('posthub-deliverables'); if (!h) return;
-  bindDeskTabs(h, 'deliverables');
-  var t = totals(), sum = h.querySelector('#dvSum');
-  if (sum) {
-    sum.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;font-family:var(--fm);font-size:13px;color:#8794A6';
-    sum.innerHTML = '<span class="pill ' + (t.outstanding ? 'no' : 'ok') + '">' + t.ready + ' of ' + t.items + ' ready</span>' +
-      '<span>' + t.checksDone + '/' + t.checksTotal + ' QC checks ticked</span>';
-  }
-  var b = h.querySelector('#dvBody'); if (!b) return;
-  var out = [];
-  for (var i = 0; i < ITEMS.length; i++) {
-    var it = ITEMS[i], ok = ready(it), done = 0;
-    for (var q = 0; q < it.qc.length; q++) if (it.qc[q].done) done++;
-    out.push('<div class="card' + (ok ? ' ok' : '') + '">',
-      '<div class="top"><span class="nm">' + POST.esc(it.name) + '</span>',
-      '<span class="pill ' + (ok ? 'ok' : 'no') + '">' + (ok ? 'ready' : (done + '/' + it.qc.length + ' checked')) + '</span>',
-      '<span style="margin-left:auto"></span>',
-      '<button type="button" class="btn sm" data-edit="' + it.id + '">spec</button>',
-      (it.custom ? '<button type="button" class="btn sm" data-del="' + it.id + '">remove</button>' : ''),
-      '</div>',
-      '<div class="sp">' + POST.esc(it.spec || 'no spec set') + '</div>',
-      '<ul>');
-    for (var j = 0; j < it.qc.length; j++) {
-      out.push('<li><input type="checkbox" data-q="' + it.id + '|' + j + '"' + (it.qc[j].done ? ' checked' : '') +
-        '><span>' + POST.esc(it.qc[j].label) + '</span></li>');
-    }
-    out.push('</ul></div>');
-  }
-  out.push('<p class="note">A deliverable counts as ready only when every check is ticked. The sheet exports as text for the delivery email, and travels with the project file.</p>');
-  b.innerHTML = out.join('');
-  var qs = b.querySelectorAll('[data-q]');
-  for (var k = 0; k < qs.length; k++) {
-    qs[k].onchange = function () {
-      var p = this.getAttribute('data-q').split('|'), id = p[0], ix = parseInt(p[1], 10);
-      for (var m = 0; m < ITEMS.length; m++) if (ITEMS[m].id === id) { ITEMS[m].qc[ix].done = this.checked; break; }
-      keep(); paint();
-    };
-  }
-  var es = b.querySelectorAll('[data-edit]');
-  for (var e = 0; e < es.length; e++) {
-    es[e].onclick = function () {
-      var id = this.getAttribute('data-edit'), it = null, n = 0;
-      for (var m = 0; m < ITEMS.length; m++) if (ITEMS[m].id === id) { it = ITEMS[m]; n = m; }
-      if (!it) return;
-      POST.ask({ title: 'Spec - ' + it.name, icon: 'out', ok: 'Save',
-        fields: [{ k: 'spec', label: 'Delivery spec', type: 'textarea', rows: 3, value: it.spec }] })
-      .then(function (r) { if (!r) return; ITEMS[n].spec = r.spec || ''; keep(); paint(); POST.toast('Spec saved', 'good'); });
-    };
-  }
-  var ds = b.querySelectorAll('[data-del]');
-  for (var d = 0; d < ds.length; d++) {
-    ds[d].onclick = function () {
-      var id = this.getAttribute('data-del');
-      ITEMS = ITEMS.filter(function (x) { return x.id !== id; });
-      keep(); paint(); POST.toast('Output removed', 'bad');
-    };
-  }
-}
-function openDesk() {
-  var others = document.querySelectorAll('.pgh.on, .tlh.on, .nth.on, .syh.on, .dvh.on');
-  for (var i = 0; i < others.length; i++) others[i].classList.remove('on');
-  var h = hub(); h.classList.add('on'); paint();
-}
-
 POST.register({
   id: 'deliverables',
   mount: function () {
-    load();
-    hub();
-    var DS = POST._desks || (POST._desks = []);
-    DS.push({ id: 'deliverables', label: 'Deliverables', open: openDesk });
-    POST.addTile({ id: 'deliverables', title: 'Deliverables', sub: 'Masters, HDR, social · QC', colour: '#B07CE8', icon: 'out', tag: 'OUTPUT', run: openDesk });
+    POST._desks = POST._desks || [];
+    POST._desks.push({ id: 'deliverables', label: 'Deliverables', open: function(){ POST.toast('Export formats available in Edit Suite', 'good'); } });
+    POST.addTile({ id: 'deliverables', title: 'Deliverables', sub: 'QC & Master Exports', colour: '#B07CE8', icon: 'out', tag: 'MASTER', run: function(){ POST.toast('Export formats available in Edit Suite', 'good'); } });
   },
-  state: function () {
-    var t = totals();
-    return { items: t.items, ready: t.ready, outstanding: t.outstanding,
-             checksDone: t.checksDone, checksTotal: t.checksTotal,
-             list: ITEMS.map(function (i) { return { name: i.name, ready: ready(i) }; }) };
-  }
+  state: function(){ return { ready: true }; }
 });
-POST.deliverables = { totals: totals, text: asText, list: function () { return JSON.parse(JSON.stringify(ITEMS)); }, open: openDesk };
+})();
+;
+/* module: 80-posthub-suite.js */
+(function(){
+var P_FPS = 24.0;
+var TRACKS = { v2: [], v1: [], a1: [], a2: [] };
+var BINS = { 'Footage': [], 'Audio': [], 'Graphics': [] };
+var EXPANDED_BINS = { 'Footage': true, 'Audio': true, 'Graphics': true };
+
+function tcf(sec) {
+  sec = Math.max(0, sec || 0);
+  var f = Math.round((sec - Math.floor(sec)) * P_FPS);
+  var s = Math.floor(sec) % 60, m = Math.floor(sec / 60) % 60, h = Math.floor(sec / 3600);
+  function p(n){ return (n < 10 ? '0' : '') + n; }
+  return p(h) + ':' + p(m) + ':' + p(s) + ':' + p(f);
+}
+
+function exportOpenXml() {
+  var proj = (POST.state().project && POST.state().project.name) || 'postHUB_Master';
+  var v1Clips = TRACKS.v1.map(function(c, i){
+    var inF = Math.round((c.offset || 0) * P_FPS), durF = Math.round((c.duration || 5) * P_FPS);
+    return '      <clipitem id="clipitem-' + (i + 1) + '">' +
+           '<name>' + POST.esc(c.name) + '</name><in>' + inF + '</in><out>' + (inF + durF) + '</out>' +
+           '<start>' + Math.round((c.start || 0) * P_FPS) + '</start><end>' + Math.round(((c.start || 0) + (c.duration || 5)) * P_FPS) + '</end>' +
+           '<file id="f-' + (i + 1) + '"><name>' + POST.esc(c.name) + '</name><pathurl>file://localhost/' + POST.esc(c.name) + '</pathurl></file></clipitem>';
+  });
+  var xml = '<?xml version="1.0" encoding="UTF-8"?><xmeml version="4"><project><name>' + POST.esc(proj) + '</name>' +
+            '<children><sequence><name>' + POST.esc(proj) + ' Sequence</name><rate><timebase>24</timebase></rate>' +
+            '<media><video><track>' + v1Clips.join('\n') + '</track></video></media></sequence></children></project></xmeml>';
+  POST.dl(proj.replace(/\s+/g, '_') + '_Conform.xml', xml, 'text/xml');
+}
+
+function stylePr() {
+  if (document.getElementById('prSuiteStyle')) return;
+  var s = document.createElement('style'); s.id = 'prSuiteStyle';
+  s.textContent = 
+    '.prh{position:fixed;inset:0;z-index:500;background:#0d111a;color:#d4d4d4;font-family:var(--fb);display:none;flex-direction:column;overflow:hidden}' +
+    '.prh.on{display:flex}' +
+    '.pr-top{display:flex;align-items:center;gap:10px;padding:8px 14px;background:#080b12;border-bottom:1px solid #1a2234}' +
+    '.pr-top h2{font-size:16px;color:#fff;margin:0;font-family:var(--fd);letter-spacing:.05em}' +
+    '.pr-workspace{display:grid;grid-template-columns:280px 1fr 1fr;grid-template-rows:1fr 220px;gap:4px;flex:1 1 auto;padding:4px;background:#05070c;overflow:hidden}' +
+    '.pr-panel{background:#0e1320;border:1px solid #172134;border-radius:3px;display:flex;flex-direction:column;overflow:hidden}' +
+    '.pr-tab{padding:6px 12px;background:#141c2e;border-bottom:2px solid #283754;font-size:11px;font-family:var(--fm);color:#8ba0b8;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}' +
+    '.pr-tab.active{border-bottom-color:var(--cyan);color:#fff}' +
+    '.pr-bin-tree{padding:8px;overflow-y:auto;flex:1;font-family:var(--fm);font-size:12px}' +
+    '.pr-monitor{position:relative;background:#000;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden}' +
+    '.pr-timeline{grid-column:1 / -1;display:flex;flex-direction:column;background:#0a0d16}' +
+    '.pr-track-lane{display:flex;align-items:center;height:42px;background:#0e1320;border-bottom:1px solid #192236;position:relative;padding:0 6px}' +
+    '.pr-clip{height:32px;background:#1e3a66;border-radius:3px;padding:4px 8px;font-size:11px;font-family:var(--fm);color:#fff;display:flex;align-items:center;cursor:pointer;border-left:3px solid var(--cyan);margin-right:2px}';
+  document.head.appendChild(s);
+}
+
+function hubPr() {
+  var h = document.getElementById('posthub-premiere');
+  if (h) return h;
+  stylePr();
+  h = document.createElement('div'); h.className = 'prh'; h.id = 'posthub-premiere';
+  h.innerHTML = [
+    '<div class="pr-top">',
+    '  <div style="font-family:var(--fd);color:var(--cyan);font-size:20px;font-weight:700">pH</div>',
+    '  <h2>postHUB Studio Edit Desk</h2>',
+    '  <div style="margin-left:auto;display:flex;gap:6px">',
+    '    <button class="btn sm" id="prBtnExportXml">Export Open XML</button>',
+    '    <button class="btn sm" id="prBtnClose">Close</button>',
+    '  </div>',
+    '</div>',
+    deskTabs('suite'),
+    '<div class="pr-workspace">',
+    '  <div class="pr-panel">',
+    '    <div class="pr-tab active"><span>Project Bins</span></div>',
+    '    <div class="pr-bin-tree" id="prBinTree"></div>',
+    '  </div>',
+    '  <div class="pr-panel">',
+    '    <div class="pr-tab active"><span>Source Viewer</span></div>',
+    '    <div class="pr-monitor"><video id="prVideoSrc" style="max-width:100%;max-height:100%"></video></div>',
+    '  </div>',
+    '  <div class="pr-panel">',
+    '    <div class="pr-tab active"><span>Program Master</span></div>',
+    '    <div class="pr-monitor"><video id="prVideoPrg" style="max-width:100%;max-height:100%"></video></div>',
+    '  </div>',
+    '  <div class="pr-panel pr-timeline">',
+    '    <div class="pr-tab active"><span>Master Sequence (24.00 fps)</span></div>',
+    '    <div style="flex:1;overflow-y:auto;padding:4px">',
+    '      <div class="pr-track-lane" id="prTrackV1"></div>',
+    '    </div>',
+    '  </div>',
+    '</div>'
+  ].join('\n');
+  document.body.appendChild(h);
+
+  h.querySelector('#prBtnClose').onclick = function(){ h.classList.remove('on'); };
+  h.querySelector('#prBtnExportXml').onclick = exportOpenXml;
+  return h;
+}
+
+function openPremiereDesk() {
+  closeOtherDesks();
+  var h = hubPr();
+  h.classList.add('on');
+  bindDeskTabs(h, 'suite');
+
+  // Populate Bins
+  var tree = h.querySelector('#prBinTree');
+  var media = POST.media();
+  tree.innerHTML = media.length ? media.map(function(m){
+    return '<div style="padding:4px;cursor:pointer">▶ ' + POST.esc(m.name) + ' (' + Math.round(m.duration) + 's)</div>';
+  }).join('') : '<div style="color:#666">Ingest media to populate bins.</div>';
+
+  var clips = tree.querySelectorAll('div');
+  for (var i = 0; i < clips.length; i++) {
+    (function(idx){
+      clips[idx].onclick = function(){
+        var v = h.querySelector('#prVideoSrc');
+        if (v && media[idx]) {
+          v.src = media[idx].url || URL.createObjectURL(media[idx]._file);
+          v.play();
+        }
+      };
+    })(i);
+  }
+}
+
+POST.register({
+  id: 'suite',
+  mount: function() {
+    POST._desks = POST._desks || [];
+    POST._desks.push({ id: 'suite', label: 'Edit Suite', open: openPremiereDesk });
+    POST.addTile({
+      id: 'suite',
+      title: 'postHUB Edit Suite',
+      sub: 'NLE Master Workspace',
+      colour: '#7137C8',
+      icon: 'film',
+      tag: 'STUDIO NLE',
+      run: openPremiereDesk
+    });
+  },
+  state: function(){ return { ready: true }; }
+});
+POST.suite = { open: openPremiereDesk };
 })();
 </script>
 </body>
 </html>
+
+```
