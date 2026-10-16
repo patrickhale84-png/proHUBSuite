@@ -1191,7 +1191,7 @@ function openDesk() {
 POST.register({
   id: 'timeline',
   mount: function () {
-    hub();
+    /* register the tile first — DOM is built lazily on first open */
     var DS2 = POST._desks || (POST._desks = []);
     DS2.push({ id: 'timeline', label: 'Timeline', open: openDesk });
     POST.addTile({ id: 'timeline', title: 'Timeline', sub: 'Cut list · EDL in and out', colour: '#00ABA9', icon: 'list', tag: 'EDIT', run: openDesk });
