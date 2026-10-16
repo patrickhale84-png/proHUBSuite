@@ -56,7 +56,20 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 .epn{margin:0;padding-left:1.6in;padding-right:1.6in;font-style:italic;}
 .edl{margin-top:0;margin-bottom:4pt;padding-left:1.0in;padding-right:1.5in;line-height:130%;}
 .etr{text-transform:uppercase;font-weight:700;margin:12pt 0;text-align:right;}
-@media(max-width:768px){.pp{padding:16px 20px;width:100%;min-height:auto;font-size:10.5pt;}.ech{padding-left:25%;}.edl{padding-left:10%;padding-right:10%;}.epn{padding-left:15%;padding-right:15%;}}
+@media(max-width:768px){
+  .pp{padding:14px 12px 40px;width:100%;min-height:auto;font-size:11pt;}
+  /* Short-class overrides (legacy) */
+  .ech{padding-left:32%!important;}
+  .edl{padding-left:8%!important;padding-right:8%!important;}
+  .epn{padding-left:22%!important;padding-right:12%!important;}
+  /* Primary editor element classes — these are what the editor actually renders */
+  .element-scene-heading{margin-top:14pt!important;}
+  .element-character{padding-left:32%!important;}
+  .element-dialogue{padding-left:8%!important;padding-right:8%!important;}
+  .element-parenthetical{padding-left:22%!important;padding-right:12%!important;}
+  .element-action{padding-left:0!important;padding-right:0!important;}
+  .element-transition{padding-left:0!important;text-align:right!important;}
+}
 /* Coverage */
 .mcard{background:#050810;padding:14px 10px;border-radius:8px;border:1px solid #1E293B;text-align:center;}
 /* ===== HALION CV ENGINE ===== */
@@ -2136,22 +2149,30 @@ She throws it in reverse!`;
           // Strip leading scene numbers for detection only (e.g. "1 EXT." → "EXT.")
           const ht = t.replace(/^\d+\s+/, '');
 
+          // Strip suffixes for detection
+          const cl2 = t.replace(/\s*\(CONT['']D\)\s*$/i,'').replace(/\s*\(V\.O\.\)\s*$/i,'').replace(/\s*\(O\.S\.\)\s*$/i,'').replace(/\s*\(O\.C\.\)\s*$/i,'').trim();
+
           if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(ht)) {
             type = "SCENE_HEADING";
             speakerActive = false;
-          } else if (/^(FADE IN:|FADE OUT\.|CUT TO:|SMASH CUT TO:|DISSOLVE TO:)/i.test(t) || t.endsWith(" TO:")) {
+          } else if (/^(FADE IN:|FADE OUT[.!]|CUT TO:|SMASH CUT TO:|DISSOLVE TO:|MATCH CUT TO:|JUMP CUT TO:)/i.test(t) || /\bTO:$/.test(t.toUpperCase())) {
             type = "TRANSITION";
             speakerActive = false;
           } else if (t.startsWith("(") && t.endsWith(")")) {
             type = "PARENTHETICAL";
-          } else if (t === t.toUpperCase() && t.length < 35 && !t.endsWith(":") && !/^\d+$/.test(t) && !/^(THE|A|AN|AND|IN|ON)\b/.test(t) && !/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(ht)) {
+          } else if (
+            cl2 === cl2.toUpperCase() && cl2.length >= 2 && cl2.length < 40 &&
+            /[A-Z]/.test(cl2) && !cl2.endsWith(":") && !/[.!?,]$/.test(cl2) &&
+            !/^\d[\d\s]*$/.test(cl2) && (cl2.match(/-/g)||[]).length < 2 &&
+            !/^(THE|A|AN|AND|IN|ON|AT|BY|TO|OF|CONTINUED|CONT|MORE|END|THE END|FADE|CUT|SMASH|DISSOLVE|BACK)$/.test(cl2) &&
+            !/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(ht) &&
+            (x > X_CHAR || x === 0)  // 0 = x-position unknown (non-PDF sources)
+          ) {
             type = "CHARACTER";
             speakerActive = true;
-          } else if (speakerActive && x > X_LEFT) {
-            // Still in a speaker block AND indented beyond action column → DIALOGUE
+          } else if (speakerActive && (x > X_LEFT || x === 0)) {
             type = "DIALOGUE";
           } else {
-            // Either not in speaker block, or x is back at left margin → ACTION
             type = "ACTION";
             speakerActive = false;
           }
@@ -2292,17 +2313,26 @@ She throws it in reverse!`;
             return;
           }
 
-          if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(cleanLine)) {
-            lines.push({ type: "SCENE_HEADING", text: cleanLine });
+          // Strip CONT'D / V.O. / O.S. suffixes for detection
+          const cl = cleanLine.replace(/\s*\(CONT['']D\)\s*$/i,'').replace(/\s*\(V\.O\.\)\s*$/i,'').replace(/\s*\(O\.S\.\)\s*$/i,'').replace(/\s*\(O\.C\.\)\s*$/i,'').trim();
+
+          if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(cl)) {
+            lines.push({ type: "SCENE_HEADING", text: cleanLine.toUpperCase() });
             speakerActive = false;
-          } else if (cleanLine === cleanLine.toUpperCase() && cleanLine.length < 35 && !cleanLine.endsWith(':') && !/^\d+$/.test(cleanLine)) {
-            lines.push({ type: "CHARACTER", text: cleanLine });
-            speakerActive = true;
+          } else if (/^(FADE IN:|FADE OUT[.!]|CUT TO:|SMASH CUT TO:|DISSOLVE TO:|MATCH CUT TO:|JUMP CUT TO:)/i.test(cl) || /\bTO:$/.test(cl.toUpperCase())) {
+            lines.push({ type: "TRANSITION", text: cleanLine.toUpperCase() });
+            speakerActive = false;
           } else if (cleanLine.startsWith("(") && cleanLine.endsWith(")")) {
             lines.push({ type: "PARENTHETICAL", text: cleanLine });
-          } else if (/^(FADE IN:|FADE OUT\.|CUT TO:|SMASH CUT TO:|DISSOLVE TO:)/i.test(cleanLine)) {
-            lines.push({ type: "TRANSITION", text: cleanLine });
-            speakerActive = false;
+          } else if (
+            cl === cl.toUpperCase() && cl.length >= 2 && cl.length < 40 &&
+            /[A-Z]/.test(cl) && !cl.endsWith(':') && !/[.!?,]$/.test(cl) &&
+            !/^(THE|A|AN|AND|IN|ON|AT|BY|TO|OF|IT|HE|SHE|WE|THEY|ALL|CONTINUED|CONT|MORE|END|THE END|FADE|CUT|SMASH|DISSOLVE|BACK)$/.test(cl) &&
+            !/^\d[\d\s]*$/.test(cl) && (cl.match(/-/g)||[]).length < 2 &&
+            !/^(INT\b|EXT\b|EST\b)/i.test(cl)
+          ) {
+            lines.push({ type: "CHARACTER", text: cleanLine });
+            speakerActive = true;
           } else if (speakerActive) {
             lines.push({ type: "DIALOGUE", text: cleanLine });
           } else {
@@ -2682,43 +2712,53 @@ let isTitlePageVisible = false;
           let newType = "ACTION";
           let formattedText = rawText;
 
-          // 1. Scene Headings check
-          if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(rawText)) {
+          // Strip common suffixes before type detection
+          const stripped = rawText.replace(/\s*\(CONT['']D\)\s*$/i,'').replace(/\s*\(V\.O\.\)\s*$/i,'').replace(/\s*\(O\.S\.\)\s*$/i,'').replace(/\s*\(O\.C\.\)\s*$/i,'').trim();
+
+          // 1. Scene Headings
+          if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(stripped)) {
             newType = "SCENE_HEADING";
             formattedText = rawText.toUpperCase();
             speakerActive = false;
-          } 
-          // 2. Transitions check
-          else if (/^(FADE IN:|FADE OUT\.|CUT TO:|SMASH CUT TO:|DISSOLVE TO:)/i.test(rawText) || rawText.toUpperCase().endsWith(" TO:")) {
+          }
+          // 2. Transitions
+          else if (/^(FADE IN:|FADE OUT[.!]|CUT TO:|SMASH CUT TO:|DISSOLVE TO:|MATCH CUT TO:|JUMP CUT TO:)/i.test(rawText) || /\bTO:$/.test(rawText.toUpperCase())) {
             newType = "TRANSITION";
             formattedText = rawText.toUpperCase();
             speakerActive = false;
-          } 
-          // 3. Parentheticals check
+          }
+          // 3. Parentheticals
           else if (rawText.startsWith("(") && rawText.endsWith(")")) {
             newType = "PARENTHETICAL";
-            formattedText = rawText.toLowerCase();
-          } 
-          // 4. Character names check (all caps, under 35 chars, not slugline, not a sound effect)
+            // parentheticals lowercase inside parens
+            formattedText = '(' + rawText.slice(1,-1).toLowerCase() + ')';
+          }
+          // 4. Character names — must be ALL CAPS, short, not a transition/slugline word, not a sentence
           else if (
-            rawText === rawText.toUpperCase() &&
-            rawText.length < 35 &&
-            !rawText.endsWith(':') &&
-            // Sound effects end with . ! ? — they're action/sound, not character names
-            !/[.!?]$/.test(rawText) &&
-            // Two or more hyphens = repetitive sound (BOOM-BOOM-WHOOSH)
-            (rawText.match(/-/g) || []).length < 2 &&
-            !/^\d+$/.test(rawText) &&
-            !/^(THE|A|AN|AND|IN|ON|AT|BY|TO|OF|IT|HE|SHE|WE|THEY|ALL)\b/.test(rawText)
+            stripped === stripped.toUpperCase() &&
+            stripped.length >= 2 && stripped.length < 40 &&
+            !stripped.endsWith(':') &&
+            !/[.!?,]$/.test(stripped) &&
+            // Must contain a letter (not just numbers/punctuation)
+            /[A-Z]/.test(stripped) &&
+            // Not a standalone common word that happens to be caps
+            !/^(THE|A|AN|AND|IN|ON|AT|BY|TO|OF|IT|HE|SHE|WE|THEY|ALL|BUT|FOR|OR|NOR|SO|YET|BOTH|EITHER|NEITHER|NOT|ONLY|SAME|SUCH|THAN|TOO|VERY|CONTINUED|CONT|MORE|END|THE END|FADE|CUT|SMASH|DISSOLVE|MATCH|JUMP|BACK)$/.test(stripped) &&
+            // Not all digits or scene numbers
+            !/^\d[\d\s]*$/.test(stripped) &&
+            // Sound effects often have multiple hyphens
+            (stripped.match(/-/g)||[]).length < 2 &&
+            // Real character names don't start with these
+            !/^(INT\b|EXT\b|EST\b)/i.test(stripped)
           ) {
             newType = "CHARACTER";
-            formattedText = rawText.toUpperCase();
+            formattedText = stripped.toUpperCase();
             speakerActive = true;
-          } 
-          // 5. Dialogue after character
+          }
+          // 5. Dialogue — only if immediately after a CHARACTER or PARENTHETICAL
           else if (speakerActive) {
             newType = "DIALOGUE";
-          } 
+            // speakerActive stays true through dialogue (multi-line dialogue)
+          }
           // 6. Action default
           else {
             newType = "ACTION";
