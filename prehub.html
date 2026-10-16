@@ -392,6 +392,42 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
     /* Accessibility toggle icon states */
     #acc-cb-icon{transition:color .2s;}
     #acc-dy-icon{transition:color .2s;}
+
+    /* ===== MOBILE: SHOT LIST + GLOBAL HUB ===== */
+    @media(max-width:768px){
+      /* Shot list table — horizontal scroll, hide less important cols */
+      #v-shotlist table{min-width:480px;}
+      #v-shotlist{overflow-x:hidden;}
+      .psl-tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      /* Collapse move/lens cols on small screens */
+      .psl-col-move,.psl-col-lens{display:none;}
+      /* Shot modal full-width */
+      #psl-modal > div{max-width:100%!important;margin:0!important;border-radius:10px!important;}
+      #psl-modal > div > div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:1fr!important;}
+      /* Budget 1/8 rule grid: 2 cols on mobile */
+      #bud18-schedule{grid-template-columns:1fr 1fr!important;}
+      /* One-liner strip scrolls */
+      #psl-ol-strip{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+      /* Topbar flex-wrap already handles itself */
+      /* Main area fills screen */
+      .apc>*:not(.psb){width:100%!important;overflow-x:hidden;}
+      /* Dashboard tiles smaller */
+      .mtile{padding:12px 10px!important;}
+      .micon{font-size:18px!important;}
+      .mtit{font-size:11px!important;}
+      .msub{font-size:8px!important;}
+      /* Budget grid 2-col */
+      .grid.grid-cols-4{grid-template-columns:1fr 1fr!important;}
+      /* Script paper: narrower margins */
+      .pp{padding:14px 12px!important;}
+    }
+    @media(max-width:480px){
+      #bud18-schedule{grid-template-columns:1fr!important;}
+      .grid.grid-cols-4{grid-template-columns:1fr 1fr!important;}
+      /* Shot list: hide shot# thumb on very small */
+      .psl-col-thumb{width:40px!important;}
+      .psl-col-thumb img{width:36px!important;height:25px!important;}
+    }
 </style>
 </head>
 <body>
@@ -525,6 +561,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
     <div class="nl" onclick="sw('scripts')" id="n-scripts"><i class="fa-solid fa-scroll text-amber-400 w-5"></i>6. Script Reader</div>
     <div class="nl" onclick="sw('filmdb')" id="n-filmdb"><i class="fa-solid fa-film text-rose-400 w-5"></i>7. Film Database</div>
     <div class="nl" onclick="sw('outreach')" id="n-outreach"><i class="fa-solid fa-envelope-open-text text-violet-400 w-5"></i>8. Outreach</div>
+    <div class="nl" onclick="sw('shotlist')" id="n-shotlist"><i class="fa-solid fa-list-ol text-amber-300 w-5"></i>9. Shot List</div>
   </div>
   <div class="mt-auto p-4 border-t border-gray-800/80 bg-black/30 text-[11px] text-gray-500 space-y-1">
     <div class="flex justify-between"><span>Script Version:</span><strong class="text-amber-400 font-mono" id="sbv">v1.0</strong></div>
@@ -589,11 +626,19 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       <div class="micon"><i class="fa-solid fa-envelope-open-text"></i></div>
       <div><div class="mtit">8. Outreach</div><div class="msub">Distributors · Query Letters</div></div>
     </div>
+    <div class="mtile" style="background:linear-gradient(135deg,#92400E,#D97706);" onclick="sw('shotlist')">
+      <div class="mbadge">PRODUCTION</div>
+      <div class="micon"><i class="fa-solid fa-list-ol"></i></div>
+      <div><div class="mtit">9. Shot List</div><div class="msub">Setups · Types · Thumbnails · Status</div></div>
+    </div>
   </div>
-  <div class="mt-4 text-center">
+  <div class="mt-4 flex gap-3 justify-center flex-wrap">
     <button onclick="txProHub()" class="text-xs font-bold tracking-wider uppercase px-5 py-2 rounded-lg border transition" style="background:rgba(192,57,43,.12);color:#E07060;border-color:#7B2D24;">
       <i class="fa-solid fa-rocket mr-2"></i>Transmit to proHUB — Bridge Manifests &amp; Scene Units
     </button>
+    <a href="prohub.html" class="text-xs font-bold tracking-wider uppercase px-5 py-2 rounded-lg border transition flex items-center gap-2" style="background:rgba(212,160,52,.1);color:#D4A034;border-color:#92400E;text-decoration:none;">
+      <i class="fa-solid fa-clapperboard"></i>Open proHUB — Production Command Center
+    </a>
   </div>
 </div>
 </section>
@@ -1244,6 +1289,40 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
     <h2 class="text-xl font-black text-white uppercase tracking-wider flex items-center gap-2" style="font-family:var(--fds)"><i class="fa-solid fa-file-invoice-dollar text-emerald-400"></i> Macro Pre-Lim Budgeting</h2>
     <p class="text-xs text-gray-400 mt-0.5">Top-sheet category scale before detailed union breakdown in proHUB.</p>
   </div>
+  <!-- 1/8 Rule Page Calculator -->
+  <div class="bg-[#131822] border border-gray-700 rounded-xl p-5 shadow-xl">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <div class="text-xs font-bold text-amber-300 uppercase tracking-wider font-mono flex items-center gap-2"><i class="fa-solid fa-ruler-horizontal text-amber-400"></i> 1/8 Rule — Shooting Schedule</div>
+        <div class="text-[10px] text-gray-500 mt-0.5">Industry standard: 1 page = 8 eighths = ~1 min screen time</div>
+      </div>
+      <button onclick="pslCalc18Rule()" style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35);color:#FCD34D;font-size:10px;font-weight:700;padding:4px 12px;border-radius:6px;cursor:pointer;">Sync Script</button>
+    </div>
+    <div class="grid grid-cols-4 gap-3 mb-4">
+      <div style="background:#0A0D14;border:1px solid #1E293B;border-radius:7px;padding:10px 8px;text-align:center;">
+        <div style="font-size:18px;font-weight:900;color:#E2E8F0;font-family:monospace;" id="bud18-pages">—</div>
+        <div style="font-size:8px;color:#475569;text-transform:uppercase;letter-spacing:.08em;margin-top:2px;">Pages</div>
+      </div>
+      <div style="background:#0A0D14;border:1px solid #1E293B;border-radius:7px;padding:10px 8px;text-align:center;">
+        <div style="font-size:18px;font-weight:900;color:#F59E0B;font-family:monospace;" id="bud18-eighths">—</div>
+        <div style="font-size:8px;color:#475569;text-transform:uppercase;letter-spacing:.08em;margin-top:2px;">Eighths</div>
+      </div>
+      <div style="background:#0A0D14;border:1px solid #1E293B;border-radius:7px;padding:10px 8px;text-align:center;">
+        <div style="font-size:18px;font-weight:900;color:#34D399;font-family:monospace;" id="bud18-runtime">—</div>
+        <div style="font-size:8px;color:#475569;text-transform:uppercase;letter-spacing:.08em;margin-top:2px;">Est. Runtime</div>
+      </div>
+      <div style="background:#0A0D14;border:1px solid #1E293B;border-radius:7px;padding:10px 8px;text-align:center;">
+        <div style="font-size:18px;font-weight:900;color:#C084FC;font-family:monospace;" id="bud18-scenes">—</div>
+        <div style="font-size:8px;color:#475569;text-transform:uppercase;letter-spacing:.08em;margin-top:2px;">Scenes</div>
+      </div>
+    </div>
+    <div style="background:#0A0D14;border:1px solid #1E293B;border-radius:7px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:9px;color:#475569;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Pages Per Day → Shooting Days → Daily Rate Impact</div>
+      <div id="bud18-schedule" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+    </div>
+    <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:7px;padding:10px 12px;font-size:10px;color:#94A3B8;line-height:1.7;" id="bud18-note">Click <strong style="color:#FCD34D;">Sync Script</strong> to calculate from your active screenplay.</div>
+  </div>
+
   <div class="bg-[#131822] border border-gray-700 rounded-xl p-5 shadow-xl">
     <div class="overflow-x-auto">
       <table class="w-full text-left text-xs font-mono">
@@ -1382,6 +1461,98 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
     </div>
   </div>
 </section>
+
+<!-- VIEW 9: SHOT LIST -->
+<section id="v-shotlist" class="vs" style="background:#07090F;flex-direction:column;">
+<!-- Header -->
+<div style="background:#0F1420;border-bottom:1px solid #1E2A3A;padding:10px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;">
+  <div style="font-family:'Montserrat',sans-serif;font-weight:900;font-size:13px;color:#D97706;letter-spacing:.08em;text-transform:uppercase;"><i class="fa-solid fa-list-ol mr-2"></i>Shot List</div>
+  <select id="psl-scene-f" onchange="pslRender()" style="background:#131822;border:1px solid #1E2A3A;color:#CBD5E1;font-size:11px;padding:4px 8px;border-radius:6px;outline:none;">
+    <option value="all">All Scenes</option>
+  </select>
+  <select id="psl-status-f" onchange="pslRender()" style="background:#131822;border:1px solid #1E2A3A;color:#CBD5E1;font-size:11px;padding:4px 8px;border-radius:6px;outline:none;">
+    <option value="all">All Status</option>
+    <option value="todo">TODO</option>
+    <option value="rolling">ROLLING</option>
+    <option value="done">DONE</option>
+    <option value="hold">ON HOLD</option>
+  </select>
+  <div style="flex:1;"></div>
+  <button onclick="pslSyncFromBoard()" style="background:rgba(14,116,144,.12);border:1px solid rgba(14,116,144,.4);color:#22D3EE;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;" title="Auto-sync thumbnails from Storyboard"><i class="fa-solid fa-rotate mr-1"></i>Sync Board</button>
+  <button onclick="pslAddShot()" style="background:rgba(217,119,6,.15);border:1px solid rgba(217,119,6,.4);color:#D97706;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;"><i class="fa-solid fa-plus mr-1"></i>Add Shot</button>
+  <button onclick="pslExportCSV()" style="background:#131822;border:1px solid #1E2A3A;color:#475569;font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;" title="Export CSV"><i class="fa-solid fa-file-csv"></i></button>
+  <a href="prohub.html" style="background:rgba(212,160,52,.08);border:1px solid rgba(212,160,52,.3);color:#D4A034;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;text-decoration:none;display:inline-flex;align-items:center;gap:5px;"><i class="fa-solid fa-clapperboard"></i>proHUB</a>
+</div>
+<!-- One-liner strip toggle -->
+<div style="background:#0A0D14;border-bottom:1px solid #1E2A3A;padding:6px 16px;display:flex;align-items:center;gap:8px;flex-shrink:0;">
+  <span style="font-size:10px;color:#475569;text-transform:uppercase;letter-spacing:.08em;font-weight:700;">One-Liner Strip</span>
+  <button onclick="pslToggleOneLiner()" id="psl-ol-btn" style="font-size:10px;background:rgba(14,116,144,.12);border:1px solid #0E7490;color:#22D3EE;padding:3px 10px;border-radius:5px;cursor:pointer;font-weight:700;"><i class="fa-solid fa-bars-staggered mr-1"></i>Show</button>
+  <button onclick="pslOLToggleLock()" id="psl-ol-lock-btn" style="font-size:10px;background:rgba(71,85,105,.1);border:1px solid #1E2A3A;color:#94A3B8;padding:3px 10px;border-radius:5px;cursor:pointer;font-weight:700;" title="Lock/unlock one-liner expand"><i class="fa-solid fa-lock-open mr-1"></i>Unlocked</button>
+  <div id="psl-ol-strip" style="display:none;flex:1;overflow-x:auto;"></div>
+</div>
+<!-- Table -->
+<div style="flex:1;overflow-y:auto;overflow-x:auto;">
+  <table style="width:100%;border-collapse:collapse;table-layout:fixed;">
+    <thead>
+      <tr style="background:#0F1420;position:sticky;top:0;z-index:5;">
+        <th style="width:52px;font-size:9px;font-weight:700;letter-spacing:.1em;color:#475569;text-transform:uppercase;padding:7px 8px;border-bottom:1px solid #1E2A3A;text-align:left;">Scene</th>
+        <th style="width:68px;font-size:9px;font-weight:700;letter-spacing:.1em;color:#475569;text-transform:uppercase;padding:7px 8px;border-bottom:1px solid #1E2A3A;text-align:left;">Shot</th>
+        <th style="width:52px;font-size:9px;font-weight:700;letter-spacing:.1em;color:#475569;text-transform:uppercase;padding:7px 8px;border-bottom:1px solid #1E2A3A;text-align:left;">Type</th>
+        <th class="psl-col-move" style="width:80px;font-size:9px;font-weight:700;letter-spacing:.1em;color:#475569;text-transform:uppercase;padding:7px 8px;border-bottom:1px solid #1E2A3A;text-align:left;">Move</th>
+        <th class="psl-col-lens" style="width:60px;font-size:9px;font-weight:700;letter-spacing:.1em;color:#475569;text-transform:uppercase;padding:7px 8px;border-bottom:1px solid #1E2A3A;text-align:left;">Lens</th>
+        <th style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#475569;text-transform:uppercase;padding:7px 8px;border-bottom:1px solid #1E2A3A;text-align:left;">Description</th>
+        <th style="width:84px;font-size:9px;font-weight:700;letter-spacing:.1em;color:#475569;text-transform:uppercase;padding:7px 8px;border-bottom:1px solid #1E2A3A;text-align:left;">Status</th>
+        <th style="width:30px;border-bottom:1px solid #1E2A3A;"></th>
+      </tr>
+    </thead>
+    <tbody id="psl-tbody"></tbody>
+  </table>
+  <div id="psl-empty" style="display:none;padding:40px;text-align:center;color:#1E293B;font-size:12px;">No shots yet. Click <strong style="color:#475569;">Add Shot</strong> or load a script in the Screenwriter and enable Shooting Mode.</div>
+</div>
+</section>
+
+<!-- SHOT EDIT MODAL (prehub) -->
+<div id="psl-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)pslCloseModal()">
+  <div style="background:#111827;border:1px solid #1E2A3A;border-radius:14px;width:100%;max-width:520px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.7);" onclick="event.stopPropagation()">
+    <div style="background:#0F1420;padding:13px 16px;border-bottom:1px solid #1E2A3A;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-family:'Montserrat',sans-serif;font-weight:900;font-size:12px;color:#D97706;">Edit Shot</div>
+      <button onclick="pslCloseModal()" style="background:none;border:none;color:#475569;cursor:pointer;font-size:15px;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div><label style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:3px;">Scene #</label><input id="psl-sm-scene" style="background:#131822;border:1px solid #1E2A3A;color:#E2E8F0;padding:5px 9px;border-radius:5px;font-size:11px;outline:none;width:100%;" placeholder="e.g. 12"></div>
+      <div><label style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:3px;">Shot #</label><input id="psl-sm-shot" style="background:#131822;border:1px solid #1E2A3A;color:#E2E8F0;padding:5px 9px;border-radius:5px;font-size:11px;outline:none;width:100%;" placeholder="A, B, C…"></div>
+      <div><label style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:3px;">Type</label>
+        <select id="psl-sm-type" style="background:#131822;border:1px solid #1E2A3A;color:#E2E8F0;padding:5px 9px;border-radius:5px;font-size:11px;outline:none;width:100%;">
+          <option>WS</option><option>MWS</option><option>MS</option><option>MCU</option><option>CU</option><option>ECU</option><option>OTS</option><option>POV</option><option>2-SHOT</option><option>INSERT</option><option>AERIAL</option><option>CUTAWAY</option>
+        </select>
+      </div>
+      <div><label style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:3px;">Camera Move</label>
+        <select id="psl-sm-move" style="background:#131822;border:1px solid #1E2A3A;color:#E2E8F0;padding:5px 9px;border-radius:5px;font-size:11px;outline:none;width:100%;">
+          <option>STATIC</option><option>PAN L</option><option>PAN R</option><option>TILT UP</option><option>TILT DOWN</option><option>DOLLY IN</option><option>DOLLY OUT</option><option>TRACK L</option><option>TRACK R</option><option>HANDHELD</option><option>STEADICAM</option><option>ZOOM IN</option><option>ZOOM OUT</option>
+        </select>
+      </div>
+      <div><label style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:3px;">Lens</label><input id="psl-sm-lens" style="background:#131822;border:1px solid #1E2A3A;color:#E2E8F0;padding:5px 9px;border-radius:5px;font-size:11px;outline:none;width:100%;" placeholder="35mm"></div>
+      <div><label style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:3px;">Status</label>
+        <select id="psl-sm-status" style="background:#131822;border:1px solid #1E2A3A;color:#E2E8F0;padding:5px 9px;border-radius:5px;font-size:11px;outline:none;width:100%;">
+          <option value="todo">TODO</option><option value="rolling">ROLLING</option><option value="done">DONE</option><option value="hold">ON HOLD</option>
+        </select>
+      </div>
+      <div style="grid-column:1/-1;"><label style="font-size:9px;color:#475569;text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:3px;">Description / Notes</label><textarea id="psl-sm-desc" rows="2" style="background:#131822;border:1px solid #1E2A3A;color:#E2E8F0;padding:5px 9px;border-radius:5px;font-size:11px;outline:none;width:100%;resize:vertical;" placeholder="Subject, action, framing…"></textarea></div>
+      <div style="grid-column:1/-1;display:flex;align-items:center;gap:10px;">
+        <div id="psl-sm-thumb-area" style="width:90px;height:62px;background:#131822;border:1px dashed #1E2A3A;border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0;" onclick="document.getElementById('psl-sm-thumb-file').click()" title="Click to upload or paste image">
+          <img id="psl-sm-thumb-preview" src="" style="display:none;width:100%;height:100%;object-fit:cover;">
+          <span id="psl-sm-thumb-ph" style="font-size:9px;color:#374151;text-align:center;line-height:1.5;"><i class="fa-solid fa-image block text-sm mb-1"></i>Thumb</span>
+        </div>
+        <div style="font-size:10px;color:#374151;line-height:1.6;">Click thumbnail area<br>or paste image (⌘V)</div>
+        <input type="file" id="psl-sm-thumb-file" accept="image/*" style="display:none" onchange="pslLoadThumb(this)">
+      </div>
+    </div>
+    <div style="padding:0 16px 16px;display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="pslCloseModal()" style="background:#131822;border:1px solid #1E2A3A;color:#475569;padding:6px 16px;border-radius:6px;font-size:11px;cursor:pointer;">Cancel</button>
+      <button onclick="pslSaveModal()" style="background:rgba(217,119,6,.18);border:1px solid rgba(217,119,6,.45);color:#D97706;font-weight:700;padding:6px 16px;border-radius:6px;font-size:11px;cursor:pointer;">Save Shot</button>
+    </div>
+  </div>
+</div>
 
 </main>
 </div>
@@ -4345,7 +4516,300 @@ function loadAccessibilityPrefs(){
   }catch(e){}
 }
 
-function init(){try{const raw=localStorage.getItem('prehub_v3');if(raw){const p=JSON.parse(raw);S={...S,...p};if(S.projectName)document.getElementById('pni').value=S.projectName;if(S.writerName)document.getElementById('wni').value=S.writerName;updateGUI();setAS(S.autosaveInterval||120);}}catch(e){}syncT();renderBudget();renderVV();recSBH('Init');ScreenplayEditorCore.initializeEditorSystem();obSetFilter('all');obRenderLog();obCheckWeeklyNudge();loadAccessibilityPrefs();}
+function init(){try{const raw=localStorage.getItem('prehub_v3');if(raw){const p=JSON.parse(raw);S={...S,...p};if(S.projectName)document.getElementById('pni').value=S.projectName;if(S.writerName)document.getElementById('wni').value=S.writerName;updateGUI();setAS(S.autosaveInterval||120);}}catch(e){}syncT();renderBudget();renderVV();recSBH('Init');ScreenplayEditorCore.initializeEditorSystem();obSetFilter('all');obRenderLog();obCheckWeeklyNudge();loadAccessibilityPrefs();pslLoad();pslRender();pslOLRender();pslInitMobile();}
+// ==================== SHOT LIST (preHUB view 9) ====================
+let pslShots=[];
+let pslModalId=null;
+let pslOLLocked=false;
+let pslOLExpanded={};
+
+function pslLoad(){try{const r=localStorage.getItem('prehub_shotlist');if(r)pslShots=JSON.parse(r);}catch(e){}}
+function pslSave(){try{localStorage.setItem('prehub_shotlist',JSON.stringify(pslShots));}catch(e){}}
+function pslNewId(){return 'sh_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);}
+
+// Pull storyboard thumbnails keyed by scene heading (first 40 chars normalized)
+function pslGetSBThumbs(){
+  const map={};
+  const c=document.getElementById('sbcc');
+  if(!c)return map;
+  Array.from(c.children).forEach(card=>{
+    const heading=(card.querySelector('.ssi')?.value||'').trim().toUpperCase().slice(0,40);
+    const img=card.querySelector('.sbi');
+    if(heading&&img&&img.src&&img.src.startsWith('data:'))map[heading]=img.src;
+  });
+  return map;
+}
+
+// Auto-sync thumbnails from storyboard into shots where thumb is empty or where scene matches
+function pslSyncFromBoard(){
+  const thumbs=pslGetSBThumbs();
+  if(!Object.keys(thumbs).length){toast('No storyboard images to sync.');return;}
+  let synced=0;
+  pslShots.forEach(s=>{
+    const key=s.scene.toUpperCase().slice(0,40);
+    // Find best match
+    const match=Object.keys(thumbs).find(k=>k.includes(key.slice(0,20))||key.includes(k.slice(0,20)));
+    if(match&&thumbs[match]){s.thumb=thumbs[match];synced++;}
+  });
+  // Also add shots for storyboard frames that have no corresponding shot
+  pslSave();
+  pslRender();
+  pslOLRender();
+  toast(synced+' shot thumbnail'+(synced!==1?'s':'')+' synced from Storyboard.');
+}
+
+function pslStatusBadge(status,id){
+  const cfg={todo:{lbl:'TODO',bg:'rgba(71,85,105,.4)',col:'#94A3B8'},rolling:{lbl:'ROLLING',bg:'rgba(245,158,11,.22)',col:'#FCD34D'},done:{lbl:'DONE',bg:'rgba(16,185,129,.2)',col:'#34D399'},hold:{lbl:'ON HOLD',bg:'rgba(239,68,68,.15)',col:'#FCA5A5'}};
+  const c=cfg[status]||cfg.todo;
+  return `<span onclick="pslCycleStatus('${id}')" style="background:${c.bg};color:${c.col};font-size:8px;font-weight:700;padding:2px 7px;border-radius:4px;cursor:pointer;font-family:monospace;white-space:nowrap;">${c.lbl}</span>`;
+}
+function pslCycleStatus(id){
+  const order=['todo','rolling','done','hold'];
+  const s=pslShots.find(x=>x.id===id);if(!s)return;
+  s.status=order[(order.indexOf(s.status)+1)%order.length];
+  pslSave();pslRender();pslOLRender();
+}
+
+function pslRender(){
+  const sceneF=document.getElementById('psl-scene-f')?.value||'all';
+  const statusF=document.getElementById('psl-status-f')?.value||'all';
+  // Build scene filter options
+  const sceneEl=document.getElementById('psl-scene-f');
+  if(sceneEl){
+    const scenes=[...new Set(pslShots.map(s=>s.scene).filter(Boolean))].sort((a,b)=>parseInt(a)-parseInt(b)||a.localeCompare(b));
+    sceneEl.innerHTML='<option value="all">All Scenes</option>'+scenes.map(sc=>`<option value="${sc}" ${sceneF===sc?'selected':''}>${sc.length>30?sc.slice(0,30)+'…':sc}</option>`).join('');
+  }
+  let filtered=pslShots;
+  if(sceneF!=='all')filtered=filtered.filter(s=>s.scene===sceneF);
+  if(statusF!=='all')filtered=filtered.filter(s=>s.status===statusF);
+  const tbody=document.getElementById('psl-tbody');
+  const empty=document.getElementById('psl-empty');
+  if(!tbody)return;
+  if(!filtered.length){tbody.innerHTML='';if(empty)empty.style.display='block';return;}
+  if(empty)empty.style.display='none';
+  tbody.innerHTML=filtered.map(s=>{
+    const thumb=s.thumb?`<img src="${s.thumb}" style="width:52px;height:36px;object-fit:cover;border-radius:3px;border:1px solid #1E293B;" alt="">`:`<div style="width:52px;height:36px;background:#0A0D14;border:1px dashed #1E293B;border-radius:3px;display:flex;align-items:center;justify-content:center;color:#1E293B;font-size:9px;"><i class="fa-solid fa-camera"></i></div>`;
+    return `<tr style="border-bottom:1px solid #0F172A;cursor:pointer;" onmouseover="this.style.background='#0F1420'" onmouseout="this.style.background=''" onclick="pslOpenModal('${s.id}')">
+      <td style="padding:6px 8px;font-size:10px;font-family:monospace;color:#CBD5E1;white-space:nowrap;">${s.scene||'—'}</td>
+      <td style="padding:6px 8px;">${thumb}</td>
+      <td style="padding:6px 8px;font-size:10px;font-family:monospace;color:#F59E0B;font-weight:700;">${s.type||'WS'}</td>
+      <td style="padding:6px 8px;font-size:9px;font-family:monospace;color:#64748B;">${s.move||'STATIC'}</td>
+      <td style="padding:6px 8px;font-size:9px;font-family:monospace;color:#64748B;">${s.lens||'—'}</td>
+      <td style="padding:6px 8px;font-size:10px;color:#94A3B8;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.desc||''}</td>
+      <td style="padding:6px 8px;" onclick="event.stopPropagation()">${pslStatusBadge(s.status,s.id)}</td>
+      <td style="padding:6px 8px;" onclick="event.stopPropagation()"><button onclick="pslDelete('${s.id}')" style="background:none;border:none;color:#374151;cursor:pointer;font-size:11px;" title="Delete"><i class="fa-solid fa-trash-can"></i></button></td>
+    </tr>`;
+  }).join('');
+  // One-liner strip update
+  pslOLStripRender();
+}
+
+function pslDelete(id){pslShots=pslShots.filter(s=>s.id!==id);pslSave();pslRender();pslOLRender();}
+
+function pslAddShot(){
+  pslShots.push({id:pslNewId(),scene:'',shotnum:'A',type:'WS',move:'STATIC',lens:'35mm',desc:'',status:'todo',thumb:'',rev:'WHITE'});
+  pslOpenModal(pslShots[pslShots.length-1].id);
+}
+
+function pslOpenModal(id){
+  const s=id?pslShots.find(x=>x.id===id):null;
+  pslModalId=id||null;
+  if(s){
+    document.getElementById('psl-sm-scene').value=s.scene||'';
+    document.getElementById('psl-sm-shot').value=s.shotnum||'A';
+    document.getElementById('psl-sm-type').value=s.type||'WS';
+    document.getElementById('psl-sm-move').value=s.move||'STATIC';
+    document.getElementById('psl-sm-lens').value=s.lens||'35mm';
+    document.getElementById('psl-sm-status').value=s.status||'todo';
+    document.getElementById('psl-sm-desc').value=s.desc||'';
+    const prev=document.getElementById('psl-sm-thumb-preview');
+    const ph=document.getElementById('psl-sm-thumb-ph');
+    if(s.thumb){prev.src=s.thumb;prev.style.display='block';if(ph)ph.style.display='none';}
+    else{prev.src='';prev.style.display='none';if(ph)ph.style.display='flex';}
+  } else {
+    ['psl-sm-scene','psl-sm-shot','psl-sm-lens','psl-sm-desc'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('psl-sm-type').value='WS';
+    document.getElementById('psl-sm-move').value='STATIC';
+    document.getElementById('psl-sm-status').value='todo';
+    const prev=document.getElementById('psl-sm-thumb-preview');prev.src='';prev.style.display='none';
+    const ph=document.getElementById('psl-sm-thumb-ph');if(ph)ph.style.display='flex';
+  }
+  const modal=document.getElementById('psl-modal');if(modal)modal.style.display='flex';
+}
+function pslCloseModal(){const m=document.getElementById('psl-modal');if(m)m.style.display='none';}
+function pslSaveModal(){
+  const scene=document.getElementById('psl-sm-scene').value.trim();
+  const shot={
+    id:pslModalId||pslNewId(),
+    scene,shotnum:document.getElementById('psl-sm-shot').value.trim(),
+    type:document.getElementById('psl-sm-type').value,
+    move:document.getElementById('psl-sm-move').value,
+    lens:document.getElementById('psl-sm-lens').value.trim(),
+    status:document.getElementById('psl-sm-status').value,
+    desc:document.getElementById('psl-sm-desc').value.trim(),
+    thumb:document.getElementById('psl-sm-thumb-preview').src||'',
+    rev:'WHITE'
+  };
+  if(pslModalId){const idx=pslShots.findIndex(s=>s.id===pslModalId);if(idx>=0)pslShots[idx]=shot;}
+  else pslShots.push(shot);
+  pslSave();pslCloseModal();pslRender();pslOLRender();
+  toast('Shot saved.');
+}
+function pslLoadThumb(inp){
+  const f=inp.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=ev=>{const prev=document.getElementById('psl-sm-thumb-preview');const ph=document.getElementById('psl-sm-thumb-ph');prev.src=ev.target.result;prev.style.display='block';if(ph)ph.style.display='none';};
+  rd.readAsDataURL(f);inp.value='';
+}
+// Paste support for shot modal
+document.addEventListener('paste',e=>{
+  if(document.getElementById('psl-modal')?.style.display==='flex'){
+    const item=Array.from(e.clipboardData.items).find(i=>i.type.startsWith('image/'));
+    if(item){const blob=item.getAsFile();const rd=new FileReader();rd.onload=ev=>{const prev=document.getElementById('psl-sm-thumb-preview');const ph=document.getElementById('psl-sm-thumb-ph');prev.src=ev.target.result;prev.style.display='block';if(ph)ph.style.display='none';};rd.readAsDataURL(blob);}
+  }
+});
+
+function pslExportCSV(){
+  if(!pslShots.length)return toast('No shots to export.');
+  const rows=[['Scene','Shot','Type','Move','Lens','Description','Status']];
+  pslShots.forEach(s=>rows.push([s.scene,s.shotnum,s.type,s.move,s.lens,s.desc.replace(/\n/g,' '),s.status]));
+  const csv=rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const bl=new Blob([csv],{type:'text/csv'}),u=URL.createObjectURL(bl),a=document.createElement('a');
+  a.href=u;a.download=(S.projectName||'Project').replace(/\s+/g,'_')+'_ShotList.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);
+  toast('Shot list CSV exported.');
+}
+
+// ---- ONE-LINER STRIP (horizontal quick-view in header bar) ----
+function pslOLStripRender(){
+  const strip=document.getElementById('psl-ol-strip');if(!strip)return;
+  const scenes=[...new Set(pslShots.map(s=>s.scene).filter(Boolean))];
+  if(!scenes.length){strip.innerHTML='<span style="color:#1E293B;font-size:9px;font-family:monospace;">No shots yet.</span>';return;}
+  strip.innerHTML=scenes.map(sc=>{
+    const shots=pslShots.filter(s=>s.scene===sc);
+    const done=shots.filter(s=>s.status==='done').length;
+    const pct=shots.length?Math.round(done/shots.length*100):0;
+    return `<div style="flex-shrink:0;background:#0A0D14;border:1px solid #1E293B;border-radius:6px;padding:4px 8px;min-width:80px;cursor:pointer;" onclick="pslOLExpand('${sc.replace(/'/g,"\\'")}')">
+      <div style="font-size:8px;font-weight:700;color:#94A3B8;font-family:monospace;margin-bottom:3px;">${sc.length>14?sc.slice(0,14)+'…':sc}</div>
+      <div style="font-size:7px;color:#475569;font-family:monospace;">${shots.length} shot${shots.length!==1?'s':''} · ${pct}%</div>
+      <div style="height:2px;background:#1E293B;border-radius:1px;margin-top:3px;"><div style="height:100%;width:${pct}%;background:#34D399;border-radius:1px;transition:width .3s;"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function pslToggleOneLiner(){
+  const strip=document.getElementById('psl-ol-strip');
+  const btn=document.getElementById('psl-ol-btn');
+  if(!strip)return;
+  const showing=strip.style.display==='flex';
+  strip.style.display=showing?'none':'flex';
+  strip.style.gap='6px';
+  strip.style.alignItems='center';
+  strip.style.flexWrap='nowrap';
+  strip.style.overflowX='auto';
+  if(btn)btn.innerHTML=showing?'<i class="fa-solid fa-bars-staggered mr-1"></i>Show':'<i class="fa-solid fa-bars-staggered mr-1"></i>Hide';
+}
+function pslOLExpand(sc){sw('shotlist');document.getElementById('psl-scene-f').value=sc;pslRender();}
+
+// ---- ONE-LINER FULL VIEW (separate panel - can be added to sidebar) ----
+// Used by proHUB bridge + screenwriter sidebar
+function pslOLRender(){
+  const el=document.getElementById('psl-ol-full');if(!el)return;
+  const scenes=[...new Set(pslShots.map(s=>s.scene).filter(Boolean))];
+  if(!scenes.length){el.innerHTML='<div style="color:#1E293B;font-size:11px;text-align:center;padding:20px;">No shots in Shot List.</div>';return;}
+  el.innerHTML=scenes.map(sc=>{
+    const shots=pslShots.filter(s=>s.scene===sc);
+    const done=shots.filter(s=>s.status==='done').length;
+    const pct=shots.length?Math.round(done/shots.length*100):0;
+    const expanded=!!pslOLExpanded[sc];
+    const lockIcon=pslOLLocked?'<i class="fa-solid fa-lock" style="color:#F59E0B;margin-left:6px;font-size:9px;" title="One-liner locked"></i>':'';
+    return `<div style="border:1px solid #1E293B;border-radius:7px;margin-bottom:6px;overflow:hidden;">
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#0A0D14;cursor:${pslOLLocked?'default':'pointer'};" ${pslOLLocked?'':`onclick="pslOLToggle('${sc.replace(/'/g,"\\'")}')"`}>
+        <i class="fa-solid fa-chevron-${expanded?'down':'right'}" style="font-size:9px;color:#374151;width:10px;"></i>
+        <div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:700;color:#CBD5E1;font-family:monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sc}</div><div style="font-size:8px;color:#475569;margin-top:1px;">${shots.length} setup${shots.length!==1?'s':''} · ${pct}% done</div></div>
+        <div style="width:60px;height:3px;background:#1E293B;border-radius:2px;flex-shrink:0;"><div style="height:100%;width:${pct}%;background:#34D399;border-radius:2px;"></div></div>
+        ${lockIcon}
+      </div>
+      ${expanded?`<div style="background:#07090F;padding:8px;display:flex;gap:6px;flex-wrap:wrap;">${shots.map(s=>{const thumbH=s.thumb?`<img src="${s.thumb}" style="width:48px;height:33px;object-fit:cover;border-radius:3px;" alt="">`:''  ;return`<div style="background:#0A0D14;border:1px solid #1E293B;border-radius:5px;overflow:hidden;display:flex;flex-direction:column;width:80px;cursor:pointer;" onclick="pslOpenModal('${s.id}')">${thumbH?thumbH:'<div style="width:80px;height:33px;background:#0F172A;display:flex;align-items:center;justify-content:center;color:#1E293B;"><i class="fa-solid fa-camera" style="font-size:9px;"></i></div>'}<div style="padding:3px 4px;"><div style="font-size:7px;font-weight:700;color:#F59E0B;font-family:monospace;">${s.type}</div><div style="font-size:7px;color:#374151;font-family:monospace;">${s.move}</div></div></div>`}).join('')}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function pslOLToggle(sc){
+  if(pslOLLocked)return;
+  pslOLExpanded[sc]=!pslOLExpanded[sc];
+  pslOLRender();
+}
+function pslOLToggleLock(){
+  pslOLLocked=!pslOLLocked;
+  const btn=document.getElementById('psl-ol-lock-btn');
+  if(btn){btn.innerHTML=pslOLLocked?'<i class="fa-solid fa-lock text-amber-400 mr-1"></i>Locked':'<i class="fa-solid fa-lock-open text-slate-400 mr-1"></i>Unlocked';btn.style.color=pslOLLocked?'#FCD34D':'#94A3B8';}
+  toast(pslOLLocked?'One-liner locked.':'One-liner unlocked.');
+  pslOLRender();
+}
+
+// ---- 1/8 RULE CALCULATOR ----
+function pslGetScriptPageCount(){
+  // Try the screenplay editor
+  try{
+    const rows=document.querySelectorAll('#script-editable-node-rows-stack .line-editable-box');
+    if(rows.length>0){
+      const text=Array.from(rows).map(r=>r.innerText||'').join('\n');
+      const words=text.split(/\s+/).filter(Boolean).length;
+      return{pages:Math.max(1,Math.round(words/185)),words,fromEditor:true};
+    }
+  }catch(e){}
+  // Try active script reader
+  try{
+    if(typeof srScripts!=='undefined'&&srActiveId){
+      const s=srScripts.find(x=>x.id===srActiveId);
+      if(s&&s.text){const w=s.text.split(/\s+/).filter(Boolean).length;return{pages:Math.max(1,Math.round(w/185)),words:w,fromEditor:false};}
+    }
+  }catch(e){}
+  return null;
+}
+
+function pslCalc18Rule(){
+  const info=pslGetScriptPageCount();
+  if(!info){toast('No script found. Write in Screenwriter Studio first.');return;}
+  const pages=info.pages;
+  const eighths=pages*8;
+  const runtimeMins=pages; // 1 page ≈ 1 min
+  const sceneCount=document.querySelectorAll('#script-editable-node-rows-stack [data-element-type="SCENE_HEADING"]').length||'—';
+  document.getElementById('bud18-pages').textContent=pages;
+  document.getElementById('bud18-eighths').textContent=eighths;
+  document.getElementById('bud18-runtime').textContent=runtimeMins+'m';
+  document.getElementById('bud18-scenes').textContent=sceneCount;
+  // Schedule tiers
+  const tiers=[
+    {label:'Ultra-Low',ppd:2,dayRate:3500,color:'#34D399'},
+    {label:'Mid-Range',ppd:4,dayRate:12000,color:'#F59E0B'},
+    {label:'Studio',ppd:6,dayRate:40000,color:'#FB923C'}
+  ];
+  document.getElementById('bud18-schedule').innerHTML=tiers.map(t=>{
+    const shootDays=Math.ceil(pages/t.ppd);
+    const budgetImpact='$'+(shootDays*t.dayRate).toLocaleString();
+    return `<div style="background:#0F172A;border:1px solid #1E293B;border-radius:6px;padding:9px 8px;text-align:center;">
+      <div style="font-size:8px;font-weight:700;color:${t.color};text-transform:uppercase;letter-spacing:.06em;font-family:monospace;">${t.label}</div>
+      <div style="font-size:9px;color:#475569;font-family:monospace;margin:3px 0;">${t.ppd} pg/day</div>
+      <div style="font-size:14px;font-weight:900;color:#E2E8F0;font-family:monospace;">${shootDays}</div>
+      <div style="font-size:8px;color:#475569;margin-bottom:4px;">shoot days</div>
+      <div style="font-size:9px;font-weight:700;color:${t.color};font-family:monospace;">${budgetImpact}</div>
+      <div style="font-size:7px;color:#374151;">above-the-line est.</div>
+    </div>`;
+  }).join('');
+  document.getElementById('bud18-note').innerHTML=`<i class="fa-solid fa-circle-info mr-1" style="color:#F59E0B;"></i><strong style="color:#FCD34D;">${pages} pages</strong> · <strong style="color:#FCD34D;">${eighths} eighths</strong> total. Based on ${info.fromEditor?'Screenwriter Studio':'loaded script'} · ~${info.words?.toLocaleString()||'?'} words. Each 1/8 page = ~7.5 sec screen time. Use Ultra-Low for no-budget indie, Mid for SAG-AFTRA, Studio for union scale. <strong style="color:#F59E0B;">Add shooting days × daily rate to your macro budget above.</strong>`;
+  toast('1/8 Rule calculated: '+pages+' pages → '+Math.ceil(pages/4)+' mid-range shoot days.');
+}
+
+// ==================== MOBILE: sidebar hamburger ====================
+function pslInitMobile(){
+  // Ensure sidebar toggle works on mobile (already handled by .psb.mo class)
+  const hamburger=document.getElementById('sb-toggle');
+  if(hamburger)hamburger.addEventListener('click',()=>{
+    document.querySelector('.psb')?.classList.toggle('mo');
+  });
+}
+
 window.addEventListener('keydown',e=>{if(e.key==='Escape'){closeVault();const ingestModal=document.getElementById('ui-ingest-modal-overlay');if(ingestModal)ingestModal.classList.add('hidden');const emailModal=document.getElementById('ui-email-modal-overlay');if(emailModal)emailModal.classList.add('hidden');}});
 document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
 // Load YouTube API
