@@ -686,63 +686,366 @@ function replaceCut(i) {
   return true;
 }
 
-/* ---- the desk ---- */
+/* ---- NLE Workstation: style, layout, interaction ---- */
 function style() {
   if (document.getElementById('tlStyle')) return;
   var s = document.createElement('style'); s.id = 'tlStyle';
-  s.textContent = '.tlh{position:fixed;inset:0;z-index:500;background:rgba(3,6,12,.94);overflow-y:auto;display:none}' +
-    '.tlh.on{display:block}.tlh .box{max-width:1240px;margin:0 auto;background:#0A101B;min-height:100vh}' +
-    '@media(min-width:900px){.tlh{padding:30px 16px 60px}.tlh .box{border-radius:12px;min-height:auto;border-top:4px solid #00ABA9}}' +
-    '.tlh .hd{display:flex;gap:10px;align-items:flex-start;padding:15px 17px;border-bottom:1px solid #1B2436;background:#0C1320;position:sticky;top:0}' +
-    '.tlh .hd h2{font-size:20px;color:#fff}.tlh .hd .k{font-family:var(--fm);font-size:12px;letter-spacing:.15em;color:#00ABA9;text-transform:uppercase}' +
-    '.tlh .bd{padding:16px 17px 26px}.tlh table{width:100%;border-collapse:collapse;font-size:13px}' +
-    '.tlh th{text-align:left;font-family:var(--fm);font-size:11px;letter-spacing:.1em;color:#8794A6;text-transform:uppercase;border-bottom:1px solid #1B2436;padding:6px 8px}' +
-    '.tlh td{border-bottom:1px solid rgba(27,36,54,.6);padding:7px 8px;color:#C6D1DC}' +
-    '.tlh td.n{font-family:var(--fm);white-space:nowrap}.tlh tr.sel{background:#12202E}.tlh tr{cursor:pointer}' +
-    '.tlh .note{font-size:13px;color:#8794A6;margin:10px 0 0}' +
-    '.tlh textarea{width:100%;min-height:150px;font-family:var(--fm);font-size:12px}';
+  s.textContent = [
+    /* === overlay === */
+    '.tlh{position:fixed;inset:0;z-index:500;display:none;flex-direction:column;background:#080D16;font-family:var(--fb,system-ui);color:#C6D1DC}',
+    '.tlh.on{display:flex}',
+    /* === top bar === */
+    '.nle-bar{display:flex;align-items:center;gap:8px;padding:7px 12px;background:#0C1320;border-bottom:1px solid #1B2436;flex-shrink:0;flex-wrap:wrap}',
+    '.nle-logo{font-family:var(--fd,"Barlow Condensed",system-ui);font-size:13px;letter-spacing:.18em;color:#00ABA9;text-transform:uppercase;margin-right:6px;white-space:nowrap}',
+    '.nle-tools{display:flex;gap:5px;flex-wrap:wrap;flex:1}',
+    '.nle-tool-btn{padding:4px 10px;background:#151F2E;border:1px solid #1B2436;border-radius:4px;color:#8794A6;font-size:12px;cursor:pointer;transition:border-color .15s,color .15s}',
+    '.nle-tool-btn:hover{border-color:#00ABA9;color:#fff}',
+    '.nle-tool-btn.active{border-color:#00ABA9;color:#00ABA9;background:#0A1726}',
+    '.nle-tool-sep{width:1px;background:#1B2436;margin:0 2px;align-self:stretch}',
+    '.nle-tc-display{font-family:var(--fm,"IBM Plex Mono",monospace);font-size:13px;color:#E2A93B;letter-spacing:.08em;padding:4px 10px;background:#0A0F1A;border:1px solid #1B2436;border-radius:4px;white-space:nowrap}',
+    /* === upper panel: bin + monitors === */
+    '.nle-upper{display:flex;gap:0;flex-shrink:0;border-bottom:2px solid #1B2436;min-height:0}',
+    '@media(max-width:800px){.nle-upper{flex-direction:column;max-height:320px;overflow-y:auto}}',
+    /* bin */
+    '.nle-bin{width:180px;flex-shrink:0;background:#090E18;border-right:1px solid #1B2436;display:flex;flex-direction:column}',
+    '@media(max-width:800px){.nle-bin{width:100%;border-right:none;border-bottom:1px solid #1B2436;max-height:120px}}',
+    '.nle-panel-hd{font-family:var(--fm);font-size:10px;letter-spacing:.14em;color:#4B5E78;text-transform:uppercase;padding:6px 10px;border-bottom:1px solid #1B2436;flex-shrink:0}',
+    '.nle-bin-list{flex:1;overflow-y:auto;padding:4px}',
+    '.nle-bin-item{padding:5px 8px;border-radius:4px;cursor:pointer;font-size:12px;color:#8794A6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid transparent;transition:background .12s,color .12s,border-color .12s}',
+    '.nle-bin-item:hover{background:#101828;color:#C6D1DC;border-color:#1B2436}',
+    '.nle-bin-item.loaded{background:#0A1726;color:#00ABA9;border-color:#00ABA9}',
+    '.nle-bin-dur{font-family:var(--fm);font-size:10px;color:#4B5E78;float:right;margin-left:4px}',
+    /* monitors */
+    '.nle-monitors{display:flex;flex:1;gap:0}',
+    '.nle-mon{flex:1;display:flex;flex-direction:column;border-right:1px solid #1B2436}',
+    '.nle-mon:last-child{border-right:none}',
+    '.nle-mon-screen{flex:1;background:#040810;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;min-height:120px;position:relative;overflow:hidden}',
+    '.nle-mon-screen img{max-width:100%;max-height:100%;object-fit:contain}',
+    '.nle-mon-name{font-size:11px;color:#4B5E78;font-family:var(--fm);text-align:center;padding:0 6px}',
+    '.nle-mon-footer{display:flex;align-items:center;gap:6px;padding:5px 8px;background:#0C1320;border-top:1px solid #1B2436;flex-wrap:wrap}',
+    '.nle-mon-tc{font-family:var(--fm);font-size:12px;color:#E2A93B;min-width:80px}',
+    '.nle-mon-info{font-size:11px;color:#4B5E78;flex:1}',
+    '.nle-play-btn{width:30px;height:26px;background:#151F2E;border:1px solid #1B2436;border-radius:4px;color:#C6D1DC;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}',
+    '.nle-play-btn:hover{border-color:#00ABA9;color:#00ABA9}',
+    '.nle-mark-btn{padding:3px 8px;background:#151F2E;border:1px solid #1B2436;border-radius:3px;color:#8794A6;font-size:11px;cursor:pointer;font-family:var(--fm)}',
+    '.nle-mark-btn:hover{border-color:#E2A93B;color:#E2A93B}',
+    '.nle-insert-btn{padding:3px 10px;background:#00ABA9;border:1px solid #00ABA9;border-radius:3px;color:#000;font-size:11px;cursor:pointer;font-weight:700}',
+    '.nle-insert-btn:hover{background:#00C4C1}',
+    /* === timeline area === */
+    '.nle-tl-area{flex:1;display:flex;overflow:hidden;min-height:0}',
+    '.nle-track-labels{width:54px;flex-shrink:0;background:#090E18;border-right:1px solid #1B2436;display:flex;flex-direction:column;padding-top:24px}',/* 24px = ruler height */
+    '.nle-track-label{display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:10px;color:#4B5E78;letter-spacing:.1em;border-bottom:1px solid #1B2436;cursor:pointer;transition:color .12s}',
+    '.nle-track-label:hover{color:#00ABA9}',
+    '.nle-track-label.sel-track{color:#E2A93B}',
+    /* scrollable timeline canvas */
+    '.nle-tl-scroll{flex:1;overflow-x:auto;overflow-y:hidden;position:relative;background:#0A0F1A}',
+    '.nle-tl-inner{position:relative;min-width:100%}',
+    /* ruler */
+    '.nle-ruler{height:24px;background:#090E18;border-bottom:1px solid #1B2436;position:relative;overflow:hidden;flex-shrink:0}',
+    '.nle-ruler-tick{position:absolute;top:0;bottom:0;width:1px;background:#1B2436}',
+    '.nle-ruler-tick.maj{background:#253247}',
+    '.nle-ruler-label{position:absolute;top:4px;font-family:var(--fm);font-size:9px;color:#4B5E78;transform:translateX(-50%)}',
+    /* tracks */
+    '.nle-track{position:relative;border-bottom:1px solid #1B2436;overflow:hidden}',
+    '.nle-track[data-track="v2"]{height:36px}',
+    '.nle-track[data-track="v1"]{height:52px}',
+    '.nle-track[data-track="a1"]{height:36px}',
+    '.nle-track[data-track="a2"]{height:36px}',
+    '.nle-track-bg{position:absolute;inset:0;opacity:.04;pointer-events:none}',
+    '.nle-track[data-track="v2"] .nle-track-bg{background:#7C3AED}',
+    '.nle-track[data-track="v1"] .nle-track-bg{background:#00ABA9}',
+    '.nle-track[data-track="a1"] .nle-track-bg{background:#16A34A}',
+    '.nle-track[data-track="a2"] .nle-track-bg{background:#15803D}',
+    /* clip blocks */
+    '.nle-clip{position:absolute;top:2px;bottom:2px;border-radius:3px;cursor:pointer;overflow:hidden;border:1px solid transparent;transition:border-color .1s,opacity .1s;display:flex;align-items:center;min-width:4px}',
+    '.nle-clip-label{font-size:10px;font-family:var(--fm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 5px;pointer-events:none}',
+    '.nle-clip-thumb{position:absolute;inset:0;object-fit:cover;opacity:.35;pointer-events:none}',
+    /* clip colors per track */
+    '[data-track="v2"] .nle-clip{background:#3B1F6E;border-color:#5B2FA8}',
+    '[data-track="v2"] .nle-clip .nle-clip-label{color:#C4B5FD}',
+    '[data-track="v1"] .nle-clip{background:#0E3A3A;border-color:#00ABA9}',
+    '[data-track="v1"] .nle-clip .nle-clip-label{color:#5EEAD4}',
+    '[data-track="a1"] .nle-clip{background:#0E3020;border-color:#16A34A}',
+    '[data-track="a1"] .nle-clip .nle-clip-label{color:#86EFAC}',
+    '[data-track="a2"] .nle-clip{background:#0B2A1A;border-color:#15803D}',
+    '[data-track="a2"] .nle-clip .nle-clip-label{color:#6EE7B7}',
+    /* clip states */
+    '.nle-clip.sel{outline:2px solid #E2A93B;outline-offset:-1px;z-index:3}',
+    '.nle-clip.board-clip{background:#2D1F00;border-color:#D97706}',
+    '.nle-clip.board-clip .nle-clip-label{color:#FCD34D}',
+    '.nle-clip.shot-clip{background:#1A2E00;border-color:#65A30D}',
+    '.nle-clip.shot-clip .nle-clip-label{color:#A3E635}',
+    /* playhead */
+    '.nle-playhead{position:absolute;top:0;bottom:0;width:2px;background:#E2A93B;z-index:10;pointer-events:none}',
+    '.nle-playhead::before{content:"";position:absolute;top:0;left:-4px;width:10px;height:10px;background:#E2A93B;clip-path:polygon(50% 100%,0 0,100% 0)}',
+    /* desk tabs at bottom */
+    '.nle-deskbar{display:flex;gap:5px;padding:6px 12px;background:#090E18;border-top:1px solid #1B2436;flex-shrink:0;flex-wrap:wrap}',
+  ].join('');
   document.head.appendChild(s);
 }
+
 function hub() {
   var h = document.getElementById('posthub-timeline');
   if (h) return h;
   style();
   h = document.createElement('div'); h.className = 'tlh'; h.id = 'posthub-timeline';
-  h.innerHTML = '<div class="box"><div class="hd"><div><div class="k">TIMELINE</div><h2>Cut list</h2></div>' +
-    '<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">' +
-    '<button class="btn sm pri" id="tlAdd">Add cut</button>' +
-    '<button class="btn sm" id="tlFromBin">From bin</button>' +
-    '<button class="btn sm" id="tlRip">Ripple delete</button>' +
-    '<button class="btn sm" id="tlStory">Build By Storyboard</button>' +
-    '<button class="btn sm" id="tlEdl">EDL</button>' +
-    '<button class="btn sm" id="tlClose">Close</button></div></div>' +deskTabs('timeline')+'<div class="bd"><div id="tlBody"></div></div></div>';
+
+  /* top bar */
+  var bar = '<div class="nle-bar">' +
+    '<span class="nle-logo">NLE WORKSTATION</span>' +
+    '<div class="nle-tools">' +
+    '<button class="nle-tool-btn active" id="tlToolSel" title="Select (V)">SELECT</button>' +
+    '<button class="nle-tool-btn" id="tlToolRaz" title="Razor (C)">RAZOR</button>' +
+    '<div class="nle-tool-sep"></div>' +
+    '<button class="nle-tool-btn" id="tlFromBin">FROM BIN</button>' +
+    '<button class="nle-tool-btn" id="tlStory">STORYBOARD</button>' +
+    '<button class="nle-tool-btn" id="tlEdl">EDL</button>' +
+    '<div class="nle-tool-sep"></div>' +
+    '<button class="nle-tool-btn" id="tlRip">RIPPLE DEL</button>' +
+    '<button class="nle-tool-btn" id="tlAdd">ADD CUT</button>' +
+    '</div>' +
+    '<span class="nle-tc-display" id="tlTcDisplay">00:00:00:00</span>' +
+    '<button class="nle-tool-btn" id="tlClose" style="border-color:#C53030;color:#FC8181">✕ CLOSE</button>' +
+    '</div>';
+
+  /* bin + monitors */
+  var upper = '<div class="nle-upper">' +
+    '<div class="nle-bin"><div class="nle-panel-hd">PROJECT BIN</div><div class="nle-bin-list" id="tlBinList"><div style="padding:10px 8px;font-size:12px;color:#4B5E78">No media ingested</div></div></div>' +
+    '<div class="nle-monitors">' +
+    /* source */
+    '<div class="nle-mon">' +
+    '<div class="nle-panel-hd">SOURCE MONITOR</div>' +
+    '<div class="nle-mon-screen" id="tlSrcScreen"><div class="nle-mon-name" id="tlSrcName">Load a clip from the bin</div></div>' +
+    '<div class="nle-mon-footer">' +
+    '<button class="nle-mark-btn" id="tlMarkIn">I</button>' +
+    '<span class="nle-mon-tc" id="tlSrcTc">--:--:--:--</span>' +
+    '<button class="nle-mark-btn" id="tlMarkOut">O</button>' +
+    '<button class="nle-insert-btn" id="tlInsert">→ V1</button>' +
+    '</div></div>' +
+    /* program */
+    '<div class="nle-mon">' +
+    '<div class="nle-panel-hd">PROGRAM MONITOR</div>' +
+    '<div class="nle-mon-screen" id="tlProgScreen"><div class="nle-mon-name" id="tlProgName">No sequence</div></div>' +
+    '<div class="nle-mon-footer">' +
+    '<button class="nle-play-btn" id="tlPlay">▶</button>' +
+    '<span class="nle-mon-tc" id="tlProgTc">00:00:00:00</span>' +
+    '<span class="nle-mon-info" id="tlSeqInfo">0 cuts</span>' +
+    '</div></div>' +
+    '</div></div>';
+
+  /* timeline */
+  var tl = '<div class="nle-tl-area">' +
+    '<div class="nle-track-labels" id="tlLabels">' +
+    '<div class="nle-track-label" style="height:36px" data-track="v2">V2</div>' +
+    '<div class="nle-track-label" style="height:52px" data-track="v1">V1</div>' +
+    '<div class="nle-track-label" style="height:36px" data-track="a1">A1</div>' +
+    '<div class="nle-track-label" style="height:36px" data-track="a2">A2</div>' +
+    '</div>' +
+    '<div class="nle-tl-scroll" id="tlScroll">' +
+    '<div class="nle-tl-inner" id="tlInner">' +
+    '<div class="nle-ruler" id="tlRuler"></div>' +
+    '<div class="nle-track" id="tlTrackV2" data-track="v2"><div class="nle-track-bg"></div></div>' +
+    '<div class="nle-track" id="tlTrackV1" data-track="v1"><div class="nle-track-bg"></div></div>' +
+    '<div class="nle-track" id="tlTrackA1" data-track="a1"><div class="nle-track-bg"></div></div>' +
+    '<div class="nle-track" id="tlTrackA2" data-track="a2"><div class="nle-track-bg"></div></div>' +
+    '<div class="nle-playhead" id="tlPlayhead" style="left:0"></div>' +
+    '</div></div></div>';
+
+  /* desk tabs */
+  var tabs = '<div class="nle-deskbar" id="tlDeskBar">' + deskTabs('timeline') + '</div>';
+
+  h.innerHTML = bar + upper + tl + tabs;
   document.body.appendChild(h);
-  h.addEventListener('click', function (e) { if (e.target === h) h.classList.remove('on'); });
+
+  /* --- wire up buttons --- */
   h.querySelector('#tlClose').onclick = function () { h.classList.remove('on'); };
+
+  /* tool selection */
+  h.querySelector('#tlToolSel').onclick = function () { setTool('select'); };
+  h.querySelector('#tlToolRaz').onclick = function () { setTool('razor'); };
+
+  /* add cut manually */
   h.querySelector('#tlAdd').onclick = function () {
     POST.ask({ title: 'Add a cut', icon: 'list', ok: 'Add', fields: [
       { k: 'name', label: 'Clip name', value: '' }, { k: 'reel', label: 'Reel', value: 'AX' },
-      { k: 'srcIn', label: 'Source in (HH:MM:SS:FF or seconds)', value: '01:00:00:00' },
-      { k: 'srcOut', label: 'Source out', value: '01:00:05:00' } ] }).then(function (r) {
+      { k: 'srcIn', label: 'Src in (HH:MM:SS:FF or sec)', value: '01:00:00:00' },
+      { k: 'srcOut', label: 'Src out', value: '01:00:05:00' }
+    ]}).then(function(r) {
       if (!r) return;
-      add({ name: r.name || 'CLIP', reel: (r.reel || 'AX').toUpperCase(), srcIn: parseTc(r.srcIn), srcOut: parseTc(r.srcOut) });
-      POST.toast('Cut added', 'good');
+      add({ name: r.name||'CLIP', reel:(r.reel||'AX').toUpperCase(), srcIn:parseTc(r.srcIn), srcOut:parseTc(r.srcOut) });
+      POST.toast('Cut added','good');
     });
   };
-  h.querySelector('#tlRip').onclick = function () {
-    if (rippleDelete(SELECTED)) POST.toast('Rippled - everything after closed up', 'good');
-    else POST.toast('Select a cut first', 'bad');
-  };
+
+  /* from bin */
   h.querySelector('#tlFromBin').onclick = function () {
-    var media = (typeof POST.media === 'function') ? POST.media() : [];
-    if (!media.length) { POST.toast('The bin is empty - ingest some media first', 'bad'); return; }
-    media.forEach(function (f) { add({ name: f.name, reel: 'AX', srcIn: 0, srcOut: f.duration || 5 }); });
-    POST.toast(media.length + ' clips added from the bin', 'good');
+    syncClipsFromBin();
+    if (!CLIPS.length) { POST.toast('The bin is empty - ingest some media first','bad'); return; }
+    CLIPS.forEach(function(f){ add({ name:f.name, reel:'AX', srcIn:0, srcOut:f.duration||5 }); });
+    POST.toast(CLIPS.length+' clips added from bin','good');
   };
+
+  /* storyboard */
   h.querySelector('#tlStory').onclick = function () { buildByStoryboard(); };
+
+  /* EDL */
   h.querySelector('#tlEdl').onclick = function () { openEdl(); };
+
+  /* ripple delete */
+  h.querySelector('#tlRip').onclick = function () {
+    if (SEL.idx >= 0) { rippleDelete(SEL.idx); SEL.idx=-1; POST.toast('Rippled','good'); }
+    else POST.toast('Select a clip first','bad');
+  };
+
+  /* mark in/out + insert */
+  h.querySelector('#tlMarkIn').onclick = function () {
+    if (!ACTIVE_CLIP) return;
+    SRC_IN = ACTIVE_CLIP._playPos || 0;
+    h.querySelector('#tlSrcTc').textContent = tcf(SRC_IN) + ' →';
+  };
+  h.querySelector('#tlMarkOut').onclick = function () {
+    if (!ACTIVE_CLIP) return;
+    SRC_OUT = ACTIVE_CLIP._playPos || (ACTIVE_CLIP.duration || 5);
+    h.querySelector('#tlSrcTc').textContent = tcf(SRC_IN) + ' → ' + tcf(SRC_OUT);
+  };
+  h.querySelector('#tlInsert').onclick = function () {
+    if (!ACTIVE_CLIP) { POST.toast('Load a clip from the bin first','bad'); return; }
+    var si = SRC_IN||0, so = SRC_OUT||ACTIVE_CLIP.duration||5;
+    add({ name:ACTIVE_CLIP.name, reel:'AX', srcIn:si, srcOut:so });
+    POST.toast(ACTIVE_CLIP.name+' inserted on V1','good');
+  };
+
+  /* play toggle (program) */
+  h.querySelector('#tlPlay').onclick = function () {
+    PLAYING = !PLAYING;
+    this.textContent = PLAYING ? '⏸' : '▶';
+    if (PLAYING) startRaf(h); else stopRaf();
+  };
+
+  /* timeline click — scrub playhead or razor */
+  var inner = h.querySelector('#tlInner');
+  inner.addEventListener('click', function(e) {
+    var scroll = h.querySelector('#tlScroll');
+    var x = e.clientX - scroll.getBoundingClientRect().left + scroll.scrollLeft;
+    var sec = Math.max(0, x / PX_PER_SEC);
+    if (ACTIVE_TOOL === 'razor') {
+      razorCut(sec, e.target.closest('[data-track]'));
+    } else {
+      PLAY_SEC = sec;
+      updatePlayhead(h);
+      updateProgMonitor(h);
+    }
+  });
+
+  /* click on track labels → set active track */
+  h.querySelector('#tlLabels').addEventListener('click', function(e) {
+    var lbl = e.target.closest('[data-track]');
+    if (!lbl) return;
+    SEL.track = lbl.getAttribute('data-track');
+    h.querySelectorAll('.nle-track-label').forEach(function(l){ l.classList.toggle('sel-track', l.getAttribute('data-track')===SEL.track); });
+  });
+
+  /* keyboard shortcuts */
+  h._keydown = function(e) {
+    if (!h.classList.contains('on')) return;
+    if (e.key==='v'||e.key==='V') setTool('select');
+    if (e.key==='c'||e.key==='C') setTool('razor');
+    if ((e.key==='Delete'||e.key==='Backspace') && SEL.idx>=0) {
+      rippleDelete(SEL.idx); SEL.idx=-1; POST.toast('Rippled','good');
+    }
+    if (e.key===' ') { e.preventDefault(); h.querySelector('#tlPlay').click(); }
+  };
+  document.addEventListener('keydown', h._keydown);
+
   bindDeskTabs(h, 'timeline');
   return h;
+}
+
+function setTool(name) {
+  ACTIVE_TOOL = name;
+  var h = document.getElementById('posthub-timeline'); if (!h) return;
+  h.querySelector('#tlToolSel').classList.toggle('active', name==='select');
+  h.querySelector('#tlToolRaz').classList.toggle('active', name==='razor');
+}
+
+function loadClipToSource(clip) {
+  ACTIVE_CLIP = clip; SRC_IN = 0; SRC_OUT = clip.duration || 5;
+  ACTIVE_CLIP._playPos = 0;
+  var h = document.getElementById('posthub-timeline'); if (!h) return;
+  h.querySelectorAll('.nle-bin-item').forEach(function(el){ el.classList.toggle('loaded', el.getAttribute('data-name')===clip.name); });
+  var nm = h.querySelector('#tlSrcName'); if(nm) nm.textContent = clip.name;
+  h.querySelector('#tlSrcTc').textContent = tcf(0)+' → '+tcf(SRC_OUT);
+  /* show thumbnail if image stored on clip */
+  var scr = h.querySelector('#tlSrcScreen');
+  scr.querySelectorAll('img').forEach(function(i){i.remove()});
+  if (clip.image) { var img=document.createElement('img'); img.src=clip.image; img.style.cssText='max-width:100%;max-height:100%;object-fit:contain'; scr.insertBefore(img, scr.firstChild); }
+}
+
+function syncBin(h) {
+  syncClipsFromBin();
+  var list = h.querySelector('#tlBinList'); if (!list) return;
+  if (!CLIPS.length) { list.innerHTML='<div style="padding:10px 8px;font-size:12px;color:#4B5E78">No media ingested</div>'; return; }
+  list.innerHTML = CLIPS.map(function(f,i){
+    return '<div class="nle-bin-item" data-idx="'+i+'" data-name="'+POST.esc(f.name)+'">' +
+      '<span class="nle-bin-dur">'+fmt(f.duration||0)+'</span>'+POST.esc(f.name)+'</div>';
+  }).join('');
+  list.querySelectorAll('.nle-bin-item').forEach(function(el){
+    el.onclick = function() { loadClipToSource(CLIPS[parseInt(this.getAttribute('data-idx'),10)]); };
+  });
+}
+
+function razorCut(sec, trackEl) {
+  if (!trackEl) return;
+  var tname = trackEl.getAttribute('data-track');
+  var arr = TRACKS[tname]; if (!arr) return;
+  for (var i=0; i<arr.length; i++) {
+    var c=arr[i], end=c.start+c.duration;
+    if (sec>c.start+0.1 && sec<end-0.1) {
+      var left={name:c.name,reel:c.reel,start:c.start,duration:sec-c.start,srcIn:c.srcIn,image:c.image,sb:c.sb,replaced:c.replaced,hasAlpha:c.hasAlpha,isAudio:c.isAudio};
+      var right={name:c.name,reel:c.reel,start:sec,duration:end-sec,srcIn:c.srcIn+(sec-c.start),image:c.image,sb:c.sb,replaced:c.replaced,hasAlpha:c.hasAlpha,isAudio:c.isAudio};
+      arr.splice(i,1,left,right);
+      paintTimeline(); POST.toast('Razor cut','good'); return;
+    }
+  }
+}
+
+function startRaf(h) {
+  stopRaf();
+  var last = null;
+  function step(ts) {
+    if (!PLAYING) return;
+    if (last !== null) PLAY_SEC += Math.min((ts-last)/1000, 0.1);
+    last=ts;
+    var tot=total();
+    if (tot>0 && PLAY_SEC>=tot) { PLAY_SEC=0; PLAYING=false; h.querySelector('#tlPlay').textContent='▶'; stopRaf(); }
+    updatePlayhead(h); updateProgMonitor(h);
+    RAF_ID=requestAnimationFrame(step);
+  }
+  RAF_ID=requestAnimationFrame(step);
+}
+function stopRaf() { if (RAF_ID) { cancelAnimationFrame(RAF_ID); RAF_ID=null; } }
+
+function updatePlayhead(h) {
+  if (!h) h=document.getElementById('posthub-timeline'); if (!h) return;
+  var ph=h.querySelector('#tlPlayhead'); if(!ph) return;
+  ph.style.left=(PLAY_SEC*PX_PER_SEC)+'px';
+  var tc=h.querySelector('#tlTcDisplay'); if(tc) tc.textContent=tcf(PLAY_SEC);
+  var ptc=h.querySelector('#tlProgTc'); if(ptc) ptc.textContent=tcf(PLAY_SEC);
+}
+
+function updateProgMonitor(h) {
+  if (!h) h=document.getElementById('posthub-timeline'); if (!h) return;
+  /* find which v1 clip is at PLAY_SEC */
+  var cuts=cutsFromV1(), cur=null;
+  for (var i=0;i<cuts.length;i++){ if(PLAY_SEC>=cuts[i].recIn && PLAY_SEC<cuts[i].recOut){ cur=cuts[i]; break; } }
+  var nm=h.querySelector('#tlProgName'); if(nm) nm.textContent=cur?cur.name:'—';
+  var scr=h.querySelector('#tlProgScreen');
+  if (cur&&cur.image) {
+    if (!scr.querySelector('img')) { var img=document.createElement('img'); img.style.cssText='max-width:100%;max-height:100%;object-fit:contain;position:absolute;inset:0;width:100%;height:100%'; scr.appendChild(img); }
+    scr.querySelector('img').src=cur.image;
+  } else {
+    var ex=scr.querySelector('img'); if(ex) ex.remove();
+  }
 }
 /* sync CLIPS array from ingest bin */
 function syncClipsFromBin() {
@@ -765,36 +1068,81 @@ function openEdl() {
   }, 80);
 }
 
-/* updateSeqInfo — refresh the sequence footer note */
+/* updateSeqInfo — refresh the program monitor info bar */
 function updateSeqInfo() {
   var h = document.getElementById('posthub-timeline'); if (!h) return;
-  var b = h.querySelector('#tlBody'); if (!b) return;
-  var note = b.querySelector('.note');
   var cuts = cutsFromV1();
-  if (note) note.textContent = cuts.length + ' cuts · sequence ' + tcf(total()) + ' · ' + FPS + ' fps';
+  var si = h.querySelector('#tlSeqInfo');
+  if (si) si.textContent = cuts.length + ' cut' + (cuts.length===1?'':'s') + ' · ' + tcf(total()) + ' · ' + FPS + ' fps';
 }
 
-/* paintTimeline — render the cut list table from TRACKS.v1 */
+/* paintTimeline — draw visual clip blocks on all 4 tracks + ruler */
 function paintTimeline() {
   var h = document.getElementById('posthub-timeline'); if (!h) return;
-  bindDeskTabs(h, 'timeline');
-  var b = h.querySelector('#tlBody');
-  var cuts = cutsFromV1();
-  if (!cuts.length) { b.innerHTML = '<div class="note">No cuts yet. Add one by hand, pull the bin in, or import an EDL.</div>'; return; }
-  var rows = cuts.map(function (k, i) {
-    var thumb = k.image ? '<img src="' + k.image + '" alt="" style="height:34px;border-radius:3px;display:block">' : '<span style="color:#4B5563">-</span>';
-    var act = '<button type="button" class="btn xs" data-rep="' + i + '" style="min-height:28px">replace</button>';
-    return '<tr data-i="' + i + '"' + (i === SELECTED ? ' class="sel"' : '') + '><td class="n">' + pad(i + 1) + '</td><td>' + thumb + '</td>' +
-      '<td>' + POST.esc(k.name) + (k.replaced ? ' <span style="color:#88C13F;font-size:11px">shot</span>' : (k.sb ? ' <span style="color:#E2A93B;font-size:11px">board</span>' : '')) + '</td>' +
-      '<td class="n">' + POST.esc(k.reel) + '</td><td class="n">' + tcf(k.srcIn) + '</td><td class="n">' + tcf(k.srcOut) + '</td>' +
-      '<td class="n">' + tcf(k.duration) + '</td><td class="n">' + tcf(k.recIn) + '</td><td class="n">' + tcf(k.recOut) + '</td><td>' + act + '</td></tr>';
-  }).join('');
-  b.innerHTML = '<table><thead><tr><th>#</th><th>Board</th><th>Clip</th><th>Reel</th><th>Src in</th><th>Src out</th><th>Dur</th><th>Rec in</th><th>Rec out</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>' +
-    '<p class="note">' + cuts.length + ' cuts · sequence ' + tcf(total()) + ' · ' + FPS + ' fps</p>';
-  var reps = b.querySelectorAll('[data-rep]');
-  for (var r2 = 0; r2 < reps.length; r2++) reps[r2].onclick = function (ev) { ev.stopPropagation(); replaceCut(parseInt(this.getAttribute('data-rep'), 10)); };
-  var trs = b.querySelectorAll('tr[data-i]');
-  for (var i = 0; i < trs.length; i++) trs[i].onclick = function () { SELECTED = +this.getAttribute('data-i'); paintTimeline(); };
+  syncBin(h);
+  var tot = Math.max(total(), 10);
+  var W = Math.max(tot * PX_PER_SEC + 120, h.querySelector('#tlScroll').clientWidth || 600);
+
+  /* resize inner container */
+  var inner = h.querySelector('#tlInner'); if (!inner) return;
+  inner.style.width = W + 'px';
+
+  /* ruler */
+  var ruler = h.querySelector('#tlRuler'); if (ruler) {
+    ruler.style.width = W + 'px';
+    var rhtml = '';
+    var step = PX_PER_SEC >= 8 ? 5 : 10; /* tick every N seconds */
+    for (var t = 0; t <= tot + step; t += step) {
+      var x = t * PX_PER_SEC;
+      var maj = (t % (step * 2) === 0);
+      rhtml += '<div class="nle-ruler-tick' + (maj?' maj':'') + '" style="left:' + x + 'px"></div>';
+      if (maj) rhtml += '<div class="nle-ruler-label" style="left:' + x + 'px">' + fmt(t) + '</div>';
+    }
+    ruler.innerHTML = rhtml;
+  }
+
+  /* draw each track */
+  ['v2','v1','a1','a2'].forEach(function(tname) {
+    var el = h.querySelector('[data-track="'+tname+'"]'); if (!el) return;
+    /* remove existing clip blocks, keep .nle-track-bg and .nle-playhead */
+    el.querySelectorAll('.nle-clip').forEach(function(c){c.remove()});
+    var clips = TRACKS[tname] || [];
+    clips.forEach(function(c, i) {
+      var left = Math.round(c.start * PX_PER_SEC);
+      var width = Math.max(4, Math.round(c.duration * PX_PER_SEC));
+      var isSel = (SEL.track===tname && SEL.idx===i);
+      var cls = 'nle-clip' + (isSel?' sel':'') + (c.sb&&!c.replaced?' board-clip':'') + (c.replaced?' shot-clip':'');
+      var div = document.createElement('div');
+      div.className = cls;
+      div.style.left = left + 'px';
+      div.style.width = width + 'px';
+      div.setAttribute('data-track', tname);
+      div.setAttribute('data-idx', i);
+      if (c.image && tname !== 'a1' && tname !== 'a2') {
+        var img = document.createElement('img'); img.src = c.image; img.className = 'nle-clip-thumb'; div.appendChild(img);
+      }
+      var lbl = document.createElement('span'); lbl.className = 'nle-clip-label'; lbl.textContent = c.name; div.appendChild(lbl);
+      div.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (ACTIVE_TOOL === 'razor') return; /* razor handled on inner click */
+        SEL.track = tname; SEL.idx = i; SELECTED = i;
+        paintTimeline();
+        /* load into source if it has a clip from bin */
+        if (ACTIVE_CLIP && ACTIVE_CLIP.name === c.name) return;
+        var bc = CLIPS.filter(function(x){return x.name===c.name})[0];
+        if (bc) loadClipToSource(bc);
+      });
+      el.appendChild(div);
+    });
+  });
+
+  updateSeqInfo();
+  updatePlayhead(h);
+  updateProgMonitor(h);
+
+  /* refresh desk tabs */
+  var dbar = h.querySelector('#tlDeskBar');
+  if (dbar) { dbar.innerHTML = deskTabs('timeline'); bindDeskTabs(h, 'timeline'); }
 }
 
 function closeOtherDesks() {   /* one desk at a time: a full-screen desk must not trap you */
@@ -830,7 +1178,15 @@ function bindDeskTabs(root, current) {
     all[k].style.color = on ? '#fff' : '';
   }
 }
-function openDesk() { syncClipsFromBin(); closeOtherDesks(); var h = hub(); h.classList.add('on'); paintTimeline(); }
+function openDesk() {
+  syncClipsFromBin();
+  closeOtherDesks();
+  var h = hub();
+  h.classList.add('on');
+  syncBin(h);
+  paintTimeline();
+  updatePlayhead(h);
+}
 
 POST.register({
   id: 'timeline',
