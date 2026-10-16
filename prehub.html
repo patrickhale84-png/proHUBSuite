@@ -1172,8 +1172,10 @@ She throws it in reverse!`;
           }
 
           let type = "ACTION";
+          // Strip leading scene numbers for detection only (e.g. "1 EXT." → "EXT.")
+          const ht = t.replace(/^\d+\s+/, '');
 
-          if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(t)) {
+          if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(ht)) {
             type = "SCENE_HEADING";
             speakerActive = false;
           } else if (/^(FADE IN:|FADE OUT\.|CUT TO:|SMASH CUT TO:|DISSOLVE TO:)/i.test(t) || t.endsWith(" TO:")) {
@@ -1181,7 +1183,7 @@ She throws it in reverse!`;
             speakerActive = false;
           } else if (t.startsWith("(") && t.endsWith(")")) {
             type = "PARENTHETICAL";
-          } else if (t === t.toUpperCase() && t.length < 35 && !t.endsWith(":") && !/^\d+$/.test(t) && !/^(THE|A|AN|AND|IN|ON)\b/.test(t)) {
+          } else if (t === t.toUpperCase() && t.length < 35 && !t.endsWith(":") && !/^\d+$/.test(t) && !/^(THE|A|AN|AND|IN|ON)\b/.test(t) && !/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(ht)) {
             type = "CHARACTER";
             speakerActive = true;
           } else if (speakerActive) {
@@ -2038,11 +2040,13 @@ let isTitlePageVisible = false;
           }
 
           let cleanLine = trimmed.replace(/^\[[A-Z_]+\]\s*/, '');
+          // Strip leading scene numbers for detection only (e.g. "1 EXT." → "EXT.")
+          const headingTest = cleanLine.replace(/^\d+\s+/, '');
 
-          if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(cleanLine)) {
+          if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(headingTest)) {
             this.injectScreenplayLineRowNode("SCENE_HEADING", cleanLine);
             speakerContext = null;
-          } else if (cleanLine === cleanLine.toUpperCase() && cleanLine.length < 35 && !cleanLine.endsWith(':') && !/^\d+$/.test(cleanLine)) {
+          } else if (cleanLine === cleanLine.toUpperCase() && cleanLine.length < 35 && !cleanLine.endsWith(':') && !/^\d+$/.test(cleanLine) && !/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(headingTest) && !/^(THE|A|AN|AND|IN|ON)\b/.test(cleanLine)) {
             this.injectScreenplayLineRowNode("CHARACTER", cleanLine);
             speakerContext = cleanLine;
           } else if (cleanLine.startsWith("(") && cleanLine.endsWith(")")) {
