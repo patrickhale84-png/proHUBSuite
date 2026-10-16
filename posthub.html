@@ -199,6 +199,14 @@ function openVault(){ask({title:'Storage vault',icon:'save',cancel:false,ok:'Clo
   $('#vIm',d).addEventListener('click',function(){var i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=function(){var f=i.files[0];if(!f)return;var r=new FileReader();
    r.onload=function(){try{var j=JSON.parse(r.result);S=Object.assign(blank(),j);S.project=Object.assign(blank().project,j.project||{});save();paint();toast('Project restored','good')}catch(e){toast('That file could not be read','bad')}};r.readAsText(f)};i.click()})},60)}
 
+/* Global desk-close helper — all desk modules call this via closure or window fallback */
+function closeOtherDesks(){
+  var all=document.querySelectorAll('.pgh.on,.tlh.on,.nth.on,.syh.on,.dvh.on');
+  for(var i=0;i<all.length;i++) all[i].classList.remove('on');
+}
+window.closeOtherDesks=closeOtherDesks;
+POST.closeAllDesks=closeOtherDesks;
+
 function boot(){
  try{var raw=localStorage.getItem(STORE);if(raw){var j=JSON.parse(raw);S=Object.assign(blank(),j);S.project=Object.assign(blank().project,j.project||{})}}catch(e){}
  var p=staged();
