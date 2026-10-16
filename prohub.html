@@ -149,22 +149,22 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
 <!-- LAYOUT -->
 <div class="apc">
 <aside class="psb">
-  <div class="p-3 border-b border-[#1E2A3A]">
-    <div class="text-[10px] uppercase tracking-widest text-slate-600 font-bold mb-2">Production</div>
-    <div class="nl ac" onclick="sw('dashboard')" id="n-dashboard"><i class="fa-solid fa-border-all text-amber-400 w-5"></i>Dashboard</div>
-    <div class="nl" onclick="sw('shotlist')" id="n-shotlist"><i class="fa-solid fa-list-ol text-orange-400 w-5"></i>Shot List</div>
-    <div class="nl" onclick="sw('oneliner')" id="n-oneliner"><i class="fa-solid fa-bars-staggered text-cyan-400 w-5"></i>One-Liner Strip</div>
-    <div class="nl" onclick="sw('masterscript')" id="n-masterscript"><i class="fa-solid fa-scroll text-purple-400 w-5"></i>Master Script</div>
-    <div class="nl" onclick="sw('callsheet')" id="n-callsheet"><i class="fa-solid fa-calendar-days text-green-400 w-5"></i>Call Sheet</div>
-    <div class="nl" onclick="sw('dailies')" id="n-dailies"><i class="fa-solid fa-film text-rose-400 w-5"></i>Dailies Log</div>
+  <div style="padding:10px 12px;border-bottom:1px solid #1E2A3A;">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#374151;font-weight:700;margin-bottom:8px;">Production</div>
+    <div class="nl ac" onclick="sw('dashboard')" id="n-dashboard"><i class="fa-solid fa-border-all" style="color:#FBBF24;width:18px;"></i>Dashboard</div>
+    <div class="nl" onclick="sw('shotlist')" id="n-shotlist"><i class="fa-solid fa-list-ol" style="color:#FB923C;width:18px;"></i>Shot List</div>
+    <div class="nl" onclick="sw('oneliner')" id="n-oneliner"><i class="fa-solid fa-bars-staggered" style="color:#22D3EE;width:18px;"></i>One-Liner Strip</div>
+    <div class="nl" onclick="sw('masterscript')" id="n-masterscript"><i class="fa-solid fa-scroll" style="color:#C084FC;width:18px;"></i>Master Script</div>
+    <div class="nl" onclick="sw('callsheet')" id="n-callsheet"><i class="fa-solid fa-calendar-days" style="color:#4ADE80;width:18px;"></i>Call Sheet</div>
+    <div class="nl" onclick="sw('dailies')" id="n-dailies"><i class="fa-solid fa-film" style="color:#FB7185;width:18px;"></i>Dailies Log</div>
   </div>
-  <div class="p-3 border-b border-[#1E2A3A]">
-    <div class="text-[10px] uppercase tracking-widest text-slate-600 font-bold mb-2">Project</div>
-    <div class="p-2 bg-[#0F1420] rounded-lg border border-[#1E2A3A] space-y-1.5 text-[11px]">
-      <div class="flex justify-between"><span class="text-slate-500">Script</span><span class="text-amber-400 font-mono font-bold" id="sb-script">—</span></div>
-      <div class="flex justify-between"><span class="text-slate-500">Scenes</span><span class="text-white font-mono font-bold" id="sb-scenes">0</span></div>
-      <div class="flex justify-between"><span class="text-slate-500">Shots</span><span class="text-orange-400 font-mono font-bold" id="sb-shots">0</span></div>
-      <div class="flex justify-between"><span class="text-slate-500">Draft</span><span class="text-cyan-400 font-mono font-bold" id="sb-draft">WHITE</span></div>
+  <div style="padding:10px 12px;border-bottom:1px solid #1E2A3A;">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#374151;font-weight:700;margin-bottom:8px;">Project</div>
+    <div style="padding:8px;background:#0F1420;border-radius:8px;border:1px solid #1E2A3A;font-size:11px;display:flex;flex-direction:column;gap:5px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#6B7280;">Script</span><span style="color:#F59E0B;font-family:var(--fm);font-weight:700;font-size:10px;max-width:110px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="sb-script">—</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#6B7280;">Scenes</span><span style="color:#fff;font-family:var(--fm);font-weight:700;" id="sb-scenes">0</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#6B7280;">Shots</span><span style="color:#FB923C;font-family:var(--fm);font-weight:700;" id="sb-shots">0</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#6B7280;">Draft</span><span style="color:#22D3EE;font-family:var(--fm);font-weight:700;" id="sb-draft">WHITE</span></div>
     </div>
   </div>
   <div class="mt-auto p-3 border-t border-[#1E2A3A] text-[10px] text-slate-600">
