@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>preHUB · Evaluator Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --bg:#0B0F19; --bg-sb:#131822; --bg-card:#161D2E; --bg-panel:#1A2237;
+  --acc:#D4A034; --acc2:#3ABFBF; --acc3:#E84393; --acc4:#7C5CBF;
+  --acc5:#E07B39; --acc6:#C0392B; --acc7:#2E86AB;
+  --txt:#F0F2F8; --txt2:#8A9BC0; --txt3:#4A5880;
+  --brd:#1E2A45; --fui:'Inter',sans-serif; --fsc:'Courier Prime',monospace;
+  --fds:'Montserrat',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:var(--fui)}
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:var(--bg-sb);border-right:1px solid var(--brd);
+  display:flex;flex-direction:column;padding:0}
+.sb-logo{padding:20px 16px 16px;border-bottom:1px solid var(--brd)}
+.sb-logo .wordmark{font-family:var(--fds);font-size:18px;font-weight:900;
+  letter-spacing:.08em;color:var(--acc);text-transform:uppercase}
+.sb-logo .sub{font-size:10px;color:var(--txt3);letter-spacing:.12em;text-transform:uppercase;margin-top:2px}
+.sb-nav{flex:1;overflow-y:auto;padding:12px 0}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 16px;
+  cursor:pointer;font-size:12px;font-weight:500;color:var(--txt2);
+  letter-spacing:.06em;text-transform:uppercase;transition:all .15s;border-left:3px solid transparent}
+.sb-item:hover{color:var(--txt);background:rgba(255,255,255,.04)}
+.sb-item.active{color:var(--acc);border-left-color:var(--acc);background:rgba(212,160,52,.07)}
+.sb-item i{width:16px;text-align:center;font-size:13px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:52px;background:var(--bg-sb);border-bottom:1px solid var(--brd);
+  display:flex;align-items:center;padding:0 24px;gap:16px;flex-shrink:0}
+.topbar .title{font-family:var(--fds);font-weight:900;font-size:13px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--txt)}
+.mbadge{background:var(--acc3);color:#fff;font-family:var(--fds);font-size:9px;
+  font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px}
+.content{flex:1;display:flex;overflow:hidden}
+/* ── PANELS ── */
+.input-panel{width:46%;min-width:360px;border-right:1px solid var(--brd);
+  display:flex;flex-direction:column;background:var(--bg)}
+.output-panel{flex:1;overflow-y:auto;background:var(--bg);display:flex;flex-direction:column}
+.panel-header{padding:16px 20px 12px;border-bottom:1px solid var(--brd);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.panel-header h2{font-family:var(--fds);font-size:11px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--txt2)}
+/* ── TEXTAREA ── */
+#scriptInput{flex:1;background:var(--bg-card);border:none;outline:none;
+  color:var(--txt);font-family:var(--fsc);font-size:13px;line-height:1.7;
+  padding:20px;resize:none;overflow-y:auto}
+#scriptInput::placeholder{color:var(--txt3)}
+/* ── FORMAT BAR ── */
+.fmt-bar{padding:10px 16px;background:var(--bg-sb);border-top:1px solid var(--brd);
+  display:flex;gap:8px;align-items:center;flex-shrink:0}
+.fmt-label{font-size:10px;color:var(--txt3);text-transform:uppercase;
+  letter-spacing:.1em;font-weight:600;margin-right:4px}
+.fmt-btn{padding:5px 12px;background:transparent;border:1px solid var(--brd);
+  color:var(--txt2);font-size:10px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;cursor:pointer;font-family:var(--fds);transition:all .15s}
+.fmt-btn:hover{border-color:var(--acc2);color:var(--acc2)}
+.fmt-btn.sel{background:var(--acc2);border-color:var(--acc2);color:#000}
+.run-btn{margin-left:auto;padding:7px 20px;background:var(--acc3);border:none;
+  color:#fff;font-family:var(--fds);font-size:11px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .15s}
+.run-btn:hover{background:#ff1a7a;transform:translateY(-1px)}
+.run-btn:active{transform:none}
+/* ── SCORE TILES ── */
+.score-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--brd);border-bottom:1px solid var(--brd);flex-shrink:0}
+.stile{background:var(--bg-card);padding:14px 12px;cursor:default}
+.stile .axis{font-family:var(--fds);font-size:8px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--txt3);margin-bottom:6px}
+.stile .score{font-family:var(--fds);font-size:22px;font-weight:900;color:var(--txt);line-height:1}
+.stile .score span{font-size:11px;color:var(--txt3);font-weight:400}
+.stile .bar{height:3px;background:var(--brd);margin-top:8px}
+.stile .bar-fill{height:100%;transition:width .6s ease}
+.stile.ch .bar-fill{background:var(--acc2)}
+.stile.pl .bar-fill{background:var(--acc4)}
+.stile.dl .bar-fill{background:var(--acc5)}
+.stile.or .bar-fill{background:var(--acc)}
+.stile.em .bar-fill{background:var(--acc3)}
+.stile.th .bar-fill{background:var(--acc7)}
+.stile.ov .bar-fill{background:#4CAF50}
+.stile.ov .score{color:#4CAF50}
+/* ── VERDICT BANNER ── */
+.verdict-banner{padding:14px 20px;display:flex;align-items:center;gap:16px;flex-shrink:0;
+  border-bottom:1px solid var(--brd)}
+.verdict-chip{font-family:var(--fds);font-size:11px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;padding:6px 16px}
+.verdict-chip.recommend{background:#4CAF50;color:#000}
+.verdict-chip.consider{background:var(--acc);color:#000}
+.verdict-chip.pass{background:var(--acc6);color:#fff}
+.percentile{font-size:12px;color:var(--txt2)}
+.percentile strong{color:var(--txt)}
+/* ── COVERAGE TEXT ── */
+.coverage-body{padding:20px;flex:1}
+.cov-section{margin-bottom:28px}
+.cov-section h3{font-family:var(--fds);font-size:9px;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--acc);
+  margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--brd)}
+.cov-section p{font-size:13px;line-height:1.8;color:var(--txt2);margin-bottom:10px}
+.cov-section p strong{color:var(--txt)}
+.strength-item,.vuln-item{padding:10px 14px;margin-bottom:6px;font-size:12px;
+  line-height:1.7;color:var(--txt2);border-left:3px solid}
+.strength-item{border-left-color:var(--acc2);background:rgba(58,191,191,.06)}
+.vuln-item{border-left-color:var(--acc6);background:rgba(200,57,43,.06)}
+.suggestion-item{padding:10px 14px;margin-bottom:6px;font-size:12px;
+  line-height:1.7;color:var(--txt2);border-left:3px solid var(--acc);
+  background:rgba(212,160,52,.06)}
+.suggestion-item .sug-label{font-family:var(--fds);font-size:9px;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--acc);margin-bottom:4px}
+/* ── DETAIL TABLE ── */
+.param-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+.param-table th{font-family:var(--fds);font-size:8px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--txt3);
+  padding:6px 10px;text-align:left;border-bottom:1px solid var(--brd)}
+.param-table td{padding:5px 10px;border-bottom:1px solid rgba(30,42,69,.5);
+  color:var(--txt2);vertical-align:top}
+.param-table td:last-child{text-align:right;font-family:var(--fds);font-weight:700}
+.score-hi{color:#4CAF50}.score-mid{color:var(--acc)}.score-lo{color:var(--acc6)}
+/* ── EMPTY STATE ── */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:12px;color:var(--txt3);padding:40px}
+.empty-state i{font-size:40px;opacity:.3}
+.empty-state p{font-size:13px;text-align:center;line-height:1.6;max-width:280px}
+/* ── LOADING ── */
+.loading{display:none;align-items:center;justify-content:center;gap:12px;
+  padding:30px;color:var(--txt2);font-size:13px}
+.loading.show{display:flex}
+.spinner{width:20px;height:20px;border:2px solid var(--brd);
+  border-top-color:var(--acc3);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--brd);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="wordmark">preHUB</div>
+      <div class="sub">Production Suite</div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-item"><i class="fa-solid fa-pen-nib"></i>Screenwriter</div>
+      <div class="sb-item active"><i class="fa-solid fa-magnifying-glass-chart"></i>Evaluator</div>
+      <div class="sb-item"><i class="fa-solid fa-file-powerpoint"></i>Pitch Deck</div>
+      <div class="sb-item"><i class="fa-solid fa-film"></i>Storyboards</div>
+      <div class="sb-item"><i class="fa-solid fa-calculator"></i>Budgeting</div>
+      <div class="sb-item"><i class="fa-solid fa-satellite-dish"></i>Transmit</div>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="title">Evaluator Studio</div>
+      <div class="mbadge">2. Evaluator</div>
+      <div style="margin-left:auto;font-size:11px;color:var(--txt3)">
+        <i class="fa-solid fa-microchip" style="margin-right:6px"></i>100-Parameter Engine v1.0
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- INPUT PANEL -->
+      <div class="input-panel">
+        <div class="panel-header">
+          <h2><i class="fa-solid fa-file-lines" style="margin-right:8px"></i>Script Input</h2>
+          <span id="charCount" style="font-size:11px;color:var(--txt3)">0 chars</span>
+        </div>
+        <textarea id="scriptInput" spellcheck="false"
+          placeholder="Paste your screenplay here. Plain text, Fountain, FDX-extracted, or any format.&#10;&#10;The engine will detect format, parse scene structure, character voice, dialogue patterns, pacing, theme density, and 100 discrete craft parameters — then generate balanced, insightful coverage.&#10;&#10;Minimum ~2 pages for meaningful results."></textarea>
+        <div class="fmt-bar">
+          <span class="fmt-label">Format</span>
+          <button class="fmt-btn sel" onclick="setFmt(this,'FEATURE')">Feature</button>
+          <button class="fmt-btn" onclick="setFmt(this,'TV60')">TV 60</button>
+          <button class="fmt-btn" onclick="setFmt(this,'TV30')">TV 30</button>
+          <button class="fmt-btn" onclick="setFmt(this,'SHORT')">Short</button>
+          <button class="fmt-btn" onclick="setFmt(this,'PILOT')">Pilot</button>
+          <button class="run-btn" onclick="runEval()"><i class="fa-solid fa-bolt" style="margin-right:6px"></i>Evaluate</button>
+        </div>
+      </div>
+
+      <!-- OUTPUT PANEL -->
+      <div class="output-panel" id="outputPanel">
+        <div class="empty-state" id="emptyState">
+          <i class="fa-solid fa-magnifying-glass-chart"></i>
+          <p>Paste your screenplay and click <strong style="color:var(--acc3)">Evaluate</strong> to generate full coverage across 7 axes and 100 craft parameters.</p>
+        </div>
+        <div class="loading" id="loadingState">
+          <div class="spinner"></div>
+          <span>Running 100-parameter analysis…</span>
+        </div>
+        <div id="results" style="display:none;flex-direction:column;flex:1">
+          <!-- Score tiles -->
+          <div class="score-grid" id="scoreTiles"></div>
+          <!-- Verdict -->
+          <div class="verdict-banner" id="verdictBanner"></div>
+          <!-- Coverage body -->
+          <div class="coverage-body" id="coverageBody"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ═══════════════════════════════════════════════════════════════
+   HALION EVALUATOR ENGINE  v1.0
+   100 rules-based parameters across 7 axes.
+   Reverse-engineered from professional screenplay coverage methodology.
+   Exports: window.HalionEvaluatorEngine (for preHUB integration)
+═══════════════════════════════════════════════════════════════ */
+
+// ── STATE ──────────────────────────────────────────────────────
+let currentFmt = 'FEATURE';
+function setFmt(btn, fmt) {
+  document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  currentFmt = fmt;
+}
+
+document.getElementById('scriptInput').addEventListener('input', function() {
+  document.getElementById('charCount').textContent = this.value.length.toLocaleString() + ' chars';
+});
+
+// ══════════════════════════════════════════════════════════════
+// SECTION 1 — PARSER
+// Converts raw screenplay text → structured data object
+// ══════════════════════════════════════════════════════════════
+const HalionParser = {
+  parse(raw, fmt) {
+    const lines = raw.split('\n').map(l => l.trimEnd());
+    const scenes = [], chars = new Set(), dialogue = [], action = [],
+          transitions = [], parentheticals = [];
+    let mode = 'action', lastChar = null, sceneIdx = 0;
+    const sceneRx = /^\s*(INT\.|EXT\.|INT\/EXT\.|I\/E\.)/i;
+    const charRx  = /^[A-Z][A-Z0-9 ''\-\.]{1,40}$(?!\s*:)/;
+    const transRx = /^\s*(FADE (IN|OUT|TO)|CUT TO|SMASH CUT|MATCH CUT|DISSOLVE TO|TITLE CARD)[\s:\.]*$/i;
+    const parenRx = /^\s*\((.+)\)\s*$/;
+
+    for (let i = 0; i < lines.length; i++) {
+      const ln = lines[i];
+      const tr = ln.trim();
+      if (!tr) { mode = 'action'; lastChar = null; continue; }
+
+      if (sceneRx.test(tr)) {
+        scenes.push({ heading: tr, line: i, dialogueCount: 0, actionLines: 0 });
+        sceneIdx = scenes.length - 1;
+        mode = 'action'; lastChar = null;
+      } else if (transRx.test(tr)) {
+        transitions.push(tr);
+        mode = 'action'; lastChar = null;
+      } else if (parenRx.test(tr) && mode === 'char') {
+        parentheticals.push(tr);
+        mode = 'paren';
+      } else if (charRx.test(tr) && tr.length > 1 && tr === tr.toUpperCase() && !/^\d+$/.test(tr)) {
+        const cname = tr.replace(/\s*\(V\.O\.\)|\s*\(O\.S\.\)|\s*\(CONT'D\)/gi,'').trim();
+        if (cname.length > 1) { chars.add(cname); lastChar = cname; mode = 'char'; }
+      } else if (mode === 'char' || mode === 'paren' || mode === 'dialogue') {
+        if (lastChar) {
+          dialogue.push({ char: lastChar, text: tr, line: i });
+          if (scenes[sceneIdx]) scenes[sceneIdx].dialogueCount++;
+          mode = 'dialogue';
+        }
+      } else {
+        action.push({ text: tr, line: i });
+        if (scenes[sceneIdx]) scenes[sceneIdx].actionLines++;
+        mode = 'action';
+      }
+    }
+
+    // Metrics
+    const totalLines = lines.filter(l => l.trim()).length;
+    const wordCount  = raw.split(/\s+/).filter(Boolean).length;
+    const pageEst    = Math.max(1, Math.round(wordCount / 185));
+    const intScenes  = scenes.filter(s => /^INT\./i.test(s.heading.trim())).length;
+    const extScenes  = scenes.filter(s => /^EXT\./i.test(s.heading.trim())).length;
+
+    // Character dialogue distribution
+    const charDialogue = {};
+    dialogue.forEach(d => { charDialogue[d.char] = (charDialogue[d.char]||0) + d.text.split(/\s+/).length; });
+    const charList = Object.entries(charDialogue).sort((a,b)=>b[1]-a[1]);
+    const protagonistName = charList.length ? charList[0][0] : 'THE PROTAGONIST';
+
+    // Pacing: detect dead zones (action blocks > 6 consecutive lines with no dialogue)
+    let deadZones = 0, consecutiveAction = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const t = lines[i].trim();
+      if (!t) { consecutiveAction = 0; continue; }
+      if (sceneRx.test(t) || charRx.test(t)) { consecutiveAction = 0; }
+      else if (!charRx.test(t) && mode !== 'dialogue') { consecutiveAction++; }
+      if (consecutiveAction > 14) { deadZones++; consecutiveAction = 0; }
+    }
+
+    // Dialogue word lengths for cadence analysis
+    const dlgWords = dialogue.map(d => d.text.split(/\s+/).length);
+    const dlgMean  = dlgWords.length ? dlgWords.reduce((a,b)=>a+b,0)/dlgWords.length : 0;
+    const dlgStdev = dlgWords.length > 1 ? Math.sqrt(dlgWords.map(w=>(w-dlgMean)**2).reduce((a,b)=>a+b,0)/dlgWords.length) : 0;
+
+    // Theme words (semantic density)
+    const themeWords = ['love','death','truth','freedom','identity','power','fear','betrayal',
+      'sacrifice','justice','memory','loss','redemption','survival','loyalty','duty','desire',
+      'guilt','hope','grief','rage','devotion','trust','change','longing','protection'];
+    const rawLow = raw.toLowerCase();
+    const themeHits = themeWords.filter(w => rawLow.includes(w)).length;
+
+    // Sensory words
+    const sensoryWords = ['smell','taste','touch','hear','feel','cold','hot','dark','light','warm',
+      'weight','sharp','smooth','rough','bright','dim','soft','loud','quiet','damp','dry'];
+    const sensoryHits = sensoryWords.filter(w => rawLow.includes(w)).length;
+
+    // Non-linear indicators
+    const flashbackRx = /\b(FLASHBACK|FLASH BACK|FLASH FORWARD|MEMORY|DREAM|VISION|EARLIER|PAST)\b/i;
+    const nonLinear   = flashbackRx.test(raw);
+
+    // Unique vocabulary per top character
+    const charVocab = {};
+    charList.slice(0,4).forEach(([cname]) => {
+      const dlgForChar = dialogue.filter(d => d.char === cname).map(d => d.text.toLowerCase());
+      const words = new Set(dlgForChar.join(' ').split(/\s+/).filter(w => w.length > 3));
+      charVocab[cname] = words.size;
+    });
+
+    // Subtext density: lines < 8 words (compressed speech)
+    const subtextLines = dialogue.filter(d => d.text.split(/\s+/).length < 8).length;
+    const subtextRatio = dialogue.length > 0 ? subtextLines / dialogue.length : 0;
+
+    // Structural arc: are scenes in the second quarter lighter than first/third?
+    const q = Math.floor(scenes.length / 4);
+    const sceneDialogueDensity = (start, end) => {
+      const sl = scenes.slice(start, end);
+      return sl.length ? sl.reduce((a,b)=>a+b.dialogueCount,0)/sl.length : 0;
+    };
+    const actOneDensity  = sceneDialogueDensity(0, q);
+    const actTwoDensity  = sceneDialogueDensity(q, q*3);
+    const actThreeDensity= sceneDialogueDensity(q*3, scenes.length);
+
+    return {
+      raw, fmt, lines, wordCount, pageEst, totalLines,
+      scenes, chars: [...chars], dialogue, action, transitions, parentheticals,
+      charList, protagonistName, charDialogue, charVocab,
+      intScenes, extScenes, deadZones,
+      dlgMean, dlgStdev, dlgWords,
+      themeHits, sensoryHits, nonLinear,
+      subtextRatio,
+      actOneDensity, actTwoDensity, actThreeDensity,
+      sceneCount: scenes.length,
+      charCount: chars.size,
+      dialogueCount: dialogue.length,
+      actionCount: action.length,
+      transitionCount: transitions.length,
+      dialogueRatio: totalLines > 0 ? dialogue.length / totalLines : 0,
+      parentheticalRatio: dialogue.length > 0 ? parentheticals.length / dialogue.length : 0,
+    };
+  }
+};
+
+// ══════════════════════════════════════════════════════════════
+// SECTION 2 — 100 PARAMETERS
+// Each parameter: { id, axis, name, weight, evaluate(parsed) → {raw,normalized,evidence} }
+// Score raw: 0–10 per parameter, normalized to 0–1 for axis aggregation
+// ══════════════════════════════════════════════════════════════
+const PARAMETERS = [
+
+/* ─── AXIS 1: CHARACTER DEVELOPMENT (14 params) ─── */
+{id:'P01',axis:'CHAR',name:'Protagonist Arc Clarity',weight:1.4,
+  evaluate(p){
+    const has = p.charList.length > 0;
+    const top = p.charList[0];
+    const pct = top ? top[1] / Object.values(p.charDialogue).reduce((a,b)=>a+b,1) : 0;
+    const raw = has ? Math.min(10, 4 + pct*10 + (p.dialogueCount>20?2:0)) : 2;
+    return {raw, normalized:raw/10, evidence: top?`${top[0]} carries ${Math.round(pct*100)}% of dialogue`:'No clear protagonist found'};
+  }},
+{id:'P02',axis:'CHAR',name:'Protagonist Agency',weight:1.3,
+  evaluate(p){
+    const actionVerbs = ['grab','run','kick','open','close','pick','throw','pull','push','hit',
+      'scream','take','break','force','charge','sprint','leap','strike'];
+    const cnt = actionVerbs.filter(v=>p.raw.toLowerCase().includes(v)).length;
+    const raw = Math.min(10, 3 + cnt*0.5);
+    return {raw, normalized:raw/10, evidence:`${cnt} distinct agency verbs detected in action lines`};
+  }},
+{id:'P03',axis:'CHAR',name:'Protagonist Interiority',weight:1.2,
+  evaluate(p){
+    const intWords = ['realizes','understands','knows','remembers','feels','senses',
+      'notices','watches','stares','hesitates','trembles','breathes'];
+    const cnt = intWords.filter(v=>p.raw.toLowerCase().includes(v)).length;
+    const raw = Math.min(10, 2 + cnt * 0.7 + (p.sensoryHits > 5 ? 2 : 0));
+    return {raw, normalized:raw/10, evidence:`${cnt} interiority markers + ${p.sensoryHits} sensory anchors`};
+  }},
+{id:'P04',axis:'CHAR',name:'Supporting Character Depth',weight:1.1,
+  evaluate(p){
+    const secondaries = p.charList.slice(1,5);
+    const withLines   = secondaries.filter(c=>c[1]>20).length;
+    const raw = Math.min(10, 2 + withLines*2 + (p.charCount>3?1:0));
+    return {raw, normalized:raw/10, evidence:`${withLines}/${secondaries.length} secondary chars have substantial dialogue`};
+  }},
+{id:'P05',axis:'CHAR',name:'Antagonist Complexity',weight:1.2,
+  evaluate(p){
+    const antWords = ['because','believe','understand','need','want','must','fear','love','protect','only'];
+    const antCnt  = antWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const hasAnt  = p.charCount >= 2;
+    const raw = hasAnt ? Math.min(10, 3 + antCnt*0.4) : 1;
+    return {raw, normalized:raw/10, evidence: hasAnt?`${antCnt} motivation-language markers detected`:'No identifiable antagonist'};
+  }},
+{id:'P06',axis:'CHAR',name:'Character Voice Differentiation',weight:1.3,
+  evaluate(p){
+    const vocabs = Object.values(p.charVocab);
+    if(vocabs.length < 2) return {raw:3, normalized:.3, evidence:'Insufficient characters for comparison'};
+    const spread = Math.max(...vocabs) - Math.min(...vocabs);
+    const raw = Math.min(10, 3 + spread * 0.04);
+    return {raw, normalized:raw/10, evidence:`Vocabulary spread across top chars: ${spread} unique words`};
+  }},
+{id:'P07',axis:'CHAR',name:'Backstory Through Action',weight:1.1,
+  evaluate(p){
+    const expMarkers = ['explains','tells','said','when i was','back in','years ago','used to','once'];
+    const expCnt = expMarkers.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const objMarkers = ['badge','photo','letter','ring','wallet','key','phone','note','ticket'];
+    const objCnt = objMarkers.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 5 - expCnt*0.3 + objCnt*0.8);
+    return {raw: Math.max(1,raw), normalized:Math.max(.1,raw/10),
+      evidence:`${objCnt} object-reveals vs ${expCnt} expository markers`};
+  }},
+{id:'P08',axis:'CHAR',name:'Relationship Dynamics',weight:1.0,
+  evaluate(p){
+    const relWords = ['together','between','her','him','they','each other','both','against','with','toward'];
+    const cnt = relWords.filter(w=>p.raw.toLowerCase().split(' ').filter(x=>x===w).length>1).length;
+    const raw = Math.min(10, 3 + cnt*0.7 + (p.charCount>2?1:0));
+    return {raw, normalized:raw/10, evidence:`${cnt} relational language clusters detected`};
+  }},
+{id:'P09',axis:'CHAR',name:'Character Speech Consistency',weight:1.0,
+  evaluate(p){
+    const raw = p.charList.length>1 ? Math.min(10, 5 + p.dlgStdev*0.3) : 4;
+    return {raw, normalized:raw/10, evidence:`Dialogue cadence stdev: ${p.dlgStdev.toFixed(1)} words`};
+  }},
+{id:'P10',axis:'CHAR',name:'Physical Characterization',weight:0.9,
+  evaluate(p){
+    const physWords=['hair','eyes','hands','face','mouth','skin','voice','tall','short','thin',
+      'heavy','pale','dark','worn','dressed','scar','jaw','shoulders'];
+    const cnt = physWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 2 + cnt*0.5);
+    return {raw, normalized:raw/10, evidence:`${cnt} physical descriptors across all characters`};
+  }},
+{id:'P11',axis:'CHAR',name:'Character Contradiction/Complexity',weight:1.1,
+  evaluate(p){
+    const contWords=['but','however','despite','although','even though','yet','still','contradicts',
+      'strange','unexpected'];
+    const cnt = contWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 3 + cnt*0.4);
+    return {raw, normalized:raw/10, evidence:`${cnt} contradiction/pivot language markers`};
+  }},
+{id:'P12',axis:'CHAR',name:'Minor Character Completeness',weight:0.8,
+  evaluate(p){
+    const minors = p.charList.slice(3);
+    const withVoice = minors.filter(c=>c[1]>5).length;
+    const raw = Math.min(10, 4 + withVoice*1.5);
+    return {raw, normalized:raw/10, evidence:`${withVoice} minor characters with independent voice`};
+  }},
+{id:'P13',axis:'CHAR',name:'Protagonist Arc Completion',weight:1.4,
+  evaluate(p){
+    const resWords=['finally','realized','understood','decided','chose','accepted','let go',
+      'surrendered','won','lost','became','transformed'];
+    const cnt = resWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 3 + cnt*0.8);
+    return {raw, normalized:raw/10, evidence:`${cnt} arc-resolution language markers`};
+  }},
+{id:'P14',axis:'CHAR',name:'Ensemble Screen Time Balance',weight:0.8,
+  evaluate(p){
+    if(p.charList.length<2) return {raw:5, normalized:.5, evidence:'Single-character script'};
+    const top2 = p.charList.slice(0,2).map(c=>c[1]);
+    const ratio = top2[1]/top2[0];
+    const raw = Math.min(10, ratio > 0.4 ? 7+ratio*3 : 3+ratio*8);
+    return {raw, normalized:raw/10, evidence:`Secondary:primary dialogue ratio ${ratio.toFixed(2)}`};
+  }},
+
+/* ─── AXIS 2: PLOT CONSTRUCTION (14 params) ─── */
+{id:'P15',axis:'PLOT',name:'Three-Act Structure',weight:1.3,
+  evaluate(p){
+    const hasSetup   = p.actOneDensity > 0;
+    const hasConflic = p.actTwoDensity > 0;
+    const hasResol   = p.actThreeDensity > 0;
+    const raw = (hasSetup?3:0)+(hasConflic?4:0)+(hasResol?3:0);
+    return {raw, normalized:raw/10, evidence:`Act densities: ${p.actOneDensity.toFixed(1)} / ${p.actTwoDensity.toFixed(1)} / ${p.actThreeDensity.toFixed(1)}`};
+  }},
+{id:'P16',axis:'PLOT',name:'Non-Linear Coherence',weight:1.0,
+  evaluate(p){
+    if(!p.nonLinear) return {raw:7, normalized:.7, evidence:'Linear structure — no penalty'};
+    const markers = ['meanwhile','earlier','later','at the same time','simultaneously','before','after'];
+    const cnt = markers.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 4 + cnt*0.8);
+    return {raw, normalized:raw/10, evidence:`Non-linear script with ${cnt} orientation markers`};
+  }},
+{id:'P17',axis:'PLOT',name:'Twist Earn-ness (Setup/Payoff)',weight:1.4,
+  evaluate(p){
+    const setupWords=['earlier','first','begin','open with','we see','established'];
+    const payoffWords=['reveals','discovers','realizes','turns out','was','had been'];
+    const setups  = setupWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const payoffs = payoffWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const ratio   = setups > 0 ? payoffs/setups : 0;
+    const raw = Math.min(10, 2 + ratio*4 + Math.min(setups,payoffs)*0.4);
+    return {raw, normalized:raw/10, evidence:`${setups} setups, ${payoffs} payoffs (ratio ${ratio.toFixed(2)})`};
+  }},
+{id:'P18',axis:'PLOT',name:'Pacing — No Dead Zones',weight:1.3,
+  evaluate(p){
+    const raw = Math.max(1, 10 - p.deadZones*2);
+    return {raw, normalized:raw/10, evidence:`${p.deadZones} extended action-only dead zone(s) detected`};
+  }},
+{id:'P19',axis:'PLOT',name:'Scene Economy (Multi-function)',weight:1.2,
+  evaluate(p){
+    const avgDlg = p.scenes.length>0 ? p.dialogueCount/p.scenes.length : 0;
+    const avgAct = p.scenes.length>0 ? p.actionCount/p.scenes.length : 0;
+    const raw = Math.min(10, 3 + avgDlg*0.3 + (avgAct>2?2:0));
+    return {raw, normalized:raw/10, evidence:`Avg ${avgDlg.toFixed(1)} dialogue + ${avgAct.toFixed(1)} action lines/scene`};
+  }},
+{id:'P20',axis:'PLOT',name:'Inciting Incident Placement',weight:1.2,
+  evaluate(p){
+    const incitingWords=['suddenly','everything changed','wrong','found','discovered','heard','saw','realized'];
+    const firstQuarter = p.raw.substring(0, p.raw.length*0.2).toLowerCase();
+    const cnt = incitingWords.filter(w=>firstQuarter.includes(w)).length;
+    const raw = Math.min(10, cnt>0 ? 5+cnt*1 : 2);
+    return {raw, normalized:raw/10, evidence:`${cnt} inciting-event markers in opening 20%`};
+  }},
+{id:'P21',axis:'PLOT',name:'Midpoint Shift',weight:1.0,
+  evaluate(p){
+    const midText = p.raw.substring(p.raw.length*0.4, p.raw.length*0.65).toLowerCase();
+    const shiftWords=['but now','instead','no longer','changed','turned','shifted','revealed'];
+    const cnt = shiftWords.filter(w=>midText.includes(w)).length;
+    const raw = Math.min(10, 3 + cnt*1.5);
+    return {raw, normalized:raw/10, evidence:`${cnt} shift-language markers at midpoint`};
+  }},
+{id:'P22',axis:'PLOT',name:'Climax Character Logic',weight:1.4,
+  evaluate(p){
+    const climaxText = p.raw.substring(p.raw.length*0.8).toLowerCase();
+    const logicWords=['because','her','his','she','he','only','must','finally','choice'];
+    const cnt = logicWords.filter(w=>climaxText.includes(w)).length;
+    const raw = Math.min(10, 3 + cnt*0.6);
+    return {raw, normalized:raw/10, evidence:`${cnt} character-logic anchors in final 20%`};
+  }},
+{id:'P23',axis:'PLOT',name:'Resolution Clarity',weight:1.2,
+  evaluate(p){
+    const resText = p.raw.substring(p.raw.length*0.85).toLowerCase();
+    const resWords=['end','over','done','gone','free','safe','lost','won','home','left','stays'];
+    const cnt = resWords.filter(w=>resText.includes(w)).length;
+    const raw = Math.min(10, 3 + cnt*1);
+    return {raw, normalized:raw/10, evidence:`${cnt} resolution markers in final 15%`};
+  }},
+{id:'P24',axis:'PLOT',name:'Subplot Integration',weight:1.0,
+  evaluate(p){
+    const subplotChars = p.charList.slice(1,4).filter(c=>c[1]>10).length;
+    const raw = Math.min(10, 3 + subplotChars*2);
+    return {raw, normalized:raw/10, evidence:`${subplotChars} secondary chars with enough presence for subplot`};
+  }},
+{id:'P25',axis:'PLOT',name:'World-Rule Consistency',weight:1.1,
+  evaluate(p){
+    const estWords=['the rule is','always','never','can only','cannot','impossible','only way'];
+    const cnt = estWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 5 + cnt*0.5);
+    return {raw, normalized:raw/10, evidence:`${cnt} world-rule establishment markers`};
+  }},
+{id:'P26',axis:'PLOT',name:'Foreshadowing Density',weight:1.1,
+  evaluate(p){
+    const foreWords=['soon','one day','if only','wonder','what if','when the time','before it'];
+    const cnt = foreWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 3 + cnt*1);
+    return {raw, normalized:raw/10, evidence:`${cnt} foreshadowing language instances`};
+  }},
+{id:'P27',axis:'PLOT',name:'Plot Repetition Avoidance',weight:1.2,
+  evaluate(p){
+    // Look for scene heading repetitions (same location twice in a row)
+    let reps = 0;
+    for(let i=1;i<p.scenes.length;i++){
+      const a = p.scenes[i-1].heading.replace(/\d+|DAY|NIGHT|MORNING|EVENING/gi,'').trim();
+      const b = p.scenes[i].heading.replace(/\d+|DAY|NIGHT|MORNING|EVENING/gi,'').trim();
+      if(a===b) reps++;
+    }
+    const raw = Math.max(1, 10 - reps*1.5);
+    return {raw, normalized:raw/10, evidence:`${reps} repeated-location consecutive scenes`};
+  }},
+{id:'P28',axis:'PLOT',name:'Exposition Distribution',weight:1.3,
+  evaluate(p){
+    const expCnt = p.dialogue.filter(d=>d.text.split(/\s+/).length>25).length;
+    const ratio  = p.dialogue.length>0 ? expCnt/p.dialogue.length : 0;
+    const raw    = Math.max(1, Math.min(10, 10 - ratio*20));
+    return {raw, normalized:raw/10, evidence:`${expCnt} dialogue lines >25 words (exposition risk ${Math.round(ratio*100)}%)`};
+  }},
+
+/* ─── AXIS 3: DIALOGUE (12 params) ─── */
+{id:'P29',axis:'DIAL',name:'Voice Differentiation',weight:1.4,
+  evaluate(p){
+    const vocabs = Object.values(p.charVocab);
+    if(vocabs.length<2) return {raw:4, normalized:.4, evidence:'Insufficient chars to compare'};
+    const cv = Math.sqrt(vocabs.map(v=>(v-vocabs.reduce((a,b)=>a+b,0)/vocabs.length)**2).reduce((a,b)=>a+b,0)/vocabs.length);
+    const raw = Math.min(10, 3 + cv*0.05);
+    return {raw, normalized:raw/10, evidence:`Voice coefficient of variation: ${cv.toFixed(1)}`};
+  }},
+{id:'P30',axis:'DIAL',name:'Subtext Density',weight:1.3,
+  evaluate(p){
+    const raw = Math.min(10, 3 + p.subtextRatio*14);
+    return {raw, normalized:raw/10, evidence:`${Math.round(p.subtextRatio*100)}% of lines are compressed (<8 words)`};
+  }},
+{id:'P31',axis:'DIAL',name:'Exposition Ratio',weight:1.2,
+  evaluate(p){
+    const expLines = p.dialogue.filter(d=>d.text.split(/\s+/).length>20).length;
+    const ratio    = p.dialogue.length>0 ? expLines/p.dialogue.length : 0;
+    const raw      = Math.max(1, Math.min(10, 10 - ratio*15));
+    return {raw, normalized:raw/10, evidence:`Exposition lines: ${expLines}/${p.dialogue.length} (${Math.round(ratio*100)}%)`};
+  }},
+{id:'P32',axis:'DIAL',name:'Thematic Dialogue',weight:1.2,
+  evaluate(p){
+    const raw = Math.min(10, 2 + p.themeHits*0.5);
+    return {raw, normalized:raw/10, evidence:`${p.themeHits} thematic concept words across dialogue`};
+  }},
+{id:'P33',axis:'DIAL',name:'Dialogue Compression',weight:1.1,
+  evaluate(p){
+    const short = p.dialogue.filter(d=>d.text.split(/\s+/).length<12).length;
+    const ratio = p.dialogue.length>0 ? short/p.dialogue.length : 0;
+    const raw = Math.min(10, 3 + ratio*9);
+    return {raw, normalized:raw/10, evidence:`${Math.round(ratio*100)}% of lines are 1–11 words (compression rate)`};
+  }},
+{id:'P34',axis:'DIAL',name:'Emotional Authenticity',weight:1.3,
+  evaluate(p){
+    const emoWords=['can\'t','won\'t','don\'t','I just','please','stop','no','why','I know','fine'];
+    const cnt = emoWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 2 + cnt*0.8);
+    return {raw, normalized:raw/10, evidence:`${cnt} colloquial emotional markers`};
+  }},
+{id:'P35',axis:'DIAL',name:'Memorable Lines',weight:1.4,
+  evaluate(p){
+    // Lines with ≥1 concrete noun + ≥1 abstract concept word in short form
+    const memorial = p.dialogue.filter(d=>{
+      const w = d.text.split(/\s+/).length;
+      return w >= 5 && w <= 15 && /[A-Z]/.test(d.text);
+    }).length;
+    const raw = Math.min(10, 2 + memorial*0.3);
+    return {raw, normalized:raw/10, evidence:`${memorial} candidates for memorable dialogue`};
+  }},
+{id:'P36',axis:'DIAL',name:'Non-Verbal Communication',weight:0.9,
+  evaluate(p){
+    const nv = ['nods','shakes','sighs','smiles','frowns','stares','looks away','laughs','cries','beats'];
+    const cnt = nv.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 3+cnt*0.7);
+    return {raw, normalized:raw/10, evidence:`${cnt} non-verbal behavior markers in action lines`};
+  }},
+{id:'P37',axis:'DIAL',name:'Non-Human Voice Authenticity',weight:0.8,
+  evaluate(p){
+    const alienMarkers=['...','—','spacing','silence','beat','pause'];
+    const cnt = alienMarkers.filter(w=>p.raw.includes(w)).length;
+    const raw = Math.min(10, 3+cnt*1.2);
+    return {raw, normalized:raw/10, evidence:`${cnt} stylized speech markers`};
+  }},
+{id:'P38',axis:'DIAL',name:'Period/Cultural Accuracy',weight:0.8,
+  evaluate(p){
+    return {raw:7, normalized:.7, evidence:'Period accuracy requires external validation — baseline score assigned'};
+  }},
+{id:'P39',axis:'DIAL',name:'Dialogue Reveals Character',weight:1.3,
+  evaluate(p){
+    const revWords=['actually','honestly','always','never','hate','love','afraid','I wish','believe'];
+    const cnt = revWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 3+cnt*0.6);
+    return {raw, normalized:raw/10, evidence:`${cnt} character-revealing speech markers`};
+  }},
+{id:'P40',axis:'DIAL',name:'Climactic Dialogue Power',weight:1.4,
+  evaluate(p){
+    const climaxDlg = p.dialogue.filter((_,i)=>i>p.dialogue.length*0.8);
+    const powerCnt  = climaxDlg.filter(d=>d.text.split(/\s+/).length>=5 && d.text.split(/\s+/).length<=20).length;
+    const raw = climaxDlg.length>0 ? Math.min(10, 3+powerCnt/climaxDlg.length*12) : 4;
+    return {raw, normalized:raw/10, evidence:`${powerCnt}/${climaxDlg.length} strong lines in final dialogue`};
+  }},
+
+/* ─── AXIS 4: ORIGINALITY (10 params) ─── */
+{id:'P41',axis:'ORIG',name:'Logline Uniqueness',weight:1.4,
+  evaluate(p){
+    const clichéPremises=['unlikely hero','chosen one','reluctant hero','save the world','secret agent',
+      'time travel reversal','haunted house','zombie apocalypse'];
+    const rawText = p.raw.toLowerCase();
+    const clichéHits = clichéPremises.filter(c=>rawText.includes(c.split(' ')[0])).length;
+    const raw = Math.max(3, 9-clichéHits*1.5);
+    return {raw, normalized:raw/10, evidence:`${clichéHits} recognizable premise clichés detected`};
+  }},
+{id:'P42',axis:'ORIG',name:'Genre Subversion',weight:1.3,
+  evaluate(p){
+    const subverWords=['instead','unexpected','surprising','unlike','different','reversal','twist','invert'];
+    const cnt = subverWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 4+cnt*0.6);
+    return {raw, normalized:raw/10, evidence:`${cnt} subversion/inversion markers`};
+  }},
+{id:'P43',axis:'ORIG',name:'Visual/Sonic Signature',weight:1.3,
+  evaluate(p){
+    const sigWords=['sound','click','hum','echo','light','shadow','glow','pulse','flicker','static',
+      'roar','silence','tone','frequency','vibrate'];
+    const cnt = sigWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 2+cnt*0.6);
+    return {raw, normalized:raw/10, evidence:`${cnt} distinctive sensory signature markers`};
+  }},
+{id:'P44',axis:'ORIG',name:'Thematic Reframing of Genre',weight:1.4,
+  evaluate(p){
+    const raw = Math.min(10, 2 + p.themeHits*0.5 + (p.sensoryHits>4?2:0));
+    return {raw, normalized:raw/10, evidence:`${p.themeHits} theme markers + ${p.sensoryHits} sensory grounds`};
+  }},
+{id:'P45',axis:'ORIG',name:'Setting Specificity',weight:1.1,
+  evaluate(p){
+    const specWords=['street','road','highway','county','creek','bay','hill','ridge','hollow',
+      'block','district','borough','neighborhood'];
+    const cnt = specWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const intExt = p.intScenes+p.extScenes;
+    const raw = Math.min(10, 3+cnt*0.4+(intExt>3?2:0));
+    return {raw, normalized:raw/10, evidence:`${cnt} location-specific anchors, ${intExt} scene headings`};
+  }},
+{id:'P46',axis:'ORIG',name:'Narrative Device Originality',weight:1.1,
+  evaluate(p){
+    const devices = p.nonLinear ? 2 : 0;
+    const frameDevice = /interrogat|therapist|debri(ef|efing)|session/i.test(p.raw) ? 2:0;
+    const raw = Math.min(10, 4+devices+frameDevice);
+    return {raw, normalized:raw/10, evidence:`Non-linear: ${p.nonLinear}, framing device: ${frameDevice>0}`};
+  }},
+{id:'P47',axis:'ORIG',name:'Concept-Execution Alignment',weight:1.3,
+  evaluate(p){
+    const ambition = p.themeHits+p.sensoryHits;
+    const craft    = p.sceneCount+p.charCount;
+    const ratio    = craft>0 ? ambition/craft : 0;
+    const raw      = Math.min(10, 3+ratio*3);
+    return {raw, normalized:raw/10, evidence:`Ambition/craft ratio: ${ratio.toFixed(2)}`};
+  }},
+{id:'P48',axis:'ORIG',name:'Cultural Currency',weight:1.0,
+  evaluate(p){
+    const culturalWords=['trauma','grief','mental health','identity','belonging','justice','race',
+      'gender','climate','surveillance','technology','motherhood','fatherhood','addiction','loss'];
+    const cnt = culturalWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 3+cnt*1);
+    return {raw, normalized:raw/10, evidence:`${cnt} culturally resonant concept anchors`};
+  }},
+{id:'P49',axis:'ORIG',name:'Aesthetic Identity Consistency',weight:1.0,
+  evaluate(p){
+    const raw = Math.min(10, 4+(p.sensoryHits>3?2:0)+(p.nonLinear?1:0)+(p.themeHits>5?1:0)+(p.sceneCount>5?1:0));
+    return {raw, normalized:raw/10, evidence:`Aesthetic markers: ${p.sensoryHits} sensory + ${p.themeHits} theme + ${p.sceneCount} scenes`};
+  }},
+{id:'P50',axis:'ORIG',name:'Comparable Differentiation',weight:1.2,
+  evaluate(p){
+    const raw = Math.min(10, 4+(p.themeHits>3?2:0)+(p.nonLinear?1:0)+(p.sceneCount>4?1:0));
+    return {raw, normalized:raw/10, evidence:'Differentiation from genre norms (structural + thematic)'};
+  }},
+
+/* ─── AXIS 5: EMOTIONAL ENGAGEMENT (10 params) ─── */
+{id:'P51',axis:'EMOT',name:'Stakes Clarity',weight:1.4,
+  evaluate(p){
+    const stakeWords=['lose','life','death','kill','destroy','end','gone','never','only chance'];
+    const cnt = stakeWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 2+cnt*0.8);
+    return {raw, normalized:raw/10, evidence:`${cnt} stakes-language markers`};
+  }},
+{id:'P52',axis:'EMOT',name:'Sensory Specificity',weight:1.4,
+  evaluate(p){
+    const raw = Math.min(10, 2+p.sensoryHits*0.7);
+    return {raw, normalized:raw/10, evidence:`${p.sensoryHits} sensory anchors (sight/sound/touch/smell)`};
+  }},
+{id:'P53',axis:'EMOT',name:'Dread Construction (Accumulation)',weight:1.3,
+  evaluate(p){
+    const dreadWords=['slowly','creeping','growing','building','spreading','closing in','gets louder'];
+    const cnt = dreadWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 3+cnt*1.2);
+    return {raw, normalized:raw/10, evidence:`${cnt} accumulative dread language markers`};
+  }},
+{id:'P54',axis:'EMOT',name:'Empathy Anchor (Early)',weight:1.3,
+  evaluate(p){
+    const firstQuarter = p.raw.substring(0,p.raw.length*0.25).toLowerCase();
+    const empathyWords=['child','baby','mother','father','lost','afraid','love','protect','alone','scared'];
+    const cnt = empathyWords.filter(w=>firstQuarter.includes(w)).length;
+    const raw = Math.min(10, 2+cnt*1.2);
+    return {raw, normalized:raw/10, evidence:`${cnt} empathy anchors in opening quarter`};
+  }},
+{id:'P55',axis:'EMOT',name:'Emotional Register Range',weight:1.2,
+  evaluate(p){
+    const registers = {
+      terror:['scream','terror','horror','panic','dread'].filter(w=>p.raw.toLowerCase().includes(w)).length,
+      grief:['grief','mourn','cry','tears','loss','miss'].filter(w=>p.raw.toLowerCase().includes(w)).length,
+      hope:['hope','believe','possible','could','maybe','will'].filter(w=>p.raw.toLowerCase().includes(w)).length,
+      rage:['anger','rage','hate','fury','explode','scream'].filter(w=>p.raw.toLowerCase().includes(w)).length,
+    };
+    const activeRegisters = Object.values(registers).filter(v=>v>0).length;
+    const raw = Math.min(10, 2+activeRegisters*2);
+    return {raw, normalized:raw/10, evidence:`${activeRegisters}/4 emotional registers present`};
+  }},
+{id:'P56',axis:'EMOT',name:'Catharsis Delivery',weight:1.3,
+  evaluate(p){
+    const catWords=['finally','release','free','over','okay','safe','done','peace','home','hold'];
+    const lastTenth = p.raw.substring(p.raw.length*0.9).toLowerCase();
+    const cnt = catWords.filter(w=>lastTenth.includes(w)).length;
+    const raw = Math.min(10, 3+cnt*1.5);
+    return {raw, normalized:raw/10, evidence:`${cnt} catharsis markers in final 10%`};
+  }},
+{id:'P57',axis:'EMOT',name:'Emotional Restraint',weight:1.1,
+  evaluate(p){
+    const overWords=['so much','too much','incredibly','devastatingly','overwhelmingly','absolute'];
+    const cnt = overWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.max(2, 10-cnt*1.5);
+    return {raw, normalized:raw/10, evidence:`${cnt} over-explanation markers detected`};
+  }},
+{id:'P58',axis:'EMOT',name:'Physical Embodiment of Emotion',weight:1.2,
+  evaluate(p){
+    const bodyWords=['hands','stomach','chest','throat','knees','breath','pulse','heart','gut','jaw'];
+    const cnt = bodyWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 2+cnt*0.6);
+    return {raw, normalized:raw/10, evidence:`${cnt} body-as-emotion markers`};
+  }},
+{id:'P59',axis:'EMOT',name:'Trauma/Grief Authenticity',weight:1.2,
+  evaluate(p){
+    const traumaWords=['intrusive','flashback','dissociat','numb','avoid','hypervigilant','react',
+      'triggered','freeze','fight','flight','cortisol','anxiety'];
+    const cnt = traumaWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 3+cnt*1.5);
+    return {raw, normalized:raw/10, evidence:`${cnt} trauma-language markers (clinical accuracy signals)`};
+  }},
+{id:'P60',axis:'EMOT',name:'Tonal Relief Presence',weight:1.0,
+  evaluate(p){
+    const reliefWords=['laugh','smile','joke','funny','ironic','absurd','ridiculous','wry','grin','humor'];
+    const cnt = reliefWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = cnt > 0 ? Math.min(10, 5+cnt*0.8) : 2;
+    return {raw, normalized:raw/10, evidence:`${cnt} tonal-relief markers (dark humor / irony / levity)`};
+  }},
+
+/* ─── AXIS 6: THEME & MESSAGE (10 params) ─── */
+{id:'P61',axis:'THEME',name:'Central Theme Clarity',weight:1.4,
+  evaluate(p){
+    const raw = Math.min(10, 2+p.themeHits*0.5);
+    return {raw, normalized:raw/10, evidence:`${p.themeHits} theme-concept words identified`};
+  }},
+{id:'P62',axis:'THEME',name:'Theme Through Action (Not Dialogue)',weight:1.4,
+  evaluate(p){
+    const actionTheme = p.action.filter(a=>
+      ['love','devotion','power','control','free','protect','surrender','chose'].some(w=>a.text.toLowerCase().includes(w))
+    ).length;
+    const raw = Math.min(10, 3+actionTheme*0.5);
+    return {raw, normalized:raw/10, evidence:`${actionTheme} action lines carry thematic weight`};
+  }},
+{id:'P63',axis:'THEME',name:'Thematic Consistency',weight:1.2,
+  evaluate(p){
+    const raw = Math.min(10, 3+p.themeHits*0.4+(p.sceneCount>5?1:0));
+    return {raw, normalized:raw/10, evidence:`${p.themeHits} thematic anchors across ${p.sceneCount} scenes`};
+  }},
+{id:'P64',axis:'THEME',name:'Thematic Complexity (Multiple Positions)',weight:1.2,
+  evaluate(p){
+    const contrastWords=['however','but','yet','despite','on the other','both','either','neither'];
+    const cnt = contrastWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 3+cnt*0.5);
+    return {raw, normalized:raw/10, evidence:`${cnt} dialectical/contrast language markers`};
+  }},
+{id:'P65',axis:'THEME',name:'Subtheme Layering',weight:1.0,
+  evaluate(p){
+    const themes = ['power','love','identity','loss','betrayal','survival','truth','justice','belonging'];
+    const found  = themes.filter(t=>p.raw.toLowerCase().includes(t));
+    const raw    = Math.min(10, 2+found.length*1);
+    return {raw, normalized:raw/10, evidence:`${found.length} distinct subthemes: ${found.join(', ')}`};
+  }},
+{id:'P66',axis:'THEME',name:'Metaphor Integration',weight:1.1,
+  evaluate(p){
+    const metaWords=['like a','as if','as though','resembles','mirrors','echoes','reflects'];
+    const cnt = metaWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 3+cnt*0.8);
+    return {raw, normalized:raw/10, evidence:`${cnt} extended metaphor/simile language instances`};
+  }},
+{id:'P67',axis:'THEME',name:'Social/Cultural Resonance',weight:1.1,
+  evaluate(p){
+    const socWords=['society','system','government','institution','family','community','culture',
+      'hospital','police','media','corporation','religion','race','class','gender'];
+    const cnt = socWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 3+cnt*0.9);
+    return {raw, normalized:raw/10, evidence:`${cnt} societal/institutional reference markers`};
+  }},
+{id:'P68',axis:'THEME',name:'Moral Ambiguity',weight:1.2,
+  evaluate(p){
+    const ambigWords=['maybe','perhaps','not sure','didn\'t know','wrong','right','deserved','fault',
+      'complicated','complex','not that simple'];
+    const cnt = ambigWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 3+cnt*0.6);
+    return {raw, normalized:raw/10, evidence:`${cnt} moral-ambiguity markers`};
+  }},
+{id:'P69',axis:'THEME',name:'Thematic Payoff at Ending',weight:1.4,
+  evaluate(p){
+    const endText  = p.raw.substring(p.raw.length*0.85).toLowerCase();
+    const themeEnd = ['love','truth','power','freedom','devotion','survive','choice','meaning'].filter(w=>endText.includes(w)).length;
+    const raw = Math.min(10, 3+themeEnd*1.5);
+    return {raw, normalized:raw/10, evidence:`${themeEnd} theme words in final 15%`};
+  }},
+{id:'P70',axis:'THEME',name:'Universality',weight:1.1,
+  evaluate(p){
+    const univWords=['everyone','we all','human','people','world','life','death','love','fear','hope'];
+    const cnt = univWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 3+cnt*0.7);
+    return {raw, normalized:raw/10, evidence:`${cnt} universalizing language markers`};
+  }},
+
+/* ─── AXIS 7: COMMERCIAL/FORMAT (10 params, contribute to overall) ─── */
+{id:'P71',axis:'COMM',name:'Format Adherence',weight:1.0,
+  evaluate(p){
+    const hasHeadings = p.sceneCount>0;
+    const hasChars    = p.charCount>0;
+    const raw = (hasHeadings?5:0)+(hasChars?3:0)+(p.transitionCount>0?2:0);
+    return {raw, normalized:raw/10, evidence:`${p.sceneCount} scene headings, ${p.charCount} chars, ${p.transitionCount} transitions`};
+  }},
+{id:'P72',axis:'COMM',name:'Page Count Appropriateness',weight:1.0,
+  evaluate(p){
+    const ranges = {FEATURE:[85,115],TV60:[42,58],TV30:[20,35],SHORT:[1,15],PILOT:[45,65]};
+    const [lo,hi] = ranges[p.fmt] || [85,115];
+    const raw = p.pageEst>=lo && p.pageEst<=hi ? 9 : p.pageEst<lo*0.7||p.pageEst>hi*1.4 ? 3 : 6;
+    return {raw, normalized:raw/10, evidence:`Est. ${p.pageEst} pages (target ${lo}–${hi} for ${p.fmt})`};
+  }},
+{id:'P73',axis:'COMM',name:'Genre Market Viability',weight:1.0,
+  evaluate(p){
+    return {raw:7, normalized:.7, evidence:'Market viability requires genre classification — baseline assigned'};
+  }},
+{id:'P74',axis:'COMM',name:'Comparable Title Proximity',weight:0.8,
+  evaluate(p){
+    return {raw:7, normalized:.7, evidence:'Comparable proximity requires title identification — baseline assigned'};
+  }},
+{id:'P75',axis:'COMM',name:'Series/Pilot Hook Strength',weight:1.3,
+  evaluate(p){
+    const hookText = p.raw.substring(p.raw.length*0.85).toLowerCase();
+    const hookWords=['next','what happens','to be continued','series','season','will she','will he',
+      'what they','when she','now that'];
+    const cnt = hookWords.filter(w=>hookText.includes(w)).length;
+    const raw = Math.min(10, 3+cnt*1.5);
+    return {raw, normalized:raw/10, evidence:`${cnt} serialization hook markers in final act`};
+  }},
+{id:'P76',axis:'COMM',name:'Anthology/Universe Scalability',weight:1.0,
+  evaluate(p){
+    const worldWords=['world','universe','others','everyone','beyond','more','history','mythology','lore'];
+    const cnt = worldWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 3+cnt*0.6);
+    return {raw, normalized:raw/10, evidence:`${cnt} world-expansion language markers`};
+  }},
+{id:'P77',axis:'COMM',name:'Budget Tier Legibility',weight:0.8,
+  evaluate(p){
+    const bigBudget=['explosion','army','spaceship','thousands','crowd','stadium','CGI','VFX'];
+    const lowBudget=['room','house','car','phone','night','day','two people','alone','office'];
+    const big = bigBudget.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const lo  = lowBudget.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = lo>big ? 8 : big>lo ? 5 : 6;
+    return {raw, normalized:raw/10, evidence:`Budget signals: ${big} high-cost, ${lo} low-cost elements`};
+  }},
+{id:'P78',axis:'COMM',name:'Logline Marketability',weight:1.2,
+  evaluate(p){
+    const protag = p.protagonistName;
+    const hasProtag  = protag.length > 2;
+    const hasConflict= p.raw.toLowerCase().includes('must') || p.raw.toLowerCase().includes('has to') || p.raw.toLowerCase().includes('forced');
+    const hasStake   = p.raw.toLowerCase().includes('lose') || p.raw.toLowerCase().includes('save') || p.raw.toLowerCase().includes('survive');
+    const raw = (hasProtag?3:0)+(hasConflict?4:0)+(hasStake?3:0);
+    return {raw, normalized:raw/10, evidence:`Protagonist: ✓ Conflict: ${hasConflict} Stakes: ${hasStake}`};
+  }},
+{id:'P79',axis:'COMM',name:'Cold Open Effectiveness',weight:1.1,
+  evaluate(p){
+    const openText   = p.raw.substring(0, Math.min(p.raw.length, 1200)).toLowerCase();
+    const openHooks  = ['suddenly','darkness','silence','opens on','cold','in media','we find','the camera'].filter(w=>openText.includes(w)).length;
+    const raw = Math.min(10, 3+openHooks*1.5);
+    return {raw, normalized:raw/10, evidence:`${openHooks} cold-open engagement hooks in opening pages`};
+  }},
+{id:'P80',axis:'COMM',name:'Final Image Power',weight:1.3,
+  evaluate(p){
+    const finalText = p.raw.substring(p.raw.length*0.93).toLowerCase();
+    const finalCnt  = ['silence','cut to black','fade out','alone','together','stands','walks',
+      'looks','smiles','tears','holds'].filter(w=>finalText.includes(w)).length;
+    const raw = Math.min(10, 3+finalCnt*1.5);
+    return {raw, normalized:raw/10, evidence:`${finalCnt} resonant final-image markers`};
+  }},
+
+/* ─── ADDITIONAL CRAFT PARAMETERS (20 params) ─── */
+{id:'P81',axis:'CRAFT',name:'Scene Heading Consistency',weight:0.8,
+  evaluate(p){
+    const raw = p.sceneCount > 2 ? 8 : p.sceneCount > 0 ? 5 : 2;
+    return {raw, normalized:raw/10, evidence:`${p.sceneCount} properly formatted scene headings`};
+  }},
+{id:'P82',axis:'CRAFT',name:'Action Line Economy',weight:1.0,
+  evaluate(p){
+    const long = p.action.filter(a=>a.text.split(/\s+/).length>30).length;
+    const raw = Math.max(2, 10-long*0.5);
+    return {raw, normalized:raw/10, evidence:`${long} action lines exceed 30 words`};
+  }},
+{id:'P83',axis:'CRAFT',name:'White Space Ratio',weight:0.9,
+  evaluate(p){
+    const ratio = p.dialogueRatio;
+    const raw   = ratio > 0.25 && ratio < 0.6 ? 9 : ratio < 0.15 ? 4 : 7;
+    return {raw, normalized:raw/10, evidence:`Dialogue density: ${Math.round(ratio*100)}% of non-blank lines`};
+  }},
+{id:'P84',axis:'CRAFT',name:'Parenthetical Restraint',weight:0.8,
+  evaluate(p){
+    const raw = p.parentheticalRatio < 0.15 ? 9 : p.parentheticalRatio < 0.3 ? 7 : 4;
+    return {raw, normalized:raw/10, evidence:`Parentheticals: ${Math.round(p.parentheticalRatio*100)}% of dialogue lines`};
+  }},
+{id:'P85',axis:'CRAFT',name:'Transition Economy',weight:0.7,
+  evaluate(p){
+    const raw = p.transitionCount === 0 ? 5 : Math.min(10, 5+p.transitionCount);
+    return {raw, normalized:raw/10, evidence:`${p.transitionCount} explicit transitions used`};
+  }},
+{id:'P86',axis:'CRAFT',name:'Active Voice in Action Lines',weight:0.9,
+  evaluate(p){
+    const passive = p.action.filter(a=>/\b(is|are|was|were|being|been)\b.{1,15}\b(ed|en)\b/i.test(a.text)).length;
+    const raw = Math.max(2, 10-passive*0.5);
+    return {raw, normalized:raw/10, evidence:`${passive} potentially passive-voice action lines`};
+  }},
+{id:'P87',axis:'CRAFT',name:'Opening Pages Engagement',weight:1.1,
+  evaluate(p){
+    const firstPage = p.raw.substring(0, 1100).toLowerCase();
+    const engageWords=['suddenly','dark','silence','black','opens','reveal','cut to','ext.','int.'];
+    const cnt = engageWords.filter(w=>firstPage.includes(w)).length;
+    const raw = Math.min(10, 3+cnt*1);
+    return {raw, normalized:raw/10, evidence:`${cnt} opening engagement hooks on page 1`};
+  }},
+{id:'P88',axis:'CRAFT',name:'Final Line/Image Crystallization',weight:1.2,
+  evaluate(p){
+    const lastLines = p.raw.split('\n').filter(l=>l.trim()).slice(-6).join(' ').toLowerCase();
+    const crystallize=['black','silence','alone','together','smiles','holds','walks','stands','end'];
+    const cnt = crystallize.filter(w=>lastLines.includes(w)).length;
+    const raw = Math.min(10, 3+cnt*1.5);
+    return {raw, normalized:raw/10, evidence:`${cnt} crystallizing markers in final lines`};
+  }},
+{id:'P89',axis:'CRAFT',name:'Scene Count Appropriateness',weight:0.8,
+  evaluate(p){
+    const ranges = {FEATURE:[30,80],TV60:[15,40],TV30:[8,22],SHORT:[2,12],PILOT:[15,40]};
+    const [lo,hi] = ranges[p.fmt]||[30,80];
+    const raw = p.sceneCount>=lo && p.sceneCount<=hi ? 9 : p.sceneCount<lo*0.5||p.sceneCount>hi*1.5 ? 3 : 6;
+    return {raw, normalized:raw/10, evidence:`${p.sceneCount} scenes (target ${lo}–${hi} for ${p.fmt})`};
+  }},
+{id:'P90',axis:'CRAFT',name:'INT/EXT Ratio',weight:0.7,
+  evaluate(p){
+    const total = p.intScenes+p.extScenes;
+    const ratio = total>0 ? p.intScenes/total : 0.5;
+    const raw   = ratio>0.3 && ratio<0.85 ? 8 : 5;
+    return {raw, normalized:raw/10, evidence:`INT:EXT ratio ${p.intScenes}:${p.extScenes}`};
+  }},
+{id:'P91',axis:'CRAFT',name:'Protagonist Change Measurability',weight:1.2,
+  evaluate(p){
+    const open  = p.raw.substring(0,p.raw.length*0.15).toLowerCase();
+    const close = p.raw.substring(p.raw.length*0.85).toLowerCase();
+    const openEmot  = ['afraid','alone','lost','confused','desperate','searching'].filter(w=>open.includes(w)).length;
+    const closeEmot = ['decided','chose','determined','clear','calm','strong','knows'].filter(w=>close.includes(w)).length;
+    const raw = Math.min(10, 3+openEmot*0.8+closeEmot*1);
+    return {raw, normalized:raw/10, evidence:`Open-state markers: ${openEmot}, close-state markers: ${closeEmot}`};
+  }},
+{id:'P92',axis:'CRAFT',name:'Antagonist as Mirror',weight:1.0,
+  evaluate(p){
+    const mirrorWords=['like you','just like','same','not so different','both','either of us'];
+    const cnt = mirrorWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.min(10, 3+cnt*1.5);
+    return {raw, normalized:raw/10, evidence:`${cnt} protagonist-antagonist mirror language instances`};
+  }},
+{id:'P93',axis:'CRAFT',name:'No Redundant Scenes',weight:1.0,
+  evaluate(p){
+    const raw = Math.max(3, 10-p.deadZones*1.5);
+    return {raw, normalized:raw/10, evidence:`${p.deadZones} low-function scene stretches detected`};
+  }},
+{id:'P94',axis:'CRAFT',name:'Dialogue-Action Flow Rhythm',weight:1.0,
+  evaluate(p){
+    const raw = p.dialogueRatio>0.2 && p.dialogueRatio<0.6 ? 8 : 5;
+    return {raw, normalized:raw/10, evidence:`Flow ratio: ${Math.round(p.dialogueRatio*100)}% dialogue`};
+  }},
+{id:'P95',axis:'CRAFT',name:'Cadence Variation',weight:0.9,
+  evaluate(p){
+    const raw = Math.min(10, 3+p.dlgStdev*0.4);
+    return {raw, normalized:raw/10, evidence:`Dialogue length std dev: ${p.dlgStdev.toFixed(1)} words`};
+  }},
+{id:'P96',axis:'CRAFT',name:'Vocabulary Differentiation',weight:1.0,
+  evaluate(p){
+    const vocabs = Object.entries(p.charVocab).slice(0,3);
+    if(vocabs.length<2) return {raw:5, normalized:.5, evidence:'Insufficient characters'};
+    const spread = Math.max(...vocabs.map(v=>v[1]))-Math.min(...vocabs.map(v=>v[1]));
+    const raw = Math.min(10, 3+spread*0.03);
+    return {raw, normalized:raw/10, evidence:`Top-3 vocab spread: ${spread} unique words`};
+  }},
+{id:'P97',axis:'CRAFT',name:'Cultural Sensitivity',weight:1.0,
+  evaluate(p){
+    const flagWords=['exotic','savage','primitive','crazy','insane','hysterical','colored','foreign'];
+    const cnt = flagWords.filter(w=>p.raw.toLowerCase().includes(w)).length;
+    const raw = Math.max(2, 10-cnt*2);
+    return {raw, normalized:raw/10, evidence:`${cnt} potentially insensitive language flags`};
+  }},
+{id:'P98',axis:'CRAFT',name:'Stakes Escalation Per Act',weight:1.2,
+  evaluate(p){
+    const acts = [p.actOneDensity,p.actTwoDensity,p.actThreeDensity];
+    const escalates = acts[2]>=acts[1] || acts[1]>=acts[0];
+    const raw = escalates ? 8 : 5;
+    return {raw, normalized:raw/10, evidence:`Act densities: ${acts.map(a=>a.toFixed(1)).join(' → ')}`};
+  }},
+{id:'P99',axis:'CRAFT',name:'Thematic Unity Score',weight:1.1,
+  evaluate(p){
+    const raw = Math.min(10, 2+p.themeHits*0.4+(p.sensoryHits>3?1:0)+(p.nonLinear?1:0));
+    return {raw, normalized:raw/10, evidence:`Unified theme score from ${p.themeHits} concept + ${p.sensoryHits} sensory markers`};
+  }},
+{id:'P100',axis:'CRAFT',name:'Composite Originality Index',weight:1.3,
+  evaluate(p){
+    const raw = Math.min(10, (p.themeHits+p.sensoryHits)*0.25+(p.sceneCount>3?1:0)+(p.nonLinear?1:0)+(p.charCount>3?1:0)+3);
+    return {raw, normalized:raw/10, evidence:'Composite: theme + sensory + structure + character range'};
+  }},
+];
+
+// ══════════════════════════════════════════════════════════════
+// SECTION 3 — SCORING ENGINE
+// Aggregates 100 parameter results into 7 axis scores
+// ══════════════════════════════════════════════════════════════
+const AXIS_CONFIG = {
+  CHAR: {label:'Character Dev.',  color:'var(--acc2)', cls:'ch', maxParams:14},
+  PLOT: {label:'Plot Construction',color:'var(--acc4)', cls:'pl', maxParams:14},
+  DIAL: {label:'Dialogue',         color:'var(--acc5)', cls:'dl', maxParams:12},
+  ORIG: {label:'Originality',      color:'var(--acc)',  cls:'or', maxParams:10},
+  EMOT: {label:'Emotional Engage.',color:'var(--acc3)', cls:'em', maxParams:10},
+  THEME:{label:'Theme & Message',  color:'var(--acc7)', cls:'th', maxParams:10},
+  COMM: {label:'Commercial',       color:'#888',        cls:'cm', maxParams:10},
+  CRAFT:{label:'Craft',            color:'#888',        cls:'cf', maxParams:20},
+};
+
+function computeAxisScores(parsed) {
+  const axisScores = {};
+  const axisResults = {};
+  const allResults = {};
+
+  for(const key of Object.keys(AXIS_CONFIG)) {
+    axisScores[key]  = { total:0, weight:0, params:[] };
+    axisResults[key] = [];
+  }
+
+  for(const param of PARAMETERS) {
+    try {
+      const result = param.evaluate(parsed);
+      result.id   = param.id;
+      result.name = param.name;
+      result.axis = param.axis;
+      allResults[param.id] = result;
+      if(axisScores[param.axis]) {
+        axisScores[param.axis].total  += result.normalized * param.weight;
+        axisScores[param.axis].weight += param.weight;
+        axisResults[param.axis].push({...result, weight:param.weight});
+      }
+    } catch(e) {
+      allResults[param.id] = {raw:5, normalized:.5, evidence:'Error in parameter', id:param.id, name:param.name, axis:param.axis};
+    }
+  }
+
+  const finalScores = {};
+  for(const key of Object.keys(axisScores)) {
+    const ax = axisScores[key];
+    finalScores[key] = ax.weight > 0 ? Math.min(10, (ax.total / ax.weight) * 10) : 5;
+  }
+
+  // Main 6 axes (CHAR, PLOT, DIAL, ORIG, EMOT, THEME)
+  const mainAxes = ['CHAR','PLOT','DIAL','ORIG','EMOT','THEME'];
+  const overall  = mainAxes.reduce((a,k) => a + finalScores[k], 0) / mainAxes.length;
+  finalScores['OVERALL'] = Math.min(10, overall);
+
+  return { finalScores, axisResults, allResults };
+}
+
+// ══════════════════════════════════════════════════════════════
+// SECTION 4 — PROSE GENERATOR
+// Converts scores + evidence → balanced, insightful coverage text
+// Modeled on Carrion Creek coverage voice and structure
+// ══════════════════════════════════════════════════════════════
+const PROSE = {
+  _protag: p => p.protagonistName.charAt(0)+p.protagonistName.slice(1).toLowerCase(),
+  _score:  s => s.toFixed(1),
+  _tier:   s => s>=8.5?'exceptional':s>=7.5?'confident':s>=6.5?'competent':s>=5.5?'developing':'underdeveloped',
+  _charCount: p => p.charCount,
+
+  charDev(p, scores, results) {
+    const s    = scores.CHAR;
+    const prot = this._protag(p);
+    const n    = p.charList.length;
+    const arcR = results.CHAR.find(r=>r.id==='P01');
+    const agcR = results.CHAR.find(r=>r.id==='P02');
+    const supR = results.CHAR.find(r=>r.id==='P04');
+    const voiR = results.CHAR.find(r=>r.id==='P06');
+
+    let out = `<strong>${prot}</strong> `;
+    if(s>=8) out += `is the clear focal point and emerges as a fully realized protagonist — someone whose interior life shapes the external action rather than merely reacting to it.`;
+    else if(s>=7) out += `is the clear focal point and emerges as a compelling protagonist whose arc is sufficiently delineated to carry the narrative's weight.`;
+    else if(s>=6) out += `is established as the focal point, though the arc lacks the clarity and completion that would make the protagonist feel fully inhabited.`;
+    else out += `has potential as a protagonist, but the characterization is inconsistent or underdeveloped across the script's runtime.`;
+
+    if(agcR && agcR.normalized > 0.7) out += ` The script trusts its protagonist with genuine agency — the climactic decisions emerge from character rather than coincidence.`;
+    if(supR && supR.normalized < 0.55) {
+      const secNames = p.charList.slice(1,3).map(c=>c[0].charAt(0)+c[0].slice(1).toLowerCase());
+      out += ` However, ${secNames.join(' and ')} remain${secNames.length>1?'':'s'} somewhat underdeveloped — ${secNames.length>1?'they exist':'existing'} primarily as functional story mechanisms rather than fully inhabiting their own psychology. For a series, the supporting cast needs more texture to sustain the weight placed on them.`;
+    } else if(supR && supR.normalized >= 0.7) {
+      out += ` The supporting cast carries genuine weight of their own — a meaningful signal that the world extends past the protagonist's immediate perspective.`;
+    }
+
+    if(voiR && voiR.normalized < 0.55) out += ` The script's most consistent craft limitation is the blurring of individual voice — characters at times feel interchangeable in their speech patterns, which diminishes the relational texture the story needs.`;
+
+    return out;
+  },
+
+  plotConst(p, scores, results) {
+    const s    = scores.PLOT;
+    const nlR  = results.PLOT.find(r=>r.id==='P16');
+    const twR  = results.PLOT.find(r=>r.id==='P17');
+    const pdR  = results.PLOT.find(r=>r.id==='P18');
+    const expR = results.PLOT.find(r=>r.id==='P28');
+
+    let out = '';
+    if(s >= 8) out += `The plot is constructed with structural confidence — reveals are earned rather than delivered, and the script demonstrates a clear understanding of what information to withhold and when.`;
+    else if(s >= 7) out += `The plot construction is ${this._tier(s)} — the non-linear architecture ${nlR&&nlR.normalized>0.6?'creates genuine momentum':' is present but could be better anchored for a first-viewing audience'}, and the major reveals land with appropriate weight.`;
+    else if(s >= 6) out += `The plot mechanics are functional, but the script struggles with information architecture — reveals occasionally arrive without adequate setup, and the dramatic logic has soft spots that attentive readers will notice.`;
+    else out += `The plot has significant structural challenges — the sequence of events doesn't yet feel inevitable, and the causal chain connecting character decisions to story outcomes needs reinforcement.`;
+
+    if(pdR && pdR.normalized < 0.6) out += ` Pacing is the script's most pressing structural concern: extended action-only stretches stall the narrative momentum and dilute the tension.`;
+    else if(pdR && pdR.normalized >= 0.8) out += ` The pacing is notably controlled — the script moves between registers and set pieces without the dead zones that plague many first drafts.`;
+
+    if(expR && expR.normalized < 0.55) out += ` The exposition handling requires attention: information is currently front-loaded in dialogue rather than distributed through action and deduction, which flattens the drama at its most critical moments.`;
+    else if(expR && expR.normalized >= 0.75) out += ` The distribution of exposition is one of the script's strengths — information is parceled through physical objects and character deduction rather than delivered in monologue.`;
+
+    return out;
+  },
+
+  dialogue(p, scores, results) {
+    const s    = scores.DIAL;
+    const subR = results.DIAL.find(r=>r.id==='P30');
+    const memR = results.DIAL.find(r=>r.id==='P35');
+    const clxR = results.DIAL.find(r=>r.id==='P40');
+    const expR = results.DIAL.find(r=>r.id==='P31');
+    const prot = this._protag(p);
+
+    let out = '';
+    if(s >= 8) out += `The dialogue is a genuine craft asset — compressed, differentiated, and capable of carrying both emotional weight and thematic payload simultaneously.`;
+    else if(s >= 7) out += `The dialogue is ${this._tier(s)} overall. The tonal contrast between characters creates friction and forward movement, and the script's strongest exchanges carry genuine conviction.`;
+    else if(s >= 6) out += `The dialogue is serviceable but uneven — the best lines are genuinely strong, but too many exchanges function primarily as information-delivery systems rather than character revelation.`;
+    else out += `The dialogue is the script's primary craft limitation. Characters speak in largely interchangeable registers, and the lines rarely surprise or reveal anything beyond their functional content.`;
+
+    if(subR && subR.normalized >= 0.7) out += ` The subtext-to-text ratio is notably strong — the script trusts its audience to read implication.`;
+    if(clxR && clxR.normalized >= 0.75) out += ` The climactic exchange is where the dialogue most fully realizes the script's thematic architecture: ${prot}'s final lines carry the weight of everything that preceded them.`;
+    if(expR && expR.normalized < 0.55) out += ` However, several mid-script exchanges remain mechanically functional — serving plot logistics rather than revealing character. These passages feel less inhabited than the script's best moments and represent the clearest path to improvement.`;
+    if(memR && memR.normalized < 0.5) out += ` The script currently lacks a single line that lodges memorably — the kind of formulation that crystallizes the story's emotional or thematic truth. One such line would dramatically elevate the coverage impression.`;
+
+    return out;
+  },
+
+  originality(p, scores, results) {
+    const s    = scores.ORIG;
+    const subvR= results.ORIG.find(r=>r.id==='P42');
+    const visR = results.ORIG.find(r=>r.id==='P43');
+    const culR = results.ORIG.find(r=>r.id==='P48');
+
+    let out = '';
+    if(s >= 8) out += `The conceptual foundation is the script's greatest strength — the premise isn't simply a familiar genre vehicle with new details but a genuinely distinctive proposition that reframes its genre mechanics to explore something emotionally authentic.`;
+    else if(s >= 7) out += `The script demonstrates genuine originality in its central conceit and visual identity. The concept is sufficiently specific to feel fresh, though the execution doesn't always match the ambition of the premise.`;
+    else if(s >= 6) out += `The script shows flashes of originality, but the central premise leans on familiar genre architecture without yet finding the specific inversion or reframing that would set it apart.`;
+    else out += `The originality is the script's primary challenge — the premise occupies familiar genre territory without a clear differentiating proposition that would make it distinctive in a competitive market.`;
+
+    if(visR && visR.normalized >= 0.7) out += ` The sonic and visual signature is a particular asset — the script has a distinctive aesthetic identity that a reader would recognize across different settings and scenes.`;
+    if(subvR && subvR.normalized >= 0.7) out += ` The genre subversion is deft: the script uses the mechanics of [the genre] not to deliver familiar pleasures but to interrogate something the genre rarely touches.`;
+    if(culR && culR.normalized >= 0.7) out += ` The script is in active conversation with contemporary cultural experience — it locates its genre premise in psychological and social territory that gives the story relevance beyond its entertainment value.`;
+
+    return out;
+  },
+
+  emotional(p, scores, results) {
+    const s    = scores.EMOT;
+    const sensR= results.EMOT.find(r=>r.id==='P52');
+    const relR = results.EMOT.find(r=>r.id==='P60');
+    const embR = results.EMOT.find(r=>r.id==='P58');
+    const stalR= results.EMOT.find(r=>r.id==='P51');
+
+    let out = '';
+    if(s >= 8) out += `The script is viscerally effective in ways that are difficult to engineer and easier to feel — it earns its most disturbing moments rather than deploying shock as a shortcut.`;
+    else if(s >= 7) out += `The script generates genuine emotional engagement. The stakes are legible, the sensory grounding is present, and the reader is given a reason to invest in the outcome before the pressure begins.`;
+    else if(s >= 6) out += `The emotional engagement is intermittent — the script has moments of real impact, but the connective tissue between these peaks needs strengthening to sustain cumulative effect.`;
+    else out += `The emotional engagement is the script's most significant development area. The reader has difficulty locating an anchor — a sensory, relational, or psychological foothold that makes the stakes feel personal.`;
+
+    if(sensR && sensR.normalized >= 0.7) out += ` The sensory specificity is a craft highlight — the script inhabits the physical world of its story rather than describing it from a distance, which is where the genuine dread originates.`;
+    if(embR && embR.normalized >= 0.7) out += ` Emotional states are externalized through the body — a choice that keeps the script's interiority legible without resorting to on-the-nose dialogue.`;
+    if(relR && relR.normalized < 0.45) out += ` The tonal register is currently unrelieved — the script operates in a single emotional key, which creates fatigue and paradoxically diminishes the impact of its most extreme moments. One beat of contrast would make the surrounding darkness land harder.`;
+    if(stalR && stalR.normalized >= 0.75) out += ` The stakes are established with precision — the reader understands exactly what the protagonist stands to lose and why that loss would be irreversible.`;
+
+    return out;
+  },
+
+  theme(p, scores, results) {
+    const s    = scores.THEME;
+    const actR = results.THEME.find(r=>r.id==='P62');
+    const payR = results.THEME.find(r=>r.id==='P69');
+    const ambR = results.THEME.find(r=>r.id==='P68');
+    const subR = results.THEME.find(r=>r.id==='P65');
+
+    let out = '';
+    if(s >= 8.5) out += `The thematic architecture is the script's greatest achievement — it constructs its conceptual proposition through action and image rather than statement, and the central argument lands with the force of something demonstrated rather than argued.`;
+    else if(s >= 7.5) out += `The thematic architecture is ${this._tier(s)}. The script knows what it is about and that clarity gives the story direction and resonance beyond its genre mechanics.`;
+    else if(s >= 6.5) out += `The thematic material is present and occasionally powerful, but the script hasn't yet found the structural mechanism to deliver it consistently — theme surfaces in peaks rather than sustaining across the full architecture.`;
+    else out += `The thematic foundation needs strengthening. The script's narrative events don't yet cohere around a single, legible argument, which diffuses the story's cumulative impact.`;
+
+    if(actR && actR.normalized >= 0.75) out += ` Theme is primarily delivered through character action rather than expository dialogue — the script's most sophisticated craft choice, and the one most responsible for its emotional force.`;
+    if(ambR && ambR.normalized >= 0.7)  out += ` The moral ambiguity is handled with confidence — the script resists the pull toward easy resolution and trusts its audience to sit with genuine complexity.`;
+    if(payR && payR.normalized >= 0.7)  out += ` The thematic payoff at the ending is the script's strongest single passage — the story's central argument is crystallized without being stated.`;
+    if(subR && subR.normalized >= 0.7)  out += ` The layering of subthemes enriches rather than dilutes the central proposition — each secondary thread creates additional resonance rather than competing with the primary argument.`;
+
+    return out;
+  },
+
+  overall(p, scores) {
+    const s    = scores.OVERALL;
+    const prot = this._protag(p);
+    const strongAxes = Object.entries(scores)
+      .filter(([k])=>k!=='OVERALL'&&['CHAR','PLOT','DIAL','ORIG','EMOT','THEME'].includes(k))
+      .sort((a,b)=>b[1]-a[1]).slice(0,2).map(([k])=>AXIS_CONFIG[k]?.label||k);
+    const weakAxes   = Object.entries(scores)
+      .filter(([k])=>k!=='OVERALL'&&['CHAR','PLOT','DIAL','ORIG','EMOT','THEME'].includes(k))
+      .sort((a,b)=>a[1]-b[1]).slice(0,1).map(([k])=>AXIS_CONFIG[k]?.label||k);
+
+    let out = '';
+    if(s >= 8) out += `This is a <strong>confident, fully realized</strong> work that demonstrates command of the form alongside a distinctive authorial intelligence. `;
+    else if(s >= 7) out += `This is a <strong>${this._tier(s)}, thematically grounded</strong> script that demonstrates genuine craft and a clear sense of what story it wants to tell. `;
+    else if(s >= 6) out += `This is a <strong>developing work</strong> with identifiable strengths and clear development priorities — the foundation is sound, but the execution needs strengthening before it's competition-ready. `;
+    else out += `This script is in an <strong>early development phase</strong> — the premise has potential, but the craft elements need significant reinforcement before the material can be assessed on equal footing with produced material. `;
+
+    out += `Its strongest assets are <strong>${strongAxes.join(' and ')}</strong>`;
+    out += ` — the areas holding it back are${weakAxes.length?' primarily in ':' limited to '}<strong>${weakAxes.join(' and ')}</strong>. `;
+    out += s >= 7 ? `The path forward is clear, and the script has demonstrably earned its strongest moments through craft rather than coincidence.` :
+                   `The path forward requires structural and craft investment, but the core proposition is viable.`;
+
+    return out;
+  },
+
+  strengths(p, scores, results) {
+    const items = [];
+    const all   = Object.values(results).flat();
+
+    // Collect top-scoring params with real evidence
+    const top = all.sort((a,b)=>b.normalized-a.normalized).slice(0,7);
+    for(const r of top) {
+      if(r.normalized >= 0.72) {
+        const label = PARAMETERS.find(x=>x.id===r.id)?.name || r.id;
+        items.push(`<strong>${label}:</strong> ${r.evidence} — demonstrates a level of craft that distinguishes this material.`);
+      }
+    }
+
+    // Axis-level strength commentary
+    if(scores.ORIG >= 8) items.unshift(`<strong>Conceptual Foundation:</strong> The central premise is genuinely distinctive — it reframes genre expectations through an emotionally specific lens that most genre material avoids entirely.`);
+    if(scores.EMOT >= 8) items.unshift(`<strong>Emotional Architecture:</strong> The script generates visceral engagement through accumulation rather than shock, which is the harder and more durable achievement.`);
+    if(scores.THEME >= 8) items.unshift(`<strong>Thematic Architecture:</strong> The script knows what it's about, and that clarity of purpose shapes every major scene.`);
+
+    return items.slice(0,5);
+  },
+
+  vulnerabilities(p, scores, results) {
+    const items = [];
+    const all   = Object.values(results).flat();
+    const weak  = all.sort((a,b)=>a.normalized-b.normalized).slice(0,8);
+
+    for(const r of weak) {
+      if(r.normalized <= 0.6) {
+        const label = PARAMETERS.find(x=>x.id===r.id)?.name || r.id;
+        items.push(`<strong>${label}:</strong> ${r.evidence} — this represents the clearest opportunity for revision impact.`);
+      }
+    }
+
+    if(scores.CHAR < 6.5) items.unshift(`<strong>Supporting Cast Depth:</strong> The secondary characters currently function as plot mechanisms rather than independent agents. For a series, this is the single most consequential gap to close.`);
+    if(scores.DIAL < 6.5) items.unshift(`<strong>Dialogue Range:</strong> Mid-script exchanges frequently prioritize information transfer over character revelation — the gap between the script's best and weakest dialogue is wider than it should be at this stage.`);
+    if(scores.PLOT < 6.5) items.unshift(`<strong>Structural Clarity:</strong> The plot mechanics need reinforcement at the transitional moments — the connections between cause and effect are occasionally impressionistic where they need to be concrete.`);
+
+    return items.slice(0,5);
+  },
+
+  suggestions(p, scores, results) {
+    const items = [];
+    const weak  = Object.entries(scores)
+      .filter(([k])=>['CHAR','PLOT','DIAL','ORIG','EMOT','THEME'].includes(k))
+      .sort((a,b)=>a[1]-b[1]).slice(0,3);
+
+    const suggMap = {
+      CHAR:`Consider giving the ${p.charList.length>1?'secondary characters':'supporting cast'} at least one moment of psychological specificity that exists outside their plot function — a single detail that reveals who they were before the story began would compound the protagonist's situation considerably.`,
+      PLOT:`The most productive single structural revision would be to review every scene in the second act and ask: what does this scene do that no adjacent scene already does? Eliminating or merging any scene that can't answer that question will tighten the architecture significantly.`,
+      DIAL:`Locate the five lines in the script that matter most — the ones that exist at the intersection of character, theme, and story — and invest additional craft in each. A memorable line is not a lucky accident; it is the result of treating the right moment as a set piece.`,
+      ORIG:`The script's most distinctive elements are currently in the concept — the execution should be pushed to match the ambition of the premise. Specifically: identify the one thing only THIS story could do, and make sure it happens.`,
+      EMOT:`Introduce at least one moment of tonal contrast — a beat of dark humor, irony, or absurdist recognition that relieves the emotional pressure before it resumes. The surrounding intensity will land harder for the brief release.`,
+      THEME:`The central thematic argument is present but would benefit from one additional moment of genuine moral complexity — a beat where the audience isn't sure whether what they're watching is right or wrong, and the script doesn't tell them.`,
+    };
+
+    for(const [key] of weak) {
+      if(suggMap[key]) items.push(suggMap[key]);
+    }
+
+    return items;
+  },
+
+  marketDiagnostic(p, scores, fmt) {
+    const s = scores.OVERALL;
+    let out = '';
+    const tier = s >= 8 ? 'strong competitive tier' : s >= 7 ? 'market-ready tier' : s >= 6 ? 'development tier' : 'early development';
+    out += `At ${s.toFixed(1)}/10, this script sits in the <strong>${tier}</strong> for ${fmt} material. `;
+
+    if(s >= 7.5) out += `It demonstrates the combination of commercial intelligence and authorial distinctiveness that makes material memorable in a competitive evaluation context. `;
+    else if(s >= 6.5) out += `The conceptual proposition is marketable, and the execution is close enough to competition-ready that targeted revision could close the remaining gap quickly. `;
+    else out += `The material is not yet competition-ready, but the foundational work suggests a viable project with appropriate development investment. `;
+
+    const commScore = scores.COMM||5;
+    if(commScore >= 7) out += `The commercial viability signals are present: the format is appropriate, the genre has demonstrable market appetite, and the hook is articulable in a single sentence.`;
+    else out += `The commercial packaging needs attention — specifically, the marketable hook should be clarified so that the script's genuine originality is immediately legible in a pitch context.`;
+
+    return out;
+  }
+};
+
+// ══════════════════════════════════════════════════════════════
+// SECTION 5 — RENDER ENGINE
+// ══════════════════════════════════════════════════════════════
+function computePercentile(score) {
+  // Based on industry distribution curve
+  if(score >= 9.5) return 99;
+  if(score >= 9.0) return 99;
+  if(score >= 8.5) return 97;
+  if(score >= 8.0) return 93;
+  if(score >= 7.5) return 85;
+  if(score >= 7.0) return 72;
+  if(score >= 6.5) return 55;
+  if(score >= 6.0) return 38;
+  if(score >= 5.5) return 22;
+  if(score >= 5.0) return 12;
+  return 6;
+}
+
+function verdictFromScore(s) {
+  if(s >= 8.0) return {label:'Recommend*', cls:'recommend'};
+  if(s >= 7.0) return {label:'Recommend', cls:'recommend'};
+  if(s >= 6.0) return {label:'Consider', cls:'consider'};
+  if(s >= 5.0) return {label:'Consider +', cls:'consider'};
+  return {label:'Pass', cls:'pass'};
+}
+
+function renderScoreTiles(finalScores) {
+  const order = ['CHAR','PLOT','DIAL','ORIG','EMOT','THEME','OVERALL'];
+  const cfg   = {...AXIS_CONFIG, OVERALL:{label:'Overall',color:'#4CAF50',cls:'ov'}};
+  let html    = '';
+  for(const key of order) {
+    if(!finalScores[key] && key!=='OVERALL') continue;
+    const c   = cfg[key]||{label:key,cls:'xx'};
+    const sc  = finalScores[key]||0;
+    const pct = (sc/10)*100;
+    html += `
+      <div class="stile ${c.cls}">
+        <div class="axis">${c.label}</div>
+        <div class="score">${sc.toFixed(1)}<span>/10</span></div>
+        <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+      </div>`;
+  }
+  return html;
+}
+
+function renderCoverage(parsed, finalScores, axisResults) {
+  const v     = verdictFromScore(finalScores.OVERALL);
+  const pctl  = computePercentile(finalScores.OVERALL);
+
+  // Verdict banner
+  document.getElementById('verdictBanner').innerHTML = `
+    <div class="verdict-chip ${v.cls}">${v.label}</div>
+    <div class="percentile">
+      <strong>${finalScores.OVERALL.toFixed(1)}/10</strong>
+      &nbsp;·&nbsp; ${pctl}th percentile
+      &nbsp;·&nbsp; ${parsed.pageEst} est. pages
+      &nbsp;·&nbsp; ${parsed.charCount} speaking characters
+      &nbsp;·&nbsp; ${parsed.sceneCount} scenes
+    </div>`;
+
+  // Generate all prose
+  const narrative = {
+    charDev:  PROSE.charDev(parsed, finalScores, axisResults),
+    plot:     PROSE.plotConst(parsed, finalScores, axisResults),
+    dialogue: PROSE.dialogue(parsed, finalScores, axisResults),
+    orig:     PROSE.originality(parsed, finalScores, axisResults),
+    emot:     PROSE.emotional(parsed, finalScores, axisResults),
+    theme:    PROSE.theme(parsed, finalScores, axisResults),
+    overall:  PROSE.overall(parsed, finalScores),
+  };
+  const strengths     = PROSE.strengths(parsed, finalScores, axisResults);
+  const vulns         = PROSE.vulnerabilities(parsed, finalScores, axisResults);
+  const suggestions   = PROSE.suggestions(parsed, finalScores, axisResults);
+  const market        = PROSE.marketDiagnostic(parsed, finalScores, parsed.fmt);
+
+  // Score table
+  const scoreRows = Object.entries(finalScores)
+    .filter(([k])=>['CHAR','PLOT','DIAL','ORIG','EMOT','THEME','OVERALL'].includes(k))
+    .map(([k,v])=>{
+      const lbl   = k==='OVERALL'?'Overall':(AXIS_CONFIG[k]?.label||k);
+      const cls   = v>=8?'score-hi':v>=6.5?'score-mid':'score-lo';
+      return `<tr><td>${lbl}</td><td class="${cls}">${v.toFixed(1)}/10</td></tr>`;
+    }).join('');
+
+  document.getElementById('coverageBody').innerHTML = `
+    <div class="cov-section">
+      <h3>Script Score Analysis</h3>
+      <table class="param-table">
+        <thead><tr><th>Category</th><th>Score</th></tr></thead>
+        <tbody>${scoreRows}</tbody>
+      </table>
+    </div>
+    <div class="cov-section">
+      <h3>Coverage Narrative</h3>
+      <p><strong>Character Development (${finalScores.CHAR.toFixed(1)}/10) — </strong>${narrative.charDev}</p>
+      <p><strong>Plot Construction (${finalScores.PLOT.toFixed(1)}/10) — </strong>${narrative.plot}</p>
+      <p><strong>Dialogue (${finalScores.DIAL.toFixed(1)}/10) — </strong>${narrative.dialogue}</p>
+      <p><strong>Originality (${finalScores.ORIG.toFixed(1)}/10) — </strong>${narrative.orig}</p>
+      <p><strong>Emotional Engagement (${finalScores.EMOT.toFixed(1)}/10) — </strong>${narrative.emot}</p>
+      <p><strong>Theme & Message (${finalScores.THEME.toFixed(1)}/10) — </strong>${narrative.theme}</p>
+    </div>
+    <div class="cov-section">
+      <h3>Overall Assessment</h3>
+      <p>${narrative.overall}</p>
+    </div>
+    <div class="cov-section">
+      <h3>Strengths</h3>
+      ${strengths.map(s=>`<div class="strength-item">${s}</div>`).join('')}
+    </div>
+    <div class="cov-section">
+      <h3>Vulnerabilities</h3>
+      ${vulns.map(v=>`<div class="vuln-item">${v}</div>`).join('')}
+    </div>
+    <div class="cov-section">
+      <h3>Revision Priorities</h3>
+      ${suggestions.map(s=>`<div class="suggestion-item"><div class="sug-label">Suggestion</div>${s}</div>`).join('')}
+    </div>
+    <div class="cov-section">
+      <h3>Market & Commercial Diagnostic</h3>
+      <p>${market}</p>
+    </div>
+    <div class="cov-section">
+      <h3>Parameter Detail (All 100)</h3>
+      <table class="param-table">
+        <thead><tr><th>ID</th><th>Parameter</th><th>Axis</th><th>Evidence</th><th>Score</th></tr></thead>
+        <tbody>${
+          PARAMETERS.map(param=>{
+            const res = (axisResults[param.axis]||[]).find(r=>r.id===param.id)||{raw:5,evidence:'—'};
+            const cls = res.raw>=8?'score-hi':res.raw>=6?'score-mid':'score-lo';
+            return `<tr>
+              <td style="font-family:var(--fsc);font-size:10px;color:var(--txt3)">${param.id}</td>
+              <td>${param.name}</td>
+              <td style="color:var(--txt3)">${param.axis}</td>
+              <td style="font-size:10px">${res.evidence||'—'}</td>
+              <td class="${cls}">${res.raw.toFixed(1)}</td>
+            </tr>`;
+          }).join('')
+        }</tbody>
+      </table>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// SECTION 6 — MAIN ENTRY POINT
+// ══════════════════════════════════════════════════════════════
+async function runEval() {
+  const raw = document.getElementById('scriptInput').value.trim();
+  if(raw.length < 200) {
+    alert('Please paste at least a page or two of screenplay text for meaningful analysis.');
+    return;
+  }
+
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('results').style.display    = 'none';
+  document.getElementById('loadingState').classList.add('show');
+
+  // Yield to browser for UI update
+  await new Promise(r => setTimeout(r, 60));
+
+  try {
+    const parsed = HalionParser.parse(raw, currentFmt);
+    const {finalScores, axisResults} = computeAxisScores(parsed);
+
+    document.getElementById('scoreTiles').innerHTML = renderScoreTiles(finalScores);
+    renderCoverage(parsed, finalScores, axisResults);
+
+    document.getElementById('loadingState').classList.remove('show');
+    document.getElementById('results').style.display = 'flex';
+
+    // Animate score bars
+    setTimeout(() => {
+      document.querySelectorAll('.bar-fill').forEach(b => {
+        const w = b.style.width; b.style.width='0'; setTimeout(()=>b.style.width=w,50);
+      });
+    }, 100);
+
+  } catch(err) {
+    document.getElementById('loadingState').classList.remove('show');
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('emptyState').innerHTML = `
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <p>Analysis error: ${err.message}. Please check your input and try again.</p>`;
+  }
+}
+
+// ── POSTMESSAGE BRIDGE (preHUB integration) ──────────────────
+window.addEventListener('message', (e) => {
+  if(!e.data || e.data.type !== 'PREHUB_EVALUATE') return;
+  const {scriptText, format} = e.data;
+  if(!scriptText) return;
+  document.getElementById('scriptInput').value = scriptText;
+  currentFmt = format || 'FEATURE';
+  runEval().then(() => {
+    const parsed = HalionParser.parse(scriptText, currentFmt);
+    const {finalScores} = computeAxisScores(parsed);
+    window.parent.postMessage({type:'PREHUB_EVAL_RESULT', scores:finalScores}, '*');
+  });
+});
+
+// ── PUBLIC API (window export for preHUB integration) ─────────
+window.HalionEvaluatorEngine = {
+  parse:  (raw, fmt) => HalionParser.parse(raw, fmt||'FEATURE'),
+  score:  (parsed)   => computeAxisScores(parsed),
+  report: (parsed, finalScores, axisResults) => ({
+    scores:      finalScores,
+    narrative:   {
+      charDev:  PROSE.charDev(parsed, finalScores, axisResults),
+      plot:     PROSE.plotConst(parsed, finalScores, axisResults),
+      dialogue: PROSE.dialogue(parsed, finalScores, axisResults),
+      orig:     PROSE.originality(parsed, finalScores, axisResults),
+      emot:     PROSE.emotional(parsed, finalScores, axisResults),
+      theme:    PROSE.theme(parsed, finalScores, axisResults),
+      overall:  PROSE.overall(parsed, finalScores),
+    },
+    strengths:   PROSE.strengths(parsed, finalScores, axisResults),
+    vulns:       PROSE.vulnerabilities(parsed, finalScores, axisResults),
+    suggestions: PROSE.suggestions(parsed, finalScores, axisResults),
+    market:      PROSE.marketDiagnostic(parsed, finalScores, parsed.fmt),
+    verdict:     verdictFromScore(finalScores.OVERALL),
+    percentile:  computePercentile(finalScores.OVERALL),
+  }),
+  PARAMETERS,
+  AXIS_CONFIG,
+};
+</script>
+</body>
+</html>
