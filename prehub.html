@@ -999,14 +999,50 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 
 <!-- VIEW 3: PITCH DECK -->
 <section id="v-pitch" class="vs overflow-y-auto" style="background:#0A0D14;">
-<div class="max-w-6xl mx-auto w-full p-6 space-y-5">
+<div class="max-w-7xl mx-auto w-full p-5 space-y-5">
+
+  <!-- Header -->
   <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-800 pb-4 gap-3">
-    <div><h2 class="text-xl font-black text-white uppercase tracking-wider flex items-center gap-2" style="font-family:var(--fds)"><i class="fa-solid fa-images text-purple-400"></i> 10-Slide Pitch Deck Creator</h2><p class="text-xs text-gray-400 mt-0.5">Architectural deck auto-populated from script world lore and character summaries.</p></div>
-    <button onclick="genPitch()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs px-4 py-2 rounded-lg transition shadow flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Generate Deck</button>
+    <div>
+      <h2 class="text-xl font-black text-white uppercase tracking-wider flex items-center gap-2" style="font-family:var(--fds)"><i class="fa-solid fa-film mr-2 text-purple-400"></i>PITCH DECK BUILDER</h2>
+      <p class="text-xs text-gray-500">Build a complete pitch package. Images sourced from Unsplash by genre &amp; mood keywords.</p>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="genPitch()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs px-4 py-2 rounded uppercase tracking-wider"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>Generate Deck</button>
+      <button onclick="exportPitchPDF()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold text-xs px-4 py-2 rounded uppercase tracking-wider"><i class="fa-solid fa-file-pdf mr-1"></i>Print / PDF</button>
+    </div>
   </div>
-  <div id="pg" class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-    <div class="text-center text-gray-500 italic py-20 col-span-full flex flex-col items-center gap-3"><i class="fa-solid fa-images text-4xl opacity-20"></i><span>Click "Auto-Generate Deck" to compile slide templates from the active script.</span></div>
+
+  <!-- Input panel -->
+  <div id="pitch-inputs" class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/50 border border-slate-800 rounded-xl p-5">
+    <div class="space-y-3">
+      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Title</label><input id="wni" placeholder="Script Title" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2 placeholder-slate-600"></div>
+      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Logline (1-2 sentences)</label><textarea id="pitch-logline" rows="2" placeholder="When X happens to Y, they must Z before Q..." class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2 placeholder-slate-600 resize-none"></textarea></div>
+      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Genre</label><select id="pitch-genre" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2"><option value="drama">Drama</option><option value="thriller">Thriller</option><option value="crime">Crime / Noir</option><option value="horror">Horror</option><option value="sci-fi">Sci-Fi</option><option value="action">Action / Adventure</option><option value="comedy">Comedy</option><option value="romance">Romance</option><option value="biopic">Biopic / True Story</option><option value="western">Western</option></select></div>
+      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Tone / Mood</label><select id="pitch-tone" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2"><option value="dark,cinematic">Dark &amp; Cinematic</option><option value="gritty,urban">Gritty Urban</option><option value="atmospheric,mysterious">Atmospheric &amp; Mysterious</option><option value="warm,intimate">Warm &amp; Intimate</option><option value="tense,suspense">High-Tension</option><option value="epic,grand">Epic &amp; Grand</option><option value="minimalist,quiet">Minimalist &amp; Quiet</option><option value="neon,stylized">Neon &amp; Stylized</option></select></div>
+    </div>
+    <div class="space-y-3">
+      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Writer Name</label><input id="pitch-writer" placeholder="Writer Name" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2 placeholder-slate-600"></div>
+      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Comparable Films (Comp Titles)</label><input id="pitch-comps" placeholder="e.g. Heat (1995), No Country for Old Men" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2 placeholder-slate-600"></div>
+      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Target Audience / Market</label><input id="pitch-market" placeholder="e.g. Adult drama, prestige cable / A24 / streaming" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2 placeholder-slate-600"></div>
+      <div><label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Budget Range</label><select id="pitch-budget" class="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded px-3 py-2"><option>Micro-budget (under $500K)</option><option>Low-budget ($500K-$5M)</option><option selected>Mid-range ($5M-$30M)</option><option>Studio ($30M+)</option></select></div>
+    </div>
   </div>
+
+  <!-- Deck output -->
+  <div id="pg" class="space-y-4">
+    <div class="text-center text-gray-500 italic py-16 flex flex-col items-center gap-3"><i class="fa-solid fa-film text-4xl text-gray-700"></i><span>Fill in details above and click <strong class="text-purple-400">Generate Deck</strong>.</span></div>
+  </div>
+
+  <!-- Query Letter section -->
+  <div id="pitch-query-section" class="hidden border border-violet-900/50 rounded-xl p-5 bg-violet-950/20">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-sm font-black text-violet-300 uppercase tracking-wider"><i class="fa-solid fa-envelope mr-2"></i>Producer Query Letter</h3>
+      <button onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('pitch-query-text').innerText).then(()=>toast('Copied!'))" class="text-[10px] bg-violet-900/40 border border-violet-700 text-violet-300 px-3 py-1 rounded hover:bg-violet-900/70">Copy Letter</button>
+    </div>
+    <div id="pitch-query-text" class="bg-slate-950 border border-slate-800 rounded p-5 text-xs leading-relaxed text-slate-300 whitespace-pre-wrap" style="font-family:Georgia,serif"></div>
+  </div>
+
 </div>
 </section>
 
@@ -1024,7 +1060,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
     <div class="flex items-center gap-2">
       <div class="text-[10px] font-mono text-slate-400">Frames: <span id="sfc" class="text-white font-bold">0</span></div>
       <button onclick="addFrame()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-lime-400 font-mono font-bold text-[10px] rounded transition flex items-center gap-1"><i class="fa-solid fa-plus"></i> Add Frame</button>
-      <button onclick="loadSampleBoards()" class="px-3 py-1 bg-orange-900/40 hover:bg-orange-900/60 border border-orange-800/60 text-orange-300 font-mono font-bold text-[10px] rounded transition flex items-center gap-1"><i class="fa-solid fa-film"></i> Sample</button>
+      <button onclick="generateSBFromScript()" class="px-3 py-1 bg-teal-900/60 hover:bg-teal-900/80 border border-teal-700 text-teal-300 font-bold text-[10px] uppercase tracking-wider rounded" title="Auto-generate frames from script scenes"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>From Script</button><button onclick="loadSampleBoards()" class="px-3 py-1 bg-orange-900/40 hover:bg-orange-900/60 border border-orange-800/60 text-orange-300 font-mono font-bold text-[10px] rounded transition flex items-center gap-1"><i class="fa-solid fa-film"></i> Sample</button>
       <button onclick="sbUndo()" class="px-2 py-1 bg-slate-900 border border-slate-800 text-slate-400 text-[10px] rounded transition hover:bg-slate-800" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
       <button onclick="sbRedo()" class="px-2 py-1 bg-slate-900 border border-slate-800 text-slate-400 text-[10px] rounded transition hover:bg-slate-800" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
       <div class="relative group">
@@ -2807,6 +2843,7 @@ let isTitlePageVisible = false;
           };
           row.appendChild(mkSpan('sn-left'));
           row.appendChild(mkSpan('sn-right'));
+          this._bindShootContextMenu(row);
           sceneNum++;
         });
       },
@@ -2950,11 +2987,262 @@ const PROSE={_protag:p=>p.protagonistName.charAt(0)+p.protagonistName.slice(1).t
 function computePercentile(score){if(score>=9.5)return 99;if(score>=9.0)return 99;if(score>=8.5)return 97;if(score>=8.0)return 93;if(score>=7.5)return 85;if(score>=7.0)return 72;if(score>=6.5)return 55;if(score>=6.0)return 38;if(score>=5.5)return 22;if(score>=5.0)return 12;return 6;}
 function verdictFromScore(s){if(s>=8.0)return{label:'Recommend*',cls:'recommend'};if(s>=7.0)return{label:'Recommend',cls:'recommend'};if(s>=6.0)return{label:'Consider',cls:'consider'};if(s>=5.0)return{label:'Consider +',cls:'consider'};return{label:'Pass',cls:'pass'};}
 function renderHalionScoreTiles(finalScores){const order=['CHAR','PLOT','DIAL','ORIG','EMOT','THEME','OVERALL'];const cfg={...AXIS_CONFIG,OVERALL:{label:'Overall',color:'#4CAF50',cls:'ov'}};let html='';for(const key of order){const c=cfg[key]||{label:key,color:'#888',cls:'xx'};const sc=(finalScores[key]||0);const pct=(sc/10)*100;html+=`<div class="cv-stile"><div class="cv-axis" style="color:${c.color}">${c.label}</div><div class="cv-score">${sc.toFixed(1)}<span>/10</span></div><div class="cv-bar"><div class="cv-bar-fill" style="width:${pct}%;background:${c.color}"></div></div></div>`;}return html;}
-function renderHalionCoverage(parsed,finalScores,axisResults,allResults){const v=verdictFromScore(finalScores.OVERALL);const pctl=computePercentile(finalScores.OVERALL);const vColors={recommend:'#A3E635',consider:'#D4A034',pass:'#EF4444'};const vColor=vColors[v.cls]||'#888';document.getElementById('cv-verdict').innerHTML=`<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(5,8,16,.9);border:1px solid #1E293B;border-radius:8px;border-left:4px solid ${vColor}"><div style="font-size:14px;font-weight:900;color:${vColor};font-family:var(--fds);text-transform:uppercase;letter-spacing:.05em;">${v.label}</div><div style="font-size:11px;color:#CBD5E1;">${finalScores.OVERALL.toFixed(1)}/10 &nbsp;·&nbsp; ${pctl}th percentile &nbsp;·&nbsp; ~${parsed.pageEst} pages &nbsp;·&nbsp; ${parsed.charCount} characters &nbsp;·&nbsp; ${parsed.sceneCount} scenes</div></div>`;const narrative={charDev:PROSE.charDev(parsed,finalScores,axisResults),plot:PROSE.plotConst(parsed,finalScores,axisResults),dialogue:PROSE.dialogue(parsed,finalScores,axisResults),orig:PROSE.originality(parsed,finalScores,axisResults),emot:PROSE.emotional(parsed,finalScores,axisResults),theme:PROSE.theme(parsed,finalScores,axisResults),overall:PROSE.overall(parsed,finalScores)};const strengths=PROSE.strengths(parsed,finalScores,axisResults);const vulns=PROSE.vulnerabilities(parsed,finalScores,axisResults);const suggestions=PROSE.suggestions(parsed,finalScores,axisResults);const market=PROSE.marketDiagnostic(parsed,finalScores,parsed.fmt);const scoreRows=['CHAR','PLOT','DIAL','ORIG','EMOT','THEME','OVERALL'].map(k=>{const lbl=k==='OVERALL'?'Overall':(AXIS_CONFIG[k]?.label||k);const sv=finalScores[k]||0;const cls=sv>=8?'cv-hi':sv>=6.5?'cv-mid':'cv-lo';return`<tr><td>${lbl}</td><td class="${cls}">${sv.toFixed(1)}/10</td></tr>`;}).join('');document.getElementById('cv-body').innerHTML=`<div class="cv-section"><h3>Coverage Narrative</h3><p><strong>Character Development (${finalScores.CHAR.toFixed(1)}/10) — </strong>${narrative.charDev}</p><p><strong>Plot Construction (${finalScores.PLOT.toFixed(1)}/10) — </strong>${narrative.plot}</p><p><strong>Dialogue (${finalScores.DIAL.toFixed(1)}/10) — </strong>${narrative.dialogue}</p><p><strong>Originality (${finalScores.ORIG.toFixed(1)}/10) — </strong>${narrative.orig}</p><p><strong>Emotional Engagement (${finalScores.EMOT.toFixed(1)}/10) — </strong>${narrative.emot}</p><p><strong>Theme & Message (${finalScores.THEME.toFixed(1)}/10) — </strong>${narrative.theme}</p></div><div class="cv-section"><h3>Overall Assessment</h3><p>${narrative.overall}</p></div><div class="cv-section"><h3>Strengths</h3>${strengths.map(s=>`<div class="cv-strength">${s}</div>`).join('')||'<p>Analysis insufficient.</p>'}</div><div class="cv-section"><h3>Vulnerabilities</h3>${vulns.map(v=>`<div class="cv-vuln">${v}</div>`).join('')||'<p>No critical vulnerabilities.</p>'}</div><div class="cv-section"><h3>Revision Priorities</h3>${suggestions.map(s=>`<div class="cv-sug">${s}</div>`).join('')}</div><div class="cv-section"><h3>Market & Commercial Diagnostic</h3><p>${market}</p></div><div class="cv-section"><h3>Score Summary</h3><table class="cv-ptbl"><thead><tr><th>Axis</th><th>Score</th></tr></thead><tbody>${scoreRows}</tbody></table></div><div class="cv-section"><h3>Parameter Detail (All 100)</h3><table class="cv-ptbl"><thead><tr><th>ID</th><th>Parameter</th><th>Axis</th><th>Evidence</th><th>Score</th></tr></thead><tbody>${PARAMETERS.map(param=>{const res=(axisResults[param.axis]||[]).find(r=>r.id===param.id)||{raw:5,evidence:'—'};const cls=res.raw>=8?'cv-hi':res.raw>=6?'cv-mid':'cv-lo';return`<tr><td style="font-family:var(--fsc);font-size:9px;color:#6B7280">${param.id}</td><td>${param.name}</td><td style="font-size:9px;color:#6B7280">${param.axis}</td><td style="font-size:10px">${res.evidence||'—'}</td><td class="${cls}">${(res.raw||0).toFixed(1)}</td></tr>`;}).join('')}</tbody></table></div>`;}
+
+function _genQueryLetter(parsed, finalScores, verdict, compFilms) {
+  const title = parsed.projectTitle || 'UNTITLED PROJECT';
+  const pg = parsed.pageEst || '??';
+  const prot = parsed.protagonistName || 'the protagonist';
+  const comp1 = compFilms[0]?.title || 'a recent prestige release';
+  const comp2 = compFilms[1]?.title || 'a current market title';
+  const date = new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  return `${date}
+
+[Producer Name]
+[Production Company]
+[Address]
+
+Re: ${title} — Feature Screenplay
+
+Dear [Name],
+
+I am writing to submit ${title}, an original feature screenplay of approximately ${pg} pages.
+
+${title} follows ${prot} — [one sentence logline describing the journey and stakes].
+
+The material occupies the space between ${comp1} and ${comp2}: [brief description of tone and genre]. It is written for a [budget tier: micro/mid/studio] budget and targets [audience segment].
+
+[One paragraph on thematic relevance — why this story now, why this voice. Be specific about the cultural or emotional moment the film addresses.]
+
+The script has been evaluated by HALION coverage and received an overall score of ${finalScores.OVERALL?.toFixed(1)}/10 with particular strength in [strongest axis from scores].
+
+I would be grateful for the opportunity to send the full screenplay at your request. I can be reached at [email] or [phone].
+
+Thank you for your time and consideration.
+
+Sincerely,
+
+[Writer Name]
+WGA Registration #: [Number]
+[Website / IMDb]`;
+}
+
+function _findCitableLines(parsed) {
+  /* Returns array of {page, text} for notable lines worth citing */
+  const lines = parsed.rawLines || [];
+  const citable = [];
+  let pageEst = 1;
+  lines.forEach((line, i) => {
+    const t = line.trim();
+    if (!t) return;
+    if (t.toUpperCase() === t && t.length > 5 && t.length < 60) pageEst += 0.5; // scene headings
+    else pageEst += t.length / 200;
+    const pg = Math.round(pageEst);
+    // Flag vivid action lines (>12 words, no all-caps)
+    const words = t.split(/\s+/);
+    if (words.length > 12 && t !== t.toUpperCase() && !t.startsWith('(')) {
+      citable.push({ page: pg, text: t.slice(0, 80) + (t.length > 80 ? '…' : ''), type: 'action' });
+    }
+    // Flag short punchy dialogue
+    if (t.startsWith('"') || (words.length >= 3 && words.length <= 10 && t !== t.toUpperCase() && t.endsWith('.'))) {
+      citable.push({ page: pg, text: t.slice(0, 70) + (t.length > 70 ? '…' : ''), type: 'dialogue' });
+    }
+  });
+  return citable.slice(0, 30);
+}
+
+function _compFilms(parsed, finalScores) {
+  /* Suggest comparable films based on genre signals & scores */
+  const raw = (parsed.rawLines || []).join(' ').toLowerCase();
+  const comps = [];
+  if (/detective|murder|crime|investigat|noir|case|cop|fbi/.test(raw)) comps.push({ title: 'Chinatown (1974)', reason: 'Labyrinthine investigation, moral compromise at every turn' });
+  if (/heist|vault|robbery|crew|getaway/.test(raw)) comps.push({ title: 'Heat (1995)', reason: 'Parallel antagonist arcs, clinical procedural tension' });
+  if (/horror|demon|haunt|monster|ghost|shadow crawl/.test(raw)) comps.push({ title: 'Hereditary (2018)', reason: 'Dread built through domestic intimacy, not jump scares' });
+  if (/sci.?fi|spaceship|alien|future|robot|ai|cyborg/.test(raw)) comps.push({ title: 'Arrival (2016)', reason: 'High-concept premise grounded in emotional specificity' });
+  if (/war|battle|soldier|military|platoon|combat/.test(raw)) comps.push({ title: 'Dunkirk (2017)', reason: 'Experiential rather than expository, visceral present-tense filmmaking' });
+  if (/road trip|journey|travel|highway|motel/.test(raw)) comps.push({ title: 'Nomadland (2020)', reason: 'Episodic structure held by an indelible protagonist consciousness' });
+  if (/love|romance|relationship|heart|together|kiss/.test(raw)) comps.push({ title: 'Normal People (TV, 2020)', reason: 'Subtext-heavy dialogue, emotional stakes without melodrama' });
+  if (/drug|addiction|dealer|hustle|street/.test(raw)) comps.push({ title: 'Euphoria (TV, 2019)', reason: 'Volatile interiority, fragmented structure matching protagonist chaos' });
+  if (comps.length === 0) comps.push({ title: 'Moonlight (2016)', reason: 'Quiet, specific, awards-trajectory; proof that restraint is bankable' });
+  if (comps.length < 2) comps.push({ title: 'A24 / Neon slate (current cycle)', reason: 'Market appetite for auteur-forward prestige material' });
+  return comps.slice(0, 3);
+}
+
+function _blacklistScores(finalScores) {
+  /* Map HALION axis scores to Blacklist-style 1-10 categories */
+  const clamp = v => Math.max(1, Math.min(10, Math.round(v)));
+  return {
+    premise:     clamp(((finalScores.ORIG||5) + (finalScores.EMOT||5)) / 2),
+    plot:        clamp(finalScores.PLOT || 5),
+    character:   clamp(finalScores.CHAR || 5),
+    dialogue:    clamp(finalScores.DIAL || 5),
+    originality: clamp(finalScores.ORIG || 5),
+    overall:     clamp(finalScores.OVERALL || 5)
+  };
+}
+
+function _craftVoice(finalScores, parsed) {
+  /* Return conversational craft commentary using industry vocabulary */
+  const overall = finalScores.OVERALL || 5;
+  const dial = finalScores.DIAL || 5;
+  const char = finalScores.CHAR || 5;
+  const plot = finalScores.PLOT || 5;
+  const comments = [];
+  if (dial >= 7.5) comments.push("The dialogue carries real <em>subtext</em> — characters say one thing and mean another, which is the hardest skill to teach.");
+  else if (dial < 5.5) comments.push("Dialogue is currently on-the-nose. Characters explain their feelings rather than enacting them. The fix: cut the last line of every speech by half.");
+  if (char >= 7.5) comments.push("The protagonist has a clear <em>wound</em> and a clear <em>want</em> — the engine is there. The goal now is making sure those two things collide in act two.");
+  else if (char < 5.5) comments.push("The protagonist's arc feels <em>unearned</em>. We need to feel the before more acutely to register the after. Plant the wound earlier, harder.");
+  if (plot >= 7.5) comments.push("The structure is <em>propulsive</em> — each scene ends on a question the next scene answers. That's the spine of any great screenplay.");
+  else if (plot < 5.5) comments.push("The plot has <em>escalation</em> problems — scenes feel lateral rather than vertical. Every scene should raise the stakes or deepen the character's wound.");
+  if (overall >= 8) comments.push("This is <em>urgent</em> material. The kind of script that gets read on a Friday night and forwarded by Monday morning.");
+  else if (overall >= 6.5) comments.push("This is <em>competitive</em> material with a clear path to recommend. A focused rewrite pass targeting the vulnerabilities below could tip it.");
+  else comments.push("The <em>premise has legs</em> but the execution needs another pass. The bones are here — the work is in the connective tissue.");
+  return comments;
+}
+
+function renderHalionCoverage(parsed,finalScores,axisResults,allResults){const v=verdictFromScore(finalScores.OVERALL);const pctl=computePercentile(finalScores.OVERALL);
+  const vColors={recommend:'#A3E635',consider:'#D4A034',pass:'#EF4444'};
+  const vColor=vColors[v.cls]||'#888';
+  const blScores=_blacklistScores(finalScores);
+  const compFilms=_compFilms(parsed,finalScores);
+  const citable=_findCitableLines(parsed);
+  const craftVoice=_craftVoice(finalScores,parsed);
+
+  /* Verdict bar */
+  document.getElementById('cv-verdict').innerHTML=`<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(5,8,16,.9);border:1px solid #1E293B;border-radius:8px;border-left:4px solid ${vColor}"><div style="font-size:14px;font-weight:900;color:${vColor};font-family:var(--fds);text-transform:uppercase;letter-spacing:.05em;">${v.label}</div><div style="font-size:11px;color:#CBD5E1;">${finalScores.OVERALL.toFixed(1)}/10 &nbsp;·&nbsp; ${pctl}th percentile &nbsp;·&nbsp; ~${parsed.pageEst} pages &nbsp;·&nbsp; ${parsed.charCount} characters &nbsp;·&nbsp; ${parsed.sceneCount} scenes</div></div>`;
+
+  const narrative={charDev:PROSE.charDev(parsed,finalScores,axisResults),plot:PROSE.plotConst(parsed,finalScores,axisResults),dialogue:PROSE.dialogue(parsed,finalScores,axisResults),orig:PROSE.originality(parsed,finalScores,axisResults),emot:PROSE.emotional(parsed,finalScores,axisResults),theme:PROSE.theme(parsed,finalScores,axisResults),overall:PROSE.overall(parsed,finalScores)};
+  const strengths=PROSE.strengths(parsed,finalScores,axisResults);
+  const vulns=PROSE.vulnerabilities(parsed,finalScores,axisResults);
+  const suggestions=PROSE.suggestions(parsed,finalScores,axisResults);
+  const market=PROSE.marketDiagnostic(parsed,finalScores,parsed.fmt);
+
+  /* Blacklist-style score tiles */
+  const blHtml=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;">
+    ${[['Premise',blScores.premise],['Plot/Structure',blScores.plot],['Character',blScores.character],['Dialogue',blScores.dialogue],['Originality',blScores.originality],['Overall',blScores.overall]].map(([lbl,sc])=>{
+      const col=sc>=8?'#A3E635':sc>=6?'#D4A034':sc>=4?'#FB923C':'#EF4444';
+      return `<div style="background:#0F1420;border:1px solid #1E293B;border-radius:6px;padding:10px 8px;text-align:center"><div style="font-size:20px;font-weight:900;color:${col};font-family:var(--fds)">${sc}</div><div style="font-size:9px;color:#64748B;text-transform:uppercase;letter-spacing:.08em;margin-top:2px">${lbl}</div></div>`;
+    }).join('')}
+  </div>`;
+
+  /* Craft voice paragraph */
+  const craftHtml=craftVoice.map(c=>`<p style="margin-bottom:10px">${c}</p>`).join('');
+
+  /* Script citations */
+  const skillLines=citable.filter(c=>c.type==='action').slice(0,3);
+  const improvLines=citable.filter(c=>c.type==='dialogue').slice(0,3);
+  const citHtml=(skillLines.length||improvLines.length)?`
+    ${skillLines.length?`<h4 style="font-size:11px;font-weight:700;color:#A3E635;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px">Where the Writer Shows Skill</h4>
+    ${skillLines.map(c=>`<div style="background:#0A0F1A;border-left:3px solid #A3E635;padding:8px 12px;margin-bottom:6px;border-radius:0 4px 4px 0"><span style="color:#4B5563;font-size:9px;font-family:monospace;margin-right:8px">p.~${c.page}</span><span style="color:#CBD5E1;font-style:italic;font-size:11px">"${c.text}"</span></div>`).join('')}`:''}
+    ${improvLines.length?`<h4 style="font-size:11px;font-weight:700;color:#F87171;text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px">Where the Work Needs Attention</h4>
+    ${improvLines.map(c=>`<div style="background:#0A0F1A;border-left:3px solid #7F1D1D;padding:8px 12px;margin-bottom:6px;border-radius:0 4px 4px 0"><span style="color:#4B5563;font-size:9px;font-family:monospace;margin-right:8px">p.~${c.page}</span><span style="color:#CBD5E1;font-style:italic;font-size:11px">"${c.text}"</span></div>`).join('')}`:''}
+  `:'';
+
+  /* Comparative films */
+  const compHtml=`<div style="margin-top:4px">${compFilms.map(cf=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #1E293B"><div style="min-width:160px;font-weight:700;color:#E2E8F0;font-size:11px">${cf.title}</div><div style="font-size:11px;color:#94A3B8;font-style:italic">${cf.reason}</div></div>`).join('')}</div>`;
+
+  document.getElementById('cv-body').innerHTML=`
+    ${blHtml}
+    <div class="cv-section"><h3>Craft Assessment</h3>${craftHtml}</div>
+    <div class="cv-section"><h3>Coverage Narrative</h3>
+      <p><strong>Character Development (${finalScores.CHAR.toFixed(1)}/10) — </strong>${narrative.charDev}</p>
+      <p><strong>Plot Construction (${finalScores.PLOT.toFixed(1)}/10) — </strong>${narrative.plot}</p>
+      <p><strong>Dialogue (${finalScores.DIAL.toFixed(1)}/10) — </strong>${narrative.dialogue}</p>
+      <p><strong>Originality (${finalScores.ORIG.toFixed(1)}/10) — </strong>${narrative.orig}</p>
+      <p><strong>Emotional Engagement (${finalScores.EMOT.toFixed(1)}/10) — </strong>${narrative.emot}</p>
+      <p><strong>Theme & Message (${finalScores.THEME.toFixed(1)}/10) — </strong>${narrative.theme}</p>
+    </div>
+    <div class="cv-section"><h3>Overall Assessment</h3><p>${narrative.overall}</p></div>
+    ${citHtml?`<div class="cv-section"><h3>Specific Script Citations</h3>${citHtml}</div>`:''}
+    <div class="cv-section"><h3>Strengths</h3>${strengths.map(s=>`<div class="cv-strength">${s}</div>`).join('')||'<p>Analysis insufficient.</p>'}</div>
+    <div class="cv-section"><h3>Vulnerabilities</h3>${vulns.map(vv=>`<div class="cv-vuln">${vv}</div>`).join('')||'<p>No critical vulnerabilities.</p>'}</div>
+    <div class="cv-section"><h3>Revision Priorities</h3>${suggestions.map(s=>`<div class="cv-suggestion">${s}</div>`).join('')||'<p>No specific suggestions.</p>'}</div>
+    <div class="cv-section"><h3>Comparative Analysis</h3><p style="color:#94A3B8;font-size:11px;margin-bottom:8px">Films this material resonates with — useful for pitch context and to identify tone targets:</p>${compHtml}</div>
+    <div class="cv-section"><h3>Market Assessment</h3><p>${market}</p></div>
+    <div class="cv-section" style="border-top:2px solid #7C3AED;margin-top:20px;padding-top:16px">
+      <h3 style="color:#A78BFA">Producer Query Letter Template</h3>
+      <div id="query-letter-block" style="background:#0A0E1A;border:1px solid #312E81;border-radius:6px;padding:16px;font-size:11px;line-height:1.7;color:#CBD5E1;white-space:pre-wrap;font-family:Georgia,serif">${_genQueryLetter(parsed,finalScores,v,compFilms)}</div>
+      <button onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('query-letter-block').innerText).then(()=>toast('Query letter copied to clipboard'))" style="margin-top:8px;font-size:10px;padding:5px 12px;background:#312E81;border:1px solid #4338CA;color:#A5B4FC;border-radius:4px;cursor:pointer">Copy Letter</button>
+    </div>
+  `;
+  document.getElementById('cv-body').classList.remove('hidden');
+  document.getElementById('cv-score-summary-table')?.classList.remove('hidden');
+  renderHalionScoreTiles(finalScores);
+}
 function exportCoverage(){const body=document.getElementById('cv-body');if(!body||body.classList.contains('hidden'))return toast('Run coverage first.');const txt=body.innerText;const bl=new Blob([txt],{type:'text/plain'});const u=URL.createObjectURL(bl);const a=document.createElement('a');a.href=u;a.download=(document.getElementById('pni')?.value||'script').replace(/\s+/g,'_')+'_HALION_coverage.txt';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);toast('Coverage exported.');}
 async function runCov(){const tx=document.getElementById('cta').value.trim();if(!tx)return toast('Paste or sync a screenplay first.');const fmt=document.getElementById('cff').value||'FEATURE';document.getElementById('ce').classList.add('hidden');document.getElementById('cv-score-tiles').classList.add('hidden');document.getElementById('cv-score-tiles').innerHTML='';document.getElementById('cv-verdict').classList.add('hidden');document.getElementById('cv-body').classList.add('hidden');document.getElementById('cv-export-row').classList.add('hidden');const loadEl=document.getElementById('cv-loading');loadEl.classList.remove('hidden');const logEl=document.getElementById('cv-spline-log');if(logEl)logEl.innerHTML='';const barEl=document.getElementById('cv-spline-bar');const lblEl=document.getElementById('cv-spline-label');const stpEl=document.getElementById('cv-spline-step');const pctEl=document.getElementById('cv-spline-pct');if(barEl)barEl.style.width='0%';const splines=['Initializing HALION Engine...','Parsing scene headings...','Indexing character slugs...','Building dialogue distribution map...','Mapping protagonist dialogue arc...','Evaluating agency markers (P01-P03)...','Scoring supporting cast depth (P04-P07)...','Analyzing relationship dynamics (P08-P14)...','Calculating three-act structure (P15-P17)...','Running pacing dead-zone scan (P18)...','Measuring inciting incident placement (P20)...','Midpoint shift analysis (P21)...','Exposition distribution check (P28)...','Voice differentiation matrix (P29-P31)...','Subtext density pass (P30)...','Measuring climactic dialogue power (P40)...','Originality and premise analysis (P41-P50)...','Emotional stakes scan (P51-P55)...','Sensory specificity index (P52)...','Catharsis delivery check (P56-P60)...','Central theme mapping (P61-P65)...','Thematic payoff analysis (P69)...','Commercial viability pass (P71-P80)...','Craft integrity evaluation (P81-P100)...','Aggregating 100-parameter scores...','Computing axis-weighted averages...','Generating coverage narrative...','Drafting market diagnostics...','Final QA pass...','Coverage ready. Rendering report...'];for(let i=0;i<30;i++){await new Promise(r=>setTimeout(r,1000));const pct=Math.round(((i+1)/30)*100);if(logEl){const ln=document.createElement('div');ln.className='text-[10px] font-mono text-emerald-400/70';ln.textContent='> '+(splines[i]||'Processing...');logEl.appendChild(ln);logEl.scrollTop=logEl.scrollHeight;}if(barEl)barEl.style.width=pct+'%';if(lblEl)lblEl.textContent=splines[i]||'Processing...';if(stpEl)stpEl.textContent=(i+1)+'/30';if(pctEl)pctEl.textContent=pct+'%';}try{const parsed=HalionParser.parse(tx,fmt);const{finalScores,axisResults,allResults}=computeAxisScores(parsed);loadEl.classList.add('hidden');const tilesEl=document.getElementById('cv-score-tiles');tilesEl.innerHTML=renderHalionScoreTiles(finalScores);tilesEl.classList.remove('hidden');document.getElementById('cv-verdict').classList.remove('hidden');document.getElementById('cv-body').classList.remove('hidden');document.getElementById('cv-export-row').classList.remove('hidden');renderHalionCoverage(parsed,finalScores,axisResults,allResults);toast('HALION coverage complete.');}catch(err){loadEl.classList.add('hidden');document.getElementById('ce').classList.remove('hidden');toast('Coverage error: '+(err.message||'parse failed'));}}
 // ========== PITCH DECK ==========
-function genPitch(){const g=document.getElementById('pg');if(!g)return;const wn=document.getElementById('wni')?.value||S.writerName;const tmpls=[{ti:'TITLE PAGE',bd:S.projectName+'\n\nWritten By '+wn},{ti:'THE HOOK',bd:'Why this story? Why now?\n\nThematic premise and core dramatic stakes.'},{ti:'WORLD GEOGRAPHY',bd:'Visual rules, time period, and atmospheric palette.'},{ti:'PROTAGONIST',bd:'Internal flaw, psychological drive, external objective arc.'},{ti:'ANTAGONIST / FOIL',bd:'The opposing force and moral counterweight.'},{ti:'VISUAL COMPS',bd:'Cinematic tone references and lookbook styling.'}];g.innerHTML=tmpls.map(t=>`<div style="aspect-ratio:16/9;background:#0C101A;border:1px solid #1F2937;border-radius:12px;overflow:hidden;position:relative;box-shadow:0 15px 35px rgba(0,0,0,.6);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:24px;cursor:pointer;transition:transform .2s,border-color .2s;" onmouseover="this.style.transform='scale(1.015)';this.style.borderColor='rgba(212,160,52,.5)';" onmouseout="this.style.transform='';this.style.borderColor='#1F2937';"><h3 style="font-size:13px;font-weight:900;color:#D4A034;font-family:var(--fds);letter-spacing:.05em;margin-bottom:12px;">${t.ti}</h3><p style="font-size:11px;color:#9CA3AF;font-family:var(--fsc);white-space:pre-line;line-height:1.6;">${t.bd}</p><div style="position:absolute;bottom:8px;right:10px;font-size:9px;color:#374151;font-family:monospace;">preHUB</div></div>`).join('');toast('Generated 6-slide Pitch Deck.');}
+function exportPitchPDF(){window.print();toast('Use browser print dialog — set to PDF output.');}
+function _unsplashUrl(keywords, w, h) {
+  /* Unsplash Source API — free, no key required */
+  const kw = encodeURIComponent(keywords.replace(/[,]+/g,' '));
+  return `https://source.unsplash.com/featured/${w}x${h}/?${kw}`;
+}
+function genPitch(){const g=document.getElementById('pg');if(!g)return;const wn=document.getElementById('wni')?.value||document.getElementById('pitch-writer')?.value||S.writerName;const genre=document.getElementById('pitch-genre')?.value||'drama';
+  const tone=document.getElementById('pitch-tone')?.value||'dark,cinematic';
+  const logline=document.getElementById('pitch-logline')?.value||'[Logline not provided — sync from Coverage or enter above]';
+  const comps=document.getElementById('pitch-comps')?.value||'';
+  const market=document.getElementById('pitch-market')?.value||'Adult drama / prestige';
+  const budgetRange=document.getElementById('pitch-budget')?.value||'Mid-range ($5M–$30M)';
+  const title=wn&&wn!=='Unknown Writer'?document.getElementById('wni')?.value||'UNTITLED PROJECT':'UNTITLED PROJECT';
+  const imgKw = (kw) => _unsplashUrl(`${genre},${tone},${kw},cinematic,film`, 900, 500);
+  const tmpls=[
+    {ti:'TITLE PAGE',kw:'cinematic title credits dark film noir',body:`<div class="pitch-hero" style="text-align:center;padding:24px 0"><div style="font-size:32px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#fff;font-family:var(--fds);text-shadow:0 2px 20px rgba(0,0,0,.8)">${title||'UNTITLED PROJECT'}</div><div style="margin-top:8px;font-size:13px;color:#94A3B8;font-style:italic">Written by ${wn||'[Writer]'}</div><div style="margin-top:4px;font-size:11px;color:#4B5563;text-transform:uppercase;letter-spacing:.15em">${genre.toUpperCase()} · ${budgetRange}</div></div>`},
+    {ti:'LOGLINE',kw:`${genre} ${tone} story character`,body:`<div class="pitch-body-text" style="font-size:16px;line-height:1.75;color:#E2E8F0;font-style:italic;padding:12px 0;border-left:3px solid #7C3AED;padding-left:16px">"${logline}"</div>`},
+    {ti:'THE STORY',kw:`${genre} ${tone} narrative sequence`,body:`<div class="pitch-body-text"><p style="color:#CBD5E1;font-size:13px;line-height:1.75">[Story summary — 3 paragraphs covering Act 1 setup, Act 2 escalation, and Act 3 resolution. Sync from Coverage to auto-populate with HALION narrative.]</p><div style="margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center">${['ACT ONE','ACT TWO','ACT THREE'].map((a,i)=>`<div style="background:#0F1420;border:1px solid #1E293B;border-radius:6px;padding:12px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#7C3AED;font-weight:700">${a}</div><div style="font-size:11px;color:#64748B;margin-top:4px">${['Inciting Incident & World','Rising Stakes & Midpoint Turn','Climax & Resolution'][i]}</div></div>`).join('')}</div></div>`},
+    {ti:'PROTAGONIST',kw:`${genre} character portrait face dramatic lighting`,body:`<div class="pitch-body-text"><h4 style="font-size:11px;color:#7C3AED;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">The Central Character</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px"><div><div style="font-size:11px;font-weight:700;color:#94A3B8;margin-bottom:4px">WANT (external goal)</div><div style="font-size:12px;color:#E2E8F0;font-style:italic">[What the character is chasing across the story]</div><div style="font-size:11px;font-weight:700;color:#94A3B8;margin:12px 0 4px">NEED (internal wound)</div><div style="font-size:12px;color:#E2E8F0;font-style:italic">[What they must confront to become whole]</div></div><div><div style="font-size:11px;font-weight:700;color:#94A3B8;margin-bottom:4px">FLAW</div><div style="font-size:12px;color:#E2E8F0;font-style:italic">[The quality that creates all their problems]</div><div style="font-size:11px;font-weight:700;color:#94A3B8;margin:12px 0 4px">TRANSFORMATION</div><div style="font-size:12px;color:#E2E8F0;font-style:italic">[Where they end vs. where they began]</div></div></div></div>`},
+    {ti:'WORLD & TONE',kw:`${genre} ${tone} environment landscape atmosphere`,body:`<div class="pitch-body-text"><p style="color:#CBD5E1;font-size:13px;line-height:1.75">[Describe the world of the film: time period, location, atmosphere, visual palette. Reference the tone keywords above. This is where you establish the cinematic language of the project.]</p><div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">${tone.split(',').map(t=>`<span style="background:#1E1B4B;border:1px solid #4338CA;color:#A5B4FC;font-size:10px;padding:3px 10px;border-radius:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">${t.trim()}</span>`).join('')}</div></div>`},
+    {ti:'COMPARABLE FILMS',kw:`${genre} cinema classic film reel`,body:`<div class="pitch-body-text"><h4 style="font-size:11px;color:#7C3AED;text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px">This material sits between:</h4>${(comps?comps.split(',').map(c=>c.trim()).filter(Boolean):['[Comp Title A]','[Comp Title B]']).map(comp=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #1E293B"><i class="fa-solid fa-clapperboard" style="color:#7C3AED;font-size:14px;min-width:20px"></i><div><div style="font-weight:700;color:#E2E8F0;font-size:13px">${comp}</div><div style="font-size:11px;color:#64748B;margin-top:2px;font-style:italic">[Add 1-sentence note on why this comp is relevant]</div></div></div>`).join('')}</div>`},
+    {ti:'WHY NOW',kw:`${genre} ${tone} dramatic moment urgency`,body:`<div class="pitch-body-text"><h4 style="font-size:11px;color:#7C3AED;text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Cultural Relevance &amp; Market Timing</h4><p style="color:#CBD5E1;font-size:13px;line-height:1.75">[Why does this story matter right now? What cultural conversation does it enter? What emotional need in the audience does it meet? Speak to the moment — specific, not generic.]</p></div>`},
+    {ti:'TARGET MARKET',kw:`cinema audience theater crowd`,body:`<div class="pitch-body-text"><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">${[['Primary Audience',market],['Distribution Target','Prestige streaming / theatrical'],['Budget Range',budgetRange],['MPAA Target Rating','TBD — R or PG-13']].map(([k,v])=>`<div style="background:#0F1420;border:1px solid #1E293B;border-radius:6px;padding:12px"><div style="font-size:9px;font-weight:700;color:#7C3AED;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">${k}</div><div style="font-size:12px;color:#E2E8F0">${v}</div></div>`).join('')}</div></div>`},
+    {ti:'THE TEAM',kw:`film production crew director writer behind camera`,body:`<div class="pitch-body-text"><div style="margin-bottom:16px;padding:14px;background:#0F1420;border:1px solid #1E293B;border-radius:8px"><div style="font-size:11px;color:#7C3AED;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Writer / Creator</div><div style="font-size:14px;font-weight:700;color:#E2E8F0">${wn||'[Writer Name]'}</div><div style="font-size:11px;color:#64748B;margin-top:3px;font-style:italic">[Bio — 2 sentences: credits, awards, background, voice]</div></div><div style="padding:14px;background:#0F1420;border:1px solid #1E293B;border-radius:8px"><div style="font-size:11px;color:#7C3AED;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Attached / Seeking</div><div style="font-size:11px;color:#64748B;font-style:italic">[Director attached / seeking · Producer attached / seeking · Key talent / casting thoughts]</div></div></div>`},
+    {ti:'CONTACT & NEXT STEPS',kw:`professional business contact deal`,body:`<div class="pitch-body-text" style="text-align:center;padding:16px 0"><div style="font-size:22px;font-weight:900;color:#fff;font-family:var(--fds);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">${title||'UNTITLED PROJECT'}</div><div style="color:#7C3AED;font-size:13px;margin-bottom:20px">${wn||'[Writer Name]'}</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:480px;margin:0 auto">${[['Email','[writer@email.com]','fa-envelope'],['WGA Reg.','[#XXXXXXXX]','fa-registered'],['IMDb / Site','[link]','fa-link']].map(([k,v,icon])=>`<div style="background:#0F1420;border:1px solid #1E293B;border-radius:6px;padding:10px"><i class="fa-solid ${icon}" style="color:#7C3AED;margin-bottom:4px;display:block"></i><div style="font-size:9px;color:#4B5563;text-transform:uppercase;letter-spacing:.1em">${k}</div><div style="font-size:11px;color:#E2E8F0;margin-top:2px">${v}</div></div>`).join('')}</div></div>`}
+  ];
+  g.innerHTML='';
+  tmpls.forEach((tmpl,idx)=>{
+    const card=document.createElement('div');
+    card.className='pitch-slide';
+    card.style.cssText='background:#0F1420;border:1px solid #1E293B;border-radius:12px;overflow:hidden;margin-bottom:20px;';
+    const heroImg=`<div class="pitch-img-wrap" style="position:relative;height:220px;overflow:hidden;background:#070A12"><img src="${imgKw(tmpl.kw)}" alt="${tmpl.ti}" style="width:100%;height:100%;object-fit:cover;opacity:.55" onerror="this.style.display='none'" loading="lazy"><div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,#0F1420 100%)"></div><div style="position:absolute;bottom:14px;left:16px;display:flex;align-items:center;gap:10px"><span style="background:#7C3AED;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:12px;text-transform:uppercase;letter-spacing:.12em">Slide ${idx+1}</span><span style="font-size:13px;font-weight:900;color:#fff;font-family:var(--fds);text-transform:uppercase;letter-spacing:.08em">${tmpl.ti}</span></div></div>`;
+    const body=`<div class="pitch-slide-body" style="padding:20px">${tmpl.body}</div>`;
+    card.innerHTML=heroImg+body;
+    g.appendChild(card);
+  });
+  // Show query letter section
+  const qs=document.getElementById('pitch-query-section');
+  const qt=document.getElementById('pitch-query-text');
+  if(qs&&qt){
+    qs.classList.remove('hidden');
+    const d=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+    qt.innerText=`${d}
+
+[Producer Name]
+[Production Company]
+[Address / Email]
+
+Re: ${title||'UNTITLED PROJECT'} — Feature Screenplay (${budgetRange})
+
+Dear [Name],
+
+I am writing to submit ${title||'UNTITLED PROJECT'}, an original ${genre} screenplay${wn&&wn!=='Unknown Writer'?' written by '+wn:''}.
+
+${logline}
+
+${title||'This screenplay'} is positioned as a ${tone.replace(',',' and ')} ${genre} in the tradition of ${comps||'recent prestige releases'}. It targets ${market} and is budgeted in the ${budgetRange} range, with a clearly defined path to production.
+
+[One paragraph on why this story is urgent and timely. Reference cultural moment, thematic relevance, or specific market gap. Avoid generalities — be specific about the world the film enters.]
+
+I would be grateful for the opportunity to send the full screenplay at your request. It is available immediately for review under the standard WGA submission agreement.
+
+Thank you sincerely for your time and consideration.
+
+Best regards,
+
+${wn||'[Writer Name]'}
+WGA Registration #: [Number]
+[Email] · [Phone]
+[Website / IMDb / Letterboxd]`;
+  }
+  toast('Pitch deck generated with '+tmpls.length+' slides.');}
 // ========== STORYBOARDS ==========
 const aspMap={'asp169':'asp169','asp239':'asp239','asp43':'asp43'};
 function setAsp(cls,lbl){sbAsp=cls;['b169','b239','b43'].forEach(id=>{const b=document.getElementById(id);if(b)b.className='text-slate-500 font-mono text-[10px]';});const m={'asp169':'b169','asp239':'b239','asp43':'b43'};const btn=document.getElementById(m[cls]);if(btn)btn.className='text-lime-400 font-mono text-[10px] font-bold';document.querySelectorAll('.sbthumb').forEach(el=>{el.classList.remove('asp169','asp239','asp43');el.classList.add(cls);});toast('Aspect: '+lbl);}
@@ -2962,6 +3250,20 @@ function recSBH(lbl='Edit'){if(sbHM)return;const c=document.getElementById('sbcc
 function sbUndo(){if(sbHI<=0)return toast('Nothing to undo.');sbHI--;apSBSnap(sbH[sbHI]);toast('Undo: '+sbH[sbHI].lbl);}
 function sbRedo(){if(sbHI>=sbH.length-1)return toast('Nothing to redo.');sbHI++;apSBSnap(sbH[sbHI]);toast('Redo: '+sbH[sbHI].lbl);}
 function apSBSnap(sn){sbHM=true;const c=document.getElementById('sbcc');if(c){c.innerHTML=sn.snap;rebindSB();updSBHUD();}sbHM=false;}
+function _sbMetaRow(label, options, val, field) {
+  const sel = options.map(o=>`<option value="${o.v}" ${val===o.v?'selected':''}>${o.l}</option>`).join('');
+  return `<div style="display:flex;align-items:center;gap:4px;margin-bottom:3px"><span style="color:#4B5563;font-size:9px;min-width:52px;text-transform:uppercase;letter-spacing:.06em">${label}</span><select onchange="this.closest('.sb-card').dataset.${field}=this.value" data-field="${field}" style="flex:1;background:#0A0E17;border:1px solid #1E293B;color:#CBD5E1;font-size:10px;padding:1px 3px;border-radius:3px">${sel}</select></div>`;
+}
+function _sbShotPanel(data) {
+  const shotTypes=[{v:'MS',l:'MS — Medium Shot'},{v:'CU',l:'CU — Close-Up'},{v:'WS',l:'WS — Wide Shot'},{v:'ECU',l:'ECU — Extreme Close-Up'},{v:'LS',l:'LS — Long Shot'},{v:'ELS',l:'ELS — Extreme Long Shot'},{v:'OTS',l:'OTS — Over-the-Shoulder'},{v:'POV',l:'POV — Point of View'},{v:'TWO',l:'2-Shot'},{v:'INSERT',l:'INSERT'}];
+  const angles=[{v:'eye',l:'Eye Level'},{v:'low',l:'Low Angle'},{v:'high',l:'High Angle'},{v:'bird',l:'Birds Eye / Aerial'},{v:'dutch',l:'Dutch Tilt'},{v:'pov',l:'POV'},{v:'shoulder',l:'Over-the-Shoulder'}];
+  const moves=[{v:'static',l:'Static'},{v:'pan',l:'Pan'},{v:'tilt',l:'Tilt'},{v:'dolly',l:'Dolly In/Out'},{v:'track',l:'Tracking Shot'},{v:'crane',l:'Crane / Jib'},{v:'handheld',l:'Handheld'},{v:'steadicam',l:'Steadicam'},{v:'zoom',l:'Zoom'},{v:'oner',l:'Oner / Long Take'}];
+  return `<div class="sb-meta-panel" style="padding:6px 8px;border-top:1px solid #1E293B;background:#07090F">
+    ${_sbMetaRow('Shot',shotTypes,data.shotType||'MS','shotType')}
+    ${_sbMetaRow('Angle',angles,data.angle||'eye','angle')}
+    ${_sbMetaRow('Movement',moves,data.movement||'static','movement')}
+  </div>`;
+}
 function addFrame(data={}){const c=document.getElementById('sbcc');if(!c)return;document.getElementById('sbe').classList.add('hidden');document.getElementById('sbg').classList.remove('hidden');const idx=c.children.length+1,card=document.createElement('div');card.className='sbc';const tc=sbAsp;const has=(n,v)=>n===v?'selected':'';card.innerHTML=`<div class="sbthumb ${tc} bg-[#050810] border-b border-slate-800 flex flex-col items-center justify-center text-slate-700 relative overflow-hidden" style="width:100%;cursor:crosshair;">${data.imgSrc?`<img src="${data.imgSrc}" class="sbi absolute inset-0 w-full h-full object-cover">`:'<i class="fa-solid fa-mountain-sun text-2xl opacity-20"></i>'}<canvas class="sdc absolute inset-0" style="width:100%;height:100%;touch-action:none;"></canvas><div style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.72);color:#CBD5E1;font-size:9px;font-family:monospace;font-weight:700;padding:2px 8px;border-radius:4px;border:1px solid #1E293B;" class="sfb">FRAME ${String(idx).padStart(2,'0')}</div><div class="scc" style="position:absolute;top:6px;right:6px;display:flex;gap:4px;opacity:0;transition:opacity .2s;"><button class="sbub" style="background:rgba(139,92,246,.75);color:#fff;border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Upload ref image"><i class="fa-solid fa-camera" style="font-size:9px;"></i></button><button class="scb" style="background:rgba(30,41,59,.9);color:#9CA3AF;border:1px solid #374151;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Clear drawing"><i class="fa-solid fa-eraser" style="font-size:9px;"></i></button><button class="sdb2" style="background:rgba(30,41,59,.9);color:#9CA3AF;border:1px solid #374151;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Duplicate"><i class="fa-solid fa-clone" style="font-size:9px;"></i></button><button class="sdel" style="background:rgba(127,29,29,.85);color:#FCA5A5;border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Delete"><i class="fa-solid fa-trash" style="font-size:9px;"></i></button></div></div><div style="padding:12px;display:flex;flex-direction:column;gap:8px;flex:1;"><div style="display:flex;gap:8px;"><div style="flex:1;"><div style="font-size:9px;font-weight:700;color:#6B7280;text-transform:uppercase;margin-bottom:3px;">Scene</div><input type="text" class="ssi" value="${data.scene||'INT. LOCATION - DAY'}" style="width:100%;padding:4px 8px;background:#050810;border:1px solid #1E293B;border-radius:5px;font-family:var(--fsc);font-size:10px;color:#fff;outline:none;text-transform:uppercase;"></div><div style="flex:0 0 auto;"><div style="font-size:9px;font-weight:700;color:#6B7280;text-transform:uppercase;margin-bottom:3px;">Shot</div><select class="sss" style="padding:4px 6px;background:#0F172A;border:1px solid #1E293B;border-radius:5px;font-size:10px;color:#CBD5E1;outline:none;cursor:pointer;"><option value="WS" ${has(data.size,'WS')}>WS</option><option value="MS" ${has(data.size,'MS')}>MS</option><option value="CU" ${has(data.size,'CU')}>CU</option><option value="ECU" ${has(data.size,'ECU')}>ECU</option><option value="ELS" ${has(data.size,'ELS')}>ELS</option><option value="MCU" ${has(data.size,'MCU')}>MCU</option></select></div></div><textarea class="sat" style="width:100%;height:54px;padding:5px 8px;background:#050810;border:1px solid #1E293B;border-radius:5px;font-family:var(--fsc);font-size:10px;color:#D1D5DB;outline:none;resize:none;line-height:1.5;">${data.action||'Describe the shot...'}</textarea><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"><div><div style="font-size:8px;font-weight:700;color:#4B5563;text-transform:uppercase;margin-bottom:3px;">Angle</div><select class="sas" style="width:100%;padding:3px 5px;background:#0F172A;border:1px solid #1E293B;border-radius:4px;font-size:10px;color:#9CA3AF;outline:none;cursor:pointer;"><option value="EYE" ${has(data.angle,'EYE')}>EYE LEVEL</option><option value="LOW" ${has(data.angle,'LOW')}>LOW ANGLE</option><option value="HIGH" ${has(data.angle,'HIGH')}>HIGH ANGLE</option><option value="DUTCH" ${has(data.angle,'DUTCH')}>DUTCH TILT</option><option value="POV" ${has(data.angle,'POV')}>POV</option></select></div><div><div style="font-size:8px;font-weight:700;color:#4B5563;text-transform:uppercase;margin-bottom:3px;">Lighting</div><select class="sls" style="width:100%;padding:3px 5px;background:#0F172A;border:1px solid #1E293B;border-radius:4px;font-size:10px;color:#9CA3AF;outline:none;cursor:pointer;"><option value="NATURAL" ${has(data.lighting,'NATURAL')}>NATURAL</option><option value="HIGH_KEY" ${has(data.lighting,'HIGH_KEY')}>HIGH KEY</option><option value="LOW_KEY" ${has(data.lighting,'LOW_KEY')}>LOW KEY</option><option value="GOLDEN" ${has(data.lighting,'GOLDEN')}>GOLDEN HR</option><option value="NEON" ${has(data.lighting,'NEON')}>STYLIZED</option></select></div></div></div>`;c.appendChild(card);bindSBCard(card);initCanvas(card);updSBHUD();recSBH('Add Frame');}
 function bindSBCard(card){card.addEventListener('mouseenter',()=>{const cc=card.querySelector('.scc');if(cc)cc.style.opacity='1';});card.addEventListener('mouseleave',()=>{const cc=card.querySelector('.scc');if(cc)cc.style.opacity='0';});const del=card.querySelector('.sdel');if(del)del.addEventListener('click',()=>{card.remove();updSBHUD();recSBH('Delete Frame');toast('Frame deleted.');});const dup=card.querySelector('.sdb2');if(dup)dup.addEventListener('click',()=>{addFrame({scene:card.querySelector('.ssi')?.value||'',action:card.querySelector('.sat')?.value+' (Var.)'||'',size:card.querySelector('.sss')?.value||'WS',angle:card.querySelector('.sas')?.value||'EYE',lighting:card.querySelector('.sls')?.value||'NATURAL'});toast('Frame duplicated.');});const up=card.querySelector('.sbub');if(up)up.addEventListener('click',()=>{sbImgCard=card;document.getElementById('sbip').click();});const cl=card.querySelector('.scb');if(cl)cl.addEventListener('click',()=>{const cv=card.querySelector('.sdc');if(cv){const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);}recSBH('Clear Draw');});let db=null;card.querySelectorAll('input,select,textarea').forEach(el=>el.addEventListener('input',()=>{clearTimeout(db);db=setTimeout(()=>recSBH('Edit Frame'),600);}));}
 function initCanvas(card){const cv=card.querySelector('.sdc');if(!cv)return;const th=card.querySelector('.sbthumb');const sz=()=>{if(th){cv.width=th.offsetWidth||400;cv.height=th.offsetHeight||225;}};sz();const ctx=cv.getContext('2d');ctx.lineWidth=2.5;ctx.lineCap='round';ctx.strokeStyle='#D4A034';let dwg=false;const gp=e=>{const rc=cv.getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX;const cy=e.touches?e.touches[0].clientY:e.clientY;return{x:(cx-rc.left)*(cv.width/rc.width),y:(cy-rc.top)*(cv.height/rc.height)};};const st=e=>{dwg=true;const p=gp(e);ctx.beginPath();ctx.moveTo(p.x,p.y);};const dr=e=>{if(!dwg)return;e.preventDefault();const p=gp(e);ctx.lineTo(p.x,p.y);ctx.stroke();};const sp=()=>{if(dwg){dwg=false;recSBH('Draw');}};cv.addEventListener('mousedown',st);cv.addEventListener('mousemove',dr);cv.addEventListener('mouseup',sp);cv.addEventListener('mouseleave',sp);cv.addEventListener('touchstart',st,{passive:false});cv.addEventListener('touchmove',dr,{passive:false});cv.addEventListener('touchend',sp);}
@@ -2970,6 +3272,43 @@ function rebindSB(){const c=document.getElementById('sbcc');if(!c)return;Array.f
 function updSBHUD(){const c=document.getElementById('sbcc'),n=c?c.children.length:0;const el=document.getElementById('sfc');if(el)el.innerText=n;const sp=document.getElementById('sbp');if(sp)sp.innerText=n+' Setups';if(n===0){document.getElementById('sbe').classList.remove('hidden');document.getElementById('sbg').classList.add('hidden');}else{document.getElementById('sbe').classList.add('hidden');document.getElementById('sbg').classList.remove('hidden');}Array.from(c?.children||[]).forEach((card,i)=>{const b=card.querySelector('.sfb');if(b)b.innerText='FRAME '+String(i+1).padStart(2,'0');});}
 function loadSampleBoards(){const c=document.getElementById('sbcc');if(!c)return;c.innerHTML='';[{scene:'EXT. DESERT HIGHWAY - DUSK',action:'Extreme wide crane shot. A vintage sedan drives down open blacktop under deep violet clouds.',size:'ELS',angle:'HIGH',lighting:'GOLDEN'},{scene:'INT. VINTAGE SEDAN - CONTINUOUS',action:'Medium close-up on Ingrid gripping the cracked steering wheel. Exhaustion in her eyes.',size:'MCU',angle:'EYE',lighting:'LOW_KEY'},{scene:'EXT. ROADSIDE DINER - NIGHT',action:'Dutch tilt. Fluorescent neon flicker across the gravel lot as headlights cut through fog.',size:'WS',angle:'DUTCH',lighting:'NEON'}].forEach(s=>addFrame(s));toast('Sample cinematic sequence loaded.');}
 function exportSBJ(){const c=document.getElementById('sbcc');if(!c)return;const d=Array.from(c.children).map((card,i)=>({frame:i+1,scene:card.querySelector('.ssi')?.value||'',action:card.querySelector('.sat')?.value||'',size:card.querySelector('.sss')?.value||'WS',angle:card.querySelector('.sas')?.value||'EYE',lighting:card.querySelector('.sls')?.value||'NATURAL'}));const bl=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=S.projectName.replace(/\s+/g,'_')+'_Storyboard.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);toast('Storyboard JSON exported.');}
+// ========== STORYBOARD HELPERS ==========
+function generateSBFromScript() {
+  const r = document.getElementById('script-editable-node-rows-stack');
+  if (!r) return toast('Open the Writer and load a script first.');
+  const rows = Array.from(r.children);
+  let scenes = [];
+  let currentScene = null;
+  let actionText = '';
+  rows.forEach(row => {
+    const box = row.querySelector('.line-editable-box');
+    if (!box) return;
+    const elType = box.getAttribute('data-element-type') || '';
+    const text = box.innerText || box.textContent || '';
+    if (elType === 'SCENE_HEADING') {
+      if (currentScene) { currentScene.action = actionText.trim(); scenes.push(currentScene); }
+      currentScene = { scene: text.trim(), action: '', dialogue: '' };
+      actionText = '';
+    } else if (elType === 'ACTION' && currentScene) {
+      actionText += ' ' + text.trim();
+    } else if (elType === 'DIALOGUE' && currentScene) {
+      currentScene.dialogue = text.trim().slice(0, 80);
+    }
+  });
+  if (currentScene) { currentScene.action = actionText.trim(); scenes.push(currentScene); }
+  if (!scenes.length) return toast('No scenes found. Format scene headings as SCENE_HEADING first.');
+  const c = document.getElementById('sbcc');
+  if (!c) return;
+  document.getElementById('sbe').classList.add('hidden');
+  document.getElementById('sbg').classList.remove('hidden');
+  scenes.slice(0, 24).forEach((s, i) => {
+    addFrame({ scene: s.scene, action: s.action.slice(0, 120), dialogue: s.dialogue, shotType: i===0?'WS':'MS', angle: 'eye', movement: 'static' });
+  });
+  updSBHUD();
+  recSBH('Generate from Script');
+  toast(`Generated ${Math.min(scenes.length, 24)} storyboard frames from script.`);
+}
+
 // ========== BUDGET ==========
 function renderBudget(){const tb=document.getElementById('bb');if(!tb)return;let tot=0;tb.innerHTML=S.budget.map(b=>{tot+=b.amt;return`<tr><td class="p-3 font-bold">${b.cat}</td><td class="p-3 text-right text-emerald-400 font-bold">$${b.amt.toLocaleString()}</td></tr>`;}).join('');const el=document.getElementById('bt');if(el)el.innerText='$'+tot.toLocaleString();}
 // ========== TRANSMIT ==========
