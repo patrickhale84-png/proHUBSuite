@@ -292,6 +292,22 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
     .animate-fade-in{animation:fadeInRow .18s ease-out both;}
     /* collaboration-drawer layout */
     #collab-drawer-simulator-view{display:flex;flex-direction:column;height:100%;overflow:hidden;}
+    /* ===== SHOOTING SCRIPT MODE ===== */
+    .shooting-mode #script-editable-node-rows-stack{overflow:visible;}
+    .sn-left,.sn-right{position:absolute;font-family:'Courier Prime',Courier,monospace;font-weight:700;font-size:12pt;color:#64748b;user-select:none;pointer-events:none;white-space:nowrap;z-index:2;}
+    .sn-left{left:-2.6rem;top:calc(24pt + 1px);}
+    .sn-right{right:-2.6rem;top:calc(24pt + 1px);}
+    .shooting-mode .script-line-row.line-revised::after{content:'*';position:absolute;right:-1.4rem;top:0.15rem;color:#D97706;font-weight:900;font-size:1.1rem;pointer-events:none;user-select:none;}
+    .shooting-mode .script-line-row.scene-omitted .line-editable-box{text-decoration:line-through;opacity:0.4;color:#94a3b8 !important;}
+    .shooting-mode .script-line-row.scene-omitted .sn-left,.shooting-mode .script-line-row.scene-omitted .sn-right{opacity:0.4;}
+    #shoot-draft-badge{display:none;align-items:center;gap:5px;}
+    .shooting-mode-active #shoot-draft-badge{display:flex;}
+    @keyframes lockBlink{0%,100%{opacity:1;}50%{opacity:0.55;}}
+    .script-locked .sn-left,.script-locked .sn-right{color:#22c55e;}
+    #ribbon-btn-lock-script.locked{background:#064e3b;border-color:#065f46;color:#6ee7b7;}
+    .lint-trope{border-bottom:2px dotted #22d3ee !important;cursor:help;}
+    .lint-cheesy{border-bottom:2px dotted #f59e0b !important;cursor:help;}
+    .lint-cliche-exp{border-bottom:2px wavy #f59e0b !important;}
 </style>
 </head>
 <body>
@@ -656,6 +672,24 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 
     <div class="h-4 w-px bg-slate-800 shrink-0"></div>
 
+    <!-- Shooting Script Controls Group -->
+    <div class="flex items-center gap-1.5 shrink-0" id="shoot-mode-group">
+      <button id="ribbon-btn-shoot-mode" title="Toggle Shooting Script Mode (assigns scene numbers, enables revisions)" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-cyan-950 border border-slate-800 hover:border-cyan-800 text-[11px] font-mono flex items-center gap-1.5 transition text-slate-300 hover:text-cyan-300">
+        <i class="fa-solid fa-clapperboard text-cyan-400 text-[10px]"></i> Shoot Mode
+      </button>
+      <button id="ribbon-btn-lock-script" title="Lock Script — Freeze scene numbers and enable revision tracking" class="hidden px-2.5 py-1 rounded bg-slate-900 hover:bg-amber-950 border border-amber-800/60 text-amber-300 text-[11px] font-mono flex items-center gap-1.5 transition">
+        <i class="fa-solid fa-lock-open text-amber-400 text-[10px]" id="lock-btn-icon"></i>
+        <span id="lock-btn-label">Lock Script</span>
+      </button>
+      <div id="shoot-draft-badge" class="items-center gap-1.5 font-mono text-[11px] font-bold px-2 py-0.5 rounded border border-slate-700 bg-slate-900/80 cursor-pointer select-none hover:border-slate-500 transition" title="Current revision draft — click to advance">
+        <i class="fa-solid fa-circle text-[8px]" id="shoot-draft-dot" style="color:#94a3b8;"></i>
+        <span id="shoot-draft-name" class="text-slate-300">WHITE</span>
+        <span class="text-slate-500 text-[9px] ml-0.5">DRAFT ▲</span>
+      </div>
+    </div>
+
+    <div class="h-4 w-px bg-slate-800 shrink-0"></div>
+
     <!-- Fast Action Quick Export PDF -->
     <div class="flex items-center gap-2 shrink-0 ml-auto">
       <button id="ribbon-btn-quick-export-pdf" title="Quick PDF Export Print Sheet" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white font-mono font-bold text-[11px] rounded transition flex items-center gap-1.5 shadow-sm">
@@ -868,7 +902,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
         Scenes: <span id="ui-hud-scene-total-count" class="text-white font-bold">1</span> | Lines: <span id="ui-hud-elements-total-count" class="text-white font-bold">0</span>
       </div>
       <div class="text-[11px] font-mono text-slate-400">
-        Typos: <span id="ui-diag-spell-count" class="text-rose-400 font-bold">0</span> | Clichés: <span id="ui-diag-cliche-count" class="text-amber-500 font-bold">0</span>
+        Typos: <span id="ui-diag-spell-count" class="text-rose-400 font-bold">0</span> | Clichés: <span id="ui-diag-cliche-count" class="text-amber-500 font-bold">0</span> | Tropes: <span id="ui-diag-trope-count" class="text-cyan-400 font-bold">0</span>
       </div>
     </div>
 
@@ -1100,7 +1134,74 @@ She throws it in reverse!`;
     ];
 
     const SCRIPT_ELEMENT_SEQUENCES = ["ACTION", "SCENE_HEADING", "CHARACTER", "PARENTHETICAL", "DIALOGUE", "TRANSITION"];
-    const LINT_CLICHE_PHRASES = ["at the end of the day", "look at me", "listen to me", "mark my words", "with all due respect", "we have company"];
+    // ─── EXPANDED LINT / TROPE / DIALOGUE ANALYSIS LIBRARY ───
+    const LINT_CLICHE_PHRASES = [
+      "at the end of the day","look at me","listen to me","mark my words",
+      "with all due respect","we have company","we need to talk",
+      "i can't do this anymore","that's not who i am","you had one job",
+      "it's not what it looks like","think about what you're doing",
+      "you have no idea","over my dead body","i'll be fine","trust me",
+      "it's complicated","i never meant to hurt you","we're not so different",
+      "this is personal","that's what they all say","i had no choice",
+      "it's too late for that","you should have told me","i'm so sorry",
+      "this changes everything","there's no time to explain",
+      "you have to believe me","nothing is what it seems",
+      "i've been waiting for this moment","this isn't over","you made your choice",
+      "i guess it was always going to end this way","just like that",
+      "the rest is history","i warned you","i have a bad feeling about this",
+      "what have i done","against all odds","you wouldn't understand",
+      "it's now or never","i have a plan","tell me something i don't know",
+      "you knew all along","we can't keep doing this","promise me",
+      "cross my heart","take a deep breath","i need you to trust me",
+      "i just need some time","i thought i knew you","that's enough",
+      "stay with me","i can explain","no matter what","look at you",
+      "i can't lose you","not like this","you were always the strong one",
+      "everything happens for a reason","what are the odds",
+      "i have my reasons","don't make this harder than it has to be"
+    ];
+
+    // TROPE detection patterns — checked against DIALOGUE + ACTION elements
+    const LINT_TROPE_PATTERNS = [
+      { re: /we'?re not so different/i,        label: "Villain Mirror Speech",         tip: "Let the contrast show through action, not confession." },
+      { re: /chosen one/i,                      label: "Chosen One Trope",             tip: "Prophecy-driven protagonist. Earn it with specific internal conflict." },
+      { re: /i.{0,6}taught you everything/i,   label: "Mentor Betrayal Setup",        tip: "Telegraphed betrayal. Give the mentor a richer specific history." },
+      { re: /i.?m getting too old for this/i,  label: "Retiring-Hero Cliché",       tip: "Show the cost without the declaration — one physical beat is worth more." },
+      { re: /one last.{0,12}(job|mission|heist|chance|score)/i, label: "One Last Job", tip: "Fine trope — but ensure the real cost lands this time." },
+      { re: /there.?s no time/i,               label: "Artificial Urgency Cliché",  tip: "Build urgency through intercutting, not a line of dialogue." },
+      { re: /it was (all )?(a )?(dream|vision|hallucination)/i, label: "Dream Reset",  tip: "Audiences feel cheated by narrative resets. Earn the subversion." },
+      { re: /you.{0,12}were.{0,8}right.{0,8}all along/i, label: "Vindication Speech", tip: "Let the visual outcome speak — cut the verbal confirmation." },
+      { re: /everything.{0,12}(is |was |'s |about to |going to ).{0,8}change/i, label: "Inciting-Moment Announcement", tip: "Don't announce the pivot — execute it." },
+      { re: /nobody.{0,6}lives forever/i,      label: "Fatalist Placeholder",          tip: "Replace with a specific revelation tied to this character's wound." },
+      { re: /you.{0,16}monster/i,              label: "Villain-Label Shortcut",        tip: "What specific act makes them monstrous? Labeling reduces them." },
+      { re: /in my (experience|line of work)/i,label: "Grizzled-Expert Signpost",      tip: "Find a more dramatic delivery than authority-signaling." },
+      { re: /looks like.{0,20}(over|finished|all done)/i, label: "False-Victory Signal", tip: "Trust the structure; the verbal telegraph cheapens the reversal." },
+      { re: /you.{0,12}don'?t understand/i,    label: "Frustration Shortcut",          tip: "Specify what they don't understand — or make it visual." },
+      { re: /i never asked for (this|any of this)/i, label: "Reluctant-Hero Declaration", tip: "Show refusal through action, not announcement." },
+      { re: /all my life.{0,20}(trained|prepared|waiting|dreaming)/i, label: "Destiny Declaration", tip: "Show the preparation; spelling it out undercuts the arc." },
+      { re: /never.{0,20}(underestimate|forget).{0,20}(me|us|them|him|her)/i, label: "Threat Cliché", tip: "Threats work better as action than announcement." },
+      { re: /against all odds/i,               label: "Against-All-Odds Cliché",   tip: "Generic triumph language. What specific impossible thing did they overcome?" },
+      { re: /i.?ve been wrong about (you|everything|this)/i, label: "Late-Act Reversal Cliché", tip: "If the reversal is earned, it shows; the line is redundant." },
+      { re: /you.{0,20}(have|had).{0,12}(son|daughter|child).{0,20}(never told|kept from|hid from)/i, label: "Hidden-Child Reveal", tip: "One of cinema's most overused reveals. Earn the specific fallout." },
+    ];
+
+    // CHEESY / ON-THE-NOSE DIALOGUE patterns
+    const LINT_CHEESY_PATTERNS = [
+      { re: /as you (know|are aware|can see|both know)/i, label: "As-You-Know-Bob Exposition", tip: "Characters explaining shared knowledge. Find an organic discovery scene." },
+      { re: /let me (explain|tell you about|remind you)/i, label: "Lecture Setup",  tip: "Drop the announcement — start with the information itself." },
+      { re: /why are you (doing|telling me) (this|all this)/i, label: "Exposition-Trigger Line", tip: "Character asking for info the audience needs — invisible exposition device." },
+      { re: /you don'?t have to do this/i,     label: "Generic Moral Plea",         tip: "What specific shared history makes this plea land?" },
+      { re: /(he|she|they|you).{0,12}just like (your|his|her|their)/i, label: "Generation-Echo Cliché", tip: "'Just like your father.' Subvert or earn with a concrete difference." },
+      { re: /i know (you'?re|you are) in there/i, label: "Identity-Crisis Appeal", tip: "Find the specific memory or wound that tethers them back." },
+      { re: /we.?re (family|blood|brothers|sisters)/i, label: "Blood-Bond Invocation", tip: "Needs a specific shared memory — not just the label — to land." },
+      { re: /that.{0,6}(makes|made).{0,6}(you|me|us).{0,6}(better|stronger|who)/i, label: "Growth Declaration", tip: "Character arc told, not shown. Let the behavior demonstrate growth." },
+      { re: /i.{0,6}always (knew|thought|believed)/i, label: "Retroactive Certainty", tip: "Post-hoc revelation. Earn the moment rather than retroactively claiming it." },
+      { re: /you.{0,12}changed me/i,           label: "Character-Change Declaration", tip: "If the arc is real, it shows. This line is the shortcut around showing it." },
+      { re: /do you remember when/i,           label: "Verbal Flashback Trigger",   tip: "Cut to the scene, or use a prop/photo as a trigger — don't narrate it." },
+      { re: /the point is/i,                   label: "Theme-Statement Shortcut",   tip: "Spelling out the theme undercuts subtext. Let the scene make the point." },
+      { re: /nothing.{0,12}(ever|will).{0,12}be the same/i, label: "World-Changed Declaration", tip: "Show the new world — don't announce it." },
+      { re: /i feel (so )?(angry|sad|scared|happy|hurt|lost|alone)/i, label: "On-The-Nose Emotion Label", tip: "Characters rarely announce their internal state. Externalize through behavior." },
+      { re: /this is who i (am|was|used to be)/i, label: "Identity Statement",    tip: "Identity is demonstrated through choice under pressure, not declared." },
+    ];
 
     /* UNIVERSAL SCRIPT INGESTION NORMALIZATION ENGINE */
     class UniversalScriptIngestEngine {
@@ -1500,6 +1601,15 @@ let isTitlePageVisible = false;
 
         document.getElementById('btn-sim-peer-type').addEventListener('click', () => this.executeSimulatedPeerTypingEvent());
         document.getElementById('btn-sim-peer-cut').addEventListener('click', () => this.executeSimulatedPeerRevisionEvent());
+
+        // Shooting Script Button Bindings
+        document.getElementById('ribbon-btn-shoot-mode').addEventListener('click', () => this.toggleShootingMode());
+        const lockBtnEl = document.getElementById('ribbon-btn-lock-script');
+        if (lockBtnEl) lockBtnEl.addEventListener('click', () => {
+          if (this.scriptLockedState) this.unlockScript(); else this.lockScript();
+        });
+        const draftBadgeEl = document.getElementById('shoot-draft-badge');
+        if (draftBadgeEl) draftBadgeEl.addEventListener('click', () => this.bumpRevisionDraft());
 
         // Keyboard Shortcut Captures
         window.addEventListener('keydown', (e) => {
@@ -2141,6 +2251,7 @@ let isTitlePageVisible = false;
           this.rowsContainer.appendChild(rowNodeWrapper);
         }
 
+        this._bindShootContextMenu(rowNodeWrapper);
         return textEditableContainer;
       },
 
@@ -2259,53 +2370,135 @@ let isTitlePageVisible = false;
 
       runRealTimeLinguisticLintingSweep(forceDictionaryScan = false) {
         let clicheCounter = 0;
+        let tropeCounter = 0;
         let punctuationCounter = 0;
         let spellIssueCounter = 0;
+        const tropeAlerts = [];
 
+        // Build character name list for collision detection
+        const charNames = [];
         Array.from(this.rowsContainer.children).forEach(row => {
           const box = row.querySelector('.line-editable-box');
-          if (!box) return;
-          let text = box.textContent || "";
-          if (!text) return;
-
-          let hasCliche = false;
-          let hasPunctuationAnomalies = false;
-          let hasSpellingFlaw = false;
-
-          LINT_CLICHE_PHRASES.forEach(phrase => {
-            if (text.toLowerCase().includes(phrase)) {
-              clicheCounter++;
-              hasCliche = true;
+          if (box && box.getAttribute('data-element-type') === 'CHARACTER') {
+            const name = (box.textContent || '').trim().replace(/\s*\(.*\)\s*$/, '');
+            if (name && !charNames.includes(name)) charNames.push(name);
+          }
+        });
+        // Character name collision: same first-3 letters, different names
+        for (let i = 0; i < charNames.length; i++) {
+          for (let j = i + 1; j < charNames.length; j++) {
+            const a = charNames[i].replace(/[^A-Z]/g,'');
+            const b = charNames[j].replace(/[^A-Z]/g,'');
+            if (a.length >= 3 && b.length >= 3 && a.slice(0,3) === b.slice(0,3)) {
+              this._pushLintAlertToSidebar('NAME_COLLISION',
+                `<strong>Character Name Confusion:</strong> "${charNames[i]}" vs "${charNames[j]}" — similar-sounding names may trip readers in fast scenes.`,
+                null, 'amber');
             }
+          }
+        }
+
+        Array.from(this.rowsContainer.children).forEach((row, rowIdx) => {
+          const box = row.querySelector('.line-editable-box');
+          if (!box) return;
+          const text = (box.textContent || '').trim();
+          if (!text) return;
+          const textLow = text.toLowerCase();
+          const elType = box.getAttribute('data-element-type') || 'ACTION';
+
+          let hasCliche = false, hasPunct = false, hasSpell = false, hasTrope = false, hasCheesy = false;
+
+          // Expanded cliché phrase check
+          LINT_CLICHE_PHRASES.forEach(phrase => {
+            if (textLow.includes(phrase)) { clicheCounter++; hasCliche = true; }
           });
 
-          const checkOpen = text.includes("(");
-          const checkClose = text.includes(")");
-          if ((checkOpen && !checkClose) || (checkClose && !checkOpen) || text.includes("  ")) {
-            punctuationCounter++;
-            hasPunctuationAnomalies = true;
-          }
-
-          if (forceDictionaryScan) {
-            const rawWords = text.toLowerCase().replace(/[^a-zA-Z\s]/g, "").split(/\s+/);
-            rawWords.forEach(w => {
-              if (w && w.length > 2 && !SPELLING_DICTIONARY_MOCK_SET.includes(w)) {
-                spellIssueCounter++;
-                hasSpellingFlaw = true;
+          // Trope pattern check (DIALOGUE + ACTION)
+          if (elType === 'DIALOGUE' || elType === 'ACTION') {
+            LINT_TROPE_PATTERNS.forEach(p => {
+              if (p.re.test(text)) {
+                tropeCounter++;
+                hasTrope = true;
+                tropeAlerts.push({ type: 'TROPE', label: p.label, tip: p.tip, row: rowIdx });
               }
             });
           }
 
-          box.classList.remove('lint-error-cliche', 'lint-error-punctuation', 'lint-error-spell');
-          if (hasSpellingFlaw) box.classList.add('lint-error-spell');
-          else if (hasPunctuationAnomalies) box.classList.add('lint-error-punctuation');
-          else if (hasCliche) box.classList.add('lint-error-cliche');
+          // Cheesy / on-the-nose dialogue check
+          if (elType === 'DIALOGUE' || elType === 'ACTION') {
+            LINT_CHEESY_PATTERNS.forEach(p => {
+              if (p.re.test(text)) {
+                clicheCounter++;
+                hasCheesy = true;
+                tropeAlerts.push({ type: 'CHEESY', label: p.label, tip: p.tip, row: rowIdx });
+              }
+            });
+          }
+
+          // Extended monologue check (DIALOGUE > 80 words)
+          if (elType === 'DIALOGUE') {
+            const wordCount = text.split(/\s+/).filter(Boolean).length;
+            if (wordCount > 80) {
+              tropeCounter++;
+              hasTrope = true;
+              tropeAlerts.push({ type: 'MONOLOGUE', label: 'Extended Monologue', tip: `${wordCount}-word dialogue block. Industry rule: no speech over 5–6 lines unless it IS the scene. Break it up or cut.`, row: rowIdx });
+            }
+          }
+
+          // Punctuation anomaly check
+          const openP = (text.match(/\(/g)||[]).length;
+          const closeP = (text.match(/\)/g)||[]).length;
+          if (openP !== closeP || text.includes('  ')) { punctuationCounter++; hasPunct = true; }
+
+          // Mock spell check
+          if (forceDictionaryScan) {
+            const words = textLow.replace(/[^a-z\s]/g,'').split(/\s+/);
+            words.forEach(w => {
+              if (w && w.length > 3 && !SPELLING_DICTIONARY_MOCK_SET.includes(w)) { spellIssueCounter++; hasSpell = true; }
+            });
+          }
+
+          // Apply lint CSS classes (priority ladder)
+          box.classList.remove('lint-error-cliche','lint-error-punctuation','lint-error-spell','lint-cliche-exp','lint-trope','lint-cheesy');
+          if (hasSpell)        box.classList.add('lint-error-spell');
+          else if (hasPunct)   box.classList.add('lint-error-punctuation');
+          else if (hasTrope)   box.classList.add('lint-trope');
+          else if (hasCheesy)  box.classList.add('lint-cheesy');
+          else if (hasCliche)  box.classList.add('lint-cliche-exp');
         });
 
+        // Update HUD counters
         document.getElementById('ui-diag-cliche-count').textContent = clicheCounter;
         document.getElementById('ui-diag-spell-count').textContent = spellIssueCounter;
+        const tropeEl = document.getElementById('ui-diag-trope-count');
+        if (tropeEl) tropeEl.textContent = tropeCounter;
+
+        // Push trope/cheesy alerts to the coverage sidebar (max 12)
+        if (tropeAlerts.length && this.sidebarStack) {
+          tropeAlerts.slice(0, 12).forEach((a, i) => {
+            setTimeout(() => this._pushLintAlertToSidebar(
+              a.type, `<strong>${a.label}</strong> — ${a.tip}`,
+              a.row, a.type === 'TROPE' ? 'cyan' : 'amber'), i * 40);
+          });
+        }
+
         if (forceDictionaryScan) {
-          this.showSystemToast(`Spell & grammar sweep completed (${spellIssueCounter} issues found).`);
+          this.showSystemToast(`Analysis complete: ${tropeCounter} tropes, ${clicheCounter} clichés, ${spellIssueCounter} typos detected.`);
+        }
+      },
+
+      _pushLintAlertToSidebar(type, htmlMsg, rowIdx, color = 'amber') {
+        if (!this.sidebarStack) return;
+        const cfg = {
+          amber: { bg:'bg-amber-950/60', br:'border-amber-800/60', ic:'fa-triangle-exclamation text-amber-400' },
+          cyan:  { bg:'bg-cyan-950/60',  br:'border-cyan-800/60',  ic:'fa-masks-theater text-cyan-400' },
+        }[color] || { bg:'bg-amber-950/60', br:'border-amber-800/60', ic:'fa-triangle-exclamation text-amber-400' };
+        const card = document.createElement('div');
+        card.className = `animate-fade-in rounded border ${cfg.bg} ${cfg.br} p-2 text-[10px] font-sans space-y-1`;
+        card.innerHTML = `<div class="flex items-start gap-2"><i class="fa-solid ${cfg.ic} mt-0.5 shrink-0 text-[10px]"></i><div class="text-slate-200 leading-relaxed">${htmlMsg}</div></div>${rowIdx!=null?`<div class="text-slate-500 font-mono text-[9px] pl-5">Line ~${rowIdx+1}</div>`:''}`;
+        this.sidebarStack.insertBefore(card, this.sidebarStack.firstChild);
+        // Auto-open sidebar when tropes are found
+        if (this.sidebar && this.sidebar.classList.contains('w-0')) {
+          this.expandCoverageAlertSidebar();
         }
       },
 
@@ -2551,7 +2744,199 @@ let isTitlePageVisible = false;
           this.recalculatePageHUDCounters();
           this.showSystemToast("Remote line erasure synchronized into layout.");
         }
+      },
+
+      // ═══════════════════════════════════════════════════════
+      //  SHOOTING SCRIPT ENGINE — Industry-Standard Production
+      // ═══════════════════════════════════════════════════════
+      shootingModeActive: false,
+      scriptLockedState: false,
+      revisionDraftIndex: 0,
+      REVISION_DRAFT_COLORS: [
+        { name: "WHITE",     hex: "#F1F5F9", dot: "#94a3b8" },
+        { name: "BLUE",      hex: "#1D4ED8", dot: "#3b82f6" },
+        { name: "PINK",      hex: "#DB2777", dot: "#ec4899" },
+        { name: "YELLOW",    hex: "#D97706", dot: "#f59e0b" },
+        { name: "GREEN",     hex: "#16A34A", dot: "#22c55e" },
+        { name: "GOLDENROD", hex: "#B45309", dot: "#d97706" },
+        { name: "BUFF",      hex: "#A16207", dot: "#ca8a04" },
+        { name: "SALMON",    hex: "#DC2626", dot: "#ef4444" },
+        { name: "CHERRY",    hex: "#BE185D", dot: "#db2777" },
+      ],
+
+      toggleShootingMode() {
+        this.shootingModeActive = !this.shootingModeActive;
+        const writerSection = document.getElementById('v-writer');
+        const btn = document.getElementById('ribbon-btn-shoot-mode');
+        const lockBtn = document.getElementById('ribbon-btn-lock-script');
+
+        if (this.shootingModeActive) {
+          writerSection.classList.add('shooting-mode','shooting-mode-active');
+          if (btn) { btn.classList.replace('border-slate-800','border-cyan-700'); btn.classList.add('text-cyan-300','bg-cyan-950/40'); }
+          if (lockBtn) lockBtn.classList.remove('hidden');
+          this.assignSceneNumbers();
+          this.updateShootDraftBadge();
+          document.getElementById('shoot-draft-badge').style.display = 'flex';
+          this.showSystemToast("Shooting Script Mode ON — scene numbers assigned. Right-click any heading for options.");
+        } else {
+          writerSection.classList.remove('shooting-mode','shooting-mode-active','script-locked');
+          if (btn) { btn.classList.replace('border-cyan-700','border-slate-800'); btn.classList.remove('text-cyan-300','bg-cyan-950/40'); }
+          if (lockBtn) lockBtn.classList.add('hidden');
+          this.clearSceneNumbers();
+          document.getElementById('shoot-draft-badge').style.display = 'none';
+          this.scriptLockedState = false;
+          this.showSystemToast("Shooting Script Mode OFF.");
+        }
+        this.recordActiveStateToHistorySnapshotStack(this.shootingModeActive ? "Shoot Mode ON" : "Shoot Mode OFF");
+      },
+
+      assignSceneNumbers() {
+        this.clearSceneNumbers();
+        let sceneNum = 1;
+        Array.from(this.rowsContainer.children).forEach(row => {
+          const box = row.querySelector('.line-editable-box');
+          if (!box || box.getAttribute('data-element-type') !== 'SCENE_HEADING') return;
+          const omitted = row.classList.contains('scene-omitted');
+          const existing = row.getAttribute('data-scene-num') || '';
+          const suffix = (this.scriptLockedState && /[A-Z]$/.test(existing)) ? existing.match(/[A-Z]+$/)[0] : '';
+          const numStr = omitted ? `${sceneNum}-OMIT` : `${sceneNum}${suffix}`;
+          row.setAttribute('data-scene-num', numStr);
+          const mkSpan = (cls) => {
+            const s = document.createElement('span');
+            s.className = cls; s.textContent = numStr; s.contentEditable = 'false'; return s;
+          };
+          row.appendChild(mkSpan('sn-left'));
+          row.appendChild(mkSpan('sn-right'));
+          sceneNum++;
+        });
+      },
+
+      clearSceneNumbers() {
+        this.rowsContainer.querySelectorAll('.sn-left,.sn-right').forEach(el => el.remove());
+        if (!this.scriptLockedState) {
+          this.rowsContainer.querySelectorAll('[data-scene-num]').forEach(el => el.removeAttribute('data-scene-num'));
+        }
+      },
+
+      lockScript() {
+        if (!this.shootingModeActive) { this.showSystemToast("Enable Shooting Mode before locking."); return; }
+        this.scriptLockedState = true;
+        document.getElementById('v-writer').classList.add('script-locked');
+        const icon = document.getElementById('lock-btn-icon');
+        const label = document.getElementById('lock-btn-label');
+        const btn = document.getElementById('ribbon-btn-lock-script');
+        if (icon) icon.className = 'fa-solid fa-lock text-green-400 text-[10px]';
+        if (label) label.textContent = 'Locked — Click to Unlock';
+        if (btn) btn.classList.add('locked');
+        this.showSystemToast("Script LOCKED — scene numbers frozen. New scenes insert as 1A, 1B…");
+      },
+
+      unlockScript() {
+        this.scriptLockedState = false;
+        document.getElementById('v-writer').classList.remove('script-locked');
+        const icon = document.getElementById('lock-btn-icon');
+        const label = document.getElementById('lock-btn-label');
+        const btn = document.getElementById('ribbon-btn-lock-script');
+        if (icon) icon.className = 'fa-solid fa-lock-open text-amber-400 text-[10px]';
+        if (label) label.textContent = 'Lock Script';
+        if (btn) btn.classList.remove('locked');
+        this.showSystemToast("Script UNLOCKED — scene numbers unfrozen.");
+      },
+
+      insertSceneAfterLocked(sceneRowEl) {
+        if (!this.scriptLockedState) { this.showSystemToast("Lock the script first to insert A/B scenes."); return; }
+        const numStr = sceneRowEl.getAttribute('data-scene-num') || '1';
+        const baseNum = numStr.replace(/[A-Z-].*$/,'');
+        const taken = [];
+        this.rowsContainer.querySelectorAll('[data-scene-num]').forEach(r => {
+          const n = r.getAttribute('data-scene-num') || '';
+          if (n.startsWith(baseNum) && /[A-Z]$/.test(n)) taken.push(n.slice(-1));
+        });
+        const nextLetter = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').find(l => !taken.includes(l)) || 'Z';
+        const newNum = `${baseNum}${nextLetter}`;
+        const newRow = document.createElement('div');
+        newRow.className = 'script-line-row group animate-fade-in';
+        newRow.setAttribute('data-scene-num', newNum);
+        const newBox = document.createElement('div');
+        newBox.className = 'line-editable-box element-scene-heading';
+        newBox.contentEditable = 'true';
+        newBox.setAttribute('data-element-type','SCENE_HEADING');
+        newBox.setAttribute('data-placeholder','INT./EXT. LOCATION — TIME');
+        newBox.textContent = 'INT. NEW SCENE — DAY';
+        newRow.appendChild(newBox);
+        sceneRowEl.after(newRow);
+        const mkSpan = (cls) => { const s=document.createElement('span'); s.className=cls; s.textContent=newNum; s.contentEditable='false'; return s; };
+        newRow.appendChild(mkSpan('sn-left'));
+        newRow.appendChild(mkSpan('sn-right'));
+        newBox.addEventListener('keydown', (e) => this.handleKeyboardRoutingRules(e));
+        newBox.addEventListener('input', () => { this.recalculatePageHUDCounters(); this.runRealTimeLinguisticLintingSweep(false); });
+        this._bindShootContextMenu(newRow);
+        newBox.focus();
+        this.recalculatePageHUDCounters();
+        this.showSystemToast(`Scene ${newNum} inserted (A/B locked-script insertion).`);
+      },
+
+      omitScene(sceneRowEl) {
+        sceneRowEl.classList.toggle('scene-omitted');
+        const isOmitted = sceneRowEl.classList.contains('scene-omitted');
+        // Refresh scene number display
+        if (this.shootingModeActive) this.assignSceneNumbers();
+        this.showSystemToast(isOmitted ? "Scene marked OMITTED." : "Omission cleared.");
+        this.recordActiveStateToHistorySnapshotStack(isOmitted ? "Scene Omitted" : "Omission Cleared");
+      },
+
+      markLineRevised(rowEl) {
+        if (!this.shootingModeActive) { this.showSystemToast("Enable Shooting Mode to track revisions."); return; }
+        rowEl.classList.toggle('line-revised');
+        this.showSystemToast(rowEl.classList.contains('line-revised') ? "Line flagged revised (*)" : "Revision flag cleared.");
+      },
+
+      bumpRevisionDraft() {
+        if (!this.shootingModeActive) { this.showSystemToast("Enable Shooting Mode to use revision drafts."); return; }
+        this.revisionDraftIndex = (this.revisionDraftIndex + 1) % this.REVISION_DRAFT_COLORS.length;
+        this.updateShootDraftBadge();
+        const draft = this.REVISION_DRAFT_COLORS[this.revisionDraftIndex];
+        this.showSystemToast(`Revision color → ${draft.name} DRAFT`);
+        this.recordActiveStateToHistorySnapshotStack(`Draft: ${draft.name}`);
+      },
+
+      updateShootDraftBadge() {
+        const draft = this.REVISION_DRAFT_COLORS[this.revisionDraftIndex];
+        const nameEl = document.getElementById('shoot-draft-name');
+        const dotEl  = document.getElementById('shoot-draft-dot');
+        if (nameEl) nameEl.textContent = draft.name;
+        if (dotEl)  dotEl.style.color = draft.dot;
+      },
+
+      _bindShootContextMenu(rowEl) {
+        rowEl.addEventListener('contextmenu', (e) => {
+          if (!this.shootingModeActive) return;
+          const box = rowEl.querySelector('.line-editable-box');
+          const isHeading = box && box.getAttribute('data-element-type') === 'SCENE_HEADING';
+          e.preventDefault();
+          document.getElementById('shoot-ctx-menu')?.remove();
+          const menu = document.createElement('div');
+          menu.id = 'shoot-ctx-menu';
+          menu.className = 'fixed z-50 bg-slate-950 border border-slate-700 rounded shadow-2xl py-1 text-[11px] font-sans text-slate-200 w-56 sans-ui';
+          menu.style.cssText = `left:${e.clientX}px;top:${Math.min(e.clientY, window.innerHeight-160)}px`;
+          const items = [
+            { icon:'fa-star',  label:'Flag Line Revised (*)',   fn: () => this.markLineRevised(rowEl), always: true },
+            { icon:'fa-plus',  label:'Insert A/B Scene After',  fn: () => this.insertSceneAfterLocked(rowEl), always: false },
+            { icon:'fa-ban',   label:'Mark Scene OMITTED',      fn: () => this.omitScene(rowEl), always: false },
+          ].filter(it => it.always || isHeading);
+          items.forEach(item => {
+            const btn = document.createElement('button');
+            btn.className = 'w-full text-left px-4 py-2 hover:bg-slate-800 flex items-center gap-2.5 transition';
+            btn.innerHTML = `<i class="fa-solid ${item.icon} text-cyan-400 w-3.5 text-[10px]"></i>${item.label}`;
+            btn.onclick = () => { item.fn(); menu.remove(); };
+            menu.appendChild(btn);
+          });
+          document.body.appendChild(menu);
+          const dismiss = ev => { if (!menu.contains(ev.target)) { menu.remove(); document.removeEventListener('mousedown', dismiss); } };
+          setTimeout(() => document.addEventListener('mousedown', dismiss), 10);
+        });
       }
+
     };
 
 // ========== HALION COVERAGE ==========
