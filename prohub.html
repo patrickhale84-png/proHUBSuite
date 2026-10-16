@@ -5,9 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>proHUB | Production Command Center</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Inter:wght@400;500;600;700;800;900&family=Lexend:wght@300;400;600;700&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Courier+Prime:wght@400;700&family=IBM+Plex+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800;900&family=Lexend:wght@300;400;600;700&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#090C14;--bg2:#0F1420;--bg3:#131C2A;--acc:#E87B30;--acc2:#D4A034;--bd:#1E2A3A;--tx:#DDE4EE;--mu:#6B7E94;--fui:'Inter',sans-serif;--fds:'Montserrat',sans-serif;--fsc:'Courier Prime',monospace;}
+:root{
+  --bg:#07090E;--bg2:#0E1320;--bg3:#111820;--acc:#E87B30;--acc2:#D4A034;--bd:#1B2335;--tx:#D4DCE8;--mu:#6A7F9A;
+  --fui:'Inter',sans-serif;--fds:'Barlow Condensed','Montserrat',sans-serif;--fsc:'Courier Prime',monospace;
+  --fm:'IBM Plex Mono','Courier New',monospace;
+  --nle-deep:#07090E;--nle-panel:#0E1320;--nle-hdr:#0A0D18;--nle-hover:#141C2E;
+  --nle-bd:#1B2335;--nle-bd2:#253550;--nle-t2:#6A7F9A;--nle-t3:#2E3D52;
+  --nle-r:3px;--nle-r2:5px;
+}
 *{box-sizing:border-box;}
 body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;display:flex;flex-direction:column;height:100vh;overflow:hidden;font-size:13px;}
 ::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:#1E2A3A;border-radius:2px;}
@@ -104,6 +111,39 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 .col-desc{width:auto;} .col-rev{width:56px;} .col-status{width:78px;}
 /* DYSLEXIA */
 body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dyslexia-mode select,body.dyslexia-mode textarea{font-family:'Lexend',sans-serif!important;letter-spacing:.04em;}
+
+/* ===== NLE INTERIOR — proHUB ===== */
+/* Sidebar NLE tightening */
+.psb{background:#0A0D16!important;border-right:1px solid #15202E!important;}
+.nl{padding:6px 10px!important;font-family:var(--fm)!important;font-size:11px!important;letter-spacing:.03em!important;border-radius:var(--nle-r)!important;}
+.nl.ac{border-left:2px solid var(--acc2)!important;border-radius:0 var(--nle-r) var(--nle-r) 0!important;}
+/* Topbar */
+.tmb{height:38px!important;background:#060910!important;border-bottom:1px solid #15202E!important;}
+/* Section view headers */
+.vs-hdr{background:var(--nle-hdr)!important;border-bottom:1px solid var(--nle-bd)!important;height:32px!important;}
+/* Tables */
+thead th{background:var(--nle-hdr)!important;border-bottom:1px solid var(--nle-bd)!important;font-family:var(--fm)!important;font-size:9px!important;text-transform:uppercase!important;letter-spacing:.1em!important;color:var(--nle-t2)!important;padding:5px 8px!important;}
+tbody tr{border-bottom:1px solid var(--nle-bd)!important;}
+tbody tr:hover{background:var(--nle-hover)!important;}
+/* Inputs/selects */
+input:not([type=file]):not([type=checkbox]),select,textarea{background:var(--nle-hdr)!important;border:1px solid var(--nle-bd)!important;border-radius:var(--nle-r)!important;font-family:var(--fm)!important;font-size:11px!important;color:var(--tx)!important;}
+input:focus,select:focus,textarea:focus{border-color:var(--acc2)!important;outline:none!important;}
+/* NLE scrollbars */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--nle-deep);}
+::-webkit-scrollbar-thumb{background:#1E2E44;border-radius:2px;}
+::-webkit-scrollbar-thumb:hover{background:#2A3F5E;}
+/* Mobile responsive */
+@media(max-width:768px){
+  .psb{position:fixed!important;top:38px!important;bottom:0!important;left:0!important;transform:translateX(-100%)!important;width:240px!important;z-index:60!important;transition:transform .25s!important;}
+  .psb.mo{transform:translateX(0)!important;}
+  .apc{flex-direction:column!important;}
+  .vs{min-height:0!important;}
+  table{min-width:500px!important;}
+  .psl-tbl-wrap,.tbl-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;}
+  .col-move,.col-lens{display:none!important;}
+  .tmb{flex-wrap:wrap!important;height:auto!important;padding:6px 10px!important;}
+}
 </style>
 </head>
 <body>
