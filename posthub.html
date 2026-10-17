@@ -353,6 +353,17 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
 .hdr-stage{line-height:1.25;display:inline-flex;align-items:center;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#FCD34D;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.45);padding:2px 6px;border-radius:4px;white-space:nowrap;}
 .hdr-slot{width:28px!important;height:28px!important;flex:0 0 28px!important;padding:0!important;margin:0!important;display:inline-flex!important;align-items:center;justify-content:center;}
 @media (max-width:768px){.hdr-spacer.hdr-mob-only{display:none!important;}}
+/* ── Hamburger drawer: same menu at every width; replaces the dashboard's fixed side menu ── */
+.psb{position:fixed!important;top:52px!important;bottom:0!important;left:0!important;height:auto!important;width:270px!important;max-width:82vw!important;transform:translateX(-100%)!important;transition:transform .25s!important;z-index:260!important;box-shadow:12px 0 35px rgba(0,0,0,.85)!important;overflow-y:auto!important;}
+.psb.mo{transform:translateX(0)!important;}
+.psb.cl{width:270px!important;}
+.hdr-drawer{position:fixed;top:52px;bottom:0;left:0;width:270px;max-width:82vw;background:#0A0E17;border-right:1px solid #1B2335;transform:translateX(-100%);transition:transform .25s;z-index:260;overflow-y:auto;padding:12px 10px;box-shadow:12px 0 35px rgba(0,0,0,.85);}
+.hdr-drawer.open{transform:none;}
+.hdr-drawer-h{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#6B7A90;padding:12px 10px 6px;}
+.hdr-drawer a,.hdr-drawer button{display:block;width:100%;box-sizing:border-box;text-align:left;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#C9D3E0;background:#111A2B;border:1px solid #1F2A3F;border-radius:8px;padding:10px 12px;margin-bottom:6px;cursor:pointer;text-decoration:none;}
+.hdr-drawer a.on{color:#fff;border-color:#4B5B73;background:#18223A;}
+#hdr-scrim{display:none;position:fixed;top:52px;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:255;}
+#hdr-scrim.on{display:block;}
 .hdr-sub{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#D4A034;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
 </style>
 </head>
@@ -360,8 +371,20 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
 <div id="grain"></div>
 
 <!-- Topbar Navigation -->
+<div id="hdr-scrim" onclick="hdrToggle(false)"></div>
+<aside class="hdr-drawer" id="hdrDrawer" aria-label="Menu">
+  <div class="hdr-drawer-h">Hubs</div>
+  <a href="filmhub.html" onclick="hubGo('filmhub.html',event)">filmHUB</a>
+  <a href="prehub.html" onclick="hubGo('prehub.html',event)">preHUB</a>
+  <a href="prohub.html" onclick="hubGo('prohub.html',event)">proHUB</a>
+  <a href="posthub.html" class="on" onclick="hdrToggle(false);return false;">postHUB</a>
+  <div class="hdr-drawer-h">Edit desk</div>
+  <button onclick="document.getElementById('layoutDual').click();hdrToggle(false)">Dual View</button>
+  <button onclick="document.getElementById('layoutSingle').click();hdrToggle(false)">Single Up</button>
+  <button onclick="document.getElementById('layoutText').click();hdrToggle(false)">Text to Edit</button>
+</aside>
 <header class="topbar hdr-bar">
-  <span class="hdr-slot hdr-spacer" aria-hidden="true"></span><div class="hdr-col"><div class="hdr-row"><span class="hdr-logo" id="btnLaunchpad" title="Open postHUB Modular Desks" style="cursor:pointer"><span class="pre">post</span>HUB</span><span class="hdr-stage">POST-PRODUCTION</span></div><div class="hdr-sub">NLE studio</div></div>
+  <button class="hdr-slot hdr-burger text-gray-300 hover:text-white rounded-md text-base" onclick="hdrToggle()" aria-label="Menu" title="Menu"><i class="fa-solid fa-bars"></i></button><div class="hdr-col"><div class="hdr-row"><span class="hdr-logo" id="btnLaunchpad" title="Open postHUB Modular Desks" style="cursor:pointer"><span class="pre">post</span>HUB</span><span class="hdr-stage">POST-PRODUCTION</span></div><div class="hdr-sub">NLE studio</div></div>
   <nav class="hubnav" aria-label="Hubs"><a href="filmhub.html" onclick="hubGo('filmhub.html',event)" class="hn" data-hub="film" title="Front desk: all three hubs and the production banner">filmHUB</a><a href="prehub.html" onclick="hubGo('prehub.html',event)" class="hn" data-hub="pre">preHUB</a><a href="prohub.html" onclick="hubGo('prohub.html',event)" class="hn" data-hub="pro">proHUB</a><a href="posthub.html" onclick="hubGo('posthub.html',event)" class="hn on" data-hub="post">postHUB</a></nav>
 
   <div style="display: flex; gap: 4px; margin-left: 8px;">
@@ -2115,6 +2138,10 @@ function hubGo(page, ev){
   setTimeout(place, 50);
   new MutationObserver(function(){ place(); }).observe(document.body,{childList:true,subtree:true});
 })();
+</script>
+<script>
+function hdrToggle(force){var d=document.getElementById('hdrDrawer'),sc=document.getElementById('hdr-scrim');if(!d)return;var on=typeof force==='boolean'?force:!d.classList.contains('open');d.classList.toggle('open',on);if(sc)sc.classList.toggle('on',on);}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')hdrToggle(false);});
 </script>
 </body>
 </html>
