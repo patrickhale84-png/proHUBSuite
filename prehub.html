@@ -2567,6 +2567,10 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 </div>
 
 <script>
+/* TMDB key for the Film Database and pitch comps. Seeded once per browser; the field still lets you change it. */
+try{ if(!localStorage.getItem('fdb_tmdb_key')) localStorage.setItem('fdb_tmdb_key','3fa2777399d08f82967184990e0bbd86'); }catch(e){}
+</script>
+<script>
 // ========== STATE ==========
 let S={projectName:'UNTITLED PROJECT',writerName:'Screenwriter',versionHistory:[],googleAuth:{isSignedIn:false,email:'',name:'Guest'},autosaveInterval:120,budget:[{cat:'Above The Line (Story, Producers, Director, Cast)',amt:150000},{cat:'Below The Line (Production Operations & Labor)',amt:200000},{cat:'Post-Production (Finishing, Sound, VFX)',amt:50000},{cat:'Contingency (10%)',amt:40000}]};
 const ET=['ACTION','SCENE_HEADING','CHARACTER','PARENTHETICAL','DIALOGUE','TRANSITION'];
