@@ -6707,32 +6707,31 @@ window.__sendScriptLine = function(text){
   var ENTER_NEXT={'element-character':'element-dialogue','element-parenthetical':'element-dialogue',
     'element-dialogue':'element-action','element-action':'element-action',
     'element-scene-heading':'element-action','element-transition':'element-action'};
-  /* after Enter the editor may finish building the new line late, so a short-lived guard keeps the intended classes */
-  var guard=null, guardTimer=null, guardObs=null;
-  function enforceGuard(){
-    if(!guard) return;
-    var r=rows(); if(!r) return;
-    var lb=lastBox();
-    if(guard.box && guard.box.isConnected && guard.box!==lb && elementClass(guard.box)!==guard.keep){ setElement(guard.box, guard.keep); }
-    if(lb && lb!==guard.box && elementClass(lb)!==guard.next){ setElement(lb, guard.next); }
+  /* After Enter, the newest line is held at the next element type until Tab or the next Enter changes it.
+     One persistent observer does this, so late editor re-renders cannot undo it. */
+  var pendingNext=null, pendingPrev=null, nextObs=null;
+  function enforceNext(){
+    if(!pendingNext) return;
+    var lb=lastBox(); if(!lb || lb===pendingPrev) return;
+    if(elementClass(lb)!==pendingNext) setElement(lb,pendingNext);
   }
-  function startGuard(keepCls, nextCls, box){
-    guard={box:box, keep:keepCls, next:nextCls};
-    var r=rows(); if(!r) return;
-    if(!guardObs){ guardObs=new MutationObserver(enforceGuard); }
-    guardObs.observe(r,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
-    clearTimeout(guardTimer);
-    guardTimer=setTimeout(function(){ guard=null; if(guardObs) guardObs.disconnect(); }, 1500);
-    enforceGuard();
+  function watchNext(){
+    var r=rows(); if(!r||nextObs) return;
+    nextObs=new MutationObserver(enforceNext);
+    nextObs.observe(r,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
   }
-  function cancelReapply(){ clearTimeout(guardTimer); guard=null; if(guardObs) guardObs.disconnect(); }
+  function cancelReapply(){ pendingNext=null; pendingPrev=null; }
   function newLine(keepCls, nextCls){
     var b=lastBox(); if(!b) return null;
-    fire(b,'keydown',{key:'Enter',code:'Enter',keyCode:13,bubbles:true,cancelable:true});
-    /* the finished line keeps its element; the new line starts in nextCls */
     setElement(b, keepCls);
-    startGuard(keepCls, nextCls, b);
+    watchNext();
+    pendingNext=nextCls; pendingPrev=b;
+    fire(b,'keydown',{key:'Enter',code:'Enter',keyCode:13,bubbles:true,cancelable:true});
+    setElement(b, keepCls);
+    enforceNext();
     var nb=lastBox(); if(nb && nb!==b){ setElement(nb, nextCls); }
+    inp.value='';
+    inp.focus();
     return nb;
   }
   /* never overwrite a line that already has text: start a fresh line first */
