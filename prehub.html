@@ -6705,7 +6705,7 @@ window.__sendScriptLine = function(text){
     fire(b,'keydown',{key:'Enter',code:'Enter',keyCode:13,bubbles:true,cancelable:true});
     /* keep the finished line in its element, and start the next line in the same one */
     setElement(b, keepCls);
-    var nb=lastBox(); if(nb && nb!==b){ setElement(nb, keepCls); }
+    var nb=lastBox(); if(nb && nb!==b){ setElement(nb, 'element-action'); }
     return nb;
   }
   /* never overwrite a line that already has text: start a fresh line first */
@@ -6717,6 +6717,17 @@ window.__sendScriptLine = function(text){
     var b=lastBox(); if(!b) return;
     b.textContent=inp.value;
     fire(b,'input');
+  });
+  var ORDER=['element-action','element-character','element-dialogue','element-parenthetical','element-scene-heading','element-transition'];
+  /* Tab changes the element of the line being typed, in standard order */
+  inp.addEventListener('keydown', function(e){
+    if(e.key!=='Tab') return;
+    e.preventDefault();
+    var b=lastBox(); if(!b) return;
+    var cur=elementClass(b)||'element-action';
+    var next=ORDER[(ORDER.indexOf(cur)+1)%ORDER.length];
+    setElement(b,next);
+    inp.dataset.cls=next;
   });
   inp.addEventListener('keydown', function(e){
     if(e.key!=='Enter') return;
