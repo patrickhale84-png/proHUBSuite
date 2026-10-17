@@ -316,6 +316,32 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
   #phoneBar .pb-name{flex:0 0 auto;align-self:center;padding:0 8px;font-size:10px;color:#F5A623;font-family:var(--fm);white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;}
   #phoneBar .pb-sep{flex:0 0 1px;background:#2c3340;margin:10px 4px;}
 }
+
+/* phone only: Claude-style chrome, same pattern as preHUB/proHUB, applied inside the Edit Desk */
+#m-bar,#m-composer,#m-sheet,#m-scrim{display:none;}
+@media (max-width:768px){
+  body.m-inside header.topbar{display:none!important;}
+  body.m-inside{padding-top:52px!important;padding-bottom:64px!important;}
+  body.m-inside #mob-tiles-btn{display:none!important;}
+  body.m-inside #m-bar{display:flex!important;position:fixed;top:0;left:0;right:0;height:52px;z-index:300;align-items:center;gap:10px;padding:0 12px;background:#0B0F19;border-bottom:1px solid #1B2436;font-family:'IBM Plex Mono',monospace;}
+  #m-bar .mb-btn{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;background:#131B2E;border:1px solid #1F2A42;color:#C9D3E3;font-size:14px;cursor:pointer;padding:0;}
+  #m-bar .mb-title{flex:1;text-align:center;font-size:12px;font-weight:700;letter-spacing:.14em;color:#E6ECF5;text-transform:uppercase;}
+  #m-bar .mb-save{font-size:11px;letter-spacing:.1em;width:auto;padding:0 12px;}
+  body.m-inside #m-composer{display:flex!important;position:fixed;left:0;right:0;bottom:0;z-index:300;gap:8px;align-items:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:#0B0F19;border-top:1px solid #1B2436;}
+  #m-composer .mc-pill{flex:1;min-width:0;height:40px;border-radius:20px;background:#131B2E;border:1px solid #1F2A42;color:#7E8FA6;text-align:left;padding:0 16px;font-size:13px;font-family:inherit;cursor:text;}
+  #m-composer .mc-plus{width:40px;height:40px;border-radius:20px;background:#131B2E;border:1px solid #1F2A42;color:#E6ECF5;font-size:18px;cursor:pointer;padding:0;}
+  #m-scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;}
+  #m-scrim.on{display:block!important;}
+  #m-sheet{position:fixed;left:0;right:0;bottom:0;z-index:410;background:#111827;border-top:1px solid #1F2A42;border-radius:16px 16px 0 0;padding:10px 14px calc(14px + env(safe-area-inset-bottom,0px));max-height:80vh;overflow-y:auto;}
+  #m-sheet.on{display:block!important;}
+  #m-sheet .ms-grip{width:40px;height:4px;border-radius:2px;background:#2A3650;margin:0 auto 12px;}
+  #m-sheet .ms-title{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#7E8FA6;margin:0 0 10px 2px;}
+  #m-sheet .ms-item{display:flex;align-items:center;gap:12px;width:100%;padding:13px 12px;margin-bottom:6px;border-radius:12px;background:#0E1320;border:1px solid #1F2A42;color:#E6ECF5;font-size:14px;text-align:left;cursor:pointer;}
+  #m-sheet .ms-note{padding:12px;margin-bottom:6px;border-radius:12px;background:#0E1320;border:1px solid #1F2A42;color:#E6ECF5;font-size:14px;line-height:1.4;white-space:pre-wrap;}
+  #m-sheet .ms-note small{display:block;margin-top:6px;color:#7E8FA6;font-size:11px;}
+  #m-sheet textarea{width:100%;min-height:120px;background:#0B0F19;border:1px solid #1F2A42;border-radius:12px;color:#E6ECF5;padding:12px;font-size:14px;font-family:inherit;resize:none;}
+  #m-sheet .ms-save{margin-top:10px;width:100%;padding:12px;border-radius:12px;border:0;background:#E6ECF5;color:#0B0F19;font-weight:700;font-size:14px;}
+}
 </style>
 </head>
 <body>
@@ -528,6 +554,11 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
 
 <div id="toasts"></div>
 
+<div id="m-bar"><button class="mb-btn" id="mb-menu" aria-label="Tiles"><i class="fa-solid fa-bars"></i></button>
+  <div class="mb-title">postHUB</div><button class="mb-btn mb-save" id="mb-save" aria-label="Save">Save</button></div>
+<div id="m-composer"><button class="mc-pill" id="mc-pill">Add a note…</button><button class="mc-plus" id="mc-plus" aria-label="Options">+</button></div>
+<div id="m-scrim"></div>
+<div id="m-sheet" role="dialog" aria-modal="true"></div>
 <script>
 (function(){
 'use strict';
@@ -1899,6 +1930,71 @@ function phoneBarAction(label){
   if(label === 'Info' && SEL){ toast((SEL.c.name||'Clip') + ' · ' + SEL.c.durationFrames + ' frames'); return; }
   if(label === 'Level' && SEL){ toast('Level control is on the desktop inspector'); return; }
 }
+/* ---- phone chrome: menu, Save, note composer, options and notes sheets ---- */
+var PH_NOTES_KEY='posthub_quick_notes', PH_TIMELINE_KEY='posthub_timeline_v1';
+function phSheetOn(on){ document.getElementById('m-sheet').classList.toggle('on',on); document.getElementById('m-scrim').classList.toggle('on',on); }
+function phReadNotes(){ try{ return JSON.parse(localStorage.getItem(PH_NOTES_KEY))||[]; }catch(e){ return []; } }
+function phWriteNotes(l){ try{ localStorage.setItem(PH_NOTES_KEY, JSON.stringify(l)); return true; }catch(e){ return false; } }
+function phDeskItems(){
+  var items=[{label:'Tiles',icon:'fa-solid fa-border-all',run:function(){ document.getElementById('btnLaunchpad').click(); }}];
+  TILES_DEF.forEach(function(t){
+    if(t.id==='suite') return;
+    items.push({label:t.title,icon:t.icon,run:function(){ openDeskDetail(t.id); }});
+  });
+  items.push({label:'Export video',icon:'fa-solid fa-file-export',run:function(){ document.getElementById('btnExportVideo').click(); }});
+  items.push({label:'Notes ('+phReadNotes().length+')',icon:'fa-solid fa-note-sticky',run:function(){ phOpenNotes(); }});
+  return items;
+}
+function phOpenOptions(){
+  var s=document.getElementById('m-sheet'), items=phDeskItems();
+  s.innerHTML='<div class="ms-grip"></div><div class="ms-title">postHUB options</div>'+items.map(function(it,i){return '<button class="ms-item" data-i="'+i+'"><i class="'+it.icon+'"></i><span>'+esc(it.label)+'</span></button>';}).join('');
+  s.querySelectorAll('.ms-item').forEach(function(b){ b.onclick=function(){ phSheetOn(false); items[+b.getAttribute('data-i')].run(); }; });
+  phSheetOn(true);
+}
+function phOpenNotes(){
+  var s=document.getElementById('m-sheet'), list=phReadNotes();
+  s.innerHTML='<div class="ms-grip"></div><div class="ms-title">Notes ('+list.length+')</div>'+
+    (list.length? list.map(function(n){ return '<div class="ms-note">'+esc(n.text)+'<small>'+esc(new Date(n.at).toLocaleString())+'</small></div>'; }).join('')
+                : '<div class="ms-note">No notes yet. Use the bar at the bottom to add one.</div>')+
+    '<button class="ms-save" id="ms-clear">'+(list.length?'Clear notes':'Close')+'</button>';
+  var c=document.getElementById('ms-clear'), armed=false;
+  c.onclick=function(){
+    if(!list.length){ phSheetOn(false); return; }
+    if(!armed){ armed=true; c.textContent='Tap again to clear all notes'; return; }
+    phWriteNotes([]); phSheetOn(false); toast('Notes cleared');
+  };
+  phSheetOn(true);
+}
+function phOpenText(){
+  var s=document.getElementById('m-sheet');
+  s.innerHTML='<div class="ms-grip"></div><div class="ms-title">Add a note</div><textarea id="mt-text" placeholder="Write a note…"></textarea><button class="ms-save" id="mt-save">Save note</button>';
+  document.getElementById('mt-save').onclick=function(){
+    var t=(document.getElementById('mt-text').value||'').trim(); if(!t) return;
+    var list=phReadNotes(); list.unshift({text:t,at:Date.now()});
+    if(phWriteNotes(list)) toast('Note saved'); else toast('Could not save note', 'bad');
+    phSheetOn(false);
+  };
+  phSheetOn(true); setTimeout(function(){ var x=document.getElementById('mt-text'); if(x) x.focus(); },50);
+}
+function phSaveTimeline(){
+  try{ localStorage.setItem(PH_TIMELINE_KEY, JSON.stringify(TRACKS)); toast('Timeline saved'); }
+  catch(e){ toast('Timeline too large to save in this browser', 'bad'); }
+}
+function phRestoreTimeline(){
+  try{
+    var saved=JSON.parse(localStorage.getItem(PH_TIMELINE_KEY)||'null');
+    if(saved && saved.v1 && saved.a1){ TRACKS=saved; renderTimeline(); updatePlayhead(); }
+  }catch(e){}
+}
+document.getElementById('mb-menu').onclick=function(){ document.getElementById('btnLaunchpad').click(); };
+document.getElementById('mb-save').onclick=phSaveTimeline;
+document.getElementById('mc-pill').onclick=phOpenText;
+document.getElementById('mc-plus').onclick=phOpenOptions;
+document.getElementById('m-scrim').onclick=function(){ phSheetOn(false); };
+function phSync(){ document.body.classList.toggle('m-inside', !document.getElementById('launchpadModal').classList.contains('on')); }
+new MutationObserver(phSync).observe(document.getElementById('launchpadModal'),{attributes:true,attributeFilter:['class']});
+phSync();
+phRestoreTimeline();
 (function mountPhoneBar(){
   var g = document.getElementById('mainGrid'); if(!g || document.getElementById('phoneBar')) return;
   var bar = document.createElement('div'); bar.id = 'phoneBar';

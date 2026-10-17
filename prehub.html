@@ -6652,6 +6652,8 @@ function hubGo(page, ev){
 (function(){
   var HUB='preHUB', NOTES_KEY='prehub_quick_notes';
   var ITEMS=[
+  {label:'Notes',icon:'fa-solid fa-note-sticky',run:function(){openNotes();}},
+  {label:'Add note',icon:'fa-solid fa-pen-to-square',run:function(){openText();}},
   {label:'Writing desk',icon:'fa-solid fa-pen-nib',run:function(){sw('writer');}},
   {label:'Storyboards',icon:'fa-solid fa-clapperboard',run:function(){sw('storyboard');}},
   {label:'Pitch deck',icon:'fa-solid fa-images',run:function(){sw('pitch');}},
@@ -6663,6 +6665,15 @@ function hubGo(page, ev){
   {label:'Export PDF',icon:'fa-solid fa-file-pdf',run:function(){var b=document.getElementById('export-target-pdf'); if(b) b.click();}}
 ];
   function sheet(on){ document.getElementById('m-sheet').classList.toggle('on',on); document.getElementById('m-scrim').classList.toggle('on',on); }
+  function openNotes(){
+    var s=document.getElementById('m-sheet'), list=[]; try{ list=JSON.parse(localStorage.getItem(NOTES_KEY))||[]; }catch(e){}
+    s.innerHTML='<div class="ms-grip"></div><div class="ms-title">Notes ('+list.length+')</div>'+
+      (list.length? list.map(function(n){ return '<div class="ms-note" style="padding:12px;margin-bottom:6px;border-radius:12px;background:#0E1320;border:1px solid #1F2A42;color:#E6ECF5;font-size:14px;line-height:1.4;white-space:pre-wrap;">'+String(n.text).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];})+'<small style="display:block;margin-top:6px;color:#7E8FA6;font-size:11px;">'+new Date(n.at).toLocaleString()+'</small></div>'; }).join('')
+                  : '<div style="color:#7E8FA6;font-size:13px;padding:8px 2px;">No notes yet. Use the bar at the bottom to add one.</div>')+
+      '<button class="ms-save" id="ms-close">Close</button>';
+    document.getElementById('ms-close').onclick=function(){ sheet(false); };
+    sheet(true);
+  }
   function openOptions(){
     var s=document.getElementById('m-sheet');
     s.innerHTML='<div class="ms-grip"></div><div class="ms-title">'+HUB+' options</div>'+ITEMS.map(function(it,i){return '<button class="ms-item" data-i="'+i+'"><i class="'+it.icon+'"></i><span>'+it.label+'</span></button>';}).join('');
@@ -6671,7 +6682,13 @@ function hubGo(page, ev){
   }
   function openText(){
     var s=document.getElementById('m-sheet');
-    s.innerHTML='<div class="ms-grip"></div><div class="ms-title">Add a note</div><textarea id="mt-text" placeholder="Write a note…"></textarea><button class="ms-save" id="mt-save">Save note</button>';
+    s.innerHTML='<div class="ms-grip"></div><div class="ms-title">Write a line or note</div><textarea id="mt-text" placeholder="Write a note…"></textarea><button class="ms-save" id="mt-save">Write to script</button><button class="ms-save" id="mt-note" style="margin-top:8px;background:#1B2436;color:#E6ECF5;">Save as note</button>';
+    document.getElementById('mt-note').onclick=function(){
+      var t=(document.getElementById('mt-text').value||'').trim(); if(!t) return;
+      var list=[]; try{ list=JSON.parse(localStorage.getItem(NOTES_KEY))||[]; }catch(e){}
+      list.unshift({text:t,at:Date.now()}); try{ localStorage.setItem(NOTES_KEY,JSON.stringify(list)); }catch(e){}
+      sheet(false); if(typeof toast==='function') toast('Note saved');
+    };
     document.getElementById('mt-save').onclick=function(){
       var t=(document.getElementById('mt-text').value||'').trim(); if(!t) return;
       if(typeof window.__sendScriptLine==='function' && window.__sendScriptLine(t)){ sheet(false); return; }

@@ -1157,6 +1157,7 @@ function hubGo(page, ev){
 (function(){
   var HUB='proHUB', NOTES_KEY='prohub_quick_notes';
   var ITEMS=[
+  {label:'Notes',icon:'fa-solid fa-note-sticky',run:function(){openNotes();}},
   {label:'Dashboard',icon:'fa-solid fa-border-all',run:function(){sw('dashboard');}},
   {label:'Shot list',icon:'fa-solid fa-list-ol',run:function(){sw('shotlist');}},
   {label:'One-liner strip',icon:'fa-solid fa-bars-staggered',run:function(){sw('oneliner');}},
@@ -1166,6 +1167,15 @@ function hubGo(page, ev){
   {label:'Sync preHUB',icon:'fa-solid fa-satellite-dish',run:function(){loadBridgeData();}}
 ];
   function sheet(on){ document.getElementById('m-sheet').classList.toggle('on',on); document.getElementById('m-scrim').classList.toggle('on',on); }
+  function openNotes(){
+    var s=document.getElementById('m-sheet'), list=[]; try{ list=JSON.parse(localStorage.getItem(NOTES_KEY))||[]; }catch(e){}
+    s.innerHTML='<div class="ms-grip"></div><div class="ms-title">Notes ('+list.length+')</div>'+
+      (list.length? list.map(function(n){ return '<div class="ms-note" style="padding:12px;margin-bottom:6px;border-radius:12px;background:#0E1320;border:1px solid #1F2A42;color:#E6ECF5;font-size:14px;line-height:1.4;white-space:pre-wrap;">'+String(n.text).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];})+'<small style="display:block;margin-top:6px;color:#7E8FA6;font-size:11px;">'+new Date(n.at).toLocaleString()+'</small></div>'; }).join('')
+                  : '<div style="color:#7E8FA6;font-size:13px;padding:8px 2px;">No notes yet. Use the bar at the bottom to add one.</div>')+
+      '<button class="ms-save" id="ms-close">Close</button>';
+    document.getElementById('ms-close').onclick=function(){ sheet(false); };
+    sheet(true);
+  }
   function openOptions(){
     var s=document.getElementById('m-sheet');
     s.innerHTML='<div class="ms-grip"></div><div class="ms-title">'+HUB+' options</div>'+ITEMS.map(function(it,i){return '<button class="ms-item" data-i="'+i+'"><i class="'+it.icon+'"></i><span>'+it.label+'</span></button>';}).join('');
