@@ -772,69 +772,163 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 }
 
 /* ═══════════════════════════════════════════════════════════
+   SCRIBE — Page Canvas Chrome
+   File + Save icons always visible · Stronger page identity
+   ═══════════════════════════════════════════════════════════ */
+
+/* Deep canvas background so paper pops */
+#editor-scroller-viewport{
+  background:#04060B!important;
+}
+
+/* Sharper, more physical page appearance */
+#editor-scroller-viewport .paper-sheet-container{
+  border-color:#1A2540!important;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.03),
+    0 8px 32px rgba(0,0,0,.6),
+    0 24px 72px rgba(0,0,0,.7)!important;
+  border-radius:3px;
+  margin-bottom:52px!important;
+}
+
+/* Page number stamp — top right of each sheet */
+#editor-scroller-viewport .paper-sheet-container::after{
+  content:'pg. ' attr(data-pg,'1');
+  position:absolute; top:14px; right:18px;
+  font-family:'IBM Plex Mono',monospace; font-size:9px; font-weight:700;
+  letter-spacing:.15em; text-transform:uppercase;
+  color:rgba(255,255,255,.11); pointer-events:none; user-select:none;
+}
+
+/* ── Always-visible canvas chrome: file left, save right ── */
+#scribe-canvas-chrome{
+  position:sticky; top:8px; z-index:80;
+  display:flex; justify-content:space-between; align-items:flex-start;
+  pointer-events:none; padding:0 10px;
+  margin-bottom:-44px; height:0; overflow:visible;
+}
+.sc-chrome-btn{
+  pointer-events:auto;
+  width:34px; height:34px;
+  background:rgba(4,6,10,.65);
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:9px;
+  color:rgba(255,255,255,.28);
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; cursor:pointer; padding:0;
+  -webkit-tap-highlight-color:transparent;
+  transition:color .15s,background .15s,border-color .15s;
+}
+.sc-chrome-btn:hover,.sc-chrome-btn:active{
+  color:rgba(255,255,255,.88);
+  background:rgba(255,255,255,.09);
+  border-color:rgba(255,255,255,.13);
+}
+.sc-chrome-btn.sc-save:active{ color:#A3E635; border-color:rgba(163,230,53,.3); }
+
+/* Visual page-break strip between paginated sheets */
+.sc-page-break{
+  width:100%; display:flex; align-items:center; gap:12px;
+  margin:0 auto 52px; max-width:8.5in;
+  color:rgba(255,255,255,.08);
+  font-family:'IBM Plex Mono',monospace; font-size:8px;
+  letter-spacing:.18em; text-transform:uppercase;
+  user-select:none; pointer-events:none;
+}
+.sc-page-break::before,.sc-page-break::after{
+  content:''; flex:1; height:1px; background:rgba(255,255,255,.05);
+}
+
+/* Mobile: chrome buttons show full-time (no slide-in header) */
+@media(max-width:768px){
+  #scribe-canvas-chrome{ top:6px; padding:0 8px; }
+  .sc-chrome-btn{ width:30px; height:30px; font-size:12px; }
+}
+
+/* ═══════════════════════════════════════════════════════════
    DASHBOARD 3-TIER TILE GRID
    Hero · Standard · Compact  ·  Default + Advanced modes
    ═══════════════════════════════════════════════════════════ */
 
+/* ── Dashboard fills viewport — no inner scroll on desktop ── */
+#v-dashboard{ overflow:hidden!important; }
+#v-dashboard > .max-w-6xl{
+  height:100%; display:flex; flex-direction:column; overflow:hidden;
+  padding:14px 20px 10px;
+}
+#v-dashboard .mb-6{
+  margin-bottom:10px!important; padding-bottom:10px!important; flex-shrink:0;
+}
+
+/* ── Grid: fills remaining height, rows stretch to fit ── */
 #db-grid{
   display:grid;
   grid-template-columns:repeat(12,1fr);
-  gap:10px;
-  transition:all .3s ease;
+  gap:8px;
+  flex:1; min-height:0;
+  align-content:stretch; /* rows expand to fill container height */
 }
+/* Kill any min-height — container height now drives row sizes */
+#db-grid .mtile{ min-height:0!important; }
 
 /* ── DEFAULT MODE  (logical production order) ── */
-#db-grid.mode-default .tile-writer    { grid-column:span 8; min-height:178px; order:1; }
-#db-grid.mode-default .tile-coverage  { grid-column:span 4; min-height:178px; order:2; }
-#db-grid.mode-default .tile-pitch     { grid-column:span 4; min-height:138px; order:3; }
-#db-grid.mode-default .tile-storyboard{ grid-column:span 4; min-height:138px; order:4; }
-#db-grid.mode-default .tile-budget    { grid-column:span 4; min-height:138px; order:5; }
-#db-grid.mode-default .tile-scripts   { grid-column:span 3; min-height:100px; order:6; }
-#db-grid.mode-default .tile-filmdb    { grid-column:span 3; min-height:100px; order:7; }
-#db-grid.mode-default .tile-outreach  { grid-column:span 3; min-height:100px; order:8; }
-#db-grid.mode-default .tile-shotlist  { grid-column:span 3; min-height:100px; order:9; }
+/* 3 implicit rows: hero(2fr) · standard(1.5fr) · compact(1fr) via align-content:stretch */
+#db-grid.mode-default .tile-writer    { grid-column:span 8; order:1; }
+#db-grid.mode-default .tile-coverage  { grid-column:span 4; order:2; }
+#db-grid.mode-default .tile-pitch     { grid-column:span 4; order:3; }
+#db-grid.mode-default .tile-storyboard{ grid-column:span 4; order:4; }
+#db-grid.mode-default .tile-budget    { grid-column:span 4; order:5; }
+#db-grid.mode-default .tile-scripts   { grid-column:span 3; order:6; }
+#db-grid.mode-default .tile-filmdb    { grid-column:span 3; order:7; }
+#db-grid.mode-default .tile-outreach  { grid-column:span 3; order:8; }
+#db-grid.mode-default .tile-shotlist  { grid-column:span 3; order:9; }
+
+/* Explicit row heights for default: 3 rows */
+#db-grid.mode-default{ grid-template-rows:2fr 1.5fr 1fr; }
 
 /* ── ADVANCED MODE  (pitch · budget · storyboard priority) ── */
-#db-grid.mode-advanced .tile-pitch     { grid-column:span 6; min-height:184px; order:1; }
-#db-grid.mode-advanced .tile-budget    { grid-column:span 6; min-height:184px; order:2; }
-#db-grid.mode-advanced .tile-storyboard{ grid-column:span 12; min-height:158px; order:3; }
-#db-grid.mode-advanced .tile-writer    { grid-column:span 6; min-height:138px; order:4; }
-#db-grid.mode-advanced .tile-coverage  { grid-column:span 6; min-height:138px; order:5; }
-#db-grid.mode-advanced .tile-scripts   { grid-column:span 3; min-height:100px; order:6; }
-#db-grid.mode-advanced .tile-filmdb    { grid-column:span 3; min-height:100px; order:7; }
-#db-grid.mode-advanced .tile-outreach  { grid-column:span 3; min-height:100px; order:8; }
-#db-grid.mode-advanced .tile-shotlist  { grid-column:span 3; min-height:100px; order:9; }
+/* 4 implicit rows */
+#db-grid.mode-advanced .tile-pitch     { grid-column:span 6; order:1; }
+#db-grid.mode-advanced .tile-budget    { grid-column:span 6; order:2; }
+#db-grid.mode-advanced .tile-storyboard{ grid-column:span 12; order:3; }
+#db-grid.mode-advanced .tile-writer    { grid-column:span 6; order:4; }
+#db-grid.mode-advanced .tile-coverage  { grid-column:span 6; order:5; }
+#db-grid.mode-advanced .tile-scripts   { grid-column:span 3; order:6; }
+#db-grid.mode-advanced .tile-filmdb    { grid-column:span 3; order:7; }
+#db-grid.mode-advanced .tile-outreach  { grid-column:span 3; order:8; }
+#db-grid.mode-advanced .tile-shotlist  { grid-column:span 3; order:9; }
 
-/* ── Scale icons + text up for hero tiles in each mode ── */
+/* Explicit row heights for advanced: 4 rows */
+#db-grid.mode-advanced{ grid-template-rows:1.8fr 1.1fr 1.5fr 1fr; }
+
+/* ── Scale icons + text for hero tiles ── */
 #db-grid.mode-default .tile-writer .micon,
-#db-grid.mode-default .tile-coverage .micon { font-size:2.6rem; }
+#db-grid.mode-default .tile-coverage .micon { font-size:2.4rem; }
 #db-grid.mode-default .tile-writer .mtit,
 #db-grid.mode-default .tile-coverage .mtit  { font-size:17px; }
-#db-grid.mode-default .tile-writer .msub,
-#db-grid.mode-default .tile-coverage .msub  { font-size:11px; }
 
 #db-grid.mode-advanced .tile-pitch .micon,
-#db-grid.mode-advanced .tile-budget .micon  { font-size:2.6rem; }
+#db-grid.mode-advanced .tile-budget .micon  { font-size:2.4rem; }
 #db-grid.mode-advanced .tile-pitch .mtit,
 #db-grid.mode-advanced .tile-budget .mtit   { font-size:17px; }
-#db-grid.mode-advanced .tile-pitch .msub,
-#db-grid.mode-advanced .tile-budget .msub   { font-size:11px; }
-#db-grid.mode-advanced .tile-storyboard .micon { font-size:2rem; }
-#db-grid.mode-advanced .tile-storyboard .mtit  { font-size:16px; }
+#db-grid.mode-advanced .tile-storyboard .micon { font-size:1.8rem; }
+#db-grid.mode-advanced .tile-storyboard .mtit  { font-size:15px; }
 
-/* ── Compact tile overrides (small support tools) ── */
+/* ── Compact tile scaling ── */
 #db-grid .tile-scripts .micon,
 #db-grid .tile-filmdb .micon,
 #db-grid .tile-outreach .micon,
-#db-grid .tile-shotlist .micon { font-size:1.35rem; margin-bottom:4px; }
+#db-grid .tile-shotlist .micon { font-size:1.25rem; margin-bottom:3px; }
 #db-grid .tile-scripts .mtit,
 #db-grid .tile-filmdb .mtit,
 #db-grid .tile-outreach .mtit,
-#db-grid .tile-shotlist .mtit  { font-size:11.5px; }
+#db-grid .tile-shotlist .mtit  { font-size:11px; }
 #db-grid .tile-scripts .msub,
 #db-grid .tile-filmdb .msub,
 #db-grid .tile-outreach .msub,
-#db-grid .tile-shotlist .msub  { font-size:8.5px; }
+#db-grid .tile-shotlist .msub  { font-size:8px; }
 
 /* ── Mode toggle pill ── */
 .db-mode-toggle{
@@ -851,16 +945,30 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 .db-mode-toggle button.dbt-on{ background:#131C2C; color:#A3E635; }
 .db-mode-toggle .dbt-sep{ width:1px; background:#1C2840; align-self:stretch; }
 
-/* ── Mobile: 2-column fallback, all tiles equal ── */
+/* ── Bridge icon buttons (header row) ── */
+.db-bridge-btn{
+  display:inline-flex; align-items:center; gap:5px;
+  padding:5px 10px; border-radius:6px; cursor:pointer; border:1px solid;
+  font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+  font-family:'IBM Plex Mono',monospace; text-decoration:none;
+  transition:background .15s, color .15s; flex-shrink:0;
+}
+
+/* ── Mobile: 2-col scroll fallback ── */
 @media(max-width:640px){
-  #db-grid{ grid-template-columns:repeat(2,1fr); gap:8px; }
-  #db-grid [class*=" tile-"],
-  #db-grid [class^="mtile tile-"]{
-    grid-column:span 1!important;
-    min-height:110px!important;
+  #v-dashboard{ overflow-y:auto!important; }
+  #v-dashboard > .max-w-6xl{ height:auto; padding:12px 14px 20px; }
+  #db-grid{
+    grid-template-columns:repeat(2,1fr)!important;
+    grid-template-rows:none!important;
+    align-content:start; gap:8px; flex:none;
+  }
+  #db-grid .mtile{
+    grid-column:span 1!important; min-height:110px!important;
     order:unset!important;
   }
   .db-mode-toggle{ display:none; }
+  .db-bridge-btn span{ display:none; }
 }
 </style>
 </head>
@@ -1014,16 +1122,22 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       <h1 class="text-2xl md:text-3xl font-black text-white tracking-widest uppercase" style="font-family:var(--fds)">Pre-Production Hub</h1>
       <p class="text-gray-400 text-xs sm:text-sm mt-1">Screenplay authoring · Heuristic evaluation · Pitch decks · Visual storyboards · Macro budgeting · Script analysis · Film research · Outreach</p>
     </div>
-    <div class="flex items-center gap-3 flex-wrap justify-end">
+    <div class="flex items-center gap-2 flex-wrap justify-end">
       <div class="db-mode-toggle" id="db-toggle">
         <button id="dbt-default" class="dbt-on" onclick="dbSetMode('default')">Default</button>
         <span class="dbt-sep"></span>
         <button id="dbt-advanced" onclick="dbSetMode('advanced')">Advanced</button>
       </div>
-      <label class="cursor-pointer bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-4 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2">
-        <i class="fa-solid fa-file-import text-amber-400"></i> Import PDF / Script
+      <label class="cursor-pointer db-bridge-btn" style="background:rgba(20,28,44,.7);color:#8794A6;border-color:#26344E;">
+        <i class="fa-solid fa-file-import text-amber-400"></i><span>Import</span>
         <input type="file" class="hidden" accept=".pdf,.txt,.fountain,.fdx,.json" onchange="directImport(event)">
       </label>
+      <button onclick="txProHub()" class="db-bridge-btn" style="background:rgba(163,70,15,.15);color:#E07060;border-color:#7B2D24;">
+        <i class="fa-solid fa-rocket"></i><span>Transmit</span>
+      </button>
+      <a href="prohub.html" class="db-bridge-btn" style="background:rgba(212,160,52,.1);color:#D4A034;border-color:#92400E;">
+        <i class="fa-solid fa-clapperboard"></i><span>proHUB</span>
+      </a>
     </div>
   </div>
   <div id="db-grid" class="mode-default">
@@ -1074,14 +1188,6 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       <div class="micon"><i class="fa-solid fa-list-ol"></i></div>
       <div><div class="mtit">9. Shot List</div><div class="msub">Setups · Types · Thumbnails · Status</div></div>
     </div>
-  </div>
-  <div class="mt-4 flex gap-3 justify-center flex-wrap">
-    <button onclick="txProHub()" class="text-xs font-bold tracking-wider uppercase px-5 py-2 rounded-lg border transition" style="background:rgba(192,57,43,.12);color:#E07060;border-color:#7B2D24;">
-      <i class="fa-solid fa-rocket mr-2"></i>Transmit to proHUB — Bridge Manifests &amp; Scene Units
-    </button>
-    <a href="prohub.html" class="text-xs font-bold tracking-wider uppercase px-5 py-2 rounded-lg border transition flex items-center gap-2" style="background:rgba(212,160,52,.1);color:#D4A034;border-color:#92400E;text-decoration:none;">
-      <i class="fa-solid fa-clapperboard"></i>Open proHUB — Production Command Center
-    </a>
   </div>
 </div>
 </section>
@@ -1426,7 +1532,17 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 
     <!-- PRIMARY SCREENPLAY WRITING CANVAS DESK VIEWPORT -->
     <div class="flex-1 bg-[#090D16] overflow-y-auto custom-scroll flex flex-col items-center pt-8 pb-24 px-4 relative" id="editor-scroller-viewport">
-      
+
+      <!-- CANVAS CHROME: file system left · save right (always visible) -->
+      <div id="scribe-canvas-chrome">
+        <button class="sc-chrome-btn" title="File system" onclick="(function(){var m=document.getElementById('ui-ingest-modal-overlay');if(m){m.classList.toggle('hidden');}else{var b=document.getElementById('menu-file-universal-ingest');if(b)b.click();}})()">
+          <i class="fa-solid fa-folder-open"></i>
+        </button>
+        <button class="sc-chrome-btn sc-save" title="Save / Export" onclick="(function(){var b=document.getElementById('menu-file-quick-pdf');if(b)b.click();else if(window.ScribeEngine&&ScribeEngine.exportPDF)ScribeEngine.exportPDF();})()">
+          <i class="fa-solid fa-floppy-disk"></i>
+        </button>
+      </div>
+
       <!-- TITLE PAGE LAYER COMPONENT (TOGGLEABLE VIA FILE MENU) -->
       <div id="screenplay-title-page-view" class="hidden paper-sheet-container justify-between shrink-0 select-text mb-12">
         <div class="w-full text-center mt-[2.0in] space-y-6">
@@ -1448,7 +1564,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       </div>
 
       <!-- MAIN CONTINUOUS PRODUCTION WORKING PAPER CONTAINER (8.5" X 11" STANDARD) -->
-      <div id="screenplay-paper-sheet" class="paper-sheet-container justify-between h-fit">
+      <div id="screenplay-paper-sheet" class="paper-sheet-container justify-between h-fit" data-pg="1">
         <div class="w-full flex-1">
           <!-- Dynamic Core Screenplay Editing Line Stack Node Deck -->
           <div id="script-editable-node-rows-stack" class="w-full overflow-hidden">
