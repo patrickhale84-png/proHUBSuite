@@ -1938,6 +1938,14 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 /* bar buttons carry their own label on phones */
 #mob-kbd-bar button{flex-direction:column;gap:1px;}
 #mob-kbd-bar .mkb-lbl{font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.1em;color:#8794A6;}
+
+/* phone-only tile home button; desktop never shows it */
+#mob-tiles-btn{display:none;}
+@media (max-width:768px){
+  #mob-tiles-btn{display:flex!important;position:fixed;right:12px;bottom:14px;z-index:450;align-items:center;gap:6px;
+    padding:9px 14px;background:#0B0F19;border:1px solid #00ABA9;color:#00ABA9;font-family:'IBM Plex Mono',monospace;
+    font-size:11px;font-weight:700;letter-spacing:.12em;cursor:pointer;}
+}
 </style>
 
 <!-- Studio Header -->
@@ -6409,5 +6417,6 @@ function hubGo(page, ev){
   }, {passive:true});
 })();
 </script>
+<button id="mob-tiles-btn" onclick="sw('dashboard')" aria-label="Tiles"><i class="fa-solid fa-border-all"></i><span>TILES</span></button>
 </body>
 </html>

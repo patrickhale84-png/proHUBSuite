@@ -240,6 +240,14 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
   repeating-linear-gradient(to bottom,transparent 0 23px,rgba(255,255,255,.075) 23px 24px);background-attachment:local;}
 .script-page .mtile{box-shadow:none!important;}
 @media (max-width:480px){.mbadge{display:none!important;}}
+
+/* phone-only tile home button; desktop never shows it */
+#mob-tiles-btn{display:none;}
+@media (max-width:768px){
+  #mob-tiles-btn{display:flex!important;position:fixed;right:12px;bottom:14px;z-index:450;align-items:center;gap:6px;
+    padding:9px 14px;background:#0B0F19;border:1px solid #7137C8;color:#7137C8;font-family:'IBM Plex Mono',monospace;
+    font-size:11px;font-weight:700;letter-spacing:.12em;cursor:pointer;}
+}
 </style>
 </head>
 <body>
@@ -1770,6 +1778,13 @@ function hubGo(page, ev){
   if(emb){ try { window.top.location.href = u; return; } catch(e) {} }
   try { location.href = u; } catch(e) {}
 }
+</script>
+<button id="mob-tiles-btn" onclick="document.getElementById('btnLaunchpad').click()" aria-label="Tiles"><i class="fa-solid fa-border-all"></i><span>TILES</span></button>
+<script>
+/* Phone: start on the tile home. Desktop keeps the editor as its first screen. */
+(function(){
+  if(window.innerWidth<=768){ var b=document.getElementById('btnLaunchpad'); if(b) b.click(); }
+})();
 </script>
 </body>
 </html>
