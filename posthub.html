@@ -133,10 +133,13 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
 .launchpad-modal { position: fixed; inset: 0; background: rgba(3,5,10,0.96); backdrop-filter: blur(8px); z-index: 1000; display: none; overflow-y: auto; padding: 20px 14px; }
 .launchpad-modal.on { display: block; }
 .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 16px; max-width: 1200px; margin: 20px auto 40px; }
-/* postHUB shades — three values from filmHUB's purple colour (('#7137C8', '#5A2AA6')) */
-.mtile.sh-1{background:linear-gradient(145deg,#4A1F8C,#33146A);}
-.mtile.sh-2{background:linear-gradient(145deg,#7137C8,#5A2AA6);}
-.mtile.sh-3{background:linear-gradient(145deg,#9B6BE8,#7137C8);}
+/* Tile palette — deep base, hub anchor on the hero tile, complement bar on every tile */
+#tilesMount{--hb:#2A1656;--ha:#7137C8;--hc:#5E8A2A;--hk:#FFFFFF;}
+.mtile{background:var(--hb)!important;}
+.mtile.hero{background:var(--ha)!important;}
+.mtile.hero .mtit,.mtile.hero .msub,.mtile.hero .micon,.mtile.hero .mbadge{color:var(--hk)!important;}
+.mtile.hero .mbadge{background:rgba(0,0,0,.14);}
+.mtile::after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background:var(--hc);}
 /* Shared tile spec — identical across preHUB, proHUB, postHUB */
 .mtile { border-radius: 6px; padding: 20px 18px 18px; cursor: pointer; transition: transform .15s, box-shadow .15s; display: flex; flex-direction: column; justify-content: space-between; min-height: 130px; position: relative; overflow: hidden; user-select: none; color: #fff; }
 .mtile:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 18px 40px rgba(0,0,0,.55); }
@@ -387,6 +390,7 @@ var ACTIVE_TOOL = 'select'; // 'select' | 'razor' | 'trim'
 var SNAPPING = true;
 var PLAY_FRAME = 0;
 var SHUTTLE_SPEED = 0; // -4, -2, -1, 0, 1, 2, 4
+var PLAYING = false;
 var ACTIVE_SRC_CLIP = null;
 var AUDIO_CTX = null;
 
@@ -1200,7 +1204,7 @@ var TILES_DEF = [
 
 function mountLaunchpad(){
   $('#tilesMount').innerHTML = TILES_DEF.map(function(t, i){
-    return '<div class="mtile sh-' + ((i % 3) + 1) + '" data-tid="'+t.id+'">' +
+    return '<div class="mtile' + (t.id === 'suite' ? ' hero' : '') + '" data-tid="'+t.id+'">' +
       '<div class="mbadge">'+t.tag+'</div>' +
       '<div class="micon"><i class="'+t.icon+'"></i></div>' +
       '<div><div class="mtit">'+t.title+'</div><div class="msub">'+t.sub+'</div></div></div>';
