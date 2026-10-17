@@ -413,6 +413,41 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
   .cs-cast-row,.cs-cast-head{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 70px 70px auto;}
   .cs-cast-row>*:nth-child(5),.cs-cast-head>*:nth-child(5){display:none;}
 }
+
+/* Dailies log */
+.dl-root{display:none;flex-direction:column;min-height:0;}
+.dl-root.ac{display:flex;}
+.dl-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #1F2A42;background:#0B0F19;}
+.dl-title{font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#E6ECF5;font-size:13px;display:flex;align-items:center;gap:8px;flex:1;min-width:0;}
+.dl-title i{color:#E11D48;}
+.dl-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.dl-btn{background:#131B2E;border:1px solid #1F2A42;color:#E6ECF5;border-radius:8px;padding:6px 10px;font-size:11px;cursor:pointer;}
+.dl-btn.armed{background:#7F1D1D;border-color:#EF4444;}
+.dl-status{padding:6px 16px;font-size:11px;color:#7E8FA6;font-family:'IBM Plex Mono',monospace;}
+.dl-body{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding:12px 16px 24px;overflow-y:auto;flex:1;min-height:0;}
+.dl-card{background:#0E1320;border:1px solid #1F2A42;border-radius:12px;padding:12px;min-width:0;}
+.dl-card h3{margin:0 0 10px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#7E8FA6;}
+.dl-sum{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
+.dl-sum div{background:#0B0F19;border:1px solid #1F2A42;border-radius:8px;padding:8px 10px;font-size:11px;color:#9CA3AF;min-width:0;}
+.dl-sum b{display:block;font-size:14px;color:#E6ECF5;margin-bottom:2px;}
+.dl-sum .circ{color:#FBBF24;}
+.dl-head,.dl-row{display:grid;gap:6px;align-items:center;}
+.dl-cols{grid-template-columns:minmax(0,.8fr) minmax(0,.8fr) 60px 60px minmax(0,1fr) minmax(0,1.6fr) 44px 44px;}
+.dl-head{font-size:9.5px;color:#64748B;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;}
+.dl-row{margin-bottom:6px;}
+.dl-row input,.dl-card textarea{background:#0B0F19;border:1px solid #1F2A42;border-radius:6px;color:#E6ECF5;padding:6px 8px;font-size:12px;font-family:inherit;min-width:0;width:100%;box-sizing:border-box;}
+.dl-card textarea{min-height:56px;resize:vertical;}
+.dl-row.circled{border-left:3px solid #FBBF24;padding-left:4px;}
+.dl-circle,.dl-x{background:#131B2E;border:1px solid #1F2A42;color:#9CA3AF;border-radius:6px;padding:5px 0;cursor:pointer;font-size:12px;}
+.dl-circle.on{color:#FBBF24;border-color:#FBBF24;}
+.dl-x{color:#F87171;border-color:#3B2230;}
+.dl-notes-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:8px;margin-bottom:8px;align-items:start;}
+.dl-notes-row label{font-size:11px;color:#9CA3AF;font-family:'IBM Plex Mono',monospace;padding-top:6px;overflow-wrap:anywhere;}
+@media (max-width:768px){
+  .dl-cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 54px 54px minmax(0,1fr) 44px 44px;}
+  .dl-cols>*:nth-child(6){display:none;}
+  .dl-notes-row{grid-template-columns:minmax(0,1fr);}
+}
 </style>
 </head>
 <body>
@@ -646,11 +681,22 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
   </div>
 </section>
 
-<!-- DAILIES LOG VIEW (placeholder) -->
-<section id="v-dailies" class="vs" style="background:#08090F;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--mu);">
-  <i class="fa-solid fa-film text-4xl" style="color:#E11D48;opacity:.4;"></i>
-  <div style="font-size:13px;font-weight:700;">Dailies Log</div>
-  <div style="font-size:11px;max-width:280px;text-align:center;">Log takes, mark circle takes, add camera notes per setup. Coming in next release.</div>
+<!-- DAILIES LOG VIEW: take log with circle takes and camera notes per setup -->
+<section id="v-dailies" class="vs dl-root" style="background:#08090F;">
+  <div class="dl-top">
+    <div class="dl-title"><i class="fa-solid fa-film"></i> Dailies Log</div>
+    <div class="dl-actions">
+      <button class="dl-btn" data-act="add">+ Take</button>
+      <button class="dl-btn" data-act="csv">Export CSV</button>
+      <button class="dl-btn" data-act="clear" id="dl-clear">Clear log</button>
+    </div>
+  </div>
+  <div class="dl-status" id="dl-status"></div>
+  <div class="dl-body">
+    <div class="dl-card dl-wide" id="dl-summary"></div>
+    <div class="dl-card dl-wide" id="dl-takes"></div>
+    <div class="dl-card dl-wide" id="dl-notes"></div>
+  </div>
 </section>
 
 </main>
@@ -737,6 +783,7 @@ function sw(id){
   currentView=id;
   if(id==='shotlist')slRender();
   if(id==='callsheet'&&window.csRender)window.csRender();
+  if(id==='dailies'&&window.dlRender)window.dlRender();
   if(id==='oneliner')olRender();
   if(id==='masterscript')msRender();
   if(id==='dashboard')updateStats();
@@ -1352,6 +1399,93 @@ function hubGo(page, ev){
   });
   window.csRender=function(){ render(); setStatus(summary()); };
   csRender();
+})();
+</script>
+<script>
+/* Dailies log: takes per scene and setup, circle takes, camera notes per setup, CSV export */
+(function(){
+  var KEY='prohub_dailies_v1';
+  function load(){ try{ var r=JSON.parse(localStorage.getItem(KEY)||'null'); if(r&&r.takes) return r; }catch(e){} return {takes:[],setupNotes:{}}; }
+  var DL=load(), armed=false;
+  function save(){ try{ localStorage.setItem(KEY,JSON.stringify(DL)); return true; }catch(e){ return false; } }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function $(id){ return document.getElementById(id); }
+  function key(t){ return (t.scene||'').trim()+'|'+(t.setup||'').trim(); }
+  function nextTake(scene,setup){
+    var n=0; DL.takes.forEach(function(t){ if(key(t)===scene+'|'+setup) n=Math.max(n,+t.take||0); });
+    return n+1;
+  }
+  function summary(){
+    var groups={};
+    DL.takes.forEach(function(t){ var k=key(t); if(!k||k==='|') return; (groups[k]=groups[k]||{takes:0,circled:[],cams:{}}); var g=groups[k]; g.takes++; if(t.circled) g.circled.push(t.take); if(t.cam) g.cams[t.cam]=1; });
+    var keys=Object.keys(groups);
+    var html=keys.length? keys.map(function(k){ var g=groups[k], p=k.split('|');
+      return '<div><b>Scene '+esc(p[0]||'-')+' · Setup '+esc(p[1]||'-')+'</b>'+g.takes+' takes · <span class="circ">'+(g.circled.length?'circled '+g.circled.join(', '):'none circled')+'</span><br>cams '+esc(Object.keys(g.cams).join(' ')||'-')+'</div>';
+    }).join('') : '<div>No takes yet. Press "+ Take" to log the first one.</div>';
+    $('dl-summary').innerHTML='<h3>Summary</h3><div class="dl-sum">'+html+'</div>';
+  }
+  function takes(){
+    var head='<div class="dl-head dl-cols"><span>Scene</span><span>Setup</span><span>Take</span><span>Cam</span><span>Timecode</span><span>Notes</span><span>Circle</span><span></span></div>';
+    var rows=DL.takes.map(function(t,i){
+      return '<div class="dl-row dl-cols'+(t.circled?' circled':'')+'">'+
+        '<input data-i="'+i+'" data-f="scene" value="'+esc(t.scene)+'" placeholder="Scene">'+
+        '<input data-i="'+i+'" data-f="setup" value="'+esc(t.setup)+'" placeholder="Setup">'+
+        '<input data-i="'+i+'" data-f="take" type="number" min="1" value="'+esc(t.take)+'">'+
+        '<input data-i="'+i+'" data-f="cam" value="'+esc(t.cam)+'" placeholder="A">'+
+        '<input data-i="'+i+'" data-f="tc" value="'+esc(t.tc)+'" placeholder="00:00:00">'+
+        '<input data-i="'+i+'" data-f="notes" value="'+esc(t.notes)+'" placeholder="Performance, sound, issues">'+
+        '<button class="dl-circle'+(t.circled?' on':'')+'" data-act="circle" data-i="'+i+'" aria-label="Circle take">'+(t.circled?'◉':'○')+'</button>'+
+        '<button class="dl-x" data-act="del" data-i="'+i+'">×</button></div>';
+    }).join('');
+    $('dl-takes').innerHTML='<h3>Take log ('+DL.takes.length+')</h3>'+(DL.takes.length?head+rows:'<div style="font-size:12px;color:#7E8FA6;">Nothing logged.</div>');
+  }
+  function notes(){
+    var setups={};
+    DL.takes.forEach(function(t){ var k=key(t); if(k&&k!=='|') setups[k]=1; });
+    Object.keys(DL.setupNotes).forEach(function(k){ setups[k]=1; });
+    var keys=Object.keys(setups);
+    var rows=keys.length? keys.map(function(k){ var p=k.split('|');
+      return '<div class="dl-notes-row"><label>Scene '+esc(p[0]||'-')+' · Setup '+esc(p[1]||'-')+'</label><textarea data-setup="'+esc(k)+'" placeholder="Camera notes for this setup: lens, movement, focus, lighting changes">'+esc(DL.setupNotes[k]||'')+'</textarea></div>';
+    }).join('') : '<div style="font-size:12px;color:#7E8FA6;">Camera notes appear here once takes are logged.</div>';
+    $('dl-notes').innerHTML='<h3>Camera notes per setup</h3>'+rows;
+  }
+  function render(){ summary(); takes(); notes(); $('dl-clear').textContent=armed?'Tap again to clear':'Clear log'; $('dl-clear').classList.toggle('armed',armed); }
+  function status(t){ var el=$('dl-status'); if(el) el.textContent=t; }
+  function csvCell(v){ v=String(v==null?'':v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+  function exportCsv(){
+    var cols=['scene','setup','take','cam','tc','circled','notes'];
+    var lines=[cols.join(',')].concat(DL.takes.map(function(t){ return cols.map(function(c){ return csvCell(c==='circled'?(t.circled?'yes':''):t[c]); }).join(','); }));
+    var blob=new Blob([lines.join('\n')],{type:'text/csv'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='dailies.csv';
+    document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500);
+    status('Exported '+DL.takes.length+' takes');
+  }
+  var root=$('v-dailies');
+  root.addEventListener('input',function(e){
+    var t=e.target;
+    if(t.getAttribute('data-setup')){ DL.setupNotes[t.getAttribute('data-setup')]=t.value; save(); return; }
+    if(t.getAttribute('data-i')!==null && t.getAttribute('data-f')){
+      var row=DL.takes[+t.getAttribute('data-i')]; row[t.getAttribute('data-f')]=t.value;
+      if(t.getAttribute('data-f')==='scene'||t.getAttribute('data-f')==='setup') { save(); summary(); notes(); return; }
+      save(); summary(); status('Saved');
+    }
+  });
+  root.addEventListener('click',function(e){
+    var t=e.target.closest('[data-act]'); if(!t) return;
+    var act=t.getAttribute('data-act');
+    if(act!=='clear') armed=false;
+    if(act==='add'){
+      var last=DL.takes[DL.takes.length-1]||{};
+      var scene=last.scene||'', setup=last.setup||'', cam=last.cam||'A';
+      DL.takes.push({scene:scene,setup:setup,take:nextTake(scene,setup),cam:cam,tc:'',circled:false,notes:''});
+      save(); render(); status('Take added');
+    } else if(act==='circle'){ var i=+t.getAttribute('data-i'); DL.takes[i].circled=!DL.takes[i].circled; save(); render(); }
+    else if(act==='del'){ DL.takes.splice(+t.getAttribute('data-i'),1); save(); render(); }
+    else if(act==='csv'){ exportCsv(); }
+    else if(act==='clear'){ if(!DL.takes.length) return; if(!armed){ armed=true; render(); return; } armed=false; DL.takes=[]; DL.setupNotes={}; save(); render(); status('Log cleared'); }
+  });
+  window.dlRender=function(){ render(); };
+  render();
 })();
 </script>
 </body>
