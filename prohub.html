@@ -301,6 +301,22 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
   .mt-rz{top:8px!important;bottom:auto!important;right:8px!important;}
 }
 @media (max-width:768px){ .tile-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;} }
+
+/* ---- bright per-tile palette and white type, matching the reference screens ---- */
+.mtile{background:linear-gradient(135deg,var(--t1,#3A6EA5),var(--t2,#2A5080))!important;border:none!important;
+  border-radius:12px!important;box-shadow:0 8px 20px rgba(0,0,0,.35)!important;}
+.mtile:hover{transform:translateY(-2px)!important;box-shadow:0 12px 26px rgba(0,0,0,.45)!important;}
+.mtile.hero{background:linear-gradient(135deg,var(--t1,#3A6EA5),var(--t2,#2A5080))!important;}
+.mtile::after{display:none!important;}
+.mtile .mtit,.mtile .msub,.mtile .micon,.mtile.hero .mtit,.mtile.hero .msub,.mtile.hero .micon{color:#fff!important;}
+.mtile .msub{opacity:.85;}
+.mtile .mbadge{background:rgba(0,0,0,.28)!important;color:#fff!important;border:none!important;}
+.tile-grid .mtile:nth-child(1){--t1:#D9822F;--t2:#B5612A;}
+.tile-grid .mtile:nth-child(2){--t1:#3E7FB6;--t2:#2F6596;}
+.tile-grid .mtile:nth-child(3){--t1:#6A3FC4;--t2:#522E9E;}
+.tile-grid .mtile:nth-child(4){--t1:#3F9A72;--t2:#2F7A5C;}
+.tile-grid .mtile:nth-child(5){--t1:#C9394E;--t2:#A62A3C;}
+.tile-grid .mtile:nth-child(6){--t1:#2C3354;--t2:#1E2440;}
 </style>
 </head>
 <body>

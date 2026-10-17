@@ -250,6 +250,22 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
   .mt-rz{top:8px!important;bottom:auto!important;right:8px!important;}
 }
 @media (max-width:768px){ #tilesMount{grid-template-columns:repeat(2,minmax(0,1fr))!important;} }
+
+/* ---- bright per-tile palette and white type, matching the reference screens ---- */
+.mtile{background:linear-gradient(135deg,var(--t1,#3A6EA5),var(--t2,#2A5080))!important;border:none!important;
+  border-radius:12px!important;box-shadow:0 8px 20px rgba(0,0,0,.35)!important;}
+.mtile:hover{transform:translateY(-2px)!important;box-shadow:0 12px 26px rgba(0,0,0,.45)!important;}
+.mtile.hero{background:linear-gradient(135deg,var(--t1,#3A6EA5),var(--t2,#2A5080))!important;}
+.mtile::after{display:none!important;}
+.mtile .mtit,.mtile .msub,.mtile .micon,.mtile.hero .mtit,.mtile.hero .msub,.mtile.hero .micon{color:#fff!important;}
+.mtile .msub{opacity:.85;}
+.mtile .mbadge{background:rgba(0,0,0,.28)!important;color:#fff!important;border:none!important;}
+#tilesMount .mtile:nth-child(1){--t1:#7137C8;--t2:#5A2AA6;}
+#tilesMount .mtile:nth-child(2){--t1:#00ABA9;--t2:#008C8A;}
+#tilesMount .mtile:nth-child(3){--t1:#1BA1E2;--t2:#1583BA;}
+#tilesMount .mtile:nth-child(4){--t1:#E5A93C;--t2:#C48A2A;}
+#tilesMount .mtile:nth-child(5){--t1:#88C13F;--t2:#6FA22E;}
+#tilesMount .mtile:nth-child(6){--t1:#B07CE8;--t2:#8E5BCB;}
 </style>
 </head>
 <body>
