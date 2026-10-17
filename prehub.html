@@ -6615,7 +6615,7 @@ function hubGo(page, ev){
 
 <div id="m-bar"><button class="mb-btn" id="mb-menu" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
   <div class="mb-title">preHUB</div><button class="mb-btn mb-save" id="mb-title" aria-label="Title page">Title</button><button class="mb-btn mb-save" id="mb-save" aria-label="Save">Save</button></div>
-<div id="m-composer"><button class="mc-pill" id="mc-pill">Add a note…</button><button class="mc-plus" id="mc-plus" aria-label="Options">+</button></div>
+<div id="m-composer"><button class="mc-pill" id="mc-pill">Write a line…</button><button class="mc-plus" id="mc-plus" aria-label="Options">+</button></div>
 <div id="m-scrim"></div>
 <div id="m-sheet" role="dialog" aria-modal="true"></div>
 <script>
@@ -6644,6 +6644,7 @@ function hubGo(page, ev){
     s.innerHTML='<div class="ms-grip"></div><div class="ms-title">Add a note</div><textarea id="mt-text" placeholder="Write a note…"></textarea><button class="ms-save" id="mt-save">Save note</button>';
     document.getElementById('mt-save').onclick=function(){
       var t=(document.getElementById('mt-text').value||'').trim(); if(!t) return;
+      if(typeof window.__sendScriptLine==='function' && window.__sendScriptLine(t)){ sheet(false); return; }
       var list=[]; try{ list=JSON.parse(localStorage.getItem(NOTES_KEY))||[]; }catch(e){}
       list.unshift({text:t,at:Date.now()}); try{ localStorage.setItem(NOTES_KEY,JSON.stringify(list)); }catch(e){}
       sheet(false); if(typeof toast==='function') toast('Note saved');
@@ -6660,6 +6661,26 @@ function hubGo(page, ev){
   new MutationObserver(syncInside).observe(document.body,{attributes:true,subtree:true,attributeFilter:['class']});
   syncInside();
 })();
+</script>
+<script>
+/* phone composer: send a line into the script, like sending a message */
+window.__sendScriptLine = function(text){
+  var rows=document.getElementById('script-editable-node-rows-stack'); if(!rows) return false;
+  var boxes=rows.querySelectorAll('.line-editable-box'); var last=boxes[boxes.length-1]; if(!last) return false;
+  if(last.textContent.trim()){
+    last.focus();
+    var r0=document.createRange(); r0.selectNodeContents(last); r0.collapse(false);
+    var s0=window.getSelection(); s0.removeAllRanges(); s0.addRange(r0);
+    last.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',code:'Enter',keyCode:13,bubbles:true,cancelable:true}));
+    boxes=rows.querySelectorAll('.line-editable-box'); last=boxes[boxes.length-1]; if(!last) return false;
+  }
+  last.focus();
+  var r=document.createRange(); r.selectNodeContents(last); r.collapse(false);
+  var sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+  document.execCommand('insertText', false, text);
+  last.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',code:'Enter',keyCode:13,bubbles:true,cancelable:true}));
+  return true;
+};
 </script>
 </body>
 </html>
