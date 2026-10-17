@@ -1946,6 +1946,26 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
     padding:9px 14px;background:#0B0F19;border:1px solid #00ABA9;color:#00ABA9;font-family:'IBM Plex Mono',monospace;
     font-size:11px;font-weight:700;letter-spacing:.12em;cursor:pointer;}
 }
+
+/* phone: bright tiles, same typeface as desktop, resizable width via the handle */
+.mt-rz{display:none;}
+@media (max-width:768px){
+  .mtile{background:var(--ha)!important;}
+  .mtile.hero{background:var(--hc)!important;}
+  .mtile .mtit,.mtile .msub,.mtile .micon,.mtile .mbadge{color:var(--hk)!important;}
+  .mtile::after{background:var(--hc)!important;}
+  .mt-rz{display:flex!important;position:absolute;right:6px;bottom:8px;z-index:3;width:30px;height:30px;
+    align-items:center;justify-content:center;padding:0;background:rgba(0,0,0,.28);border:1px solid var(--hk);
+    color:var(--hk);font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px;font-weight:700;line-height:1;cursor:pointer;}
+  .mtile.mt-wide{grid-column:span 2!important;}
+}
+
+@media (max-width:768px){
+  .mtile{grid-column:auto!important;min-width:0;}
+  .mtile.mt-wide{grid-column:1 / -1!important;}
+  .mt-rz{top:8px!important;bottom:auto!important;right:8px!important;}
+}
+@media (max-width:768px){ #db-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;} }
 </style>
 
 <!-- Studio Header -->
@@ -6418,5 +6438,32 @@ function hubGo(page, ev){
 })();
 </script>
 <button id="mob-tiles-btn" onclick="sw('dashboard')" aria-label="Tiles"><i class="fa-solid fa-border-all"></i><span>TILES</span></button>
+<script>
+/* phone: each tile gets a resize handle that toggles it between half and full width */
+(function(){
+  var KEY='prehub_tiles_v1', SEL='#db-grid';
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } }
+  function save(o){ try{ localStorage.setItem(KEY, JSON.stringify(o)); }catch(e){} }
+  function decorate(){
+    var saved=load();
+    document.querySelectorAll(SEL+' .mtile').forEach(function(t){
+      if(t.dataset.rzDone) return;
+      t.dataset.rzDone='1';
+      var key=((t.querySelector('.mtit')||{}).textContent||'').trim();
+      var h=document.createElement('button');
+      h.type='button'; h.className='mt-rz'; h.setAttribute('aria-label','Resize tile'); h.textContent='\u2194';
+      h.addEventListener('click', function(e){
+        e.stopPropagation(); e.preventDefault();
+        var w=!t.classList.contains('mt-wide'); t.classList.toggle('mt-wide', w);
+        var o=load(); o[key]=w; save(o);
+      });
+      t.appendChild(h);
+      if(saved[key]) t.classList.add('mt-wide');
+    });
+  }
+  decorate();
+  new MutationObserver(decorate).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
 </body>
 </html>
