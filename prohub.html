@@ -339,6 +339,38 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
   padding:6px 10px;border:1px solid #26344E;border-radius:6px;color:#8794A6;background:#0E1320;text-decoration:none;white-space:nowrap;}
 .hubnav .hn:hover{color:#fff;border-color:#4B5B73;}
 .hubnav .hn.on{color:#fff;border-color:#4B5B73;background:#18223A;}
+
+/* phone only: Claude-style chrome: menu + save on top, pill composer and + at the bottom, sheets for options and text */
+#m-bar,#m-composer,#m-sheet,#m-scrim{display:none;}
+@media (max-width:768px){
+  .tmb{display:none!important;}
+  body{padding-top:52px!important;padding-bottom:64px!important;}
+  #v-dashboard{padding-top:8px!important;}
+  #mob-tiles-btn{display:none!important;}
+  #m-bar{display:flex!important;position:fixed;top:0;left:0;right:0;height:52px;z-index:300;align-items:center;gap:10px;
+    padding:0 12px;background:#0B0F19;border-bottom:1px solid #1B2436;font-family:'IBM Plex Mono',monospace;}
+  #m-bar .mb-btn{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;
+    background:#131B2E;border:1px solid #1F2A42;color:#C9D3E3;font-size:14px;cursor:pointer;padding:0;}
+  #m-bar .mb-title{flex:1;text-align:center;font-size:12px;font-weight:700;letter-spacing:.14em;color:#E6ECF5;text-transform:uppercase;}
+  #m-bar .mb-save{font-size:11px;letter-spacing:.1em;width:auto;padding:0 12px;}
+  #m-composer{display:flex!important;position:fixed;left:0;right:0;bottom:0;z-index:300;gap:8px;align-items:center;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:#0B0F19;border-top:1px solid #1B2436;}
+  #m-composer .mc-pill{flex:1;min-width:0;height:40px;border-radius:20px;background:#131B2E;border:1px solid #1F2A42;
+    color:#7E8FA6;text-align:left;padding:0 16px;font-size:13px;font-family:inherit;cursor:text;}
+  #m-composer .mc-plus{width:40px;height:40px;border-radius:20px;background:#131B2E;border:1px solid #1F2A42;color:#E6ECF5;font-size:18px;cursor:pointer;padding:0;}
+  #m-scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;}
+  #m-scrim.on{display:block!important;}
+  #m-sheet{position:fixed;left:0;right:0;bottom:0;z-index:410;background:#111827;border-top:1px solid #1F2A42;
+    border-radius:16px 16px 0 0;padding:10px 14px calc(14px + env(safe-area-inset-bottom,0px));max-height:80vh;overflow-y:auto;}
+  #m-sheet.on{display:block!important;}
+  #m-sheet .ms-grip{width:40px;height:4px;border-radius:2px;background:#2A3650;margin:0 auto 12px;}
+  #m-sheet .ms-title{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#7E8FA6;margin:0 0 10px 2px;}
+  #m-sheet .ms-item{display:flex;align-items:center;gap:12px;width:100%;padding:13px 12px;margin-bottom:6px;border-radius:12px;
+    background:#0E1320;border:1px solid #1F2A42;color:#E6ECF5;font-size:14px;text-align:left;cursor:pointer;}
+  #m-sheet textarea{width:100%;min-height:120px;background:#0B0F19;border:1px solid #1F2A42;border-radius:12px;color:#E6ECF5;
+    padding:12px;font-size:14px;font-family:inherit;resize:none;}
+  #m-sheet .ms-save{margin-top:10px;width:100%;padding:12px;border-radius:12px;border:0;background:#E6ECF5;color:#0B0F19;font-weight:700;font-size:14px;}
+}
 </style>
 </head>
 <body>
@@ -1110,6 +1142,49 @@ function hubGo(page, ev){
   window.addEventListener('resize', place);
   setTimeout(place, 50);
   new MutationObserver(function(){ place(); }).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
+
+<div id="m-bar"><button class="mb-btn" id="mb-menu" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+  <div class="mb-title">proHUB</div><button class="mb-btn mb-save" id="mb-save" aria-label="Save">Save</button></div>
+<div id="m-composer"><button class="mc-pill" id="mc-pill">Add a note…</button><button class="mc-plus" id="mc-plus" aria-label="Options">+</button></div>
+<div id="m-scrim"></div>
+<div id="m-sheet" role="dialog" aria-modal="true"></div>
+<script>
+(function(){
+  var HUB='proHUB', NOTES_KEY='prohub_quick_notes';
+  var ITEMS=[
+  {label:'Dashboard',icon:'fa-solid fa-border-all',run:function(){sw('dashboard');}},
+  {label:'Shot list',icon:'fa-solid fa-list-ol',run:function(){sw('shotlist');}},
+  {label:'One-liner strip',icon:'fa-solid fa-bars-staggered',run:function(){sw('oneliner');}},
+  {label:'Master script',icon:'fa-solid fa-scroll',run:function(){sw('masterscript');}},
+  {label:'Call sheet',icon:'fa-solid fa-calendar-days',run:function(){sw('callsheet');}},
+  {label:'Dailies',icon:'fa-solid fa-film',run:function(){sw('dailies');}},
+  {label:'Sync preHUB',icon:'fa-solid fa-satellite-dish',run:function(){loadBridgeData();}}
+];
+  function sheet(on){ document.getElementById('m-sheet').classList.toggle('on',on); document.getElementById('m-scrim').classList.toggle('on',on); }
+  function openOptions(){
+    var s=document.getElementById('m-sheet');
+    s.innerHTML='<div class="ms-grip"></div><div class="ms-title">'+HUB+' options</div>'+ITEMS.map(function(it,i){return '<button class="ms-item" data-i="'+i+'"><i class="'+it.icon+'"></i><span>'+it.label+'</span></button>';}).join('');
+    s.querySelectorAll('.ms-item').forEach(function(b){ b.onclick=function(){ sheet(false); ITEMS[+b.getAttribute('data-i')].run(); }; });
+    sheet(true);
+  }
+  function openText(){
+    var s=document.getElementById('m-sheet');
+    s.innerHTML='<div class="ms-grip"></div><div class="ms-title">Add a note</div><textarea id="mt-text" placeholder="Write a note…"></textarea><button class="ms-save" id="mt-save">Save note</button>';
+    document.getElementById('mt-save').onclick=function(){
+      var t=(document.getElementById('mt-text').value||'').trim(); if(!t) return;
+      var list=[]; try{ list=JSON.parse(localStorage.getItem(NOTES_KEY))||[]; }catch(e){}
+      list.unshift({text:t,at:Date.now()}); try{ localStorage.setItem(NOTES_KEY,JSON.stringify(list)); }catch(e){}
+      sheet(false); if(typeof toast==='function') toast('Note saved');
+    };
+    sheet(true); setTimeout(function(){ var x=document.getElementById('mt-text'); if(x) x.focus(); },50);
+  }
+  document.getElementById('mb-menu').onclick=function(){ proToggleSB(true); };
+  document.getElementById('mb-save').onclick=function(){ try{ save(); }catch(e){} if(typeof toast==='function') toast('Saved'); };
+  document.getElementById('mc-pill').onclick=openText;
+  document.getElementById('mc-plus').onclick=openOptions;
+  document.getElementById('m-scrim').onclick=function(){ sheet(false); };
 })();
 </script>
 </body>
