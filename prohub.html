@@ -325,6 +325,13 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
     color:#fff;font-size:12px;font-weight:700;line-height:1;cursor:pointer;border-radius:6px;}
   .mtile{grid-column:span var(--w,1)!important;grid-row:span var(--h,1)!important;min-height:0!important;min-width:0;}
 }
+
+/* one tile type across preHUB and proHUB on desktop: same title font, size and numbering */
+@media (min-width:769px){
+  #db-grid .mtile .mtit, .tile-grid .mtile .mtit{font-family:'Barlow Condensed','Impact',sans-serif!important;font-size:22px!important;
+    font-weight:900!important;text-transform:uppercase!important;letter-spacing:.03em!important;line-height:1.05!important;}
+  #db-grid .mtile .msub, .tile-grid .mtile .msub{font-family:Inter,system-ui,sans-serif!important;font-size:12px!important;font-weight:500!important;}
+}
 </style>
 </head>
 <body>
