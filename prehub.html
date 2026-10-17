@@ -1159,7 +1159,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 <main class="mw">
 
 <!-- VIEW 0: METRO DASHBOARD -->
-<section id="v-dashboard" class="vs ac overflow-y-auto" style="background:#0A0D14;">
+<section id="v-dashboard" class="vs ac overflow-y-auto script-page" style="background:#100F0D!important;">
 <div class="max-w-6xl mx-auto w-full p-6 sm:p-8">
   <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-3 border-b border-gray-800 pb-5">
     <div>
@@ -1914,6 +1914,26 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
   .pitch-img-upload{position:absolute;bottom:8px;right:10px;z-index:5;}
   .pitch-img-upload label{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(0,0,0,.7);border:1px solid rgba(212,160,52,.4);color:#D4A034;padding:3px 8px;border-radius:2px;cursor:pointer;}
   .pitch-img-upload label:hover{background:rgba(212,160,52,.15);}
+
+/* ---- production-page look: script paper, slate spines, no app-card chrome ---- */
+.mtile{border-radius:0!important;box-shadow:none!important;border:1px solid rgba(255,255,255,.09)!important;
+  padding:18px 18px 16px 22px!important;background:linear-gradient(90deg,var(--ha) 0 5px,var(--hb) 5px)!important;}
+.mtile:hover{transform:none!important;box-shadow:none!important;border-color:var(--ha)!important;}
+.mtile:active{transform:none!important;}
+.mtile.hero{background:linear-gradient(90deg,var(--hk) 0 5px,var(--ha) 5px)!important;}
+.mtile::after{height:3px!important;}
+.mbadge{background:transparent!important;border:1px solid currentColor;border-radius:0!important;
+  font-family:'IBM Plex Mono',ui-monospace,monospace!important;letter-spacing:.14em!important;opacity:.85;}
+.mbadge::after{content:none!important;}
+.micon{font-size:1.25rem!important;opacity:.8;margin-bottom:10px!important;}
+.mtit{font-family:'IBM Plex Mono',ui-monospace,monospace!important;font-weight:700!important;font-size:13px!important;
+  letter-spacing:.06em!important;text-transform:uppercase;}
+.msub{font-family:'Courier Prime',ui-monospace,monospace!important;font-size:10.5px!important;letter-spacing:.02em;color:rgba(255,255,255,.55)!important;}
+.script-page{padding:22px 26px!important;background-color:#100F0D;background-image:
+  linear-gradient(90deg,transparent 0 96px,color-mix(in srgb,var(--ha) 70%,transparent) 96px 98px,transparent 98px),
+  repeating-linear-gradient(to bottom,transparent 0 23px,rgba(255,255,255,.075) 23px 24px);background-attachment:local;}
+.script-page .mtile{box-shadow:none!important;}
+@media (max-width:480px){.mbadge{display:none!important;}}
 </style>
 
 <!-- Studio Header -->

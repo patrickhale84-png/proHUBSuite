@@ -271,6 +271,26 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
   th, td { padding: 3px 5px !important; }
   tr { break-inside: avoid; }
 }
+
+/* ---- production-page look: script paper, slate spines, no app-card chrome ---- */
+.mtile{border-radius:0!important;box-shadow:none!important;border:1px solid rgba(255,255,255,.09)!important;
+  padding:18px 18px 16px 22px!important;background:linear-gradient(90deg,var(--ha) 0 5px,var(--hb) 5px)!important;}
+.mtile:hover{transform:none!important;box-shadow:none!important;border-color:var(--ha)!important;}
+.mtile:active{transform:none!important;}
+.mtile.hero{background:linear-gradient(90deg,var(--hk) 0 5px,var(--ha) 5px)!important;}
+.mtile::after{height:3px!important;}
+.mbadge{background:transparent!important;border:1px solid currentColor;border-radius:0!important;
+  font-family:'IBM Plex Mono',ui-monospace,monospace!important;letter-spacing:.14em!important;opacity:.85;}
+.mbadge::after{content:none!important;}
+.micon{font-size:1.25rem!important;opacity:.8;margin-bottom:10px!important;}
+.mtit{font-family:'IBM Plex Mono',ui-monospace,monospace!important;font-weight:700!important;font-size:13px!important;
+  letter-spacing:.06em!important;text-transform:uppercase;}
+.msub{font-family:'Courier Prime',ui-monospace,monospace!important;font-size:10.5px!important;letter-spacing:.02em;color:rgba(255,255,255,.55)!important;}
+.script-page{padding:22px 26px!important;background-color:#100F0D;background-image:
+  linear-gradient(90deg,transparent 0 96px,color-mix(in srgb,var(--ha) 70%,transparent) 96px 98px,transparent 98px),
+  repeating-linear-gradient(to bottom,transparent 0 23px,rgba(255,255,255,.075) 23px 24px);background-attachment:local;}
+.script-page .mtile{box-shadow:none!important;}
+@media (max-width:480px){.mbadge{display:none!important;}}
 </style>
 </head>
 <body>
@@ -324,7 +344,7 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
 <main class="mw">
 
 <!-- DASHBOARD -->
-<section id="v-dashboard" class="vs ac" style="background:#08090F;overflow-y:auto;">
+<section id="v-dashboard" class="vs ac script-page" style="background:#100F0D!important;overflow-y:auto;">
 <div class="dash-inner" style="max-width:960px;margin:0 auto;width:100%;padding:28px 24px;">
   <div style="margin-bottom:24px;border-bottom:1px solid #1E2A3A;padding-bottom:18px;">
     <h1 style="font-family:var(--fds);font-weight:900;font-size:24px;letter-spacing:.08em;color:#fff;text-transform:uppercase;">Production Hub</h1>

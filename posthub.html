@@ -220,6 +220,26 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
   #layoutDual, #layoutSingle, #layoutText { font-size: 9px !important; padding: 2px 5px !important; }
   #masterTcChip { display: none !important; }
 }
+
+/* ---- production-page look: script paper, slate spines, no app-card chrome ---- */
+.mtile{border-radius:0!important;box-shadow:none!important;border:1px solid rgba(255,255,255,.09)!important;
+  padding:18px 18px 16px 22px!important;background:linear-gradient(90deg,var(--ha) 0 5px,var(--hb) 5px)!important;}
+.mtile:hover{transform:none!important;box-shadow:none!important;border-color:var(--ha)!important;}
+.mtile:active{transform:none!important;}
+.mtile.hero{background:linear-gradient(90deg,var(--hk) 0 5px,var(--ha) 5px)!important;}
+.mtile::after{height:3px!important;}
+.mbadge{background:transparent!important;border:1px solid currentColor;border-radius:0!important;
+  font-family:'IBM Plex Mono',ui-monospace,monospace!important;letter-spacing:.14em!important;opacity:.85;}
+.mbadge::after{content:none!important;}
+.micon{font-size:1.25rem!important;opacity:.8;margin-bottom:10px!important;}
+.mtit{font-family:'IBM Plex Mono',ui-monospace,monospace!important;font-weight:700!important;font-size:13px!important;
+  letter-spacing:.06em!important;text-transform:uppercase;}
+.msub{font-family:'Courier Prime',ui-monospace,monospace!important;font-size:10.5px!important;letter-spacing:.02em;color:rgba(255,255,255,.55)!important;}
+.script-page{padding:22px 26px!important;background-color:#100F0D;background-image:
+  linear-gradient(90deg,transparent 0 96px,color-mix(in srgb,var(--ha) 70%,transparent) 96px 98px,transparent 98px),
+  repeating-linear-gradient(to bottom,transparent 0 23px,rgba(255,255,255,.075) 23px 24px);background-attachment:local;}
+.script-page .mtile{box-shadow:none!important;}
+@media (max-width:480px){.mbadge{display:none!important;}}
 </style>
 </head>
 <body>
@@ -402,7 +422,7 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
     <div class="brand"><b>post</b><i>HUB</i> <span class="tagx">MODULAR DESKS</span></div>
     <button class="btn sm pri" id="btnCloseLaunchpad">Return to Edit Suite</button>
   </div>
-  <main class="tiles" id="tilesMount"></main>
+  <main class="tiles script-page" id="tilesMount"></main>
 
   <div class="desk-box" id="deskDetailBox" style="display: none;">
     <div class="desk-hd">
