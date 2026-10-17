@@ -66,7 +66,8 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
 
 /* Grid Modes */
 .nle-grid { display: grid; grid-template-columns: var(--bin-w, 280px) 1fr 1fr; grid-template-rows: 1fr var(--tl-h, 280px); gap: 3px; padding: 3px; background: #020307; height: 100%; overflow: hidden; }
-.nle-grid.mode-single { grid-template-columns: var(--bin-w, 280px) 0 1fr; }
+.nle-grid.mode-single { grid-template-columns: var(--bin-w, 280px) 1fr; }
+.nle-grid.mode-single #panelMaster { grid-column: 2; }
 .nle-grid.mode-single #panelSource { display: none; }
 .nle-grid.mode-text { grid-template-columns: var(--bin-w, 280px) 1fr 1fr; }
 .nle-grid.mode-text #panelSource { display: none; }
@@ -150,7 +151,7 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
 .mtit { font-size: 14px; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: .03em; font-family: var(--fd); line-height: 1.15; }
 /* titles share one baseline across tiles: fixed icon box, content top-aligned, descriptor flows below */
 .mtile{justify-content:flex-start!important;padding-top:20px!important;}
-.micon{height:40px!important;line-height:40px!important;margin-bottom:10px!important;display:flex;align-items:center;}
+.micon{height:40px!important;min-height:40px;flex:0 0 40px!important;line-height:40px!important;margin-bottom:10px!important;display:flex;align-items:center;}
 .msub { font-size: 10px; color: rgba(255,255,255,.7); margin-top: 2px; font-weight: 500; font-family: var(--fm); }
 @media (max-width: 768px) {
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 12px; }
@@ -253,6 +254,22 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
   .mt-rz{top:8px!important;bottom:auto!important;right:8px!important;}
 }
 @media (max-width:768px){ #tilesMount{grid-template-columns:repeat(2,minmax(0,1fr))!important;} }
+/* Edit Desk on phones: Premiere Rush style — one program viewer on top, large timeline below, bottom tool bar */
+@media (max-width:768px){
+  #mainGrid.nle-grid{display:flex!important;flex-direction:column!important;height:calc(100dvh - 120px)!important;min-height:520px;overflow:hidden!important;padding:0!important;gap:0!important;background:#020307;}
+  #mainGrid > .nle-panel:not(#panelMaster):not(.tl-area){display:none!important;}
+  #mainGrid .rz-gutter{display:none!important;}
+  #mainGrid #panelMaster{flex:0 0 44%!important;min-height:0!important;flex-direction:column!important;border-radius:0;}
+  #mainGrid #panelMaster > div:first-child{flex:1;min-height:0;display:flex;flex-direction:column;}
+  #mainGrid #panelMaster .viewer-box{flex:1;min-height:0;}
+  #mainGrid .vu-meter-wrap{display:none!important;}
+  #mainGrid #panelMaster .tc-form button:not(#btnPlayMaster):not(#btnStepBack):not(#btnStepFwd){display:none!important;}
+  #mainGrid #panelMaster .tc-form input{display:none!important;}
+  #mainGrid .tl-area{flex:1 1 auto!important;min-height:0!important;grid-column:auto!important;overflow:hidden;}
+  #mainGrid .tl-area .tl-toolbar{overflow-x:auto;white-space:nowrap;}
+  #mainGrid .tl-area > *:not(.tl-toolbar){min-height:0;}
+}
+
 
 /* ---- bright per-tile palette and white type, matching the reference screens ---- */
 .mtile{background:linear-gradient(135deg,var(--t1,#3A6EA5),var(--t2,#2A5080))!important;border:none!important;
