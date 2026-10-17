@@ -1812,10 +1812,10 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 
   <!-- ── SCRIBE KEYBOARD ACCESSORY BAR ── -->
   <div id="mob-kbd-bar">
-    <button id="mob-el-btn" onclick="mobCycleElement()" title="Cycle element"><span id="mob-el-chip" style="color:#A3E635">ACT</span></button>
-    <button id="mob-caps-btn" onclick="mobToggleCaps()" title="Toggle caps"><span id="mob-caps-icon">Aa</span></button>
-    <button id="mob-undo-btn" onclick="mobUndo()" title="Undo">↩</button>
-    <button id="mob-redo-btn" onclick="mobRedo()" title="Redo">↪</button>
+    <button id="mob-el-btn" onclick="mobCycleElement()" title="Cycle element"><span id="mob-el-chip" style="color:#A3E635">ACT</span><small class="mkb-lbl">ELEMENT</small></button>
+    <button id="mob-caps-btn" onclick="mobToggleCaps()" title="Toggle caps"><span id="mob-caps-icon">Aa</span><small class="mkb-lbl">CAPS</small></button>
+    <button id="mob-undo-btn" onclick="mobUndo()" title="Undo"><span>↩</span><small class="mkb-lbl">UNDO</small></button>
+    <button id="mob-redo-btn" onclick="mobRedo()" title="Redo"><span>↪</span><small class="mkb-lbl">REDO</small></button>
   </div>
 
   <!-- ── SCRIBE WRITE FAB ── -->
@@ -1934,6 +1934,10 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
   repeating-linear-gradient(to bottom,transparent 0 23px,rgba(255,255,255,.075) 23px 24px);background-attachment:local;}
 .script-page .mtile{box-shadow:none!important;}
 @media (max-width:480px){.mbadge{display:none!important;}}
+
+/* bar buttons carry their own label on phones */
+#mob-kbd-bar button{flex-direction:column;gap:1px;}
+#mob-kbd-bar .mkb-lbl{font-family:'IBM Plex Mono',monospace;font-size:8px;font-weight:700;letter-spacing:.1em;color:#8794A6;}
 </style>
 
 <!-- Studio Header -->
@@ -6374,6 +6378,36 @@ function hubGo(page, ev){
   if(emb){ try { window.top.location.href = u; return; } catch(e) {} }
   try { location.href = u; } catch(e) {}
 }
+</script>
+<script>
+/* Mobile writing and menu. The writer does not raise the phone's QWERTY keyboard; the element
+   bar above is used instead. Swipe down from the top of the screen to open the menu. */
+(function(){
+  var touchy = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  function stampNoKeyboard(){
+    if(!touchy) return;
+    var rows = document.getElementById('script-editable-node-rows-stack');
+    if(!rows) return;
+    rows.querySelectorAll('[contenteditable]').forEach(function(el){ el.setAttribute('inputmode','none'); });
+  }
+  stampNoKeyboard();
+  if(window.MutationObserver) new MutationObserver(stampNoKeyboard).observe(document.body,{childList:true,subtree:true});
+  var y0=null, x0=null;
+  document.addEventListener('touchstart', function(e){
+    if(window.innerWidth>768 || !e.touches.length) return;
+    var t=e.touches[0];
+    if(t.clientY<90){ y0=t.clientY; x0=t.clientX; } else { y0=null; }
+  }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if(y0===null) return;
+    var t=e.changedTouches[0], dy=t.clientY-y0, dx=Math.abs(t.clientX-x0);
+    y0=null;
+    if(dy>60 && dx<60){
+      var s=document.getElementById('psb');
+      if(s && !s.classList.contains('mo')) s.classList.add('mo');
+    }
+  }, {passive:true});
+})();
 </script>
 </body>
 </html>

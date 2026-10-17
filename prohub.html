@@ -966,5 +966,20 @@ function hubGo(page, ev){
   try { location.href = u; } catch(e) {}
 }
 </script>
+<script>
+/* Mobile: swipe down from the top bar to open the menu */
+(function(){
+  var y0=null, x0=null;
+  document.addEventListener('touchstart', function(e){
+    if(window.innerWidth>768 || !e.touches.length) return;
+    var t=e.touches[0]; if(t.clientY<90){ y0=t.clientY; x0=t.clientX; } else { y0=null; }
+  }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if(y0===null) return;
+    var t=e.changedTouches[0], dy=t.clientY-y0, dx=Math.abs(t.clientX-x0); y0=null;
+    if(dy>60 && dx<60 && typeof proToggleSB==='function') proToggleSB(true);
+  }, {passive:true});
+})();
+</script>
 </body>
 </html>
