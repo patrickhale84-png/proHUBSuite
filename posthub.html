@@ -148,6 +148,9 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
 .mbadge::after { content: '↗'; font-size: 9px; }
 .micon { font-size: 2rem; color: rgba(255,255,255,.95); margin-bottom: 6px; }
 .mtit { font-size: 14px; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: .03em; font-family: var(--fd); line-height: 1.15; }
+/* titles share one baseline across tiles: fixed icon box, content top-aligned, descriptor flows below */
+.mtile{justify-content:flex-start!important;padding-top:20px!important;}
+.micon{height:40px!important;line-height:40px!important;margin-bottom:10px!important;display:flex;align-items:center;}
 .msub { font-size: 10px; color: rgba(255,255,255,.7); margin-top: 2px; font-weight: 500; font-family: var(--fm); }
 @media (max-width: 768px) {
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 12px; }
@@ -295,8 +298,8 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
   <nav class="hubnav" aria-label="Hubs"><a href="prehub.html" onclick="hubGo('prehub.html',event)" class="hn" data-hub="pre">preHUB</a><a href="prohub.html" onclick="hubGo('prohub.html',event)" class="hn" data-hub="pro">proHUB</a><a href="posthub.html" onclick="hubGo('posthub.html',event)" class="hn on" data-hub="post">postHUB</a></nav>
 
   <div style="display: flex; gap: 4px; margin-left: 8px;">
-    <button class="btn sm active" id="layoutDual">Dual View</button>
-    <button class="btn sm" id="layoutSingle">Single Up</button>
+    <button class="btn sm" id="layoutDual">Dual View</button>
+    <button class="btn sm active" id="layoutSingle">Single Up</button>
     <button class="btn sm" id="layoutText">Text to Edit</button>
   </div>
 
@@ -323,7 +326,7 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
 <div class="workspace">
   <div class="rz-gutter rz-col" id="rzCol" role="separator" aria-orientation="vertical" aria-label="Resize media bin" tabindex="0" title="Drag to resize the bin · double-click to reset"></div>
   <div class="rz-gutter rz-row" id="rzRow" role="separator" aria-orientation="horizontal" aria-label="Resize timeline" tabindex="0" title="Drag to resize the timeline · double-click to reset"></div>
-  <div class="nle-grid" id="mainGrid">
+  <div class="nle-grid mode-single" id="mainGrid">
     <!-- Panel 1: Integrated Project Bin -->
     <div class="nle-panel">
       <div class="nle-tab on">
@@ -1521,7 +1524,8 @@ $('#srcVideoEl').addEventListener('timeupdate', updateSourceScrubber);
    RESIZABLE PANELS — bin width and timeline height, remembered
    ========================================================== */
 var LAYOUT_KEY = 'posthub_layout_v1';
-var LAYOUT_DEFAULT = { bin: 280, tl: 280 };
+var LAYOUT_DEFAULT = { bin: 280, tl: 0 }; /* tl 0 = timeline takes the bottom half of the workspace */
+function tlDefault(){ var ws=document.querySelector('.workspace'); return Math.round((ws?ws.clientHeight:560)/2); }
 var LAYOUT = { bin: LAYOUT_DEFAULT.bin, tl: LAYOUT_DEFAULT.tl };
 
 (function loadLayout(){
@@ -1540,6 +1544,7 @@ function applyLayout(){
   var ws = $('.workspace');
   var W = ws.clientWidth, H = ws.clientHeight;
   LAYOUT.bin = Math.round(Math.max(180, Math.min(Math.min(560, W * 0.4), LAYOUT.bin)));
+  if(!LAYOUT.tl) LAYOUT.tl = tlDefault();
   LAYOUT.tl  = Math.round(Math.max(150, Math.min(H - 200, LAYOUT.tl)));
   var g = $('#mainGrid');
   g.style.setProperty('--bin-w', LAYOUT.bin + 'px');
@@ -1578,7 +1583,7 @@ function wireGutters(){
   window.addEventListener('mouseup', end);
   [col, row].forEach(function(gut){
     gut.addEventListener('dblclick', function(){
-      if(gut === col) LAYOUT.bin = LAYOUT_DEFAULT.bin; else LAYOUT.tl = LAYOUT_DEFAULT.tl;
+      if(gut === col) LAYOUT.bin = LAYOUT_DEFAULT.bin; else LAYOUT.tl = tlDefault();
       applyLayout(); saveLayout();
     });
     gut.addEventListener('keydown', function(e){
@@ -1587,7 +1592,7 @@ function wireGutters(){
       var shrink = (gut === col) ? 'ArrowLeft' : 'ArrowDown';
       if(k === grow){ if(gut === col) LAYOUT.bin += step; else LAYOUT.tl += step; }
       else if(k === shrink){ if(gut === col) LAYOUT.bin -= step; else LAYOUT.tl -= step; }
-      else if(k === 'Home'){ if(gut === col) LAYOUT.bin = LAYOUT_DEFAULT.bin; else LAYOUT.tl = LAYOUT_DEFAULT.tl; }
+      else if(k === 'Home'){ if(gut === col) LAYOUT.bin = LAYOUT_DEFAULT.bin; else LAYOUT.tl = tlDefault(); }
       else return;
       e.preventDefault();
       applyLayout(); saveLayout();
