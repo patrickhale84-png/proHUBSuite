@@ -1998,6 +1998,8 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
   body.m-inside .tmb{display:none!important;}
   body.m-inside{padding-top:52px!important;padding-bottom:64px!important;}
   body.m-inside #mob-writer-back{display:none!important;}
+  body.m-inside:not(.show-title) #screenplay-title-page-view{display:none!important;}
+  body.m-inside.show-title #screenplay-title-page-view{display:flex!important;}
   body.m-inside #mob-kbd-bar{bottom:64px!important;}
   body.m-inside #mob-write-fab{bottom:132px!important;}
   body.m-inside #mob-tiles-btn{display:none!important;}
@@ -6586,7 +6588,7 @@ function hubGo(page, ev){
 </script>
 
 <div id="m-bar"><button class="mb-btn" id="mb-menu" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
-  <div class="mb-title">preHUB</div><button class="mb-btn mb-save" id="mb-save" aria-label="Save">Save</button></div>
+  <div class="mb-title">preHUB</div><button class="mb-btn mb-save" id="mb-title" aria-label="Title page">Title</button><button class="mb-btn mb-save" id="mb-save" aria-label="Save">Save</button></div>
 <div id="m-composer"><button class="mc-pill" id="mc-pill">Add a note…</button><button class="mc-plus" id="mc-plus" aria-label="Options">+</button></div>
 <div id="m-scrim"></div>
 <div id="m-sheet" role="dialog" aria-modal="true"></div>
@@ -6625,6 +6627,7 @@ function hubGo(page, ev){
   document.getElementById('mb-menu').onclick=function(){ togSB(); };
   document.getElementById('mb-save').onclick=function(){ document.dispatchEvent(new KeyboardEvent('keydown',{key:'s',ctrlKey:true,bubbles:true})); };
   document.getElementById('mc-pill').onclick=openText;
+  document.getElementById('mb-title').onclick=function(){ document.body.classList.toggle('show-title'); };
   document.getElementById('mc-plus').onclick=openOptions;
   document.getElementById('m-scrim').onclick=function(){ sheet(false); };
   function syncInside(){ var d=document.getElementById('v-dashboard'); document.body.classList.toggle('m-inside', !!d && !d.classList.contains('ac')); }
