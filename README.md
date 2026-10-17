@@ -9,8 +9,8 @@ The filmHUB banner (current call, next set-up, countdown, day) reads staged data
 
 | Key | Written by | Read by | Shape |
 | --- | --- | --- | --- |
-| `prohub_staged_payload_v1` | proHUB call sheet (not built yet) | filmHUB banner, postHUB | `{ sheets: [{ day, call, next, move }] }` |
+| `prohub_staged_payload_v1` | proHUB call sheet, on Publish to filmHUB | filmHUB banner, postHUB | `{ sheets: [{ day, call, next, move }] }` |
 | `posthub_staged_payload_v1` | postHUB | filmHUB banner, postHUB | same shape |
 | `prehub_master_v1` | preHUB "Transmit to proHUB" | proHUB bridge | `{ origin, target, projectName, lines, ts }` (script, not a call sheet) |
 
-The banner only uses the first two keys. Until proHUB's call sheet exists, the banner shows "manual" unless one of those payloads is written by hand.
+The banner only uses the first two keys. proHUB's call sheet writes its payload when you press Publish to filmHUB; until then the banner shows "manual".
