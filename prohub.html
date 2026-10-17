@@ -374,6 +374,45 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
     padding:12px;font-size:14px;font-family:inherit;resize:none;}
   #m-sheet .ms-save{margin-top:10px;width:100%;padding:12px;border-radius:12px;border:0;background:#E6ECF5;color:#0B0F19;font-weight:700;font-size:14px;}
 }
+
+/* Call sheet */
+.cs-root{display:none;flex-direction:column;min-height:0;}
+.cs-root.ac{display:flex;}
+.cs-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #1F2A42;background:#0B0F19;}
+.cs-title{font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#E6ECF5;font-size:13px;display:flex;align-items:center;gap:8px;}
+.cs-title i{color:#4ADE80;}
+.cs-days{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0;}
+.cs-tab{background:#131B2E;border:1px solid #1F2A42;color:#9CA3AF;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer;}
+.cs-tab.on{border-color:#4ADE80;color:#E6ECF5;}
+.cs-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.cs-btn{background:#131B2E;border:1px solid #1F2A42;color:#E6ECF5;border-radius:8px;padding:6px 10px;font-size:11px;cursor:pointer;}
+.cs-btn.pri{background:#4ADE80;color:#052E16;border-color:#4ADE80;font-weight:700;}
+.cs-btn.armed{background:#7F1D1D;border-color:#EF4444;}
+.cs-status{padding:6px 16px;font-size:11px;color:#7E8FA6;font-family:'IBM Plex Mono',monospace;}
+.cs-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:12px 16px 24px;overflow-y:auto;flex:1;min-height:0;align-items:start;}
+.cs-card{background:#0E1320;border:1px solid #1F2A42;border-radius:12px;padding:12px;min-width:0;}
+.cs-card h3{margin:0 0 10px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#7E8FA6;}
+.cs-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.cs-f{display:flex;flex-direction:column;gap:3px;font-size:10px;color:#7E8FA6;min-width:0;}
+.cs-f input,.cs-row input,.cs-row select,.cs-card textarea{background:#0B0F19;border:1px solid #1F2A42;border-radius:6px;color:#E6ECF5;padding:6px 8px;font-size:12px;font-family:inherit;min-width:0;width:100%;box-sizing:border-box;}
+.cs-card textarea{margin-top:8px;min-height:60px;resize:vertical;}
+.cs-chk{display:flex;align-items:center;gap:6px;font-size:12px;color:#E6ECF5;align-self:end;padding-bottom:6px;}
+.cs-row{display:grid;gap:6px;align-items:center;margin-bottom:6px;}
+.cs-row .cs-x{background:none;border:1px solid #3B2230;color:#F87171;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:11px;}
+.cs-add{margin-top:6px;background:#131B2E;border:1px dashed #2A3650;color:#9CA3AF;border-radius:8px;padding:6px;width:100%;cursor:pointer;font-size:11px;}
+.cs-head{display:grid;gap:6px;font-size:9.5px;color:#64748B;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;}
+.cs-cast-row{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 78px 78px minmax(0,1.2fr) auto;}
+.cs-crew-row{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr) 78px auto;}
+.cs-setup-row{grid-template-columns:78px minmax(0,1fr) minmax(0,1.6fr) auto;}
+.cs-cast-head{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 78px 78px minmax(0,1.2fr) auto;}
+.cs-crew-head{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr) 78px auto;}
+.cs-setup-head{grid-template-columns:78px minmax(0,1fr) minmax(0,1.6fr) auto;}
+@media (max-width:768px){
+  .cs-body{grid-template-columns:minmax(0,1fr);padding:10px 12px 90px;}
+  .cs-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+  .cs-cast-row,.cs-cast-head{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 70px 70px auto;}
+  .cs-cast-row>*:nth-child(5),.cs-cast-head>*:nth-child(5){display:none;}
+}
 </style>
 </head>
 <body>
@@ -586,11 +625,25 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
 </div>
 </section>
 
-<!-- CALL SHEET VIEW (placeholder) -->
-<section id="v-callsheet" class="vs" style="background:#08090F;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--mu);">
-  <i class="fa-solid fa-calendar-days text-4xl" style="color:#059669;opacity:.4;"></i>
-  <div style="font-size:13px;font-weight:700;">Call Sheet</div>
-  <div style="font-size:11px;max-width:280px;text-align:center;">Build and distribute daily call sheets for cast and crew. Coming in next release.</div>
+<!-- CALL SHEET VIEW: working call sheet, published to filmHUB -->
+<section id="v-callsheet" class="vs cs-root" style="background:#08090F;">
+  <div class="cs-top">
+    <div class="cs-title"><i class="fa-solid fa-calendar-days"></i> Call Sheet</div>
+    <div class="cs-days" id="cs-days"></div>
+    <div class="cs-actions">
+      <button class="cs-btn" data-act="addday">+ Day</button>
+      <button class="cs-btn" data-act="dupday">Duplicate</button>
+      <button class="cs-btn" data-act="delday" id="cs-del">Delete day</button>
+      <button class="cs-btn pri" data-act="publish">Publish to filmHUB</button>
+    </div>
+  </div>
+  <div class="cs-status" id="cs-status"></div>
+  <div class="cs-body">
+    <div class="cs-card" id="cs-day"></div>
+    <div class="cs-card" id="cs-setups"></div>
+    <div class="cs-card" id="cs-cast"></div>
+    <div class="cs-card" id="cs-crew"></div>
+  </div>
 </section>
 
 <!-- DAILIES LOG VIEW (placeholder) -->
@@ -683,6 +736,7 @@ function sw(id){
   const n=document.getElementById('n-'+id);if(n)n.classList.add('ac');
   currentView=id;
   if(id==='shotlist')slRender();
+  if(id==='callsheet'&&window.csRender)window.csRender();
   if(id==='oneliner')olRender();
   if(id==='masterscript')msRender();
   if(id==='dashboard')updateStats();
@@ -1201,6 +1255,103 @@ function hubGo(page, ev){
   function syncInside(){ var d=document.getElementById('v-dashboard'); document.body.classList.toggle('m-inside', !!d && !d.classList.contains('ac')); }
   new MutationObserver(syncInside).observe(document.body,{attributes:true,subtree:true,attributeFilter:['class']});
   syncInside();
+})();
+</script>
+<script>
+/* Call sheet: days, day settings, set-up schedule, cast and crew. Publishes to the filmHUB banner. */
+(function(){
+  var KEY='prohub_callsheet_v1', PUB='prohub_staged_payload_v1';
+  function blankDay(){ return {date:'',generalCall:'07:00',nextSetup:'',wrap:'',location:'',move:false,notes:'',setups:[],cast:[],crew:[]}; }
+  function load(){ try{ var r=JSON.parse(localStorage.getItem(KEY)||'null'); if(r&&r.days&&r.days.length) return r; }catch(e){} return {days:[blankDay()],active:0,published:null}; }
+  var CS=load(), armed=false;
+  function save(){ try{ localStorage.setItem(KEY,JSON.stringify(CS)); return true; }catch(e){ return false; } }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function D(){ return CS.days[CS.active]; }
+  function $(id){ return document.getElementById(id); }
+  function msg(t,bad){ if(typeof toast==='function') toast(t); }
+  var COLS={
+    cast:[['name','Name','text'],['role','Role','text'],['call','Call','time'],['pickup','Pickup','time'],['notes','Notes','text']],
+    crew:[['name','Name','text'],['dept','Dept','text'],['role','Role','text'],['call','Call','time']]
+  };
+  var ROWCLS={cast:'cs-cast',crew:'cs-crew'};
+  function field(k,label,type){ return '<label class="cs-f"><span>'+label+'</span><input type="'+type+'" data-k="'+k+'" value="'+esc(D()[k])+'"></label>'; }
+  function renderTabs(){
+    $('cs-days').innerHTML=CS.days.map(function(d,i){ return '<button class="cs-tab'+(i===CS.active?' on':'')+'" data-day="'+i+'">Day '+(i+1)+(d.date?' · '+esc(d.date):'')+'</button>'; }).join('');
+    $('cs-del').textContent=armed?'Tap again to delete':'Delete day';
+    $('cs-del').classList.toggle('armed',armed);
+    $('cs-del').disabled=CS.days.length<2;
+  }
+  function renderDay(){
+    $('cs-day').innerHTML='<h3>Day '+(CS.active+1)+' · settings</h3><div class="cs-grid">'+
+      field('date','Date','text')+field('generalCall','General call','time')+field('nextSetup','Next set-up','time')+field('wrap','Wrap','time')+
+      '<label class="cs-f" style="grid-column:1/-1"><span>Location</span><input type="text" data-k="location" value="'+esc(D().location)+'"></label>'+
+      '<label class="cs-chk"><input type="checkbox" data-k="move"'+(D().move?' checked':'')+'> Company move</label>'+
+      '</div><textarea data-k="notes" placeholder="Notes for the day">'+esc(D().notes)+'</textarea>';
+  }
+  function renderSetups(){
+    var rows=D().setups.map(function(r,i){
+      return '<div class="cs-row cs-setup-row"><input type="time" data-list="setups" data-i="'+i+'" data-f="time" value="'+esc(r.time)+'"><input type="text" placeholder="Scene" data-list="setups" data-i="'+i+'" data-f="scene" value="'+esc(r.scene)+'"><input type="text" placeholder="Set-up description" data-list="setups" data-i="'+i+'" data-f="desc" value="'+esc(r.desc)+'"><button class="cs-x" data-act="del" data-list="setups" data-i="'+i+'">Remove</button></div>';
+    }).join('');
+    $('cs-setups').innerHTML='<h3>Set-up schedule</h3><div class="cs-head cs-setup-head"><span>Time</span><span>Scene</span><span>Set-up</span><span></span></div>'+rows+'<button class="cs-add" data-act="add" data-list="setups">+ Set-up</button>';
+  }
+  function renderList(name,title){
+    var cols=COLS[name], rc=ROWCLS[name];
+    var head='<div class="cs-head '+rc+'-head">'+cols.map(function(c){return '<span>'+c[1]+'</span>';}).join('')+'<span></span></div>';
+    var rows=D()[name].map(function(r,i){
+      return '<div class="cs-row '+rc+'-row">'+cols.map(function(c){
+        return '<input type="'+c[2]+'" placeholder="'+c[1]+'" data-list="'+name+'" data-i="'+i+'" data-f="'+c[0]+'" value="'+esc(r[c[0]])+'">';
+      }).join('')+'<button class="cs-x" data-act="del" data-list="'+name+'" data-i="'+i+'">Remove</button></div>';
+    }).join('');
+    $(name==='cast'?'cs-cast':'cs-crew').innerHTML='<h3>'+title+' ('+D()[name].length+')</h3>'+head+rows+'<button class="cs-add" data-act="add" data-list="'+name+'">+ '+(name==='cast'?'Cast member':'Crew member')+'</button>';
+  }
+  function emptyRow(name){ var r={}; COLS[name].forEach(function(c){ r[c[0]]=''; }); return r; }
+  function render(){ renderTabs(); renderDay(); renderSetups(); renderList('cast','Cast'); renderList('crew','Crew'); }
+  function setStatus(t){ var el=$('cs-status'); if(el) el.textContent=t; }
+  function summary(){
+    var pub=CS.published?'Last published '+new Date(CS.published).toLocaleString():'Not yet published';
+    return CS.days.length+' day'+(CS.days.length>1?'s':'')+' · saved on this device · '+pub;
+  }
+  function publish(){
+    if(!CS.days.some(function(d){return d.generalCall;})) return msg('Set a general call first');
+    var sheets=CS.days.map(function(d,i){ return {day:i+1,date:d.date,call:d.generalCall,next:d.nextSetup,wrap:d.wrap,move:!!d.move,location:d.location}; });
+    try{ localStorage.setItem(PUB, JSON.stringify({origin:'proHUB', day:CS.active+1, sheets:sheets})); }
+    catch(e){ return msg('Could not publish: storage is full'); }
+    CS.published=new Date().toISOString(); save(); setStatus(summary()); msg('Published to filmHUB');
+  }
+  function addDay(){ CS.days.push(blankDay()); CS.active=CS.days.length-1; save(); render(); }
+  function dupDay(){ var c=JSON.parse(JSON.stringify(D())); CS.days.splice(CS.active+1,0,c); CS.active=CS.active+1; save(); render(); }
+  function delDay(){
+    if(CS.days.length<2) return;
+    if(!armed){ armed=true; render(); return; }
+    armed=false; CS.days.splice(CS.active,1); CS.active=Math.max(0,CS.active-1); save(); render();
+  }
+  var root=$('v-callsheet');
+  root.addEventListener('input',function(e){
+    var t=e.target;
+    if(t.type==='checkbox') return;
+    if(t.getAttribute('data-k')){ D()[t.getAttribute('data-k')]=t.value; if(t.getAttribute('data-k')==='date') renderTabs(); }
+    else if(t.getAttribute('data-list') && t.getAttribute('data-f')){ D()[t.getAttribute('data-list')][+t.getAttribute('data-i')][t.getAttribute('data-f')]=t.value; }
+    else return;
+    save(); setStatus(summary());
+  });
+  root.addEventListener('change',function(e){
+    var t=e.target;
+    if(t.type==='checkbox' && t.getAttribute('data-k')){ D()[t.getAttribute('data-k')]=t.checked; save(); setStatus(summary()); }
+  });
+  root.addEventListener('click',function(e){
+    var t=e.target.closest('[data-day],[data-act]'); if(!t) return;
+    if(t.hasAttribute('data-day')){ CS.active=+t.getAttribute('data-day'); armed=false; save(); render(); return; }
+    var act=t.getAttribute('data-act');
+    if(act!=='delday') armed=false;
+    if(act==='addday') addDay();
+    else if(act==='dupday') dupDay();
+    else if(act==='delday') delDay();
+    else if(act==='publish') publish();
+    else if(act==='add'){ var l=t.getAttribute('data-list'); if(l==='setups') D().setups.push({time:'',scene:'',desc:''}); else D()[l].push(emptyRow(l)); save(); render(); }
+    else if(act==='del'){ var l2=t.getAttribute('data-list'); D()[l2].splice(+t.getAttribute('data-i'),1); save(); render(); }
+  });
+  window.csRender=function(){ render(); setStatus(summary()); };
+  csRender();
 })();
 </script>
 </body>
