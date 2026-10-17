@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Courier+Prime:wght@400;700&family=IBM+Plex+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800;900&family=Lexend:wght@300;400;600;700&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
-:root{--bg:#0B0F19;--bg-sb:#131822;--bg-bar:#0A0E17;--bg-cv:#0A0D14;--acc:#D4A034;--bd:#1F2937;--tx:#E0E6ED;--mu:#8B9FB1;--fui:'Inter',sans-serif;--fsc:'Courier Prime',monospace;--fds:'Montserrat',sans-serif;}
+:root{--bg:#0B0F19;--bg-sb:#131822;--bg-bar:#0A0E17;--bg-cv:#0A0D14;--acc:#D4A034;--bd:#1F2937;--tx:#E0E6ED;--mu:#8B9FB1;--fui:'Inter',sans-serif;--fbh:'Bauhaus 93','Bauhaus','Bauhaus Bold',Impact,sans-serif;--fsc:'Courier Prime',monospace;--fds:'Montserrat',sans-serif;}
 *{box-sizing:border-box;}
 *:focus{outline:none;}*:focus-visible{outline:2px solid #E5A93C;outline-offset:2px;}button,a{font-family:inherit;}
 body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;display:flex;flex-direction:column;height:100vh;overflow:hidden;font-size:13px;-webkit-tap-highlight-color:transparent;}
@@ -562,6 +562,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
     #mob-scribe-panel .sp-head{padding:14px 16px;background:#0A0F1D;border-bottom:1px solid #1B2436;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
     #mob-scribe-panel .sp-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;}
     #mob-scribe-panel .sp-title .pre{color:#A3E635;}
+    #mob-scribe-panel .sp-title .pre,#mob-scribe-panel .sp-title .hub{font-family:var(--fbh);letter-spacing:0;font-size:14px;}
     #mob-scribe-panel .sp-title .hub{color:#fff;}
     #mob-scribe-panel .sp-title .pipe{color:#3B4A61;margin:0 5px;}
     #mob-scribe-panel .sp-title .app{color:#7137C8;}
@@ -1075,7 +1076,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
   <button onclick="togSB()" class="text-gray-300 hover:text-white p-1 rounded-md text-base shrink-0"><i class="fa-solid fa-bars"></i></button>
   <div class="flex flex-col justify-center min-w-0">
     <div class="font-black tracking-widest text-white text-base flex items-center gap-1.5 leading-tight" style="font-family:var(--fds)">
-      <span><span style="color:#A3E635">pre</span>HUB</span>
+      <span style="font-family:var(--fbh);font-weight:700;letter-spacing:0;white-space:nowrap;"><span style="color:#A3E635">pre</span>HUB</span>
       <span class="text-[8px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 rounded font-mono font-bold">PRE-PRODUCTION</span>
     </div>
     <div class="flex items-center gap-1.5">
@@ -1248,7 +1249,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="flex-shrink:0"><path d="M8 1L3 6l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     preHUB
   </button>
-  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.05em;"><span style="color:#A3E635;font-weight:900;">pre</span><span style="color:#fff;font-weight:900;">HUB</span><span style="color:#3B4A61;margin:0 5px;">|</span><span style="color:#7137C8;font-weight:700;">Scribe</span></span>
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.05em;"><span style="color:#A3E635;font-family:var(--fbh);font-weight:700;letter-spacing:0;">pre</span><span style="color:#fff;font-family:var(--fbh);font-weight:700;letter-spacing:0;">HUB</span><span style="color:#3B4A61;margin:0 5px;">|</span><span style="color:#7137C8;font-weight:700;">Scribe</span></span>
   <button onclick="openScribePanel()" style="display:inline-flex;align-items:center;gap:5px;background:#0E1320;border:1px solid #26344E;color:#8794A6;padding:7px 10px;border-radius:5px;font-size:12px;cursor:pointer;">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M2 7h10M2 10h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
   </button>
@@ -1267,10 +1268,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
     <div class="flex items-center gap-6">
       <!-- preHUB Bauhaus Vector Brand Logo -->
       <div class="h-6 w-24 flex items-center justify-start select-none cursor-pointer" onclick="location.reload()">
-        <svg viewBox="0 0 130 36" class="h-full w-full" xmlns="http://www.w3.org/2000/svg">
-          <text x="2" y="27" font-family="'Century Gothic', 'Futura', 'Montserrat', sans-serif" font-weight="800" font-size="26" fill="#A3E635" letter-spacing="-1.5">pre</text>
-          <text x="44" y="27" font-family="'Century Gothic', 'Futura', 'Montserrat', sans-serif" font-weight="900" font-size="26" fill="#FFFFFF" letter-spacing="-0.5">HUB</text>
-        </svg>
+        <span style="font-family:var(--fbh);font-weight:700;font-size:22px;line-height:24px;letter-spacing:0;white-space:nowrap;color:#fff;"><span style="color:#A3E635">pre</span>HUB</span>
       </div>
 
       <!-- Professional Desktop Menu Dropdown Architecture Bar -->
@@ -2042,9 +2040,12 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
   border:1px solid #d6d9de!important;
   box-shadow:0 2px 6px rgba(0,0,0,.35),0 18px 44px rgba(0,0,0,.45)!important;
   margin:28px auto 40px!important;
-  min-height:calc(11in * 2)!important;
+  min-height:11in!important;
+  height:auto!important;max-height:none!important;overflow:visible!important;flex:0 0 auto!important;
   color:#111827!important;
 }
+#screenplay-paper-sheet > div{flex:0 0 auto!important;}
+#script-editable-node-rows-stack{overflow:visible!important;}
 .paper-sheet-container *{color:#111827;}
 .paper-sheet-container .line-editable-box{color:#111827!important;}
 .paper-sheet-container ::placeholder{color:#9ca3af;}
@@ -6156,7 +6157,7 @@ function _populateScribePanel(){
   var sp=document.getElementById('sp-stat-pages');
   if(ss&&sc)ss.textContent=sc.textContent;
   if(sl&&ln)sl.textContent=ln.textContent;
-  if(sp){var lc=document.querySelectorAll('#script-editable-node-rows-stack .line-editable-box').length;sp.textContent=Math.max(1,Math.ceil(lc/55)).toString();}
+  if(sp){var lc=document.querySelectorAll('#script-editable-node-rows-stack .line-editable-box').length;sp.textContent=String(window.scriptPageCount||Math.max(1,Math.ceil(lc/55)));}
 }
 function _mobApplyElementType(box,type){
   var eng=window.ScreenplayEditorCore;
@@ -6315,7 +6316,7 @@ _populateScribePanel = function(){
   var sp=document.getElementById('sp-stat-pages');
   if(ss&&sc)ss.textContent=sc.textContent;
   if(sl&&ln)sl.textContent=ln.textContent;
-  if(sp){var lc=document.querySelectorAll('#script-editable-node-rows-stack .line-editable-box').length;sp.textContent=Math.max(1,Math.ceil(lc/55)).toString();}
+  if(sp){var lc=document.querySelectorAll('#script-editable-node-rows-stack .line-editable-box').length;sp.textContent=String(window.scriptPageCount||Math.max(1,Math.ceil(lc/55)));}
 };
 
 // Mobile-only event listeners (runs after DOM ready)
@@ -6825,6 +6826,65 @@ window.directImport = function(e){
   p.dispatchEvent(new Event('change', { bubbles: true }));
   e.target.value = '';
 };
+</script>
+<script>
+/* Screenwriter pagination: lines never sit across an 11in page gap.
+   A line that would cross a gap (or start inside the top/bottom margin) is pushed
+   into the next page's text area via padding, so text reflows page to page. */
+(function(){
+  var PH = 11 * 96;            // one 11in page at 96px per inch
+  var raf = 0, stack = null, sheet = null;
+  function px(v){ return parseFloat(v) || 0; }
+  function run(){
+    raf = 0;
+    stack = stack || document.getElementById('script-editable-node-rows-stack');
+    sheet = sheet || document.getElementById('screenplay-paper-sheet');
+    if(!stack || !sheet || !sheet.getClientRects().length) return;   // hidden tab: skip
+    var boxes = stack.querySelectorAll('.line-editable-box');
+    var cs = getComputedStyle(sheet);
+    var MT = px(cs.paddingTop) || 96, MB = px(cs.paddingBottom) || 96;
+    var origin = sheet.getBoundingClientRect().top + sheet.clientTop;
+    var lastBottom = 0;
+    for(var i = 0; i < boxes.length; i++){
+      var b = boxes[i];
+      b.style.removeProperty('padding-top');                       // measure natural layout
+      var base = px(getComputedStyle(b).paddingTop);
+      var rect = b.getBoundingClientRect();
+      var top = rect.top - origin;                                  // box top in sheet coords
+      var h = rect.height;                                          // includes base padding
+      var textTop = top + base;
+      var k = Math.floor(textTop / PH);
+      var extra = 0;
+      if(textTop < k * PH + MT) extra = k * PH + MT - textTop;      // starts inside top margin
+      var bottom = textTop + extra + (h - base);
+      if(bottom > (k + 1) * PH - MB){                               // would cross the next gap
+        extra = (k + 1) * PH + MT - textTop;
+        bottom = textTop + extra + (h - base);
+      }
+      if(extra > 0.5) b.style.setProperty('padding-top', (base + extra) + 'px', 'important');
+      lastBottom = Math.max(lastBottom, bottom);
+    }
+    var pages = Math.max(1, Math.floor((lastBottom - 1) / PH) + 1);
+    window.scriptPageCount = pages;
+    sheet.setAttribute('data-pg', String(pages));
+    var sp = document.getElementById('sp-stat-pages');
+    if(sp) sp.textContent = String(pages);
+  }
+  window.paginateScript = function(){ if(!raf) raf = requestAnimationFrame(run); };
+  function init(){
+    stack = document.getElementById('script-editable-node-rows-stack');
+    if(!stack) return;
+    var mo = new MutationObserver(window.paginateScript);
+    mo.observe(stack, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    stack.addEventListener('input', window.paginateScript);
+    stack.addEventListener('keyup', window.paginateScript);
+    window.addEventListener('resize', window.paginateScript);
+    document.addEventListener('click', function(){ setTimeout(window.paginateScript, 60); }, true);
+    if(document.fonts && document.fonts.ready) document.fonts.ready.then(window.paginateScript);
+    window.paginateScript();
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
 </script>
 </body>
 </html>
