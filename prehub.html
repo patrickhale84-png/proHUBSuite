@@ -1427,6 +1427,8 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 
     <div class="h-4 w-px bg-slate-800 shrink-0"></div>
 
+    <!-- Title Page toggle (same action as File > Toggle Title Page) -->
+    <button id="ribbon-btn-title-page" onclick="document.getElementById('menu-file-new-title').click()" title="Show or hide the title page" class="px-3 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-600 text-slate-300 font-mono text-[11px] flex items-center gap-1.5"><i class="fa-solid fa-file-lines text-purple-300 text-[10px]"></i> Title Page</button>
     <!-- Dual Dialogue & Intelligent Sync/Reformat Group -->
     <div class="flex items-center gap-1.5 shrink-0">
       <button id="ribbon-btn-dual-dialogue" title="Combine Adjacent Speakers into Dual Dialogue" class="px-3 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-purple-600 text-slate-300 font-mono text-[11px] flex items-center gap-1.5 transition">
@@ -2070,6 +2072,9 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 #hdr-scrim.on{display:block;}
 @media (max-width:768px){.hdr-bar{flex-direction:row!important;align-items:center!important;flex-wrap:wrap!important;height:auto!important;min-height:52px!important;max-height:none!important;row-gap:6px!important;padding:6px 10px!important;}.hdr-bar .hubnav{flex-wrap:wrap;}.hdr-bar .ml-auto{flex-wrap:wrap!important;max-width:100%!important;justify-content:flex-start!important;}}
 .hdr-bar{position:sticky!important;top:0;z-index:1100!important;}
+/* Title page starts hidden and centred; the toolbar Title Page button toggles it */
+#screenplay-title-page-view.hidden{display:none!important;}
+#screenplay-paper-sheet,#screenplay-title-page-view{margin-left:auto!important;margin-right:auto!important;}
 .hdr-sub{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#D4A034;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
 </style>
 
