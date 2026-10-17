@@ -1072,13 +1072,10 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 <div style="position:fixed;bottom:0;right:0;width:200px;height:120px;opacity:.001;pointer-events:none;z-index:-50;overflow:hidden;"><div id="yt-player"></div></div>
 
 <!-- TOP MENU BAR -->
-<div class="tmb">
-  <button onclick="togSB()" class="text-gray-300 hover:text-white p-1 rounded-md text-base shrink-0"><i class="fa-solid fa-bars"></i></button>
+<div class="tmb hdr-bar">
+  <button onclick="togSB()" class="hdr-slot text-gray-300 hover:text-white rounded-md text-base shrink-0"><i class="fa-solid fa-bars"></i></button>
   <div class="flex flex-col justify-center min-w-0">
-    <div class="font-black tracking-widest text-white text-base flex items-center gap-1.5 leading-tight" style="font-family:var(--fds)">
-      <span style="font-family:var(--fbh);font-weight:700;letter-spacing:0;white-space:nowrap;"><span style="color:#A3E635">pre</span>HUB</span>
-      <span class="text-[8px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 rounded font-mono font-bold">PRE-PRODUCTION</span>
-    </div>
+    <div class="hdr-row"><span class="hdr-logo"><span class="pre">pre</span>HUB</span><span class="hdr-stage">PRE-PRODUCTION</span></div>
     <div class="flex items-center gap-1.5">
       <input type="text" id="pni" value="UNTITLED PROJECT" onchange="syncT()" class="bg-transparent border-b border-transparent hover:border-gray-600 focus:border-[#D4A034] outline-none text-[#D4A034] font-bold w-36 sm:w-48 uppercase tracking-wider text-[11px] truncate transition-colors">
       <span class="text-gray-600 hidden sm:inline text-[10px]">•</span>
@@ -2049,6 +2046,17 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 .paper-sheet-container *{color:#111827;}
 .paper-sheet-container .line-editable-box{color:#111827!important;}
 .paper-sheet-container ::placeholder{color:#9ca3af;}
+
+/* ── Shared top bar: identical on preHUB, proHUB, postHUB and filmHUB ── */
+.hdr-bar{height:52px!important;min-height:52px!important;max-height:52px!important;background:#0A0E17!important;border-bottom:1px solid #1B2335!important;padding:0 14px!important;gap:10px!important;flex-wrap:nowrap!important;}
+.hdr-col{display:flex;flex-direction:column;justify-content:center;flex-shrink:0;gap:3px;}
+.hdr-row{display:flex;align-items:center;gap:8px;white-space:nowrap;min-width:0;}
+.hdr-logo{font-family:'Bauhaus 93','Bauhaus','Bauhaus Bold',Impact,sans-serif;font-weight:700;font-size:20px;line-height:1;color:#fff;letter-spacing:0;white-space:nowrap;}
+.hdr-logo .pre{color:#A3E635;}
+.hdr-stage{line-height:1.25;display:inline-flex;align-items:center;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#FCD34D;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.45);padding:2px 6px;border-radius:4px;white-space:nowrap;}
+.hdr-slot{width:28px!important;height:28px!important;flex:0 0 28px!important;padding:0!important;margin:0!important;display:inline-flex!important;align-items:center;justify-content:center;}
+@media (max-width:768px){.hdr-spacer.hdr-mob-only{display:none!important;}}
+.hdr-sub{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#D4A034;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
 </style>
 
 <!-- Studio Header -->

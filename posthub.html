@@ -343,17 +343,25 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
   #m-sheet textarea{width:100%;min-height:120px;background:#0B0F19;border:1px solid #1F2A42;border-radius:12px;color:#E6ECF5;padding:12px;font-size:14px;font-family:inherit;resize:none;}
   #m-sheet .ms-save{margin-top:10px;width:100%;padding:12px;border-radius:12px;border:0;background:#E6ECF5;color:#0B0F19;font-weight:700;font-size:14px;}
 }
+
+/* ── Shared top bar: identical on preHUB, proHUB, postHUB and filmHUB ── */
+.hdr-bar{height:52px!important;min-height:52px!important;max-height:52px!important;background:#0A0E17!important;border-bottom:1px solid #1B2335!important;padding:0 14px!important;gap:10px!important;flex-wrap:nowrap!important;}
+.hdr-col{display:flex;flex-direction:column;justify-content:center;flex-shrink:0;gap:3px;}
+.hdr-row{display:flex;align-items:center;gap:8px;white-space:nowrap;min-width:0;}
+.hdr-logo{font-family:'Bauhaus 93','Bauhaus','Bauhaus Bold',Impact,sans-serif;font-weight:700;font-size:20px;line-height:1;color:#fff;letter-spacing:0;white-space:nowrap;}
+.hdr-logo .pre{color:#A3E635;}
+.hdr-stage{line-height:1.25;display:inline-flex;align-items:center;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#FCD34D;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.45);padding:2px 6px;border-radius:4px;white-space:nowrap;}
+.hdr-slot{width:28px!important;height:28px!important;flex:0 0 28px!important;padding:0!important;margin:0!important;display:inline-flex!important;align-items:center;justify-content:center;}
+@media (max-width:768px){.hdr-spacer.hdr-mob-only{display:none!important;}}
+.hdr-sub{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#D4A034;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
 </style>
 </head>
 <body>
 <div id="grain"></div>
 
 <!-- Topbar Navigation -->
-<header class="topbar">
-  <div class="brand" id="btnLaunchpad" title="Open postHUB Modular Desks">
-    <b>post</b><span style="color:#fff;font-style:normal;font-weight:900">HUB</span>
-    <span class="tagx">NLE STUDIO</span>
-  </div>
+<header class="topbar hdr-bar">
+  <span class="hdr-slot hdr-spacer" aria-hidden="true"></span><div class="hdr-col"><div class="hdr-row"><span class="hdr-logo" id="btnLaunchpad" title="Open postHUB Modular Desks" style="cursor:pointer"><span class="pre">post</span>HUB</span><span class="hdr-stage">POST-PRODUCTION</span></div><div class="hdr-sub">NLE studio</div></div>
   <nav class="hubnav" aria-label="Hubs"><a href="filmhub.html" onclick="hubGo('filmhub.html',event)" class="hn" data-hub="film" title="Front desk: all three hubs and the production banner">filmHUB</a><a href="prehub.html" onclick="hubGo('prehub.html',event)" class="hn" data-hub="pre">preHUB</a><a href="prohub.html" onclick="hubGo('prohub.html',event)" class="hn" data-hub="pro">proHUB</a><a href="posthub.html" onclick="hubGo('posthub.html',event)" class="hn on" data-hub="post">postHUB</a></nav>
 
   <div style="display: flex; gap: 4px; margin-left: 8px;">

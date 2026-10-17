@@ -476,6 +476,17 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
 .sc-par{margin-left:32%;color:#9CA3AF;}
 .sc-tr{text-align:right;text-transform:uppercase;margin-top:8px;}
 @media (max-width:768px){ .sc-char{margin-left:20%;} .sc-dia{margin-left:10%;max-width:80%;} .sc-par{margin-left:16%;} }
+
+/* ── Shared top bar: identical on preHUB, proHUB, postHUB and filmHUB ── */
+.hdr-bar{height:52px!important;min-height:52px!important;max-height:52px!important;background:#0A0E17!important;border-bottom:1px solid #1B2335!important;padding:0 14px!important;gap:10px!important;flex-wrap:nowrap!important;}
+.hdr-col{display:flex;flex-direction:column;justify-content:center;flex-shrink:0;gap:3px;}
+.hdr-row{display:flex;align-items:center;gap:8px;white-space:nowrap;min-width:0;}
+.hdr-logo{font-family:'Bauhaus 93','Bauhaus','Bauhaus Bold',Impact,sans-serif;font-weight:700;font-size:20px;line-height:1;color:#fff;letter-spacing:0;white-space:nowrap;}
+.hdr-logo .pre{color:#A3E635;}
+.hdr-stage{line-height:1.25;display:inline-flex;align-items:center;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#FCD34D;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.45);padding:2px 6px;border-radius:4px;white-space:nowrap;}
+.hdr-slot{width:28px!important;height:28px!important;flex:0 0 28px!important;padding:0!important;margin:0!important;display:inline-flex!important;align-items:center;justify-content:center;}
+@media (max-width:768px){.hdr-spacer.hdr-mob-only{display:none!important;}}
+.hdr-sub{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#D4A034;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
 </style>
 </head>
 <body>
@@ -483,10 +494,9 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
 <div id="tc-p"></div>
 
 <!-- TOPBAR -->
-<div class="tmb">
+<div class="tmb hdr-bar">
   <button class="hbtn mob-menu-btn" onclick="proToggleSB()" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
-  <div class="logo"><i class="fa-solid fa-clapperboard" style="color:#A3E635;"></i><span style="display:inline-flex;gap:0;white-space:nowrap;"><span class="pre">pro</span><span class="hub">HUB</span></span></div>
-  <div class="text-xs text-slate-500 font-mono">Production Command Center</div>
+  <span class="hdr-slot hdr-spacer hdr-mob-only" aria-hidden="true"></span><div class="hdr-col"><div class="hdr-row"><span class="hdr-logo"><span class="pre">pro</span>HUB</span><span class="hdr-stage">PRODUCTION</span></div><div class="hdr-sub">Production command center</div></div>
   <div class="flex items-center gap-2 ml-auto">
     <nav class="hubnav" aria-label="Hubs"><a href="filmhub.html" onclick="hubGo('filmhub.html',event)" class="hn" data-hub="film" title="Front desk: all three hubs and the production banner">filmHUB</a><a href="prehub.html" onclick="hubGo('prehub.html',event)" class="hn" data-hub="pre">preHUB</a><a href="prohub.html" onclick="hubGo('prohub.html',event)" class="hn on" data-hub="pro">proHUB</a><a href="posthub.html" onclick="hubGo('posthub.html',event)" class="hn" data-hub="post">postHUB</a></nav>
   </div>

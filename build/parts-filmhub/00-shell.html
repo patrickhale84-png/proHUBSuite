@@ -70,16 +70,25 @@ input:focus,textarea:focus{border-color:var(--gold)}
  .tiles{grid-template-columns:1fr;padding:10px}.brand{font-size:22px}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ── Shared top bar: identical on preHUB, proHUB, postHUB and filmHUB ── */
+.hdr-bar{height:52px!important;min-height:52px!important;max-height:52px!important;background:#0A0E17!important;border-bottom:1px solid #1B2335!important;padding:0 14px!important;gap:10px!important;flex-wrap:nowrap!important;}
+.hdr-col{display:flex;flex-direction:column;justify-content:center;flex-shrink:0;gap:3px;}
+.hdr-row{display:flex;align-items:center;gap:8px;white-space:nowrap;min-width:0;}
+.hdr-logo{font-family:'Bauhaus 93','Bauhaus','Bauhaus Bold',Impact,sans-serif;font-weight:700;font-size:20px;line-height:1;color:#fff;letter-spacing:0;white-space:nowrap;}
+.hdr-logo .pre{color:#A3E635;}
+.hdr-stage{line-height:1.25;display:inline-flex;align-items:center;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#FCD34D;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.45);padding:2px 6px;border-radius:4px;white-space:nowrap;}
+.hdr-slot{width:28px!important;height:28px!important;flex:0 0 28px!important;padding:0!important;margin:0!important;display:inline-flex!important;align-items:center;justify-content:center;}
+@media (max-width:768px){.hdr-spacer.hdr-mob-only{display:none!important;}}
+.hdr-sub{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#D4A034;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
 </style>
 </head>
 <body>
 <div id="grain"></div>
 <div id="storageWarn" class="warnbar hide"></div>
 
-<header class="topbar">
-  <div class="brand"><b>film</b><i>HUB</i></div>
-  <span class="tagx">FRONT DESK</span>
-  <div class="proj" id="projName">UNTITLED PRODUCTION<span id="projMeta"></span></div>
+<header class="topbar hdr-bar">
+  <span class="hdr-slot hdr-spacer" aria-hidden="true"></span><div class="hdr-col"><div class="hdr-row"><span class="hdr-logo"><span class="pre">film</span>HUB</span><span class="hdr-stage">FRONT DESK</span></div><div class="hdr-sub" id="projName">UNTITLED PRODUCTION<span id="projMeta"></span></div></div>
   <div class="tright">
     <span class="chip"><span class="dot" id="liveDot"></span><span id="saveStamp">ready</span></span>
     <button class="btn sm" id="setProj">Production</button>
