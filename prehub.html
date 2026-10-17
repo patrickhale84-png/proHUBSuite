@@ -2034,6 +2034,20 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 
 /* Evaluator Studio always first on the preHUB dashboard */
 #db-grid .tile-coverage{order:-1!important;}
+
+/* Screenwriter: white shadowed pages, stacked with grey gaps at each 11in break, scrolling in the workspace */
+.paper-sheet-container{
+  background-color:#ffffff!important;
+  background-image:repeating-linear-gradient(to bottom,#ffffff 0,#ffffff 11in,#5b6370 11in,#5b6370 calc(11in + 14px));
+  border:1px solid #d6d9de!important;
+  box-shadow:0 2px 6px rgba(0,0,0,.35),0 18px 44px rgba(0,0,0,.45)!important;
+  margin:28px auto 40px!important;
+  min-height:calc(11in * 2)!important;
+  color:#111827!important;
+}
+.paper-sheet-container *{color:#111827;}
+.paper-sheet-container .line-editable-box{color:#111827!important;}
+.paper-sheet-container ::placeholder{color:#9ca3af;}
 </style>
 
 <!-- Studio Header -->
@@ -3556,7 +3570,19 @@ let isTitlePageVisible = false;
 
           // Hydrate Editor Canvas
           this.rowsContainer.innerHTML = "";
+          /* title-page lines (Title:, Author:, Written by + name) belong to the title page, not the script body */
+          var seenScene = false, skipNext = false;
           parsed.lines.forEach(lineNode => {
+            var t = (lineNode.text || '').trim();
+            if(lineNode.type === 'scene-heading') seenScene = true;
+            if(!seenScene){
+              if(skipNext){ skipNext = false; return; }
+              if(/^(title|author|authors|credit|source)\s*:/i.test(t)) return;
+              if(/^(written by|by)$/i.test(t)){ skipNext = true; return; }
+              if(/^written by\s*:?\s*/i.test(t)) return;
+              if(parsed.title && t.toLowerCase()===String(parsed.title).trim().toLowerCase()) return;
+              if(parsed.author && t.toLowerCase()===String(parsed.author).trim().toLowerCase()) return;
+            }
             this.injectScreenplayLineRowNode(lineNode.type, lineNode.text);
           });
 
@@ -6769,6 +6795,19 @@ window.__sendScriptLine = function(text){
   });
   var mt=document.getElementById('mc-plus'); /* + stays as the options sheet */
 })();
+</script>
+<script>
+/* Sidebar "Import Script" input: hand the chosen file to the universal ingest picker, which already parses it */
+window.directImport = function(e){
+  var f = e && e.target && e.target.files && e.target.files[0];
+  if(!f) return;
+  var p = document.getElementById('ui-universal-file-picker');
+  if(!p) return;
+  var dt = new DataTransfer(); dt.items.add(f);
+  p.files = dt.files;
+  p.dispatchEvent(new Event('change', { bubbles: true }));
+  e.target.value = '';
+};
 </script>
 </body>
 </html>
