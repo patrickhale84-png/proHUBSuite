@@ -343,17 +343,16 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
 /* phone only: Claude-style chrome: menu + save on top, pill composer and + at the bottom, sheets for options and text */
 #m-bar,#m-composer,#m-sheet,#m-scrim{display:none;}
 @media (max-width:768px){
-  .tmb{display:none!important;}
-  body{padding-top:52px!important;padding-bottom:64px!important;}
-  #v-dashboard{padding-top:8px!important;}
-  #mob-tiles-btn{display:none!important;}
-  #m-bar{display:flex!important;position:fixed;top:0;left:0;right:0;height:52px;z-index:300;align-items:center;gap:10px;
+  body.m-inside .tmb{display:none!important;}
+  body.m-inside{padding-top:52px!important;padding-bottom:64px!important;}
+  body.m-inside #mob-tiles-btn{display:none!important;}
+  body.m-inside #m-bar{display:flex!important;position:fixed;top:0;left:0;right:0;height:52px;z-index:300;align-items:center;gap:10px;
     padding:0 12px;background:#0B0F19;border-bottom:1px solid #1B2436;font-family:'IBM Plex Mono',monospace;}
   #m-bar .mb-btn{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;
     background:#131B2E;border:1px solid #1F2A42;color:#C9D3E3;font-size:14px;cursor:pointer;padding:0;}
   #m-bar .mb-title{flex:1;text-align:center;font-size:12px;font-weight:700;letter-spacing:.14em;color:#E6ECF5;text-transform:uppercase;}
   #m-bar .mb-save{font-size:11px;letter-spacing:.1em;width:auto;padding:0 12px;}
-  #m-composer{display:flex!important;position:fixed;left:0;right:0;bottom:0;z-index:300;gap:8px;align-items:center;
+  body.m-inside #m-composer{display:flex!important;position:fixed;left:0;right:0;bottom:0;z-index:300;gap:8px;align-items:center;
     padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:#0B0F19;border-top:1px solid #1B2436;}
   #m-composer .mc-pill{flex:1;min-width:0;height:40px;border-radius:20px;background:#131B2E;border:1px solid #1F2A42;
     color:#7E8FA6;text-align:left;padding:0 16px;font-size:13px;font-family:inherit;cursor:text;}
@@ -1185,6 +1184,9 @@ function hubGo(page, ev){
   document.getElementById('mc-pill').onclick=openText;
   document.getElementById('mc-plus').onclick=openOptions;
   document.getElementById('m-scrim').onclick=function(){ sheet(false); };
+  function syncInside(){ var d=document.getElementById('v-dashboard'); document.body.classList.toggle('m-inside', !!d && !d.classList.contains('ac')); }
+  new MutationObserver(syncInside).observe(document.body,{attributes:true,subtree:true,attributeFilter:['class']});
+  syncInside();
 })();
 </script>
 </body>
