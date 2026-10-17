@@ -494,51 +494,176 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       .psl-col-thumb img{width:36px!important;height:25px!important;}
     }
     /* ===== MOBILE FIXES ===== */
+
+    /* ── Scribe panel, handle & kbd bar: base styles (hidden on desktop) ── */
+    #mob-scribe-handle{
+      display:none;position:fixed;left:0;top:50%;transform:translateY(-50%);
+      width:18px;height:52px;background:#111827;border-radius:0 8px 8px 0;
+      border:1px solid #1B2436;border-left:none;z-index:450;align-items:center;
+      justify-content:center;cursor:pointer;transition:left .3s ease;
+    }
+    #mob-scribe-handle.panel-open{left:280px;}
+    #mob-scribe-handle::after{content:'';display:block;width:3px;height:28px;background:#3B4A61;border-radius:2px;}
+    #mob-scribe-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:600;}
+    #mob-scribe-panel{
+      display:none;position:fixed;top:0;left:-285px;width:285px;height:100%;
+      background:#070B14;border-right:1px solid #1B2436;z-index:700;
+      flex-direction:column;transition:left .3s ease;overflow:hidden;
+    }
+    #mob-scribe-panel.open{left:0;}
+    #mob-scribe-panel .sp-head{padding:14px 16px;background:#0A0F1D;border-bottom:1px solid #1B2436;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+    #mob-scribe-panel .sp-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;}
+    #mob-scribe-panel .sp-title .pre{color:#A3E635;}
+    #mob-scribe-panel .sp-title .hub{color:#fff;}
+    #mob-scribe-panel .sp-title .pipe{color:#3B4A61;margin:0 5px;}
+    #mob-scribe-panel .sp-title .app{color:#7137C8;}
+    #mob-scribe-panel .sp-close{width:28px;height:28px;background:#111827;border:1px solid #1B2436;border-radius:6px;color:#556B8A;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+    #mob-scribe-panel .sp-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+    #mob-scribe-panel .sp-section{padding:12px 14px 8px;border-bottom:1px solid #0F1929;}
+    #mob-scribe-panel .sp-label{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#3B4A61;font-family:'IBM Plex Mono',monospace;margin-bottom:8px;}
+    #mob-scribe-panel .sp-el{display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;background:#0A0F1D;border:1px solid #111827;border-radius:6px;cursor:pointer;margin-bottom:4px;transition:background .15s;text-align:left;}
+    #mob-scribe-panel .sp-el:active{background:#141E30;}
+    #mob-scribe-panel .sp-tag{font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace;min-width:36px;}
+    #mob-scribe-panel .sp-fmt{font-size:10px;color:#556B8A;font-family:'IBM Plex Mono',monospace;}
+    #mob-scribe-panel .sp-scene{padding:6px 8px;font-size:11px;font-family:'IBM Plex Mono',monospace;color:#8794A6;background:#0A0F1D;border-radius:4px;margin-bottom:3px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .15s,color .15s;}
+    #mob-scribe-panel .sp-scene:active{background:#141E30;color:#fff;}
+    #mob-scribe-panel .sp-stat{display:flex;justify-content:space-between;font-size:11px;font-family:'IBM Plex Mono',monospace;padding:4px 0;color:#556B8A;border-bottom:1px solid #0F1929;}
+    #mob-scribe-panel .sp-stat:last-child{border:none;}
+    #mob-scribe-panel .sp-stat span{color:#fff;font-weight:700;}
+    #mob-scribe-panel .sp-export-row{display:flex;gap:8px;padding:12px 14px;}
+    #mob-scribe-panel .sp-export-btn{flex:1;padding:9px 4px;background:#111827;border:1px solid #1B2436;border-radius:6px;color:#8794A6;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;text-align:center;transition:background .15s,color .15s;}
+    #mob-scribe-panel .sp-export-btn:active{background:#1B2436;color:#fff;}
+
+    #mob-kbd-bar{
+      display:none;position:fixed;bottom:0;left:0;right:0;height:46px;
+      background:#0D1222;border-top:1px solid #1E2D45;z-index:500;
+      align-items:center;transition:transform .15s ease;will-change:transform;
+    }
+    #mob-kbd-bar button{flex:1;height:100%;background:none;border:none;border-right:1px solid #1E2D45;color:#556B8A;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;-webkit-tap-highlight-color:transparent;transition:color .1s,background .1s;}
+    #mob-kbd-bar button:last-child{border-right:none;}
+    #mob-kbd-bar button:active{background:#1B2436;color:#fff;}
+    #mob-el-btn{font-size:11px!important;font-family:'IBM Plex Mono',monospace!important;font-weight:700!important;letter-spacing:.04em!important;}
+    #mob-caps-icon{font-size:14px;color:#556B8A;}
+
+    #mob-write-fab{
+      display:none;position:fixed;bottom:58px;right:14px;width:46px;height:46px;
+      background:#A3E635;border-radius:50%;border:none;color:#04060A;font-size:20px;
+      cursor:pointer;z-index:400;align-items:center;justify-content:center;
+      box-shadow:0 4px 20px rgba(0,0,0,.7);-webkit-tap-highlight-color:transparent;
+    }
+    /* Storyboard */
+    #mob-storyboard-view{
+      display:none;position:fixed;top:0;right:-100%;width:100%;height:100%;
+      background:#060910;z-index:800;flex-direction:column;transition:right .3s ease;
+    }
+    #mob-storyboard-view.open{right:0;}
+    #mob-storyboard-view .sb-head{padding:14px 16px;background:#0A0F1D;border-bottom:1px solid #1B2436;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+    #mob-storyboard-view .sb-close{width:32px;height:32px;background:#111827;border:1px solid #1B2436;border-radius:6px;color:#556B8A;font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+    #mob-storyboard-view .sb-scene-num{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;color:#A3E635;letter-spacing:.1em;text-transform:uppercase;}
+    #mob-storyboard-view .sb-scene-name{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8794A6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    #mob-storyboard-view .sb-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0;}
+    #mob-storyboard-view .sb-img-wrap{width:100%;background:#000;display:flex;align-items:center;justify-content:center;min-height:220px;position:relative;}
+    #mob-storyboard-view .sb-img-wrap img{width:100%;max-height:55vw;object-fit:contain;}
+    #mob-storyboard-view .sb-img-empty{width:100%;height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#3B4A61;}
+    #mob-storyboard-view .sb-replace-btn{position:absolute;bottom:10px;right:10px;background:rgba(10,15,29,.85);border:1px solid #1B2436;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:#8794A6;cursor:pointer;letter-spacing:.05em;}
+    #mob-storyboard-view .sb-action{padding:14px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8794A6;line-height:1.7;border-bottom:1px solid #0F1929;}
+    #mob-storyboard-view .sb-action-label{font-size:9px;color:#3B4A61;letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
+    /* Scene list thumbnails */
+    .sp-scene-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+    .sp-scene-row .sp-scene{flex:1;min-width:0;}
+    .sp-scene-row .sp-sb-thumb{width:36px;height:28px;border-radius:3px;object-fit:cover;cursor:pointer;flex-shrink:0;border:1px solid #1B2436;}
+    .sp-scene-row .sp-cam-btn{width:30px;height:28px;background:#0A0F1D;border:1px solid #111827;border-radius:4px;color:#3B4A61;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+    .sp-scene-row .sp-cam-btn:active{background:#141E30;color:#fff;}
+    /* Script title + notes in Scribe panel */
+    #sp-title-display{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.04em;padding:4px 0 6px;}
+    #sp-notes-area{width:100%;background:#0A0F1D;border:1px solid #111827;border-radius:6px;padding:8px 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8794A6;line-height:1.6;resize:none;outline:none;min-height:60px;box-sizing:border-box;}
+    #sp-notes-area::placeholder{color:#3B4A61;}
+
     @media(max-width:768px){
-      /* Un-trap body on mobile — allow page to scroll */
+      /* ── Global body ── */
       body{overflow-y:auto!important;height:auto!important;}
       .apc{height:auto!important;overflow:visible!important;flex-direction:column!important;}
-      /* Views: full-height block, scrollable */
+
+      /* ── Hub views (non-writer) ── */
       .vs{overflow-y:auto!important;min-height:100svh!important;display:none!important;}
       .vs.ac{display:flex!important;flex-direction:column!important;}
-      /* Main content area scrolls */
       .mw{overflow:visible!important;flex:1!important;}
-      /* Sidebar overlay on mobile */
-      .psb{position:fixed!important;top:52px!important;bottom:0!important;left:0!important;
-           width:270px!important;transform:translateX(-100%)!important;z-index:200!important;
-           overflow-y:auto!important;transition:transform .25s!important;}
+
+      /* ── Hub sidebar overlay ── */
+      .psb{position:fixed!important;top:52px!important;bottom:0!important;left:0!important;width:270px!important;transform:translateX(-100%)!important;z-index:200!important;overflow-y:auto!important;transition:transform .25s!important;}
       .psb.mo{transform:translateX(0)!important;}
-      /* Show a close overlay when sidebar open */
       .psb-overlay{display:block!important;}
-      /* Topbar: wrap and shrink */
       .tmb{flex-wrap:wrap!important;min-height:auto!important;padding:6px 10px!important;gap:6px!important;}
-      /* Writer section: scrollable, not trapped */
-      #v-writer{overflow-y:auto!important;height:auto!important;min-height:100svh!important;}
-      .esr{flex:none!important;overflow-y:visible!important;padding:12px 4px 60px!important;}
-      /* Mobile-only back button inside writer */
-      #mob-writer-back{display:flex!important;}
-      /* Dashboard tiles: 2 col */
       .mtile-grid,.mtiles{grid-template-columns:repeat(2,1fr)!important;}
-      /* ── SCREENPLAY PAPER: kill fixed 8.5in width, fill screen ── */
-      #editor-scroller-viewport{align-items:stretch!important;padding-left:4px!important;padding-right:4px!important;overflow-x:hidden!important;}
-      .paper-sheet-container{width:100%!important;min-width:0!important;box-sizing:border-box!important;
-        padding-top:14px!important;padding-bottom:60px!important;
-        padding-left:10px!important;padding-right:10px!important;}
-      /* Screenplay elements: % indents relative to full-screen container */
-      .element-character{padding-left:28%!important;padding-right:0!important;}
-      .element-dialogue{padding-left:8%!important;padding-right:10%!important;}
-      .element-parenthetical{padding-left:18%!important;padding-right:14%!important;}
-      .element-action{padding-left:0!important;padding-right:0!important;}
-      .element-transition{padding-left:0!important;text-align:right!important;}
-      .element-scene-heading{margin-top:14pt!important;}
-      .line-editable-box{font-size:11pt!important;}
+
+      /* ── SCRIBE: full-screen immersive writer ── */
+      #v-writer{
+        position:fixed!important;inset:0!important;overflow:hidden!important;
+        height:100dvh!important;flex-direction:column!important;display:none!important;
+      }
+      #v-writer.ac{display:flex!important;}
+
+      /* Desktop header/footer hidden on mobile */
+      #v-writer>header{display:none!important;}
+      #v-writer>footer{display:none!important;}
+
+      /* Scribe mobile header — auto-hides on scroll via height collapse */
+      #mob-writer-back{
+        display:flex!important;position:relative!important;top:auto!important;
+        left:auto!important;right:auto!important;flex-shrink:0!important;
+        height:52px!important;overflow:hidden!important;
+        transition:height .3s ease,opacity .3s ease!important;z-index:400!important;
+      }
+      #mob-writer-back.scribe-nav-hidden{
+        height:0!important;opacity:0!important;pointer-events:none!important;
+        padding:0!important;border:none!important;
+      }
+
+      /* Main area fills remaining space */
+      #v-writer>main{flex:1!important;overflow:hidden!important;position:relative!important;min-height:0!important;}
+
+      /* Hide unused side panes */
+      #coverage-alert-sidebar-pane,#collab-drawer-simulator-view{display:none!important;}
+
+      /* The editing canvas fills all of main */
+      #editor-scroller-viewport{
+        position:absolute!important;inset:0!important;
+        overflow-y:auto!important;overflow-x:hidden!important;
+        -webkit-overflow-scrolling:touch!important;
+        flex-direction:column!important;align-items:stretch!important;
+        padding:0!important;display:flex!important;
+      }
+
+      /* Paper: full width, 8px thin sides */
+      .paper-sheet-container{
+        width:100%!important;min-width:0!important;box-sizing:border-box!important;
+        padding:10px 8px 160px!important;
+        border-radius:0!important;box-shadow:none!important;margin:0!important;flex-shrink:0!important;
+      }
+
+      /* Industry-accurate screenplay element indents */
+      .line-editable-box{font-size:12px!important;line-height:1.65!important;}
+      .element-scene-heading{margin-top:12pt!important;margin-bottom:2pt!important;}
+      .element-action{padding-left:0!important;padding-right:0!important;margin-bottom:0!important;}
+      .element-character{padding-left:37%!important;padding-right:0!important;margin-bottom:0!important;}
+      .element-dialogue{padding-left:17%!important;padding-right:17%!important;margin-bottom:0!important;}
+      .element-parenthetical{padding-left:27%!important;padding-right:20%!important;margin-bottom:0!important;}
+      .element-transition{padding-left:0!important;text-align:right!important;margin-top:8pt!important;}
+
+      /* Show Scribe mobile-only elements */
+      #mob-scribe-handle{display:flex!important;}
+      #mob-scribe-panel{display:flex!important;}
+      #mob-storyboard-view{display:flex!important;}
+      #mob-kbd-bar{display:flex!important;}
+      #mob-write-fab{display:flex!important;}
     }
+
     @media(max-width:480px){
       .paper-sheet-container{padding-left:6px!important;padding-right:6px!important;}
-      .line-editable-box{font-size:10pt!important;}
-      .element-character{padding-left:22%!important;}
-      .element-dialogue{padding-left:6%!important;padding-right:8%!important;}
-      .element-parenthetical{padding-left:12%!important;padding-right:10%!important;}
+      .line-editable-box{font-size:11px!important;}
+      .element-character{padding-left:33%!important;}
+      .element-dialogue{padding-left:15%!important;padding-right:15%!important;}
+      .element-parenthetical{padding-left:24%!important;padding-right:18%!important;}
     }
 </style>
 </head>
@@ -763,8 +888,8 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="flex-shrink:0"><path d="M8 1L3 6l5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
     preHUB
   </button>
-  <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#556B8A;letter-spacing:.12em;text-transform:uppercase;">Screenwriter Studio</span>
-  <button onclick="if(document.querySelector('.psb')){document.querySelector('.psb').classList.toggle('mo')}" style="display:inline-flex;align-items:center;gap:5px;background:#0E1320;border:1px solid #26344E;color:#8794A6;padding:7px 10px;border-radius:5px;font-size:12px;cursor:pointer;">
+  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.05em;"><span style="color:#A3E635;font-weight:900;">pre</span><span style="color:#fff;font-weight:900;">HUB</span><span style="color:#3B4A61;margin:0 5px;">|</span><span style="color:#7137C8;font-weight:700;">Scribe</span></span>
+  <button onclick="openScribePanel()" style="display:inline-flex;align-items:center;gap:5px;background:#0E1320;border:1px solid #26344E;color:#8794A6;padding:7px 10px;border-radius:5px;font-size:12px;cursor:pointer;">
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M2 7h10M2 10h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
   </button>
 </div>
@@ -1227,6 +1352,109 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
   </footer>
 
   <div id="toast-portal-rack" class="fixed bottom-14 left-4 z-50 flex flex-col gap-2 pointer-events-none sans-ui"></div>
+
+  <!-- ── SCRIBE CORNER HANDLE (always visible on mobile, opens panel) ── -->
+  <div id="mob-scribe-handle" onclick="openScribePanel()" title="Scribe menu"></div>
+
+  <!-- ── SCRIBE PANEL BACKDROP ── -->
+  <div id="mob-scribe-overlay" onclick="closeScribePanel()"></div>
+
+  <!-- ── SCRIBE SLIDE-OUT PANEL ── -->
+  <!-- ── STORYBOARD VIEWER ── -->
+  <div id="mob-storyboard-view">
+    <div class="sb-head">
+      <button class="sb-close" onclick="closeStoryboard()">✕</button>
+      <div>
+        <div class="sb-scene-num" id="sb-scene-num">SCENE 1</div>
+        <div class="sb-scene-name" id="sb-scene-name">—</div>
+      </div>
+    </div>
+    <div class="sb-body">
+      <div class="sb-img-wrap" id="sb-img-wrap">
+        <div class="sb-img-empty" id="sb-img-empty">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="4" y="10" width="32" height="22" rx="3" stroke="#3B4A61" stroke-width="2"/><circle cx="20" cy="21" r="6" stroke="#3B4A61" stroke-width="2"/><path d="M14 10l2-4h8l2 4" stroke="#3B4A61" stroke-width="2" stroke-linejoin="round"/></svg>
+          <span style="font-size:10px;color:#3B4A61;font-family:'IBM Plex Mono',monospace;">Tap to add storyboard frame</span>
+          <button onclick="sbUploadPhoto()" style="margin-top:4px;padding:7px 16px;background:#111827;border:1px solid #1B2436;border-radius:6px;color:#8794A6;font-size:11px;font-weight:700;font-family:'IBM Plex Mono',monospace;cursor:pointer;letter-spacing:.05em;">+ Add Photo</button>
+        </div>
+        <img id="sb-image" src="" alt="Storyboard frame" style="display:none">
+        <button class="sb-replace-btn" id="sb-replace-btn" onclick="sbUploadPhoto()" style="display:none">⟳ Replace</button>
+      </div>
+      <div class="sb-action">
+        <div class="sb-action-label">Scene Action</div>
+        <div id="sb-action-text">—</div>
+      </div>
+    </div>
+    <input type="file" id="mob-sb-input" accept="image/*" capture="environment" style="display:none">
+  </div>
+
+  <div id="mob-scribe-panel">
+    <div class="sp-head">
+      <div class="sp-title"><span class="pre">pre</span><span class="hub">HUB</span><span class="pipe">|</span><span class="app">Scribe</span></div>
+      <button class="sp-close" onclick="closeScribePanel()">✕</button>
+    </div>
+    <div class="sp-body">
+      <!-- SCRIPT TITLE + NOTES -->
+      <div class="sp-section">
+        <div class="sp-label">Script</div>
+        <div id="sp-title-display">UNTITLED</div>
+        <textarea id="sp-notes-area" placeholder="Production notes…" rows="3"></textarea>
+      </div>
+      <!-- ELEMENT TYPE QUICK-SET -->
+      <div class="sp-section">
+        <div class="sp-label">Element Type</div>
+        <button class="sp-el" onclick="mobSetElement('SCENE_HEADING');closeScribePanel()">
+          <span class="sp-tag" style="color:#A3E635">SLUG</span><span class="sp-fmt">INT./EXT. LOCATION — TIME</span>
+        </button>
+        <button class="sp-el" onclick="mobSetElement('ACTION');closeScribePanel()">
+          <span class="sp-tag" style="color:#94A3B8">ACT</span><span class="sp-fmt">Full-width action line</span>
+        </button>
+        <button class="sp-el" onclick="mobSetElement('CHARACTER');closeScribePanel()">
+          <span class="sp-tag" style="color:#60A5FA">CHR</span><span class="sp-fmt">Name — 37% indent</span>
+        </button>
+        <button class="sp-el" onclick="mobSetElement('PARENTHETICAL');closeScribePanel()">
+          <span class="sp-tag" style="color:#F59E0B">( )</span><span class="sp-fmt">(direction below name)</span>
+        </button>
+        <button class="sp-el" onclick="mobSetElement('DIALOGUE');closeScribePanel()">
+          <span class="sp-tag" style="color:#E2E8F0">DLG</span><span class="sp-fmt">Spoken — 17% margins</span>
+        </button>
+        <button class="sp-el" onclick="mobSetElement('TRANSITION');closeScribePanel()">
+          <span class="sp-tag" style="color:#A78BFA">TRN</span><span class="sp-fmt">CUT TO: — right-flush</span>
+        </button>
+      </div>
+      <!-- SCENE NAVIGATOR -->
+      <div class="sp-section">
+        <div class="sp-label">Navigate Scenes</div>
+        <div id="mob-scribe-scene-list">
+          <div style="font-size:10px;color:#3B4A61;font-family:'IBM Plex Mono',monospace;text-align:center;padding:8px 0;">No scenes yet</div>
+        </div>
+      </div>
+      <!-- STATS -->
+      <div class="sp-section">
+        <div class="sp-label">Script Stats</div>
+        <div class="sp-stat">Scenes <span id="sp-stat-scenes">—</span></div>
+        <div class="sp-stat">Lines <span id="sp-stat-lines">—</span></div>
+        <div class="sp-stat">Est. Pages <span id="sp-stat-pages">—</span></div>
+      </div>
+      <!-- EXPORT -->
+      <div class="sp-export-row">
+        <button class="sp-export-btn" onclick="document.getElementById('export-target-pdf')?.click();closeScribePanel()">PDF</button>
+        <button class="sp-export-btn" onclick="document.getElementById('export-target-fdx')?.click();closeScribePanel()">FDX</button>
+        <button class="sp-export-btn" onclick="document.getElementById('export-target-txt')?.click();closeScribePanel()">TXT</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SCRIBE KEYBOARD ACCESSORY BAR ── -->
+  <div id="mob-kbd-bar">
+    <button id="mob-el-btn" onclick="mobCycleElement()" title="Cycle element"><span id="mob-el-chip" style="color:#A3E635">ACT</span></button>
+    <button id="mob-caps-btn" onclick="mobToggleCaps()" title="Toggle caps"><span id="mob-caps-icon">Aa</span></button>
+    <button id="mob-undo-btn" onclick="mobUndo()" title="Undo">↩</button>
+    <button id="mob-redo-btn" onclick="mobRedo()" title="Redo">↪</button>
+  </div>
+
+  <!-- ── SCRIBE WRITE FAB ── -->
+  <button id="mob-write-fab" onclick="mobFocusWriter()" title="Tap to write">✎</button>
+
 </section>
 
 <!-- VIEW 2: HALION EVALUATOR STUDIO -->
@@ -5339,6 +5567,297 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape'){closeVault();const in
 document.readyState==='loading'?document.addEventListener('DOMContentLoaded',init):init();
 // Load YouTube API
 const ys=document.createElement('script');ys.src='https://www.youtube.com/iframe_api';document.head.appendChild(ys);
+
+// ══════════════════════════════════════════════════════════════
+// ── SCRIBE — Mobile screenwriter UX (preHUB | Scribe) ────────
+// ══════════════════════════════════════════════════════════════
+var _mobFocused = null;
+var _capsOn = false;
+var _EL_SHORT = {ACTION:'ACT',SCENE_HEADING:'SLUG',CHARACTER:'CHR',PARENTHETICAL:'( )',DIALOGUE:'DLG',TRANSITION:'TRN'};
+var _EL_COLOR = {ACTION:'#94A3B8',SCENE_HEADING:'#A3E635',CHARACTER:'#60A5FA',PARENTHETICAL:'#F59E0B',DIALOGUE:'#E2E8F0',TRANSITION:'#A78BFA'};
+
+function openScribePanel(){
+  var panel=document.getElementById('mob-scribe-panel');
+  var overlay=document.getElementById('mob-scribe-overlay');
+  var handle=document.getElementById('mob-scribe-handle');
+  if(panel)panel.classList.add('open');
+  if(overlay)overlay.style.display='block';
+  if(handle)handle.classList.add('panel-open');
+  _populateScribePanel();
+}
+function closeScribePanel(){
+  var panel=document.getElementById('mob-scribe-panel');
+  var overlay=document.getElementById('mob-scribe-overlay');
+  var handle=document.getElementById('mob-scribe-handle');
+  if(panel)panel.classList.remove('open');
+  if(overlay)overlay.style.display='none';
+  if(handle)handle.classList.remove('panel-open');
+}
+function _populateScribePanel(){
+  var scenes=document.querySelectorAll('#script-editable-node-rows-stack .element-scene-heading');
+  var list=document.getElementById('mob-scribe-scene-list');
+  if(list){
+    if(scenes.length===0){
+      list.innerHTML='<div style="font-size:10px;color:#3B4A61;font-family:\'IBM Plex Mono\',monospace;text-align:center;padding:8px 0;">No scenes yet</div>';
+    } else {
+      list.innerHTML='';
+      scenes.forEach(function(el,i){
+        var div=document.createElement('div');
+        div.className='sp-scene';
+        div.textContent=(i+1)+'. '+(el.innerText||el.textContent||'—').trim().toUpperCase();
+        div.onclick=function(){el.scrollIntoView({behavior:'smooth',block:'center'});closeScribePanel();setTimeout(function(){el.focus();},400);};
+        list.appendChild(div);
+      });
+    }
+  }
+  var sc=document.getElementById('ui-hud-scene-total-count');
+  var ln=document.getElementById('ui-hud-elements-total-count');
+  var ss=document.getElementById('sp-stat-scenes');
+  var sl=document.getElementById('sp-stat-lines');
+  var sp=document.getElementById('sp-stat-pages');
+  if(ss&&sc)ss.textContent=sc.textContent;
+  if(sl&&ln)sl.textContent=ln.textContent;
+  if(sp){var lc=document.querySelectorAll('#script-editable-node-rows-stack .line-editable-box').length;sp.textContent=Math.max(1,Math.ceil(lc/55)).toString();}
+}
+function _mobApplyElementType(box,type){
+  var eng=window.ScreenplayEditorCore;
+  if(!eng)return;
+  box.className='line-editable-box '+eng.getStyleClassForElementType(type);
+  box.setAttribute('data-element-type',type);
+  box.setAttribute('data-placeholder',eng.getPlaceholderForType(type));
+  var chip=document.getElementById('mob-el-chip');
+  if(chip){chip.textContent=_EL_SHORT[type]||type;chip.style.color=_EL_COLOR[type]||'#fff';}
+  var badge=document.getElementById('ui-current-element-type-badge');
+  if(badge)badge.textContent=type;
+  if(eng.recordActiveStateToHistorySnapshotStack)eng.recordActiveStateToHistorySnapshotStack('Change to '+type);
+  if(eng.recalculatePageHUDCounters)eng.recalculatePageHUDCounters();
+}
+function mobCycleElement(){
+  var box=_mobFocused||document.querySelector('#script-editable-node-rows-stack .line-editable-box:last-child');
+  if(!box)return;
+  var cur=box.getAttribute('data-element-type')||'ACTION';
+  var seq=window.SCRIPT_ELEMENT_SEQUENCES||['ACTION','SCENE_HEADING','CHARACTER','PARENTHETICAL','DIALOGUE','TRANSITION'];
+  var idx=seq.indexOf(cur);
+  var next=seq[(idx+1)%seq.length];
+  _mobApplyElementType(box,next);
+  box.focus();
+}
+function mobSetElement(type){
+  var box=_mobFocused||document.querySelector('#script-editable-node-rows-stack .line-editable-box:last-child');
+  if(!box)return;
+  _mobApplyElementType(box,type);
+  setTimeout(function(){box.focus();},150);
+}
+function mobToggleCaps(){
+  var box=_mobFocused;if(!box)return;
+  var icon=document.getElementById('mob-caps-icon');
+  _capsOn=!_capsOn;
+  var txt=box.innerText;
+  if(_capsOn){box.innerText=txt.toUpperCase();if(icon){icon.textContent='AA';icon.style.color='#A3E635';}}
+  else{box.innerText=txt.charAt(0).toUpperCase()+txt.slice(1).toLowerCase();if(icon){icon.textContent='Aa';icon.style.color='#556B8A';}}
+  var sel=window.getSelection();var r=document.createRange();r.selectNodeContents(box);r.collapse(false);sel.removeAllRanges();sel.addRange(r);
+  var eng=window.ScreenplayEditorCore;
+  if(eng&&eng.recordActiveStateToHistorySnapshotStack)eng.recordActiveStateToHistorySnapshotStack('Toggle Caps');
+}
+function mobUndo(){var eng=window.ScreenplayEditorCore;if(eng&&typeof eng.executeUndoCommandStep==='function')eng.executeUndoCommandStep();}
+function mobRedo(){var eng=window.ScreenplayEditorCore;if(eng&&typeof eng.executeRedoCommandStep==='function')eng.executeRedoCommandStep();}
+function mobFocusWriter(){var rows=document.getElementById('script-editable-node-rows-stack');if(!rows)return;var boxes=rows.querySelectorAll('.line-editable-box');var last=boxes[boxes.length-1]||boxes[0];if(last)last.focus();}
+
+// ── Storyboard ──
+var _sbSceneIndex = 0;
+function openStoryboard(sceneIdx, sceneName){
+  _sbSceneIndex = sceneIdx;
+  var view = document.getElementById('mob-storyboard-view');
+  var numEl = document.getElementById('sb-scene-num');
+  var nameEl = document.getElementById('sb-scene-name');
+  var imgEl = document.getElementById('sb-image');
+  var emptyEl = document.getElementById('sb-img-empty');
+  var replaceBtn = document.getElementById('sb-replace-btn');
+  var actionEl = document.getElementById('sb-action-text');
+  if(numEl) numEl.textContent = 'SCENE '+(sceneIdx+1);
+  if(nameEl) nameEl.textContent = sceneName||'—';
+  var stored = null;
+  try{ stored = localStorage.getItem('scribe_sb_'+sceneIdx); }catch(e){}
+  if(stored && imgEl){
+    imgEl.src = stored; imgEl.style.display='block';
+    if(emptyEl) emptyEl.style.display='none';
+    if(replaceBtn) replaceBtn.style.display='block';
+  } else if(imgEl){
+    imgEl.style.display='none'; imgEl.src='';
+    if(emptyEl) emptyEl.style.display='flex';
+    if(replaceBtn) replaceBtn.style.display='none';
+  }
+  var scenes = document.querySelectorAll('#script-editable-node-rows-stack .element-scene-heading');
+  var sceneEl = scenes[sceneIdx];
+  var actionLines = [];
+  if(sceneEl){
+    var parent = sceneEl.closest ? sceneEl.closest('.script-line-row') : sceneEl.parentElement;
+    var next = parent ? parent.nextElementSibling : null;
+    while(next && actionLines.length < 5){
+      var box = next.querySelector('.line-editable-box');
+      if(box && box.classList.contains('element-action')){actionLines.push((box.innerText||'').trim());}
+      else if(box) break;
+      next = next.nextElementSibling;
+    }
+  }
+  if(actionEl) actionEl.textContent = actionLines.join(' ') || '(No action lines follow this scene)';
+  if(view) view.classList.add('open');
+}
+function closeStoryboard(){
+  var view = document.getElementById('mob-storyboard-view');
+  if(view) view.classList.remove('open');
+}
+function sbUploadPhoto(){
+  var inp = document.getElementById('mob-sb-input');
+  if(!inp) return;
+  inp.onchange = function(){
+    var file = inp.files[0]; if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      try{ localStorage.setItem('scribe_sb_'+_sbSceneIndex, e.target.result); }catch(err){}
+      var imgEl = document.getElementById('sb-image');
+      var emptyEl = document.getElementById('sb-img-empty');
+      var replaceBtn = document.getElementById('sb-replace-btn');
+      if(imgEl){ imgEl.src=e.target.result; imgEl.style.display='block'; }
+      if(emptyEl) emptyEl.style.display='none';
+      if(replaceBtn) replaceBtn.style.display='block';
+      inp.value='';
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
+// Patch _populateScribePanel to add title, thumbnails, and storyboard camera buttons
+var _origPopulate = _populateScribePanel;
+_populateScribePanel = function(){
+  var titleIn = document.getElementById('title-page-main-heading');
+  var titleDisplay = document.getElementById('sp-title-display');
+  if(titleDisplay && titleIn) titleDisplay.textContent = (titleIn.textContent||titleIn.innerText||'UNTITLED').trim()||'UNTITLED';
+  var scenes = document.querySelectorAll('#script-editable-node-rows-stack .element-scene-heading');
+  var list = document.getElementById('mob-scribe-scene-list');
+  if(list){
+    if(scenes.length===0){
+      list.innerHTML='<div style="font-size:10px;color:#3B4A61;font-family:\'IBM Plex Mono\',monospace;text-align:center;padding:8px 0;">No scenes yet</div>';
+    } else {
+      list.innerHTML='';
+      scenes.forEach(function(el,i){
+        var row = document.createElement('div');
+        row.className = 'sp-scene-row';
+        var sceneName = (el.innerText||el.textContent||'—').trim().toUpperCase();
+        var sceneDiv = document.createElement('div');
+        sceneDiv.className = 'sp-scene';
+        sceneDiv.textContent = (i+1)+'. '+sceneName;
+        (function(sEl){ sceneDiv.onclick = function(){ sEl.scrollIntoView({behavior:'smooth',block:'center'}); closeScribePanel(); setTimeout(function(){ sEl.focus(); },400); }; })(el);
+        row.appendChild(sceneDiv);
+        var stored = null;
+        try{ stored = localStorage.getItem('scribe_sb_'+i); }catch(e){}
+        if(stored){
+          var thumb = document.createElement('img');
+          thumb.className = 'sp-sb-thumb';
+          thumb.src = stored;
+          (function(idx,name){ thumb.onclick = function(e){ e.stopPropagation(); closeScribePanel(); setTimeout(function(){ openStoryboard(idx,name); },250); }; })(i,sceneName);
+          row.appendChild(thumb);
+        } else {
+          var camBtn = document.createElement('button');
+          camBtn.className = 'sp-cam-btn';
+          camBtn.textContent = '📷';
+          (function(idx,name){ camBtn.onclick = function(e){ e.stopPropagation(); closeScribePanel(); setTimeout(function(){ openStoryboard(idx,name); },250); }; })(i,sceneName);
+          row.appendChild(camBtn);
+        }
+        list.appendChild(row);
+      });
+    }
+  }
+  var sc=document.getElementById('ui-hud-scene-total-count');
+  var ln=document.getElementById('ui-hud-elements-total-count');
+  var ss=document.getElementById('sp-stat-scenes');
+  var sl=document.getElementById('sp-stat-lines');
+  var sp=document.getElementById('sp-stat-pages');
+  if(ss&&sc)ss.textContent=sc.textContent;
+  if(sl&&ln)sl.textContent=ln.textContent;
+  if(sp){var lc=document.querySelectorAll('#script-editable-node-rows-stack .line-editable-box').length;sp.textContent=Math.max(1,Math.ceil(lc/55)).toString();}
+};
+
+// Mobile-only event listeners (runs after DOM ready)
+(function initScribeMobile(){
+  function setup(){
+    if(window.innerWidth>900)return; // desktop: event listeners not needed
+    var stack=document.getElementById('script-editable-node-rows-stack');
+    var scroller=document.getElementById('editor-scroller-viewport');
+    var navBar=document.getElementById('mob-writer-back');
+    var kbdBar=document.getElementById('mob-kbd-bar');
+    var writeFab=document.getElementById('mob-write-fab');
+
+    // Track focused editing line
+    if(stack){
+      stack.addEventListener('focus',function(e){
+        var box=e.target.closest?e.target.closest('.line-editable-box'):null;
+        if(box){
+          _mobFocused=box;
+          var t=box.getAttribute('data-element-type')||'ACTION';
+          var chip=document.getElementById('mob-el-chip');
+          if(chip){chip.textContent=_EL_SHORT[t]||t;chip.style.color=_EL_COLOR[t]||'#fff';}
+          if(writeFab)writeFab.style.display='none';
+        }
+      },true);
+      stack.addEventListener('blur',function(){
+        setTimeout(function(){
+          if(!document.activeElement||!document.activeElement.classList.contains('line-editable-box')){
+            _mobFocused=null;if(writeFab)writeFab.style.display='flex';
+          }
+        },200);
+      },true);
+    }
+
+    // Auto-hide Scribe header on scroll
+    if(scroller&&navBar){
+      var _lastY=0,_navVis=true;
+      scroller.addEventListener('scroll',function(){
+        var y=scroller.scrollTop;
+        if(y>_lastY+8&&y>60){if(_navVis){navBar.classList.add('scribe-nav-hidden');_navVis=false;}}
+        else if(y<_lastY-8||y<20){if(!_navVis){navBar.classList.remove('scribe-nav-hidden');_navVis=true;}}
+        _lastY=y;
+      },{passive:true});
+      // Tap the very top of canvas to reveal header
+      scroller.addEventListener('touchstart',function(e){
+        if(e.touches[0].clientY<32&&!_navVis){
+          scroller.scrollTo({top:0,behavior:'smooth'});
+          navBar.classList.remove('scribe-nav-hidden');_navVis=true;
+        }
+      },{passive:true});
+    }
+
+    // Triple-tap on screenplay content = cycle element type
+    if(stack){
+      var _tapC=0,_tapT=null;
+      stack.addEventListener('touchstart',function(e){
+        _tapC++;clearTimeout(_tapT);
+        _tapT=setTimeout(function(){_tapC=0;},420);
+        if(_tapC>=3){_tapC=0;clearTimeout(_tapT);e.preventDefault();mobCycleElement();}
+      },{passive:false});
+    }
+
+    // Visual Viewport API — float kbd bar above software keyboard
+    if(window.visualViewport&&kbdBar){
+      function onVPChange(){
+        if(window.innerWidth>900)return;
+        var kH=Math.max(0,window.innerHeight-window.visualViewport.height);
+        if(kH>80){
+          kbdBar.style.transform='translateY(-'+kH+'px)';
+          if(writeFab)writeFab.style.bottom=(kH+12)+'px';
+        } else {
+          kbdBar.style.transform='';
+          if(writeFab)writeFab.style.bottom='58px';
+        }
+      }
+      window.visualViewport.addEventListener('resize',onVPChange);
+      window.visualViewport.addEventListener('scroll',onVPChange);
+    }
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',setup);}
+  else{setup();}
+})();
 </script>
 </body>
 </html>
