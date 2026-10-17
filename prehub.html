@@ -665,6 +665,111 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       .element-dialogue{padding-left:15%!important;padding-right:15%!important;}
       .element-parenthetical{padding-left:24%!important;padding-right:18%!important;}
     }
+
+/* ═══════════════════════════════════════════════════════════
+   HUB INNER FRAMEWORK
+   Icon-first overlay chrome · scroll-revealed · no labels
+   ═══════════════════════════════════════════════════════════ */
+
+/* Positioning context so absolute children work */
+.vs:not(#v-dashboard){ position:relative!important; }
+
+/* ── Always-visible top-left section menu ── */
+.hf-menu{
+  position:absolute; top:10px; left:10px; z-index:360;
+  width:32px; height:32px; padding:0;
+  background:transparent; border:none;
+  color:rgba(255,255,255,.18);
+  display:flex; align-items:center; justify-content:center;
+  border-radius:8px; cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:color .18s,background .18s;
+}
+.hf-menu:hover,.hf-menu:active{
+  color:rgba(255,255,255,.8); background:rgba(255,255,255,.07);
+}
+
+/* ── Scroll-revealed icon group ── */
+.hf-ctrl{
+  position:absolute; z-index:350;
+  display:flex; flex-direction:column; gap:5px;
+  opacity:0; pointer-events:none;
+  transition:opacity .22s ease;
+}
+.hf-ctrl.hf-vis{ opacity:1; pointer-events:auto; }
+
+/* ── Individual transparent icon button ── */
+.hf-btn{
+  width:34px; height:34px;
+  background:rgba(4,6,10,.52);
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:9px;
+  color:rgba(255,255,255,.48); font-size:13px; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; padding:0;
+  -webkit-tap-highlight-color:transparent;
+  transition:color .15s,background .15s,border-color .15s;
+}
+.hf-btn:active,.hf-btn:hover{
+  color:rgba(255,255,255,.92);
+  background:rgba(255,255,255,.1);
+  border-color:rgba(255,255,255,.14);
+}
+.hf-btn.hf-green{ color:#A3E635; }
+.hf-btn.hf-sm{ width:28px; height:28px; font-size:11px; border-radius:7px; }
+
+/* ── Dot indicators ── */
+.hf-dots{
+  position:absolute; bottom:14px; left:50%; transform:translateX(-50%);
+  z-index:350;
+  display:flex; gap:6px; align-items:center;
+  opacity:0; pointer-events:none;
+  transition:opacity .22s;
+}
+.hf-dots.hf-vis{ opacity:1; pointer-events:auto; }
+.hf-dot{
+  width:5px; height:5px; border-radius:50%;
+  background:rgba(255,255,255,.2); border:none; padding:0; cursor:pointer;
+  transition:background .2s,transform .2s,width .2s;
+}
+.hf-dot.hf-on{ background:rgba(255,255,255,.82); transform:scale(1.3); }
+
+/* ── File drop zone ── */
+.hf-drop{
+  border:1px dashed rgba(255,255,255,.1);
+  border-radius:10px;
+  padding:30px 20px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+  color:rgba(255,255,255,.22); cursor:pointer;
+  transition:border-color .2s,background .2s,color .2s;
+  text-align:center;
+}
+.hf-drop:hover,.hf-drop.hf-over{
+  border-color:rgba(163,230,53,.35);
+  background:rgba(163,230,53,.03);
+  color:rgba(163,230,53,.55);
+}
+.hf-drop-ico{ font-size:22px; line-height:1; }
+.hf-drop-lbl{
+  font-family:'IBM Plex Mono',monospace; font-size:10px;
+  letter-spacing:.1em; text-transform:uppercase;
+}
+.hf-drop-sub{ font-family:'IBM Plex Mono',monospace; font-size:9px; color:inherit; opacity:.6; }
+
+/* ── Subtle section type label, center-top ── */
+.hf-sec-lbl{
+  position:absolute; top:12px; left:50%; transform:translateX(-50%);
+  z-index:340;
+  font-family:'IBM Plex Mono',monospace; font-size:9px; font-weight:700;
+  letter-spacing:.2em; text-transform:uppercase;
+  color:rgba(255,255,255,.1); white-space:nowrap; pointer-events:none;
+}
+
+/* On mobile: position menu relative to viewport for fixed writers */
+@media(max-width:768px){
+  #v-writer .hf-menu{ display:none; } /* writer has its own chrome */
+}
 </style>
 </head>
 <body>
@@ -5855,6 +5960,100 @@ _populateScribePanel = function(){
       window.visualViewport.addEventListener('scroll',onVPChange);
     }
   }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',setup);}
+  else{setup();}
+})();
+
+// ── Hub Inner Framework: icon overlay chrome ────────────────────
+(function initHubFramework(){
+  // Section labels shown at top-center
+  var LABELS = {
+    'v-coverage':'Coverage','v-pitch':'Pitch Deck','v-storyboard':'Storyboard',
+    'v-budget':'Budget','v-scripts':'Scripts','v-filmdb':'Film DB',
+    'v-outreach':'Outreach','v-shotlist':'Shot List'
+  };
+
+  // Hamburger SVG (14×10)
+  function menuSVG(){
+    return '<svg width="14" height="10" viewBox="0 0 14 10" fill="currentColor">'
+      +'<rect width="14" height="1.5" rx=".75"/>'
+      +'<rect y="4.25" width="14" height="1.5" rx=".75"/>'
+      +'<rect y="8.5" width="14" height="1.5" rx=".75"/>'
+      +'</svg>';
+  }
+
+  function goHome(){
+    document.querySelectorAll('.vs').forEach(function(v){v.classList.remove('ac');});
+    var d=document.getElementById('v-dashboard');if(d)d.classList.add('ac');
+  }
+
+  function setup(){
+    document.querySelectorAll('.vs').forEach(function(sec){
+      if(sec.id==='v-dashboard'||sec.id==='v-writer'||sec.dataset.hfDone)return;
+      sec.dataset.hfDone='1';
+
+      // ── Top-left menu ──
+      var mb=document.createElement('button');
+      mb.className='hf-menu'; mb.setAttribute('aria-label','Section menu');
+      mb.innerHTML=menuSVG();
+      mb.onclick=function(e){
+        e.stopPropagation();
+        var psb=document.querySelector('.psb');
+        if(psb)psb.classList.toggle('mo');
+      };
+      sec.appendChild(mb);
+
+      // ── Center-top section label ──
+      var lbl=LABELS[sec.id];
+      if(lbl){
+        var lt=document.createElement('div');
+        lt.className='hf-sec-lbl';lt.textContent=lbl;
+        sec.appendChild(lt);
+      }
+
+      // ── Scroll-reveal cluster (top-right) ──
+      // Find first scrollable descendant
+      var scr=sec.querySelector('.overflow-y-auto,.flex-1[style*="overflow"]')||
+              (sec.style.overflowY==='auto'||sec.classList.contains('overflow-y-auto')?sec:null);
+      if(!scr) return;
+
+      var grp=document.createElement('div');
+      grp.className='hf-ctrl';
+      grp.style.cssText='top:10px;right:10px;';
+
+      // Back home
+      var hb=document.createElement('button');
+      hb.className='hf-btn'; hb.title='Dashboard'; hb.innerHTML='⌂';
+      hb.onclick=goHome; grp.appendChild(hb);
+
+      // Scroll to top
+      var tb=document.createElement('button');
+      tb.className='hf-btn'; tb.title='Top'; tb.innerHTML='↑';
+      (function(s){tb.onclick=function(){s.scrollTo({top:0,behavior:'smooth'});};})(scr);
+      grp.appendChild(tb);
+
+      sec.appendChild(grp);
+
+      var hide;
+      function show(){
+        grp.classList.add('hf-vis');
+        clearTimeout(hide);
+        hide=setTimeout(function(){grp.classList.remove('hf-vis');},1600);
+      }
+      scr.addEventListener('scroll',show,{passive:true});
+      scr.addEventListener('touchmove',show,{passive:true});
+    });
+  }
+
+  // Re-run when sw() activates a section
+  var _origSW=window.sw;
+  if(typeof _origSW==='function'){
+    window.sw=function(id){
+      _origSW(id);
+      setTimeout(setup,50);
+    };
+  }
+
   if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',setup);}
   else{setup();}
 })();
