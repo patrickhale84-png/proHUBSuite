@@ -6703,6 +6703,8 @@ window.__sendScriptLine = function(text){
   function newLine(keepCls){
     var b=lastBox(); if(!b) return null;
     fire(b,'keydown',{key:'Enter',code:'Enter',keyCode:13,bubbles:true,cancelable:true});
+    /* keep the finished line in its element, and start the next line in the same one */
+    setElement(b, keepCls);
     var nb=lastBox(); if(nb && nb!==b){ setElement(nb, keepCls); }
     return nb;
   }
