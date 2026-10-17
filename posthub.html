@@ -231,7 +231,7 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
     <b>post</b><span style="color:#fff;font-style:normal;font-weight:900">HUB</span>
     <span class="tagx">NLE STUDIO</span>
   </div>
-  <a href="prehub.html" class="btn sm" style="margin-left:8px;text-decoration:none;" title="Back to preHUB">← preHUB</a>
+  <a href="prehub.html" onclick="hubGo('prehub.html',event)" class="btn sm" style="margin-left:8px;text-decoration:none;" title="Back to preHUB">← preHUB</a>
 
   <div style="display: flex; gap: 4px; margin-left: 8px;">
     <button class="btn sm active" id="layoutDual">Dual View</button>
@@ -1737,6 +1737,19 @@ updateSourceScrubber();
 updateProgramScrubber(PLAY_FRAME);
 
 })();
+</script>
+<script>
+/* hub-to-hub navigation. A bare "prohub.html" resolves against whatever page is hosting this
+   one, which inside an embed answers FORBIDDEN. Resolve against this document's own address
+   and, when embedded, move the top window there instead. */
+function hubGo(page, ev){
+  if(ev && ev.preventDefault) ev.preventDefault();
+  var u = page;
+  try { u = new URL(page, location.href).href; } catch(e) {}
+  var emb = false; try { emb = window.self !== window.top; } catch(e) { emb = true; }
+  if(emb){ try { window.top.location.href = u; return; } catch(e) {} }
+  try { location.href = u; } catch(e) {}
+}
 </script>
 </body>
 </html>

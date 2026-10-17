@@ -287,7 +287,7 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
     <button onclick="loadBridgeData()" class="hbtn acc">
       <i class="fa-solid fa-satellite-dish"></i><span>Sync preHUB</span>
     </button>
-    <a href="prehub.html" class="hbtn back">
+    <a href="prehub.html" onclick="hubGo('prehub.html',event)" class="hbtn back">
       <i class="fa-solid fa-arrow-left"></i> preHUB
     </a>
   </div>
@@ -343,7 +343,7 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
       <div class="micon"><i class="fa-solid fa-list-ol"></i></div>
       <div><div class="mtit">Shot List</div><div class="msub">Scenes · Setups · Thumbnails · Status</div></div>
     </div>
-    <div class="mtile" onclick="location.href='prehub.html'">
+    <div class="mtile" onclick="hubGo('prehub.html',event)">
       <div class="mbadge">6-RULE</div>
       <div class="micon"><i class="fa-solid fa-clapperboard"></i></div>
       <div><div class="mtit">Storyboards</div><div class="msub">preHUB · 6-Rule Cinema · Draw</div></div>
@@ -932,6 +932,19 @@ document.readyState==='loading'?document.addEventListener('DOMContentLoaded',ini
   if(typeof _sw==='function'){window.sw=function(id){_sw(id);setTimeout(setup,50);};}
   document.readyState==='loading'?document.addEventListener('DOMContentLoaded',setup):setup();
 })();
+</script>
+<script>
+/* hub-to-hub navigation. A bare "prohub.html" resolves against whatever page is hosting this
+   one, which inside an embed answers FORBIDDEN. Resolve against this document's own address
+   and, when embedded, move the top window there instead. */
+function hubGo(page, ev){
+  if(ev && ev.preventDefault) ev.preventDefault();
+  var u = page;
+  try { u = new URL(page, location.href).href; } catch(e) {}
+  var emb = false; try { emb = window.self !== window.top; } catch(e) { emb = true; }
+  if(emb){ try { window.top.location.href = u; return; } catch(e) {} }
+  try { location.href = u; } catch(e) {}
+}
 </script>
 </body>
 </html>

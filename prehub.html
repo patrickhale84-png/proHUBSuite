@@ -1179,7 +1179,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       <button onclick="txProHub()" class="db-bridge-btn" style="background:rgba(163,70,15,.15);color:#E07060;border-color:#7B2D24;">
         <i class="fa-solid fa-rocket"></i><span>Transmit</span>
       </button>
-      <a href="prohub.html" class="db-bridge-btn" style="background:rgba(212,160,52,.1);color:#D4A034;border-color:#92400E;">
+      <a href="prohub.html" onclick="hubGo('prohub.html',event)" class="db-bridge-btn" style="background:rgba(212,160,52,.1);color:#D4A034;border-color:#92400E;">
         <i class="fa-solid fa-clapperboard"></i><span>proHUB</span>
       </a>
     </div>
@@ -2438,7 +2438,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
   <button onclick="pslSyncFromBoard()" style="background:rgba(14,116,144,.12);border:1px solid rgba(14,116,144,.4);color:#22D3EE;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;" title="Auto-sync thumbnails from Storyboard"><i class="fa-solid fa-rotate mr-1"></i>Sync Board</button>
   <button onclick="pslAddShot()" style="background:rgba(217,119,6,.15);border:1px solid rgba(217,119,6,.4);color:#D97706;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;"><i class="fa-solid fa-plus mr-1"></i>Add Shot</button>
   <button onclick="pslExportCSV()" style="background:#131822;border:1px solid #1E2A3A;color:#475569;font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;" title="Export CSV"><i class="fa-solid fa-file-csv"></i></button>
-  <a href="prohub.html" style="background:rgba(212,160,52,.08);border:1px solid rgba(212,160,52,.3);color:#D4A034;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;text-decoration:none;display:inline-flex;align-items:center;gap:5px;"><i class="fa-solid fa-clapperboard"></i>proHUB</a>
+  <a href="prohub.html" onclick="hubGo('prohub.html',event)" style="background:rgba(212,160,52,.08);border:1px solid rgba(212,160,52,.3);color:#D4A034;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;text-decoration:none;display:inline-flex;align-items:center;gap:5px;"><i class="fa-solid fa-clapperboard"></i>proHUB</a>
 </div>
 <!-- One-liner strip toggle -->
 <div style="background:#0A0D14;border-bottom:1px solid #1E2A3A;padding:6px 16px;display:flex;align-items:center;gap:8px;flex-shrink:0;">
@@ -6341,6 +6341,19 @@ _populateScribePanel = function(){
     } else { dbSetMode(saved); }
   }catch(e){}
 })();
+</script>
+<script>
+/* hub-to-hub navigation. A bare "prohub.html" resolves against whatever page is hosting this
+   one, which inside an embed answers FORBIDDEN. Resolve against this document's own address
+   and, when embedded, move the top window there instead. */
+function hubGo(page, ev){
+  if(ev && ev.preventDefault) ev.preventDefault();
+  var u = page;
+  try { u = new URL(page, location.href).href; } catch(e) {}
+  var emb = false; try { emb = window.self !== window.top; } catch(e) { emb = true; }
+  if(emb){ try { window.top.location.href = u; return; } catch(e) {} }
+  try { location.href = u; } catch(e) {}
+}
 </script>
 </body>
 </html>
