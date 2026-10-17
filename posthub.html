@@ -65,10 +65,10 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
 .workspace { display: flex; flex-direction: column; width: 100vw; height: calc(100vh - 44px); position: relative; }
 
 /* Grid Modes */
-.nle-grid { display: grid; grid-template-columns: 280px 1fr 1fr; grid-template-rows: 1fr 280px; gap: 3px; padding: 3px; background: #020307; height: 100%; overflow: hidden; }
-.nle-grid.mode-single { grid-template-columns: 280px 0 1fr; }
+.nle-grid { display: grid; grid-template-columns: var(--bin-w, 280px) 1fr 1fr; grid-template-rows: 1fr var(--tl-h, 280px); gap: 3px; padding: 3px; background: #020307; height: 100%; overflow: hidden; }
+.nle-grid.mode-single { grid-template-columns: var(--bin-w, 280px) 0 1fr; }
 .nle-grid.mode-single #panelSource { display: none; }
-.nle-grid.mode-text { grid-template-columns: 280px 1fr 1fr; }
+.nle-grid.mode-text { grid-template-columns: var(--bin-w, 280px) 1fr 1fr; }
 .nle-grid.mode-text #panelSource { display: none; }
 .nle-grid.mode-text #panelTextEdit { display: flex; }
 
@@ -163,6 +163,31 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
 .desk-hd h2 { font-family: var(--fd); font-size: 20px; color: #fff; margin: 0; }
 .desk-bd { padding: 16px; }
 
+
+/* ── Monitor scrubbers (source + program) ── */
+.viewport-scrubber { height: 18px; background: #06080E; border-top: 1px solid #121826; border-bottom: 1px solid #121826; position: relative; cursor: pointer; display: flex; align-items: center; padding: 0 6px; flex-shrink: 0; touch-action: none; }
+.scrubber-track { width: 100%; height: 4px; background: #131A2C; border-radius: 2px; position: relative; }
+.scrubber-played { position: absolute; left: 0; top: 0; bottom: 0; background: var(--cyan); border-radius: 2px; }
+.scrubber-thumb { position: absolute; top: -5px; width: 6px; height: 14px; background: #fff; border-radius: 1px; box-shadow: 0 0 4px rgba(0,0,0,.8); transform: translateX(-50%); pointer-events: none; }
+.scrubber-range-inout { position: absolute; top: -3px; bottom: -3px; background: rgba(229,169,60,.22); border-left: 1px solid var(--gold); border-right: 1px solid var(--gold); pointer-events: none; }
+
+/* ── Resizable panel gutters (bin width, timeline height) ── */
+.rz-gutter { position: absolute; z-index: 20; background: transparent; touch-action: none; }
+.rz-gutter::after { content: ''; position: absolute; background: #1B2436; transition: background .15s; }
+.rz-col { top: 0; bottom: 0; width: 6px; cursor: col-resize; }
+.rz-col::after { top: 0; bottom: 0; left: 2px; width: 2px; }
+.rz-row { left: 0; right: 0; height: 6px; cursor: row-resize; }
+.rz-row::after { left: 0; right: 0; top: 2px; height: 2px; }
+.rz-gutter:hover::after, .rz-gutter:focus-visible::after, .rz-gutter.dragging::after { background: var(--cyan); }
+.rz-gutter:focus-visible { outline: none; }
+
+/* ── HTML video export dialog ── */
+.export-modal { position: fixed; inset: 0; background: rgba(2,3,6,0.94); z-index: 1100; display: none; align-items: center; justify-content: center; padding: 16px; }
+.export-modal.on { display: flex; }
+.export-card { width: 100%; max-width: 460px; background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--cyan); border-radius: 6px; padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.85); }
+.prog-bar-wrap { width: 100%; height: 8px; background: #0E1422; border-radius: 4px; overflow: hidden; margin: 12px 0 6px; }
+.prog-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--lime)); transition: width .15s; }
+
 /* ===== MOBILE FIXES ===== */
 @media(max-width: 768px) {
   /* Unlock body — posthub sets overflow:hidden globally */
@@ -173,6 +198,7 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
   .topbar { flex-direction: column !important; align-items: stretch !important; height: auto !important; padding: 6px 8px !important; gap: 6px !important; }
   .topbar > div, .topbar > a, .topbar > button { flex-wrap: wrap !important; }
   /* NLE grid: single column, each panel auto height */
+  .rz-gutter { display: none !important; }
   .nle-grid { grid-template-columns: 1fr !important; grid-template-rows: auto !important; overflow-y: auto !important; height: auto !important; }
   .nle-grid .nle-panel { min-height: 200px; }
   /* Hide source + text-edit panels on mobile; show master only */
@@ -228,11 +254,14 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
     <button class="btn sm pri" id="btnQuickImport">+ Ingest Media</button>
     <button class="btn sm" id="btnExportXml" title="Export FCP/DaVinci Open XML">Export XML</button>
     <button class="btn sm" id="btnExportEdl">EDL</button>
+    <button class="btn sm" id="btnExportVideo" title="Render the timeline to a WebM with picture and sound" style="background: linear-gradient(135deg, #00ABA9, #006B69); color:#fff; border:0; font-weight:700;">Export Video</button>
   </div>
 </header>
 
 <!-- Workspace Structure -->
 <div class="workspace">
+  <div class="rz-gutter rz-col" id="rzCol" role="separator" aria-orientation="vertical" aria-label="Resize media bin" tabindex="0" title="Drag to resize the bin · double-click to reset"></div>
+  <div class="rz-gutter rz-row" id="rzRow" role="separator" aria-orientation="horizontal" aria-label="Resize timeline" tabindex="0" title="Drag to resize the timeline · double-click to reset"></div>
   <div class="nle-grid" id="mainGrid">
     <!-- Panel 1: Integrated Project Bin -->
     <div class="nle-panel">
@@ -262,6 +291,13 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
         <video id="srcVideoEl" playsinline></video>
         <canvas id="srcCanvasFallback"></canvas>
       </div>
+        <div class="viewport-scrubber" id="srcScrubberTrack" title="Click or drag to scrub the source clip">
+          <div class="scrubber-track">
+            <div class="scrubber-range-inout" id="srcScrubRange" style="left:0%;width:0%;"></div>
+            <div class="scrubber-played" id="srcScrubPlayed" style="width:0%;"></div>
+            <div class="scrubber-thumb" id="srcScrubThumb" style="left:0%;"></div>
+          </div>
+        </div>
       <!-- Source HUD -->
       <div class="viewer-hud" id="srcHudBar">
         <span class="hud-tag">SRC</span>
@@ -300,6 +336,12 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
         <div class="viewer-box checker">
           <video id="prgVideoEl" playsinline></video>
           <canvas id="prgCanvasMaster"></canvas>
+        </div>
+        <div class="viewport-scrubber" id="prgScrubberTrack" title="Click or drag to scrub the timeline">
+          <div class="scrubber-track">
+            <div class="scrubber-played" id="prgScrubPlayed" style="width:0%;"></div>
+            <div class="scrubber-thumb" id="prgScrubThumb" style="left:0%;"></div>
+          </div>
         </div>
         <!-- Master HUD -->
         <div class="viewer-hud" id="prgHudBar">
@@ -371,6 +413,23 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
   </div>
 </div>
 
+<div class="export-modal" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+  <div class="export-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+      <h3 id="exportTitle" style="margin:0;font-family:var(--fd);font-size:16px;color:#fff;">HTML VIDEO EXPORT</h3>
+      <span class="tagx">WEBM</span>
+    </div>
+    <p id="exportStatus" style="color:var(--tx-muted);font-size:11px;margin:8px 0 0;">Playing the timeline and recording picture and sound in real time. Keep this tab in front.</p>
+    <div class="prog-bar-wrap"><div class="prog-bar-fill" id="exportProgFill"></div></div>
+    <div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:10px;color:var(--tx-muted);">
+      <span id="exportFrameCount">Frame 0 / 0</span><span id="exportPercent">0%</span>
+    </div>
+    <div style="margin-top:14px;display:flex;justify-content:flex-end;">
+      <button class="btn sm" id="btnCancelExport">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="toasts"></div>
 
 <script>
@@ -397,6 +456,8 @@ var AUDIO_CTX = null;
 function pad(n){ return (n < 10 ? '0' : '') + n; }
 
 function pxPerFrame(){ return BASE_PX_PER_FRAME * ZOOM; }
+function setText(id, v){ var el = document.getElementById(id); if(el) el.textContent = v; }
+function clamp01(p){ return Math.min(1, Math.max(0, p)); }
 
 function frameToTc(frame){
   frame = Math.max(0, Math.round(frame));
@@ -500,10 +561,20 @@ function renderCanvasProgram(clip, elapsedFrames){
     cv.style.display = 'none';
     if(vid){
       vid.style.display = 'block';
-      if(vid.src !== clip.url) vid.src = clip.url;
+      var key = clip.url + '@' + clip.startFrame;
       var targetSec = (clip.offsetFrames + elapsedFrames) / FPS;
-      if(Math.abs(vid.currentTime - targetSec) > 0.08){
+      if(vid.getAttribute('data-clip') !== key){
+        vid.setAttribute('data-clip', key);
+        vid.src = clip.url;
         vid.currentTime = targetSec;
+      }
+      var drift = Math.abs(vid.currentTime - targetSec);
+      if(PLAYING && SHUTTLE_SPEED === 0){
+        if(vid.paused) vid.play().catch(function(){});
+        if(drift > 0.25) vid.currentTime = targetSec;
+      } else {
+        if(!vid.paused) vid.pause();
+        if(drift > 0.04) vid.currentTime = targetSec;
       }
     }
     return;
@@ -520,8 +591,11 @@ function renderCanvasProgram(clip, elapsedFrames){
     img.onload = function(){ ctx.drawImage(img, 0, 0, 640, 360); };
     img.src = clip.thumb;
   } else {
-    // Generate SMPTE Bars slate
-    generateSmpteBars(cv, clip ? clip.name : 'GAP / NO SIGNAL');
+    var label = clip ? clip.name : 'GAP / NO SIGNAL';
+    if(cv.getAttribute('data-slate') !== label){
+      cv.setAttribute('data-slate', label);
+      generateSmpteBars(cv, label);
+    }
   }
 }
 
@@ -548,7 +622,7 @@ function renderBin(){
   var drop = $('#dropBin');
   mount.innerHTML = '';
   mount.appendChild(drop);
-  $('#binCountBadge').textContent = CLIPS.length + ' Clips';
+  setText('binCountBadge', CLIPS.length + ' Clips');
 
   CLIPS.forEach(function(c, idx){
     var el = document.createElement('div');
@@ -643,12 +717,13 @@ function loadSourceMonitor(clip){
 
   $('#tcSourceIn').value = '00:00:00:00';
   $('#tcSourceOut').value = frameToTc(clip.durationFrames);
-  $('#srcTimecode').textContent = frameToTc(clip.durationFrames);
+  setText('srcTimecode', frameToTc(clip.durationFrames));
 
-  $('#srcHudClipName').textContent = clip.name.toUpperCase();
-  $('#srcHudIn').textContent = '00:00:00:00';
-  $('#srcHudOut').textContent = frameToTc(clip.durationFrames);
-  $('#srcHudDur').textContent = frameToTc(clip.durationFrames);
+  setText('srcHudClipName', clip.name.toUpperCase());
+  setText('srcHudIn', '00:00:00:00');
+  setText('srcHudOut', frameToTc(clip.durationFrames));
+  setText('srcHudDur', frameToTc(clip.durationFrames));
+  updateSourceScrubber();
   toast('Source loaded: ' + clip.name);
 }
 
@@ -739,9 +814,9 @@ $('#btnSetIn').onclick = function(){
   var vid = $('#srcVideoEl');
   var f = Math.round((vid.currentTime || 0) * FPS);
   $('#tcSourceIn').value = frameToTc(f);
-  $('#srcHudIn').textContent = frameToTc(f);
+  setText('srcHudIn', frameToTc(f));
   var outF = tcToFrame($('#tcSourceOut').value);
-  if(outF > f) $('#srcHudDur').textContent = frameToTc(outF - f);
+  if(outF > f) setText('srcHudDur', frameToTc(outF - f));
   playScrubClick(520);
 };
 
@@ -749,9 +824,9 @@ $('#btnSetOut').onclick = function(){
   var vid = $('#srcVideoEl');
   var f = Math.round((vid.currentTime || (ACTIVE_SRC_CLIP ? ACTIVE_SRC_CLIP.durationFrames / FPS : 4)) * FPS);
   $('#tcSourceOut').value = frameToTc(f);
-  $('#srcHudOut').textContent = frameToTc(f);
+  setText('srcHudOut', frameToTc(f));
   var inF = tcToFrame($('#tcSourceIn').value);
-  if(f > inF) $('#srcHudDur').textContent = frameToTc(f - inF);
+  if(f > inF) setText('srcHudDur', frameToTc(f - inF));
   playScrubClick(640);
 };
 
@@ -786,7 +861,7 @@ $('#btnSnapToggle').onclick = function(){
   SNAPPING = !SNAPPING;
   this.className = 'btn sm' + (SNAPPING ? ' snap-on' : '');
   this.textContent = 'Snap: ' + (SNAPPING ? 'ON (S)' : 'OFF (S)');
-  $('#snapInfoTag').textContent = SNAPPING ? 'Precision: 24.00 Intra' : 'Free Float';
+  setText('snapInfoTag', SNAPPING ? 'Precision: 24.00 Intra' : 'Free Float');
 };
 
 function getSnappedFrame(targetFrame, trackKey){
@@ -977,22 +1052,22 @@ function inspectTimelineHUD(){
   }
 
   if(foundClip){
-    $('#prgHudTrack').textContent = foundTrack;
+    setText('prgHudTrack', foundTrack);
     $('#prgHudTrack').style.color = (foundTrack === 'V2') ? '#B565FF' : (foundTrack.startsWith('A') ? '#88C13F' : '#00ABA9');
-    $('#prgHudClipName').textContent = foundClip.name.toUpperCase();
-    $('#prgHudIn').textContent = frameToTc(foundClip.startFrame);
-    $('#prgHudOut').textContent = frameToTc(foundClip.startFrame + foundClip.durationFrames);
-    $('#prgHudDur').textContent = frameToTc(foundClip.durationFrames);
+    setText('prgHudClipName', foundClip.name.toUpperCase());
+    setText('prgHudIn', frameToTc(foundClip.startFrame));
+    setText('prgHudOut', frameToTc(foundClip.startFrame + foundClip.durationFrames));
+    setText('prgHudDur', frameToTc(foundClip.durationFrames));
     
     var elapsed = PLAY_FRAME - foundClip.startFrame;
     renderCanvasProgram(foundClip, elapsed);
   } else {
-    $('#prgHudTrack').textContent = '--';
+    setText('prgHudTrack', '--');
     $('#prgHudTrack').style.color = 'var(--tx-muted)';
-    $('#prgHudClipName').textContent = 'GAP / EMPTY';
-    $('#prgHudIn').textContent = '--:--:--:--';
-    $('#prgHudOut').textContent = '--:--:--:--';
-    $('#prgHudDur').textContent = '--:--:--:--';
+    setText('prgHudClipName', 'GAP / EMPTY');
+    setText('prgHudIn', '--:--:--:--');
+    setText('prgHudOut', '--:--:--:--');
+    setText('prgHudDur', '--:--:--:--');
     renderCanvasProgram(null, 0);
   }
 
@@ -1000,24 +1075,25 @@ function inspectTimelineHUD(){
   var shutStr = 'STOP';
   if(SHUTTLE_SPEED > 0) shutStr = '+' + SHUTTLE_SPEED + 'X FWD';
   if(SHUTTLE_SPEED < 0) shutStr = SHUTTLE_SPEED + 'X REV';
-  $('#prgHudShuttle').textContent = shutStr;
+  setText('prgHudShuttle', shutStr);
 }
 
 function updatePlayhead(){
   var px = 44 + (PLAY_FRAME * pxPerFrame());
   $('#tlPlayhead').style.left = px + 'px';
   var tc = frameToTc(PLAY_FRAME);
-  $('#masterTcChip').textContent = tc;
-  $('#prgTimecode').textContent = tc;
+  setText('masterTcChip', tc);
+  setText('prgTimecode', tc);
   $('#tcMasterRec').value = tc;
   inspectTimelineHUD();
+  updateProgramScrubber(PLAY_FRAME);
 }
 
 /* Master Playback Animation Loop */
 var lastTime = performance.now();
 var frameAccumulator = 0;
 
-function playbackLoop(now){
+function stepPlayback(now){
   var deltaSec = (now - lastTime) / 1000;
   lastTime = now;
 
@@ -1036,6 +1112,9 @@ function playbackLoop(now){
   } else {
     updateVuMeter(false);
   }
+}
+function playbackLoop(now){
+  try { stepPlayback(now); } catch(err){ console.error(err); }
   requestAnimationFrame(playbackLoop);
 }
 requestAnimationFrame(playbackLoop);
@@ -1055,7 +1134,7 @@ function shuttleK(){
   initAudio();
   PLAYING = false;
   SHUTTLE_SPEED = 0;
-  $('#btnPlayMaster').textContent = 'Play (Space)';
+  setText('btnPlayMaster', 'Play (Space)');
   updatePlayhead();
 }
 
@@ -1256,6 +1335,7 @@ function openDeskDetail(id){
     body.innerHTML = '<div style="display:flex;gap:8px">' +
       '<button class="btn sm" onclick="document.getElementById(\'btnExportXml\').click()">Export Open XML</button>' +
       '<button class="btn sm" onclick="document.getElementById(\'btnExportEdl\').click()">Export CMX 3600 EDL</button>' +
+      '<button class="btn sm pri" onclick="document.getElementById(\'btnExportVideo\').click()">Export Video (WebM)</button>' +
       '</div>';
   }
 }
@@ -1302,6 +1382,360 @@ function boot(){
 }
 
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+/* ==========================================================
+   MONITOR SCRUBBERS — source (clip-relative) and program (timeline)
+   ========================================================== */
+var SRC_FRAME = 0;
+
+function timelineLength(){
+  var maxF = 0;
+  ['v1','v2','a1','a2'].forEach(function(tk){
+    (TRACKS[tk]||[]).forEach(function(c){ maxF = Math.max(maxF, c.startFrame + c.durationFrames); });
+  });
+  return maxF;
+}
+
+function updateSourceScrubber(){
+  var vid = $('#srcVideoEl');
+  var total = ACTIVE_SRC_CLIP ? Math.max(1, ACTIVE_SRC_CLIP.durationFrames) : 1;
+  var cur = (ACTIVE_SRC_CLIP && ACTIVE_SRC_CLIP.url && vid) ? Math.round(vid.currentTime * FPS) : SRC_FRAME;
+  var played = clamp01(cur / total) * 100;
+  $('#srcScrubPlayed').style.width = played + '%';
+  $('#srcScrubThumb').style.left = played + '%';
+  var inF = tcToFrame($('#tcSourceIn').value), outF = tcToFrame($('#tcSourceOut').value);
+  var a = clamp01(inF / total) * 100, b = clamp01(outF / total) * 100;
+  var r = $('#srcScrubRange');
+  r.style.left = a + '%';
+  r.style.width = Math.max(0, b - a) + '%';
+  if(ACTIVE_SRC_CLIP) setText('srcTimecode', frameToTc(cur));
+}
+
+function seekSourceToPct(p){
+  if(!ACTIVE_SRC_CLIP) return;
+  var total = Math.max(1, ACTIVE_SRC_CLIP.durationFrames);
+  SRC_FRAME = Math.round(clamp01(p) * total);
+  var vid = $('#srcVideoEl');
+  if(ACTIVE_SRC_CLIP.url && vid) vid.currentTime = SRC_FRAME / FPS;
+  updateSourceScrubber();
+}
+
+function programSpan(){ return Math.max(240, timelineLength()); } // 10 s floor so an empty timeline still scrubs
+function updateProgramScrubber(f){
+  var total = programSpan();
+  var played = clamp01(f / total) * 100;
+  $('#prgScrubPlayed').style.width = played + '%';
+  $('#prgScrubThumb').style.left = played + '%';
+}
+
+function seekProgramToPct(p){
+  var total = programSpan();
+  PLAY_FRAME = Math.round(clamp01(p) * total);
+  shuttleK();
+  updatePlayhead();
+}
+
+function bindScrubber(sel, onPct){
+  var track = $(sel), dragging = false;
+  function at(clientX){
+    var r = track.getBoundingClientRect();
+    onPct((clientX - r.left) / r.width);
+  }
+  track.addEventListener('mousedown', function(e){ dragging = true; at(e.clientX); e.preventDefault(); });
+  track.addEventListener('touchstart', function(e){ dragging = true; at(e.touches[0].clientX); }, {passive:true});
+  window.addEventListener('mousemove', function(e){ if(dragging) at(e.clientX); });
+  window.addEventListener('touchmove', function(e){ if(dragging) at(e.touches[0].clientX); }, {passive:true});
+  window.addEventListener('mouseup', function(){ dragging = false; });
+  window.addEventListener('touchend', function(){ dragging = false; });
+}
+
+bindScrubber('#srcScrubberTrack', seekSourceToPct);
+bindScrubber('#prgScrubberTrack', seekProgramToPct);
+$('#srcVideoEl').addEventListener('timeupdate', updateSourceScrubber);
+['#btnSetIn', '#btnSetOut', '#tcSourceIn', '#tcSourceOut'].forEach(function(sel){
+  $(sel).addEventListener('change', function(){ setTimeout(updateSourceScrubber, 0); });
+  $(sel).addEventListener('click', function(){ setTimeout(updateSourceScrubber, 0); });
+});
+
+/* ==========================================================
+   RESIZABLE PANELS — bin width and timeline height, remembered
+   ========================================================== */
+var LAYOUT_KEY = 'posthub_layout_v1';
+var LAYOUT_DEFAULT = { bin: 280, tl: 280 };
+var LAYOUT = { bin: LAYOUT_DEFAULT.bin, tl: LAYOUT_DEFAULT.tl };
+
+(function loadLayout(){
+  try {
+    var saved = JSON.parse(localStorage.getItem(LAYOUT_KEY) || 'null');
+    if(saved && typeof saved.bin === 'number') LAYOUT.bin = saved.bin;
+    if(saved && typeof saved.tl === 'number') LAYOUT.tl = saved.tl;
+  } catch(e){}
+})();
+
+function saveLayout(){
+  try { localStorage.setItem(LAYOUT_KEY, JSON.stringify(LAYOUT)); } catch(e){}
+}
+
+function applyLayout(){
+  var ws = $('.workspace');
+  var W = ws.clientWidth, H = ws.clientHeight;
+  LAYOUT.bin = Math.round(Math.max(180, Math.min(Math.min(560, W * 0.4), LAYOUT.bin)));
+  LAYOUT.tl  = Math.round(Math.max(150, Math.min(H - 200, LAYOUT.tl)));
+  var g = $('#mainGrid');
+  g.style.setProperty('--bin-w', LAYOUT.bin + 'px');
+  g.style.setProperty('--tl-h', LAYOUT.tl + 'px');
+  // Gutters sit in the 6px gap between panels (3px padding + 3px gap).
+  $('#rzCol').style.left = (LAYOUT.bin + 1.5) + 'px';
+  $('#rzRow').style.bottom = (LAYOUT.tl + 1.5) + 'px';
+  $('#rzCol').setAttribute('aria-valuenow', LAYOUT.bin);
+  $('#rzRow').setAttribute('aria-valuenow', LAYOUT.tl);
+}
+
+function wireGutters(){
+  var col = $('#rzCol'), row = $('#rzRow'), drag = null;
+  function begin(kind, e){
+    drag = kind;
+    (kind === 'col' ? col : row).classList.add('dragging');
+    document.body.style.cursor = kind === 'col' ? 'col-resize' : 'row-resize';
+    e.preventDefault();
+  }
+  function end(){
+    if(!drag) return;
+    col.classList.remove('dragging'); row.classList.remove('dragging');
+    document.body.style.cursor = '';
+    drag = null;
+    saveLayout();
+  }
+  col.addEventListener('mousedown', function(e){ begin('col', e); });
+  row.addEventListener('mousedown', function(e){ begin('row', e); });
+  window.addEventListener('mousemove', function(e){
+    if(!drag) return;
+    var r = $('.workspace').getBoundingClientRect();
+    if(drag === 'col') LAYOUT.bin = e.clientX - r.left - 4.5;
+    else LAYOUT.tl = (r.bottom - e.clientY) - 4.5;
+    applyLayout();
+  });
+  window.addEventListener('mouseup', end);
+  [col, row].forEach(function(gut){
+    gut.addEventListener('dblclick', function(){
+      if(gut === col) LAYOUT.bin = LAYOUT_DEFAULT.bin; else LAYOUT.tl = LAYOUT_DEFAULT.tl;
+      applyLayout(); saveLayout();
+    });
+    gut.addEventListener('keydown', function(e){
+      var step = e.shiftKey ? 64 : 16, k = e.key;
+      var grow = (gut === col) ? 'ArrowRight' : 'ArrowUp';
+      var shrink = (gut === col) ? 'ArrowLeft' : 'ArrowDown';
+      if(k === grow){ if(gut === col) LAYOUT.bin += step; else LAYOUT.tl += step; }
+      else if(k === shrink){ if(gut === col) LAYOUT.bin -= step; else LAYOUT.tl -= step; }
+      else if(k === 'Home'){ if(gut === col) LAYOUT.bin = LAYOUT_DEFAULT.bin; else LAYOUT.tl = LAYOUT_DEFAULT.tl; }
+      else return;
+      e.preventDefault();
+      applyLayout(); saveLayout();
+    });
+  });
+  window.addEventListener('resize', applyLayout);
+}
+
+/* ==========================================================
+   HTML VIDEO EXPORT — plays the timeline through the same media
+   elements and records the composite picture plus mixed audio.
+   Runs in real time: a 2-minute cut takes about 2 minutes.
+   ========================================================== */
+var EXPORT = null;
+var EXPORT_W = 1280, EXPORT_H = 720;
+
+function expElement(url, isAudio){
+  var m = EXPORT.els[url];
+  if(!m){
+    var el = document.createElement(isAudio ? 'audio' : 'video');
+    el.src = url; el.preload = 'auto'; el.playsInline = true;
+    var node = EXPORT.ctx.createMediaElementSource(el);
+    node.connect(EXPORT.dest);
+    node.connect(EXPORT.ctx.destination); // lets you hear the render
+    m = EXPORT.els[url] = { el: el };
+  }
+  return m.el;
+}
+
+function expImage(src){
+  var img = EXPORT.imgs[src];
+  if(!img){ img = EXPORT.imgs[src] = new Image(); img.src = src; }
+  return img;
+}
+
+function expActive(f){
+  var out = { video: null, audio: [] };
+  ['v2', 'v1'].forEach(function(tk){
+    if(out.video) return;
+    (TRACKS[tk]||[]).forEach(function(c){
+      if(!out.video && f >= c.startFrame && f < c.startFrame + c.durationFrames) out.video = { c: c, tk: tk };
+    });
+  });
+  ['a1', 'a2'].forEach(function(tk){
+    (TRACKS[tk]||[]).forEach(function(c){
+      if(c.url && f >= c.startFrame && f < c.startFrame + c.durationFrames) out.audio.push(c);
+    });
+  });
+  return out;
+}
+
+function expSync(el, c, f){
+  var target = (c.offsetFrames + (f - c.startFrame)) / FPS;
+  if(el.paused){
+    if(Math.abs(el.currentTime - target) > 0.05) el.currentTime = target;
+    el.play().catch(function(){});
+  } else if(Math.abs(el.currentTime - target) > 0.25){
+    el.currentTime = target;
+  }
+}
+
+function expDrawFit(el){
+  var g = EXPORT.g, W = EXPORT_W, H = EXPORT_H;
+  var vw = el.videoWidth || W, vh = el.videoHeight || H;
+  var s = Math.min(W / vw, H / vh);
+  var dw = vw * s, dh = vh * s;
+  g.drawImage(el, (W - dw) / 2, (H - dh) / 2, dw, dh);
+}
+
+function expRender(f){
+  var g = EXPORT.g, W = EXPORT_W, H = EXPORT_H;
+  g.fillStyle = '#000';
+  g.fillRect(0, 0, W, H);
+  var a = expActive(f);
+  var keep = {};
+
+  if(a.video){
+    var c = a.video.c;
+    if(c.url && !c.isAudio){
+      var el = expElement(c.url, false);
+      keep[c.url] = true;
+      expSync(el, c, f);
+      if(el.readyState >= 2) expDrawFit(el);
+    } else if(c.thumb){
+      var img = expImage(c.thumb);
+      if(img.complete && img.naturalWidth) g.drawImage(img, 0, 0, W, H);
+    } else {
+      g.fillStyle = '#0A1020'; g.fillRect(0, 0, W, H);
+      g.fillStyle = '#88C13F'; g.font = 'bold 40px "IBM Plex Mono", monospace';
+      g.fillText(c.name, 60, H / 2);
+    }
+  }
+
+  // Audio: every audio clip that covers this frame plays through the mix.
+  a.audio.forEach(function(c){
+    var el = expElement(c.url, true);
+    keep[c.url] = true;
+    expSync(el, c, f);
+  });
+
+  // Pause anything that is no longer under the playhead.
+  Object.keys(EXPORT.els).forEach(function(u){
+    if(!keep[u] && !EXPORT.els[u].el.paused) EXPORT.els[u].el.pause();
+  });
+
+  // Burn-in timecode, bottom-left.
+  g.fillStyle = 'rgba(0,0,0,0.6)';
+  g.fillRect(16, H - 46, 250, 30);
+  g.fillStyle = '#A3E635';
+  g.font = 'bold 20px "IBM Plex Mono", monospace';
+  g.fillText(frameToTc(f), 26, H - 25);
+}
+
+function expEnd(save){
+  var st = EXPORT;
+  if(!st || st.ending) return;
+  st.ending = true;
+  st.save = save;
+  cancelAnimationFrame(st.raf);
+  Object.keys(st.els).forEach(function(u){ st.els[u].el.pause(); });
+  if(st.rec.state !== 'inactive') st.rec.stop();
+  else finishExport(st);
+}
+
+function finishExport(st){
+  $('#exportModal').classList.remove('on');
+  if(st.save && st.chunks.length){
+    var blob = new Blob(st.chunks, { type: 'video/webm' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = 'postHUB_Proxy_' + Math.round(FPS) + 'fps.webm';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+    toast('Video exported', 'good');
+  } else if(!st.save){
+    toast('Export cancelled');
+  }
+  if(EXPORT === st) EXPORT = null;
+}
+
+function expStart(){
+  if(EXPORT) return;
+  var total = timelineLength();
+  if(!total){ toast('Timeline is empty', 'bad'); return; }
+  if(!window.MediaRecorder || !window.MediaStream){ toast('This browser cannot record video. Try Chrome or Edge.', 'bad'); return; }
+  initAudio();
+  if(!AUDIO_CTX || !AUDIO_CTX.createMediaStreamDestination){ toast('Audio engine unavailable for export', 'bad'); return; }
+  if(AUDIO_CTX.state === 'suspended') AUDIO_CTX.resume();
+
+  var cv = document.createElement('canvas');
+  cv.width = EXPORT_W; cv.height = EXPORT_H;
+  var dest = AUDIO_CTX.createMediaStreamDestination();
+  // A silent source keeps the audio track live even when no clip has sound yet.
+  var silent = AUDIO_CTX.createConstantSource ? AUDIO_CTX.createConstantSource() : null;
+  if(silent){ var silentGain = AUDIO_CTX.createGain(); silentGain.gain.value = 0; silent.connect(silentGain); silentGain.connect(dest); silent.start(); }
+  var stream = new MediaStream(cv.captureStream(FPS).getVideoTracks().concat(dest.stream.getAudioTracks()));
+  var mime = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+    .filter(function(m){ return MediaRecorder.isTypeSupported(m); })[0];
+  var rec;
+  try { rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream); }
+  catch(err){ toast('Could not start the recorder', 'bad'); return; }
+
+  var st = EXPORT = {
+    ctx: AUDIO_CTX, dest: dest, g: cv.getContext('2d'),
+    els: {}, imgs: {}, total: total, rec: rec, chunks: [],
+    raf: 0, t0: 0, last: -1, ending: false, save: false
+  };
+  rec.ondataavailable = function(e){ if(e.data && e.data.size) st.chunks.push(e.data); };
+  rec.onstop = function(){ finishExport(st); };
+
+  $('#exportModal').classList.add('on');
+  $('#exportProgFill').style.width = '0%';
+  $('#exportPercent').textContent = '0%';
+  $('#exportFrameCount').textContent = 'Frame 0 / ' + total;
+  shuttleK();
+  rec.start(250);
+  st.t0 = performance.now();
+
+  function tick(now){
+    if(EXPORT !== st || st.ending) return;
+    var f = Math.min(st.total, Math.floor(((now - st.t0) / 1000) * FPS));
+    if(f !== st.last){
+      st.last = f;
+      PLAY_FRAME = f;
+      expRender(f);
+      updatePlayhead();
+      var pct = Math.round((f / st.total) * 100);
+      $('#exportProgFill').style.width = pct + '%';
+      $('#exportPercent').textContent = pct + '%';
+      $('#exportFrameCount').textContent = 'Frame ' + f + ' / ' + st.total;
+    }
+    if(f >= st.total){ expEnd(true); return; }
+    st.raf = requestAnimationFrame(tick);
+  }
+  st.raf = requestAnimationFrame(tick);
+}
+
+$('#btnExportVideo').onclick = expStart;
+$('#btnCancelExport').onclick = function(){ expEnd(false); };
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape' && EXPORT){ expEnd(false); }
+});
+
+/* Boot additions */
+applyLayout();
+wireGutters();
+updateSourceScrubber();
+updateProgramScrubber(PLAY_FRAME);
+
 })();
 </script>
 </body>
