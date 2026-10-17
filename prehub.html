@@ -27,8 +27,12 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 .mw{flex-grow:1;display:flex;flex-direction:column;background:var(--bg-cv);overflow:hidden;}
 .vs{display:none;width:100%;height:100%;flex-direction:column;overflow:hidden;}
 .vs.ac{display:flex;}
+/* preHUB shades — three values from filmHUB's cyan colour (('#00ABA9', '#008C8A')) */
+.mtile.sh-1{background:linear-gradient(145deg,#006B69,#004E4D);}
+.mtile.sh-2{background:linear-gradient(145deg,#00ABA9,#008C8A);}
+.mtile.sh-3{background:linear-gradient(145deg,#2BC7C5,#00ABA9);}
 /* Metro tiles */
-.mtile{border-radius:6px;padding:20px 18px 18px;cursor:pointer;transition:transform .15s,box-shadow .15s;display:flex;flex-direction:column;justify-content:space-between;min-height:155px;position:relative;overflow:hidden;user-select:none;}
+.mtile{border-radius:6px;padding:20px 18px 18px;cursor:pointer;transition:transform .15s,box-shadow .15s;display:flex;flex-direction:column;justify-content:space-between;min-height:130px;position:relative;overflow:hidden;user-select:none;}
 .mtile:hover{transform:translateY(-3px) scale(1.01);box-shadow:0 18px 40px rgba(0,0,0,.55);}
 .mtile:active{transform:scale(.98);}
 .mbadge{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.38);color:rgba(255,255,255,.9);font-size:8.5px;font-weight:800;letter-spacing:.08em;padding:3px 7px 3px 6px;border-radius:4px;text-transform:uppercase;display:flex;align-items:center;gap:3px;}
@@ -477,10 +481,10 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       /* Main area fills screen */
       .apc>*:not(.psb){width:100%!important;overflow-x:hidden;}
       /* Dashboard tiles smaller */
-      .mtile{padding:12px 10px!important;}
-      .micon{font-size:18px!important;}
-      .mtit{font-size:11px!important;}
-      .msub{font-size:8px!important;}
+      .mtile{padding:14px 12px!important;min-height:110px!important;}
+      .micon{font-size:1.4rem!important;}
+      .mtit{font-size:12px!important;}
+      .msub{font-size:8.5px!important;}
       /* Budget grid 2-col */
       .grid.grid-cols-4{grid-template-columns:1fr 1fr!important;}
       /* Script paper: narrower margins */
@@ -1142,48 +1146,48 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
   </div>
   <div id="db-grid" class="mode-default">
     <!-- HERO / STANDARD tiles — order controlled by CSS per mode -->
-    <div class="mtile tile-writer" style="background:linear-gradient(145deg,#0FA5BD,#1BBED0);" onclick="sw('writer')">
+    <div class="mtile sh-1 tile-writer" onclick="sw('writer')">
       <div class="mbadge">AST PARSER</div>
       <div class="micon"><i class="fa-solid fa-file-lines"></i></div>
       <div><div class="mtit">1. Screenwriter</div><div class="msub">Courier Prime · Tab Engine · Snapshot</div></div>
     </div>
-    <div class="mtile tile-coverage" style="background:linear-gradient(145deg,#9B166A,#BE1B7D);" onclick="sw('coverage')">
+    <div class="mtile sh-2 tile-coverage" onclick="sw('coverage')">
       <div class="mbadge">HEURISTIC</div>
       <div class="micon"><i class="fa-solid fa-stethoscope"></i></div>
       <div><div class="mtit">2. Evaluator Studio</div><div class="msub">100-Param · HALION Engine</div></div>
     </div>
-    <div class="mtile tile-pitch" style="background:linear-gradient(145deg,#6122A8,#7B2FBE);" onclick="sw('pitch')">
+    <div class="mtile sh-3 tile-pitch" onclick="sw('pitch')">
       <div class="mbadge">ARCHITECT</div>
       <div class="micon"><i class="fa-solid fa-images"></i></div>
       <div><div class="mtit">3. Pitch Deck Creator</div><div class="msub">10-Slide · World Lore · Character</div></div>
     </div>
-    <div class="mtile tile-storyboard" style="background:linear-gradient(145deg,#C4621E,#E87B30);" onclick="sw('storyboard')">
+    <div class="mtile sh-1 tile-storyboard" onclick="sw('storyboard')">
       <div class="mbadge">6-RULE</div>
       <div class="micon"><i class="fa-solid fa-clapperboard"></i></div>
       <div><div class="mtit">4. Storyboards</div><div class="msub">6-Rule Cinema · Draw · Multi-Aspect</div></div>
     </div>
-    <div class="mtile tile-budget" style="background:linear-gradient(145deg,#B0882A,#D4A034);" onclick="sw('budget')">
+    <div class="mtile sh-2 tile-budget" onclick="sw('budget')">
       <div class="mbadge">TOP-SHEET</div>
       <div class="micon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
       <div><div class="mtit">5. Pre-Lim Budget</div><div class="msub">ATL · BTL · Post · Contingency</div></div>
     </div>
     <!-- COMPACT support tiles -->
-    <div class="mtile tile-scripts" style="background:linear-gradient(145deg,#3E37C4,#4F46E5);" onclick="sw('scripts')">
+    <div class="mtile sh-3 tile-scripts" onclick="sw('scripts')">
       <div class="mbadge">PARSER</div>
       <div class="micon"><i class="fa-solid fa-scroll"></i></div>
       <div><div class="mtit">6. Script Reader</div><div class="msub">Upload · Analyze · Compare</div></div>
     </div>
-    <div class="mtile tile-filmdb" style="background:linear-gradient(145deg,#9E0F30,#BE123C);" onclick="sw('filmdb')">
+    <div class="mtile sh-1 tile-filmdb" onclick="sw('filmdb')">
       <div class="mbadge">TMDB</div>
       <div class="micon"><i class="fa-solid fa-film"></i></div>
       <div><div class="mtit">7. Film Database</div><div class="msub">Comps · Loglines · Research</div></div>
     </div>
-    <div class="mtile tile-outreach" style="background:linear-gradient(145deg,#0B5E74,#0E7490);" onclick="sw('outreach')">
+    <div class="mtile sh-2 tile-outreach" onclick="sw('outreach')">
       <div class="mbadge">TRACKER</div>
       <div class="micon"><i class="fa-solid fa-envelope-open-text"></i></div>
       <div><div class="mtit">8. Outreach</div><div class="msub">Distributors · Query Letters</div></div>
     </div>
-    <div class="mtile tile-shotlist" style="background:linear-gradient(145deg,#7A3510,#A3470F);" onclick="sw('shotlist')">
+    <div class="mtile sh-3 tile-shotlist" onclick="sw('shotlist')">
       <div class="mbadge">PRODUCTION</div>
       <div class="micon"><i class="fa-solid fa-list-ol"></i></div>
       <div><div class="mtit">9. Shot List</div><div class="msub">Setups · Types · Thumbnails · Status</div></div>

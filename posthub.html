@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 :root {
   --ink: #04060A;
@@ -131,12 +132,27 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
 /* Launchpad Tile Overlay */
 .launchpad-modal { position: fixed; inset: 0; background: rgba(3,5,10,0.96); backdrop-filter: blur(8px); z-index: 1000; display: none; overflow-y: auto; padding: 20px 14px; }
 .launchpad-modal.on { display: block; }
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; padding: 16px; max-width: 1200px; margin: 20px auto 40px; }
-.tile { position: relative; cursor: pointer; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; min-height: 120px; padding: 14px; border-radius: 6px; color: #fff; box-shadow: 0 5px 14px rgba(0,0,0,0.6); transition: transform 0.15s, filter 0.15s; outline: none; border: 1px solid rgba(255,255,255,0.06); }
-.tile:hover { transform: translateY(-2px); filter: brightness(1.1); border-color: var(--gold); }
-.tile .tl { font-family: var(--fd); font-size: 19px; text-transform: uppercase; line-height: 1.1; }
-.tile .ts { font-family: var(--fm); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.85; display: block; margin-top: 4px; }
-.tile .tagx2 { font-family: var(--fm); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 5px; border-radius: 2px; background: rgba(0,0,0,0.35); }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 16px; max-width: 1200px; margin: 20px auto 40px; }
+/* postHUB shades — three values from filmHUB's purple colour (('#7137C8', '#5A2AA6')) */
+.mtile.sh-1{background:linear-gradient(145deg,#4A1F8C,#33146A);}
+.mtile.sh-2{background:linear-gradient(145deg,#7137C8,#5A2AA6);}
+.mtile.sh-3{background:linear-gradient(145deg,#9B6BE8,#7137C8);}
+/* Shared tile spec — identical across preHUB, proHUB, postHUB */
+.mtile { border-radius: 6px; padding: 20px 18px 18px; cursor: pointer; transition: transform .15s, box-shadow .15s; display: flex; flex-direction: column; justify-content: space-between; min-height: 130px; position: relative; overflow: hidden; user-select: none; color: #fff; }
+.mtile:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 18px 40px rgba(0,0,0,.55); }
+.mtile:active { transform: scale(.98); }
+.mbadge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,.38); color: rgba(255,255,255,.9); font-size: 8.5px; font-weight: 800; letter-spacing: .08em; padding: 3px 7px 3px 6px; border-radius: 4px; text-transform: uppercase; display: flex; align-items: center; gap: 3px; font-family: var(--fm); }
+.mbadge::after { content: '↗'; font-size: 9px; }
+.micon { font-size: 2rem; color: rgba(255,255,255,.95); margin-bottom: 6px; }
+.mtit { font-size: 14px; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: .03em; font-family: var(--fd); line-height: 1.15; }
+.msub { font-size: 10px; color: rgba(255,255,255,.7); margin-top: 2px; font-weight: 500; font-family: var(--fm); }
+@media (max-width: 768px) {
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 12px; }
+  .mtile { min-height: 110px; padding: 14px 12px; }
+  .micon { font-size: 1.4rem; }
+  .mtit { font-size: 12px; }
+  .msub { font-size: 8.5px; }
+}
 
 /* Standard Desk Dialog Box */
 .desk-box { max-width: 1080px; margin: 30px auto; background: var(--panel); border: 1px solid var(--line); border-top: 4px solid var(--purple); border-radius: 6px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.85); }
@@ -163,7 +179,6 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
   /* Timeline spans full width */
   .tl-area { grid-column: auto !important; min-height: 180px; }
   /* Launchpad tiles: 1 col */
-  .tiles { grid-template-columns: 1fr !important; }
   /* Hide non-essential topbar controls to save space */
   #btnProhubConform, #btnExportXml, #btnExportEdl { display: none !important; }
   /* Keep fps + timecode + ingest visible but compact */
@@ -1175,19 +1190,20 @@ $('#btnExportEdl').onclick = function(){
    MODULAR LAUNCHPAD TILES & DESKS
    ========================================================== */
 var TILES_DEF = [
-  { id: 'suite', title: 'Edit Desk', sub: 'Studio NLE Multi-Track', colour: '#7137C8', tag: 'STUDIO' },
-  { id: 'ingest', title: 'Ingest Bin', sub: 'Drive media decode & bars', colour: '#00ABA9', tag: 'MEDIA' },
-  { id: 'timeline', title: 'Cut List', sub: 'Conform & ripple assembly', colour: '#1BA1E2', tag: 'EDIT' },
-  { id: 'notes', title: 'Cut Notes', sub: 'Timecoded annotations', colour: '#E5A93C', tag: 'LOG' },
-  { id: 'sync', title: 'Sync Matrix', sub: 'Audio waveform alignment', colour: '#88C13F', tag: 'AUDIO' },
-  { id: 'deliverables', title: 'Deliverables', sub: 'Open XML, EDL, Master QC', colour: '#B07CE8', tag: 'OUTPUT' }
+  { id: 'suite', title: 'Edit Desk', sub: 'Studio NLE Multi-Track', colour: '#7137C8', tag: 'STUDIO', icon: 'fa-solid fa-clapperboard' },
+  { id: 'ingest', title: 'Ingest Bin', sub: 'Drive media decode & bars', colour: '#00ABA9', tag: 'MEDIA', icon: 'fa-solid fa-download' },
+  { id: 'timeline', title: 'Cut List', sub: 'Conform & ripple assembly', colour: '#1BA1E2', tag: 'EDIT', icon: 'fa-solid fa-scissors' },
+  { id: 'notes', title: 'Cut Notes', sub: 'Timecoded annotations', colour: '#E5A93C', tag: 'LOG', icon: 'fa-solid fa-note-sticky' },
+  { id: 'sync', title: 'Sync Matrix', sub: 'Audio waveform alignment', colour: '#88C13F', tag: 'AUDIO', icon: 'fa-solid fa-wave-square' },
+  { id: 'deliverables', title: 'Deliverables', sub: 'Open XML, EDL, Master QC', colour: '#B07CE8', tag: 'OUTPUT', icon: 'fa-solid fa-box-archive' }
 ];
 
 function mountLaunchpad(){
-  $('#tilesMount').innerHTML = TILES_DEF.map(function(t){
-    return '<div class="tile" data-tid="'+t.id+'" style="background:'+t.colour+'">' +
-      '<div class="cap"><span class="tagx2">'+t.tag+'</span></div>' +
-      '<div><span class="tl">'+t.title+'</span><span class="ts">'+t.sub+'</span></div></div>';
+  $('#tilesMount').innerHTML = TILES_DEF.map(function(t, i){
+    return '<div class="mtile sh-' + ((i % 3) + 1) + '" data-tid="'+t.id+'">' +
+      '<div class="mbadge">'+t.tag+'</div>' +
+      '<div class="micon"><i class="'+t.icon+'"></i></div>' +
+      '<div><div class="mtit">'+t.title+'</div><div class="msub">'+t.sub+'</div></div></div>';
   }).join('');
 }
 

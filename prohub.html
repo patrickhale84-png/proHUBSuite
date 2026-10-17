@@ -45,12 +45,19 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 .vs{display:none;flex:1;overflow-y:auto;}
 .vs.ac{display:flex;flex-direction:column;}
 /* TILES */
-.mtile{border-radius:12px;padding:18px 16px;cursor:pointer;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;min-height:110px;transition:filter .2s,transform .2s;}
-.mtile:hover{filter:brightness(1.12);transform:translateY(-2px);}
-.mbadge{position:absolute;top:10px;right:10px;font-size:7.5px;font-weight:900;letter-spacing:.12em;background:rgba(0,0,0,.35);color:#fff;padding:2px 6px;border-radius:20px;font-family:var(--fsc);}
-.micon{font-size:22px;color:rgba(255,255,255,.8);}
-.mtit{font-weight:900;font-size:13px;color:#fff;font-family:var(--fds);letter-spacing:.03em;}
-.msub{font-size:10px;color:rgba(255,255,255,.6);margin-top:2px;}
+/* proHUB shades — three values from filmHUB's red colour (('#E51400', '#BC1000')) */
+.mtile.sh-1{background:linear-gradient(145deg,#8A0E00,#610A00);}
+.mtile.sh-2{background:linear-gradient(145deg,#E51400,#BC1000);}
+.mtile.sh-3{background:linear-gradient(145deg,#FF4A2E,#E51400);}
+/* Shared tile spec — identical across preHUB, proHUB, postHUB */
+.mtile{border-radius:6px;padding:20px 18px 18px;cursor:pointer;transition:transform .15s,box-shadow .15s;display:flex;flex-direction:column;justify-content:space-between;min-height:130px;position:relative;overflow:hidden;user-select:none;}
+.mtile:hover{transform:translateY(-3px) scale(1.01);box-shadow:0 18px 40px rgba(0,0,0,.55);}
+.mtile:active{transform:scale(.98);}
+.mbadge{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.38);color:rgba(255,255,255,.9);font-size:8.5px;font-weight:800;letter-spacing:.08em;padding:3px 7px 3px 6px;border-radius:4px;text-transform:uppercase;display:flex;align-items:center;gap:3px;}
+.mbadge::after{content:'↗';font-size:9px;}
+.micon{font-size:2rem;color:rgba(255,255,255,.95);margin-bottom:6px;}
+.mtit{font-size:14px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:.03em;font-family:var(--fds);line-height:1.15;}
+.msub{font-size:10px;color:rgba(255,255,255,.7);margin-top:2px;font-weight:500;}
 /* STATUS BADGE */
 .stbadge{display:inline-flex;align-items:center;gap:4px;padding:1px 7px;border-radius:12px;font-size:9px;font-weight:700;font-family:var(--fsc);}
 /* SHOT TABLE */
@@ -162,7 +169,7 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
   .dash-inner{padding:16px 14px!important;}
   .tile-grid{grid-template-columns:repeat(2,1fr)!important;gap:10px!important;}
   .stats-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px!important;}
-  .mtile{min-height:90px!important;}
+  .mtile{min-height:110px!important;}
 }
 @media(max-width:480px){
   .tile-grid{grid-template-columns:1fr!important;}
@@ -303,37 +310,37 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
     </div>
   </div>
   <div class="tile-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;">
-    <div class="mtile" style="background:linear-gradient(135deg,#7A3510,#A3470F);" onclick="sw('shotlist')">
+    <div class="mtile sh-1" onclick="sw('shotlist')">
       <div class="mbadge">MASTER LIST</div>
       <div class="micon"><i class="fa-solid fa-list-ol"></i></div>
       <div><div class="mtit">Shot List</div><div class="msub">Scenes · Setups · Thumbnails · Status</div></div>
     </div>
-    <div class="mtile" style="background:linear-gradient(135deg,#C4621E,#E87B30);" onclick="location.href='prehub.html'">
+    <div class="mtile sh-2" onclick="location.href='prehub.html'">
       <div class="mbadge">6-RULE</div>
       <div class="micon"><i class="fa-solid fa-clapperboard"></i></div>
       <div><div class="mtit">Storyboards</div><div class="msub">preHUB · 6-Rule Cinema · Draw</div></div>
     </div>
-    <div class="mtile" style="background:linear-gradient(135deg,#0C4A6E,#0EA5E9);" onclick="sw('oneliner')">
+    <div class="mtile sh-3" onclick="sw('oneliner')">
       <div class="mbadge">BREAKDOWN</div>
       <div class="micon"><i class="fa-solid fa-bars-staggered"></i></div>
       <div><div class="mtit">One-Liner Strip</div><div class="msub">Scene · Shots · Expand per row</div></div>
     </div>
-    <div class="mtile" style="background:linear-gradient(135deg,#3B0764,#7C3AED);" onclick="sw('masterscript')">
+    <div class="mtile sh-1" onclick="sw('masterscript')">
       <div class="mbadge">REVISIONS</div>
       <div class="micon"><i class="fa-solid fa-scroll"></i></div>
       <div><div class="mtit">Master Script</div><div class="msub">Colored edits · Scene #s · Shot thumbs</div></div>
     </div>
-    <div class="mtile" style="background:linear-gradient(135deg,#064E3B,#059669);" onclick="sw('callsheet')">
+    <div class="mtile sh-2" onclick="sw('callsheet')">
       <div class="mbadge">DAILY</div>
       <div class="micon"><i class="fa-solid fa-calendar-days"></i></div>
       <div><div class="mtit">Call Sheet</div><div class="msub">Crew · Cast · Location · Wrap</div></div>
     </div>
-    <div class="mtile" style="background:linear-gradient(135deg,#881337,#E11D48);" onclick="sw('dailies')">
+    <div class="mtile sh-3" onclick="sw('dailies')">
       <div class="mbadge">LOG</div>
       <div class="micon"><i class="fa-solid fa-film"></i></div>
       <div><div class="mtit">Dailies Log</div><div class="msub">Takes · Circled · Notes</div></div>
     </div>
-    <div class="mtile" style="background:linear-gradient(135deg,#1E1B4B,#4338CA);opacity:.5;cursor:not-allowed;">
+    <div class="mtile sh-1" style="opacity:.5;cursor:not-allowed;">
       <div class="mbadge">COMING</div>
       <div class="micon"><i class="fa-solid fa-circle-nodes"></i></div>
       <div><div class="mtit">postHUB Bridge</div><div class="msub">Color · Audio · Edit pipeline</div></div>
