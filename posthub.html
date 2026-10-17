@@ -263,6 +263,9 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
   #mainGrid #panelMaster > div:first-child{flex:1;min-height:0;display:flex;flex-direction:column;}
   #mainGrid #panelMaster .viewer-box{flex:1;min-height:0;}
   #mainGrid .vu-meter-wrap{display:none!important;}
+  #mainGrid #panelMaster .tc-form{justify-content:center!important;gap:10px!important;}
+  #mainGrid #btnPlayMaster,#mainGrid #btnStepBack,#mainGrid #btnStepFwd{min-height:40px!important;min-width:64px!important;font-size:15px!important;}
+  #mainGrid #tlPlayhead{pointer-events:none;}
   #mainGrid #panelMaster .tc-form button:not(#btnPlayMaster):not(#btnStepBack):not(#btnStepFwd){display:none!important;}
   #mainGrid #panelMaster .tc-form input{display:none!important;}
   #mainGrid .tl-area{flex:1 1 auto!important;min-height:0!important;grid-column:auto!important;overflow:hidden;}
@@ -1182,6 +1185,13 @@ function updatePlayhead(){
   $('#tcMasterRec').value = tc;
   inspectTimelineHUD();
   updateProgramScrubber(PLAY_FRAME);
+  centrePhonePlayhead();
+}
+function centrePhonePlayhead(){
+  if(!window.matchMedia || !matchMedia('(max-width:768px)').matches) return;
+  var area = document.getElementById('tlScrollArea'); if(!area) return;
+  var px = 44 + (PLAY_FRAME * pxPerFrame());
+  area.scrollLeft = Math.max(0, px - area.clientWidth / 2);
 }
 
 /* Master Playback Animation Loop */
