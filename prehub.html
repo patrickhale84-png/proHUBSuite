@@ -2993,6 +2993,33 @@ She throws it in reverse!`;
         let title = "";
         let author = "";
 
+        /* read the title page at the top of the script: "Title:/Author:" lines, or
+           a title line followed by "Written by" and the author's name */
+        (function(){
+          var head=[];
+          for(var i=0;i<rawLines.length&&i<80;i++){
+            var t=(rawLines[i]||'').trim();
+            if(/^(INT\.|EXT\.|INT\/EXT|I\/E)/i.test(t)) break;
+            head.push(t);
+          }
+          var nz=head.filter(function(t){return t;});
+          for(var j=0;j<nz.length;j++){
+            var m=nz[j].match(/^(title|author|authors|written by|credit|source)\s*:\s*(.+)$/i);
+            if(!m) continue;
+            if(/^title$/i.test(m[1])) title=title||m[2].trim();
+            else if(/^(author|authors|written by|credit)$/i.test(m[1])) author=author||m[2].trim();
+          }
+          if(!title){
+            var k=nz.findIndex(function(t){ return !/:/.test(t) && !/^written by$/i.test(t) && !/^by$/i.test(t) && t.length<60; });
+            var w=nz.findIndex(function(t){ return /^(written by|by)$/i.test(t); });
+            if(k>=0 && (w<0 || k<w)) title=nz[k];
+          }
+          if(!author){
+            var w2=nz.findIndex(function(t){ return /^(written by|by)$/i.test(t); });
+            if(w2>=0 && nz[w2+1]) author=nz[w2+1];
+          }
+        })();
+
         rawLines.forEach(l => {
           const trimmed = l.trim();
           if (!trimmed) {
@@ -3526,12 +3553,8 @@ let isTitlePageVisible = false;
             this.injectScreenplayLineRowNode(lineNode.type, lineNode.text);
           });
 
-          if (parsed.title) {
-            document.getElementById('title-page-main-heading').textContent = parsed.title.toUpperCase();
-          }
-          if (parsed.author) {
-            document.getElementById('title-page-author-name').textContent = parsed.author.toUpperCase();
-          }
+          document.getElementById('title-page-main-heading').textContent = (parsed.title || 'UNTITLED').toUpperCase();
+          document.getElementById('title-page-author-name').textContent = (parsed.author || '').toUpperCase();
 
           currentVersionLevelCounter++;
           currentVersionRevisionCounter = 0;
