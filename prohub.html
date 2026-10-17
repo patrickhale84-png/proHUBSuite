@@ -1110,13 +1110,15 @@ function scenesFromMaster(){
     var out=[], cur=null, n=0;
     d.lines.forEach(function(l){
       var text=(l.text||'').trim();
-      if(l.type==='scene-heading'){
+      /* preHUB sends SCENE_HEADING / ACTION / CHARACTER ...; normalise to scene-heading / action / character */
+      var type=String(l.type||'action').toLowerCase().replace(/_/g,'-');
+      if(type==='scene-heading'){
         n++;
         var lead=text.match(/^(\d+)\s+/);
         var num=lead?String(parseInt(lead[1],10)):String(n);
         cur={num:num, heading:lead?text.replace(/^\d+\s+/,''):text, lines:[]};
         out.push(cur);
-      } else if(cur && text){ cur.lines.push({type:l.type||'action', text:text}); }
+      } else if(cur && text){ cur.lines.push({type:type, text:text}); }
     });
     return out.length?out:null;
   }catch(e){ return null; }
