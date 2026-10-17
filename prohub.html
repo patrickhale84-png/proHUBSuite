@@ -317,6 +317,14 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
 .tile-grid .mtile:nth-child(4){--t1:#3F9A72;--t2:#2F7A5C;}
 .tile-grid .mtile:nth-child(5){--t1:#C9394E;--t2:#A62A3C;}
 .tile-grid .mtile:nth-child(6){--t1:#2C3354;--t2:#1E2440;}
+
+/* desktop board: tiles fill the screen and resize within it, no scrolling */
+@media (min-width:769px){
+  .mt-rz{display:flex!important;position:absolute;top:auto!important;right:8px!important;bottom:8px!important;width:26px;height:26px;
+    align-items:center;justify-content:center;padding:0;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.55);
+    color:#fff;font-size:12px;font-weight:700;line-height:1;cursor:pointer;border-radius:6px;}
+  .mtile{grid-column:span var(--w,1)!important;grid-row:span var(--h,1)!important;min-height:0!important;min-width:0;}
+}
 </style>
 </head>
 <body>
@@ -1033,6 +1041,62 @@ function hubGo(page, ev){
   }
   decorate();
   new MutationObserver(decorate).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
+<script>
+/* desktop board: fit the grid to the window and let tiles resize within it */
+(function(){
+  var SEL='.tile-grid', KEY='prohub_board_v2', C=3, PAD=36;
+  var SIZES=[[1,1],[2,1],[1,2],[2,2]];
+  function desk(){ return window.innerWidth>768; }
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } }
+  function save(o){ try{ localStorage.setItem(KEY,JSON.stringify(o)); }catch(e){} }
+  function grid(){ return document.querySelector(SEL); }
+  function tiles(g){ return Array.prototype.slice.call(g.querySelectorAll('.mtile')); }
+  function title(t){ var m=t.querySelector('.mtit'); return m?m.textContent.trim():''; }
+  function fits(g){
+    var gr=g.getBoundingClientRect(), ok=true;
+    tiles(g).forEach(function(t){ var r=t.getBoundingClientRect(); if(r.bottom>gr.bottom+1||r.right>gr.right+1) ok=false; });
+    return ok;
+  }
+  function place(){
+    if(!desk()) return;
+    var g=grid(); if(!g) return;
+    var box=g.getBoundingClientRect();
+    if(box.height===0 && box.width===0) return;
+    var n=tiles(g).length, R=Math.max(1,Math.ceil(n/C));
+    var below=parseFloat(getComputedStyle(g).marginBottom)||0;
+    var el=g.nextElementSibling;
+    while(el){ var cs=getComputedStyle(el); if(cs.display!=='none' && cs.position!=='fixed'){ below+=el.getBoundingClientRect().height+(parseFloat(cs.marginTop)||0)+(parseFloat(cs.marginBottom)||0); } el=el.nextElementSibling; }
+    g.style.height=Math.max(240, window.innerHeight-box.top-below-PAD)+'px';
+    g.style.gridTemplateColumns='repeat('+C+', minmax(0,1fr))';
+    g.style.gridTemplateRows='repeat('+R+', minmax(0,1fr))';
+    g.style.gridAutoRows='minmax(0,1fr)';
+    g.style.gridAutoFlow='dense';
+    g.style.overflow='hidden';
+    var saved=load();
+    tiles(g).forEach(function(t){ var s=saved[title(t)]||[1,1]; t.style.setProperty('--w',s[0]); t.style.setProperty('--h',s[1]); });
+    if(!fits(g)){
+      tiles(g).forEach(function(t){ t.style.setProperty('--w',1); t.style.setProperty('--h',1); });
+      save({});
+    }
+  }
+  document.addEventListener('click', function(e){
+    var h=e.target.closest && e.target.closest('.mt-rz'); if(!h || !desk()) return;
+    e.stopImmediatePropagation(); e.preventDefault(); e.stopPropagation();
+    var t=h.closest('.mtile'), g=t.parentNode;
+    var w=parseInt(t.style.getPropertyValue('--w'))||1, hh=parseInt(t.style.getPropertyValue('--h'))||1;
+    var idx=0; for(var i=0;i<SIZES.length;i++){ if(SIZES[i][0]===w&&SIZES[i][1]===hh){ idx=i; break; } }
+    for(var k=1;k<=SIZES.length;k++){
+      var s=SIZES[(idx+k)%SIZES.length];
+      t.style.setProperty('--w',s[0]); t.style.setProperty('--h',s[1]);
+      if(fits(g)){ var o=load(); o[title(t)]=s; save(o); return; }
+    }
+    t.style.setProperty('--w',w); t.style.setProperty('--h',hh);
+  }, true);
+  window.addEventListener('resize', place);
+  setTimeout(place, 50);
+  new MutationObserver(function(){ place(); }).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
 </body>
