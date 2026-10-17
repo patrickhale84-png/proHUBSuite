@@ -301,6 +301,18 @@ html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color:
   padding:6px 10px;border:1px solid #26344E;border-radius:6px;color:#8794A6;background:#0E1320;text-decoration:none;white-space:nowrap;}
 .hubnav .hn:hover{color:#fff;border-color:#4B5B73;}
 .hubnav .hn.on{color:#fff;border-color:#4B5B73;background:#18223A;}
+
+.tl-clip.sel{outline:2px solid #F5A623;outline-offset:1px;z-index:3;}
+#phoneBar{display:none;}
+@media (max-width:768px){
+  #phoneBar{display:flex;flex:0 0 auto;align-items:stretch;gap:0;height:64px;padding-right:96px;box-sizing:border-box;background:#1B1F27;border-top:1px solid #2c3340;overflow-x:auto;overflow-y:hidden;}
+  #phoneBar .pb-btn{flex:0 0 auto;min-width:62px;background:none;border:0;color:#B9C2CF;font-size:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 8px;font-family:inherit;}
+  #phoneBar .pb-btn i{font-size:17px;}
+  #phoneBar .pb-btn.on{color:#4DA3FF;}
+  #phoneBar .pb-btn.danger{color:#FF7A7A;}
+  #phoneBar .pb-name{flex:0 0 auto;align-self:center;padding:0 8px;font-size:10px;color:#F5A623;font-family:var(--fm);white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;}
+  #phoneBar .pb-sep{flex:0 0 1px;background:#2c3340;margin:10px 4px;}
+}
 </style>
 </head>
 <body>
@@ -1008,6 +1020,7 @@ function renderTimeline(){
       if(tk === 'v2') cls += ' v2';
       if(tk === 'a1') cls += ' audio';
       if(tk === 'a2') cls += ' a2';
+      if(SEL && SEL.c === c) cls += ' sel';
       b.className = cls;
       b.style.left = (c.startFrame * pxPerFrame()) + 'px';
       b.style.width = Math.max(20, (c.durationFrames * pxPerFrame())) + 'px';
@@ -1018,6 +1031,7 @@ function renderTimeline(){
       // Clip Interaction: Razor & Trim
       b.onclick = function(e){
         e.stopPropagation();
+        if(ACTIVE_TOOL !== 'razor') selectClip(tk, c);
         if(ACTIVE_TOOL === 'razor'){
           var rect = b.getBoundingClientRect();
           var offsetF = Math.round((e.clientX - rect.left) / pxPerFrame());
@@ -1818,6 +1832,69 @@ applyLayout();
 wireGutters();
 updateSourceScrubber();
 updateProgramScrubber(PLAY_FRAME);
+
+/* Phone bottom bar: default tools, and clip tools that change with the tapped video or audio clip */
+var SEL = null;
+function selectClip(tk, c){
+  SEL = { tk: tk, c: c, kind: (tk === 'a1' || tk === 'a2') ? 'audio' : 'video' };
+  renderTimeline();
+  renderPhoneBar();
+}
+function clearSel(){ SEL = null; renderTimeline(); renderPhoneBar(); }
+function deleteSel(){
+  if(!SEL) return;
+  var arr = TRACKS[SEL.tk], i = arr.indexOf(SEL.c);
+  if(i >= 0) arr.splice(i, 1);
+  toast('Clip removed');
+  SEL = null; renderTimeline(); updatePlayhead(); renderPhoneBar();
+}
+function pbBtn(icon, label, fn, cls){
+  return '<button class="pb-btn '+(cls||'')+'" data-pb="'+label+'"><i class="'+icon+'"></i>'+label+'</button>';
+}
+function renderPhoneBar(){
+  var bar = document.getElementById('phoneBar'); if(!bar) return;
+  var cur = ACTIVE_TOOL;
+  var h = '';
+  if(SEL){
+    var nm = (SEL.c && SEL.c.name) ? SEL.c.name : 'Clip';
+    h += '<span class="pb-name">'+esc(nm)+'</span>';
+    h += pbBtn('fa-solid fa-arrow-pointer', 'Select', 1, cur==='select'?'on':'');
+    h += pbBtn('fa-solid fa-scissors', 'Razor', 1, cur==='razor'?'on':'');
+    h += pbBtn('fa-solid fa-arrows-left-right', 'Trim', 1, cur==='trim'?'on':'');
+    if(SEL.kind === 'video') h += pbBtn('fa-solid fa-circle-info', 'Info', 1);
+    else h += pbBtn('fa-solid fa-volume-high', 'Level', 1);
+    h += pbBtn('fa-solid fa-trash', 'Delete', 1, 'danger');
+    h += pbBtn('fa-solid fa-xmark', 'Done', 1);
+  } else {
+    h += pbBtn('fa-solid fa-circle-plus', 'Ingest', 1);
+    h += pbBtn('fa-solid fa-arrow-pointer', 'Select', 1, cur==='select'?'on':'');
+    h += pbBtn('fa-solid fa-scissors', 'Razor', 1, cur==='razor'?'on':'');
+    h += pbBtn('fa-solid fa-arrows-left-right', 'Trim', 1, cur==='trim'?'on':'');
+    h += '<span class="pb-sep"></span>';
+    h += pbBtn('fa-solid fa-wave-square', 'Bars', 1);
+    h += pbBtn('fa-solid fa-file-export', 'Export', 1);
+  }
+  bar.innerHTML = h;
+  bar.querySelectorAll('.pb-btn').forEach(function(btn){
+    btn.onclick = function(){ phoneBarAction(btn.getAttribute('data-pb')); };
+  });
+}
+function phoneBarAction(label){
+  if(label === 'Select' || label === 'Razor' || label === 'Trim'){ setTool(label.toLowerCase()); renderPhoneBar(); return; }
+  if(label === 'Ingest'){ var b = document.getElementById('btnQuickImport'); if(b) b.click(); return; }
+  if(label === 'Bars'){ var g = document.getElementById('btnGenBars'); if(g) g.click(); return; }
+  if(label === 'Export'){ var e = document.getElementById('btnExportVideo'); if(e) e.click(); return; }
+  if(label === 'Delete'){ deleteSel(); return; }
+  if(label === 'Done'){ clearSel(); return; }
+  if(label === 'Info' && SEL){ toast((SEL.c.name||'Clip') + ' · ' + SEL.c.durationFrames + ' frames'); return; }
+  if(label === 'Level' && SEL){ toast('Level control is on the desktop inspector'); return; }
+}
+(function mountPhoneBar(){
+  var g = document.getElementById('mainGrid'); if(!g || document.getElementById('phoneBar')) return;
+  var bar = document.createElement('div'); bar.id = 'phoneBar';
+  g.appendChild(bar);
+  renderPhoneBar();
+})();
 
 })();
 </script>
