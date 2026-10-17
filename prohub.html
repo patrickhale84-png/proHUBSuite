@@ -467,6 +467,15 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
 .msr-add{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
 .msr-add input{background:#0B0F19;border:1px solid #1F2A42;border-radius:6px;color:#E6ECF5;padding:5px 8px;font-size:11px;min-width:0;flex:1 1 120px;}
 .msr-btn{background:#131B2E;border:1px solid #1F2A42;color:#E6ECF5;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;}
+
+/* Master script: screenplay text under each scene */
+.ms-script{font-family:'Courier New',ui-monospace,monospace;font-size:12px;line-height:1.5;color:#E6ECF5;padding:6px 0 8px;}
+.sc-act{margin-top:6px;white-space:pre-wrap;}
+.sc-char{margin-left:38%;margin-top:10px;text-transform:uppercase;}
+.sc-dia{margin-left:24%;max-width:56%;}
+.sc-par{margin-left:32%;color:#9CA3AF;}
+.sc-tr{text-align:right;text-transform:uppercase;margin-top:8px;}
+@media (max-width:768px){ .sc-char{margin-left:20%;} .sc-dia{margin-left:10%;max-width:80%;} .sc-par{margin-left:16%;} }
 </style>
 </head>
 <body>
@@ -804,7 +813,7 @@ function sw(id){
   if(id==='callsheet'&&window.csRender)window.csRender();
   if(id==='dailies'&&window.dlRender)window.dlRender();
   if(id==='oneliner')olRender();
-  if(id==='masterscript')msRender();
+  if(id==='masterscript'){ refreshMasterScript(); msRender(); }
   if(id==='dashboard')updateStats();
 }
 
@@ -1036,7 +1045,7 @@ function msSceneBody(scn, sceneObj){
   var comments=(r.comments||[]).map(function(c,i){
     return '<div class="msr-c"><div><b>'+msrEsc(c.who||'Reviewer')+'</b> <small>'+msrEsc(new Date(c.at).toLocaleString())+'</small></div><div>'+msrEsc(c.text)+'</div><button class="msr-x" data-msr-act="rmc" data-i="'+i+'">Remove</button></div>';
   }).join('');
-  return '<div class="msr" data-scene="'+msrEsc(scn)+'">'+
+  return '<div class="msr" data-scene="'+msrEsc(scn)+'">'+scriptHtml(sceneObj)+
     '<div class="msr-row">'+
       '<select class="msr-status" data-msr="status" style="color:'+col[st]+'">'+opts+'</select>'+
       '<label class="msr-board" title="Add a storyboard frame">'+(r.board?'<img src="'+r.board+'" alt="Storyboard for scene '+msrEsc(scn)+'">':'<span>+ Storyboard</span>')+'<input type="file" accept="image/*" data-msr="board" hidden></label>'+
@@ -1093,10 +1102,45 @@ function msrBoardFromFile(file, cb){
     else if(act==='rmboard'){ r.board=''; if(msrPut(n,r)) msRender(); }
   });
 })();
+/* Master script source: the lines preHUB transmits (prehub_master_v1), grouped by scene heading */
+function scenesFromMaster(){
+  try{
+    var d=JSON.parse(localStorage.getItem('prehub_master_v1')||'null');
+    if(!d||!d.lines||!d.lines.length) return null;
+    var out=[], cur=null, n=0;
+    d.lines.forEach(function(l){
+      var text=(l.text||'').trim();
+      if(l.type==='scene-heading'){
+        n++;
+        var lead=text.match(/^(\d+)\s+/);
+        var num=lead?String(parseInt(lead[1],10)):String(n);
+        cur={num:num, heading:lead?text.replace(/^\d+\s+/,''):text, lines:[]};
+        out.push(cur);
+      } else if(cur && text){ cur.lines.push({type:l.type||'action', text:text}); }
+    });
+    return out.length?out:null;
+  }catch(e){ return null; }
+}
+function refreshMasterScript(){
+  var m=scenesFromMaster();
+  if(m){ scenes=m; }
+  var el=document.getElementById('sb-scenes'); if(el) el.textContent=scenes.length;
+}
+function scriptHtml(sceneObj){
+  if(!sceneObj||!sceneObj.lines||!sceneObj.lines.length) return '';
+  return '<div class="ms-script">'+sceneObj.lines.map(function(l){
+    var t=msrEsc(l.text);
+    if(l.type==='character') return '<div class="sc-char">'+t+'</div>';
+    if(l.type==='dialogue') return '<div class="sc-dia">'+t+'</div>';
+    if(l.type==='parenthetical') return '<div class="sc-par">'+t+'</div>';
+    if(l.type==='transition') return '<div class="sc-tr">'+t+'</div>';
+    return '<div class="sc-act">'+t+'</div>';
+  }).join('')+'</div>';
+}
 function msRender(){
   const con=document.getElementById('ms-container');
   // Build from scenes + shots
-  const sceneNums=[...new Set(shots.map(s=>s.scene))].sort((a,b)=>(parseInt(a)||0)-(parseInt(b)||0));
+  const sceneNums=[...new Set([...scenes.map(s=>String(s.num)), ...shots.map(s=>s.scene)])].sort((a,b)=>(parseInt(a)||0)-(parseInt(b)||0));
   if(!sceneNums.length){
     con.innerHTML=`<div style="color:var(--mu);text-align:center;margin-top:60px;font-family:var(--fsc);">No shots or scenes loaded.<br>Sync preHUB or add shots in the Shot List.</div>`;return;
   }
