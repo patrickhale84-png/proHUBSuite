@@ -6682,5 +6682,52 @@ window.__sendScriptLine = function(text){
   return true;
 };
 </script>
+<script>
+/* phone composer: live writing. Typing shows on the script line as you type; Enter starts the
+   next line with the same element style, which only changes when you pick a different element. */
+(function(){
+  var old=document.getElementById('mc-pill'); if(!old) return;
+  var inp=document.createElement('input');
+  inp.id='mc-pill'; inp.className='mc-pill'; inp.type='text'; inp.placeholder='Write a line…';
+  inp.setAttribute('autocomplete','off'); inp.setAttribute('autocapitalize','sentences');
+  old.replaceWith(inp);
+  function rows(){ return document.getElementById('script-editable-node-rows-stack'); }
+  function lastBox(){ var r=rows(); if(!r) return null; var b=r.querySelectorAll('.line-editable-box'); return b[b.length-1]||null; }
+  function elementClass(el){ if(!el) return null; var c=[].slice.call(el.classList).filter(function(x){return x.indexOf('element-')===0;}); return c[0]||null; }
+  function setElement(el,cls){
+    if(!el||!cls) return;
+    [].slice.call(el.classList).forEach(function(x){ if(x.indexOf('element-')===0) el.classList.remove(x); });
+    el.classList.add(cls);
+  }
+  function fire(el,type,init){ if(el) el.dispatchEvent(new (type==='input'?Event:KeyboardEvent)(type, init||{bubbles:true})); }
+  function newLine(keepCls){
+    var b=lastBox(); if(!b) return null;
+    fire(b,'keydown',{key:'Enter',code:'Enter',keyCode:13,bubbles:true,cancelable:true});
+    var nb=lastBox(); if(nb && nb!==b){ setElement(nb, keepCls); }
+    return nb;
+  }
+  /* never overwrite a line that already has text: start a fresh line first */
+  inp.addEventListener('focus', function(){
+    var b=lastBox(); if(b && b.textContent.trim()){ newLine(elementClass(b)); }
+    if(b) inp.dataset.cls = elementClass(lastBox()) || '';
+  });
+  inp.addEventListener('input', function(){
+    var b=lastBox(); if(!b) return;
+    b.textContent=inp.value;
+    fire(b,'input');
+  });
+  inp.addEventListener('keydown', function(e){
+    if(e.key!=='Enter') return;
+    e.preventDefault();
+    var b=lastBox(); if(!b) return;
+    if(!b.textContent.trim()) return;
+    var cls=elementClass(b);
+    inp.value='';
+    newLine(cls);
+    inp.focus();
+  });
+  var mt=document.getElementById('mc-plus'); /* + stays as the options sheet */
+})();
+</script>
 </body>
 </html>
