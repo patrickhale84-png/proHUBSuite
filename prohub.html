@@ -448,6 +448,25 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
   .dl-cols>*:nth-child(6){display:none;}
   .dl-notes-row{grid-template-columns:minmax(0,1fr);}
 }
+
+/* Master script review blocks */
+.msr{margin-top:6px;}
+.msr-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.msr-status{background:#0B0F19;border:1px solid #1F2A42;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;}
+.msr-board{display:inline-flex;align-items:center;justify-content:center;min-width:90px;min-height:50px;border:1px dashed #2A3650;border-radius:6px;cursor:pointer;color:#7E8FA6;font-size:10px;overflow:hidden;background:#0B0F19;}
+.msr-board img{max-height:72px;max-width:120px;display:block;}
+.msr-desc{min-height:40px;padding:8px 10px;border:1px solid transparent;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.5;color:#E6ECF5;white-space:pre-wrap;outline:none;}
+.msr-desc:focus{border-color:#334155;background:#0B0F19;}
+.msr-desc:empty:before{content:attr(data-placeholder);color:#4B5563;}
+.msr-comments{margin-top:6px;border-left:2px solid #1F2A42;padding-left:10px;}
+.msr-ch{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#7E8FA6;margin-bottom:4px;}
+.msr-c{font-size:11.5px;color:#C9D3E3;padding:5px 0;border-bottom:1px solid #111827;position:relative;padding-right:60px;}
+.msr-c small{color:#64748B;font-size:10px;}
+.msr-c .msr-x{position:absolute;right:0;top:4px;}
+.msr-x{background:none;border:1px solid #3B2230;color:#F87171;border-radius:6px;padding:3px 8px;font-size:10px;cursor:pointer;}
+.msr-add{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.msr-add input{background:#0B0F19;border:1px solid #1F2A42;border-radius:6px;color:#E6ECF5;padding:5px 8px;font-size:11px;min-width:0;flex:1 1 120px;}
+.msr-btn{background:#131B2E;border:1px solid #1F2A42;color:#E6ECF5;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -999,6 +1018,81 @@ function msAdvanceDraft(){
 }
 function msToggleRevMarks(){msShowRevMarks=!msShowRevMarks;document.getElementById('ms-rev-btn').textContent=(msShowRevMarks?'Rev Marks ON':'Rev Marks OFF');document.getElementById('ms-rev-btn').style.background=msShowRevMarks?'rgba(96,165,250,.1)':'var(--bg3)';msRender();}
 function msToggleShots(){msShowShots=!msShowShots;document.getElementById('ms-shot-btn').innerHTML='<i class="fa-solid fa-camera mr-1"></i>'+(msShowShots?'Shots ON':'Shots OFF');document.getElementById('ms-shot-btn').style.background=msShowShots?'rgba(232,123,48,.08)':'var(--bg3)';msRender();}
+/* ===== Master script: inline action, review status, storyboard and review notes per scene ===== */
+var MSR_KEY='prohub_ms_review_v1', MSR_WHO_KEY='prohub_ms_who';
+function msrEsc(v){ return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function msrAll(){ try{ return JSON.parse(localStorage.getItem(MSR_KEY))||{}; }catch(e){ return {}; } }
+function msrGet(n){ var r=msrAll()[n]||{}; return {desc:r.desc||'',status:r.status||'draft',comments:r.comments||[],board:r.board||''}; }
+function msrPut(n,rec){
+  var a=msrAll(); a[n]=rec;
+  try{ localStorage.setItem(MSR_KEY,JSON.stringify(a)); return true; }
+  catch(e){ if(typeof toast==='function') toast('Not saved: browser storage is full'); return false; }
+}
+function msrWho(){ try{ return localStorage.getItem(MSR_WHO_KEY)||''; }catch(e){ return ''; } }
+function msSceneBody(scn, sceneObj){
+  var r=msrGet(scn), st=r.status;
+  var labels={draft:'Draft',review:'In review',approved:'Approved'}, col={draft:'#94a3b8',review:'#FBBF24',approved:'#4ADE80'};
+  var opts=['draft','review','approved'].map(function(o){ return '<option value="'+o+'"'+(o===st?' selected':'')+'>'+labels[o]+'</option>'; }).join('');
+  var comments=(r.comments||[]).map(function(c,i){
+    return '<div class="msr-c"><div><b>'+msrEsc(c.who||'Reviewer')+'</b> <small>'+msrEsc(new Date(c.at).toLocaleString())+'</small></div><div>'+msrEsc(c.text)+'</div><button class="msr-x" data-msr-act="rmc" data-i="'+i+'">Remove</button></div>';
+  }).join('');
+  return '<div class="msr" data-scene="'+msrEsc(scn)+'">'+
+    '<div class="msr-row">'+
+      '<select class="msr-status" data-msr="status" style="color:'+col[st]+'">'+opts+'</select>'+
+      '<label class="msr-board" title="Add a storyboard frame">'+(r.board?'<img src="'+r.board+'" alt="Storyboard for scene '+msrEsc(scn)+'">':'<span>+ Storyboard</span>')+'<input type="file" accept="image/*" data-msr="board" hidden></label>'+
+      (r.board?'<button class="msr-x" data-msr-act="rmboard">Remove storyboard</button>':'')+
+    '</div>'+
+    '<div class="msr-desc" contenteditable="true" spellcheck="true" data-msr="desc" data-placeholder="Action and dialogue for this scene. Click to edit.">'+msrEsc(r.desc)+'</div>'+
+    '<div class="msr-comments"><div class="msr-ch">Review notes ('+(r.comments||[]).length+')</div>'+comments+
+      '<div class="msr-add"><input data-msr="who" placeholder="Your name" value="'+msrEsc(msrWho())+'"><input data-msr="ctext" placeholder="Add a review note"><button class="msr-btn" data-msr-act="addc">Add note</button></div>'+
+    '</div></div>';
+}
+function msrBoardFromFile(file, cb){
+  var img=new Image(), url=URL.createObjectURL(file);
+  img.onload=function(){
+    var max=360, k=Math.min(1, max/Math.max(img.width,img.height));
+    var c=document.createElement('canvas'); c.width=Math.round(img.width*k); c.height=Math.round(img.height*k);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    URL.revokeObjectURL(url); cb(c.toDataURL('image/jpeg',0.72));
+  };
+  img.onerror=function(){ URL.revokeObjectURL(url); cb(null); };
+  img.src=url;
+}
+(function(){
+  var ms=document; /* delegated: the container may not exist yet when this runs */
+  ms.addEventListener('input',function(e){
+    var t=e.target, box=t.closest('.msr'); if(!box) return;
+    var n=box.getAttribute('data-scene');
+    if(t.getAttribute('data-msr')==='desc'){ var r=msrGet(n); r.desc=t.innerText; msrPut(n,r); }
+  });
+  ms.addEventListener('change',function(e){
+    var t=e.target, box=t.closest('.msr'); if(!box) return;
+    var n=box.getAttribute('data-scene'), f=t.getAttribute('data-msr');
+    if(f==='status'){ var r=msrGet(n); r.status=t.value; msrPut(n,r); msRender(); }
+    else if(f==='board' && t.files && t.files[0]){
+      msrBoardFromFile(t.files[0], function(data){
+        if(!data){ if(typeof toast==='function') toast('That image could not be read'); return; }
+        var r=msrGet(n); r.board=data; if(msrPut(n,r)) msRender();
+      });
+    }
+    else if(f==='who'){ try{ localStorage.setItem(MSR_WHO_KEY,t.value); }catch(err){} }
+  });
+  ms.addEventListener('click',function(e){
+    var t=e.target.closest('[data-msr-act]'); if(!t) return;
+    var box=t.closest('.msr'); if(!box) return;
+    var n=box.getAttribute('data-scene'), act=t.getAttribute('data-msr-act');
+    var r=msrGet(n);
+    if(act==='addc'){
+      var text=(box.querySelector('[data-msr=ctext]').value||'').trim();
+      var who=(box.querySelector('[data-msr=who]').value||'').trim()||'Reviewer';
+      if(!text) return;
+      r.comments.push({who:who,text:text,at:Date.now()});
+      try{ localStorage.setItem(MSR_WHO_KEY,who); }catch(err){}
+      if(msrPut(n,r)) msRender();
+    } else if(act==='rmc'){ r.comments.splice(+t.getAttribute('data-i'),1); if(msrPut(n,r)) msRender(); }
+    else if(act==='rmboard'){ r.board=''; if(msrPut(n,r)) msRender(); }
+  });
+})();
 function msRender(){
   const con=document.getElementById('ms-container');
   // Build from scenes + shots
@@ -1031,10 +1125,8 @@ function msRender(){
       });
       html+=`</div>`;
     }
-    // Scene content placeholder (action / dialogue)
-    html+=`<div style="padding:8px 38px 16px;border-bottom:2px solid #0F1420;margin-bottom:14px;">
-      ${sceneObj?`<div class="ms-action">${msShowRevMarks?`<span class="rev-ins">[NEW SCENE]</span> `:''}<em style="color:#374151;font-size:10px;font-family:var(--fsc);">(Import full script text from preHUB to populate action and dialogue here.)</em></div>`:`<div style="color:#1E293B;font-size:10px;font-family:var(--fsc);">No script data — sync preHUB.</div>`}
-    </div>`;
+    // Scene body: inline action, review status, storyboard, review notes
+    html+=msSceneBody(scn, sceneObj);
   });
   con.innerHTML=html;
 }
