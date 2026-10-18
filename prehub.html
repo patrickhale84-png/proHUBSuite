@@ -2906,6 +2906,7 @@ She throws it in reverse!`;
         const normalized = this.normalizeRawTokensToScriptNodes(rawAccumulatedLines.slice(start), true);
         if (title) normalized.title = title;
         if (author) normalized.author = author;
+        if (start) normalized.titleLines = rawAccumulatedLines.slice(0, start).map(l => l.text);
         onProgress(100, "Done!");
         return normalized;
       }
@@ -3634,6 +3635,13 @@ let isTitlePageVisible = false;
           this.rowsContainer.innerHTML = "";
           /* title-page lines (Title:, Author:, Written by + name) belong to the title page, not the script body */
           var seenScene = false, skipNext = false;
+          /* keep the title page's people: the author line(s) and any e-mail or phone, for the crew directory */
+          var tp = { title: parsed.title || '', author: /^\s*(written\s+)?by\s*$/i.test(parsed.author || '') ? '' : (parsed.author || ''), emails: [], phones: [] };
+          (parsed.titleLines || []).concat(parsed.lines.slice(0, 12).map(function(l){ return l.text || ''; })).forEach(function(x){
+            (String(x).match(/[\w.+-]+@[\w-]+\.[\w.]+/g) || []).forEach(function(e){ if(tp.emails.indexOf(e) < 0) tp.emails.push(e); });
+            var au = String(x).match(/^(?:author|authors)\s*:\s*(.+)$/i); if(au) tp.author = au[1].trim();
+          });
+          try{ S.titlePage = tp; }catch(e){}
           parsed.lines.forEach(lineNode => {
             var t = (lineNode.text || '').trim();
             if(lineNode.type === 'scene-heading') seenScene = true;
@@ -3656,7 +3664,7 @@ let isTitlePageVisible = false;
           document.getElementById('title-page-main-heading').textContent = (parsed.title || 'UNTITLED').toUpperCase();
           /* the script's own title names the project, unless the project already has a name */
           try{ var pni=document.getElementById('pni'); if(parsed.title && pni && (!pni.value || /^untitled/i.test(pni.value))){ pni.value=String(parsed.title).toUpperCase(); if(typeof syncT==='function') syncT(); if(typeof autoSave==='function') autoSave(); } }catch(e){}
-          document.getElementById('title-page-author-name').textContent = (parsed.author || '').toUpperCase();
+          document.getElementById('title-page-author-name').textContent = (tp.author || '').toUpperCase();
 
           currentVersionLevelCounter++;
           currentVersionRevisionCounter = 0;
@@ -5843,7 +5851,7 @@ function obExportICS(){
 // ========== BUDGET ==========
 function renderBudget(){const tb=document.getElementById('bb');if(!tb)return;let tot=0;tb.innerHTML=S.budget.map(b=>{tot+=b.amt;return`<tr><td class="p-3 font-bold">${b.cat}</td><td class="p-3 text-right text-emerald-400 font-bold">$${b.amt.toLocaleString()}</td></tr>`;}).join('');const el=document.getElementById('bt');if(el)el.innerText='$'+tot.toLocaleString();}
 // ========== TRANSMIT ==========
-function txProHub(){const r=document.getElementById('script-editable-node-rows-stack');const lines=r?Array.from(r.children).map(rw=>{const b=rw.querySelector('.line-editable-box');if(!b)return null;const c=[...b.classList].find(x=>x.indexOf('element-')===0);const type=c?c.slice(8):(b.getAttribute('data-element-type')||'action').toLowerCase().replace(/_/g,'-');const text=(b.innerText||'').trim();return text?{type:type,text:text}:null;}).filter(Boolean):[];if(!lines.length)return toast('Write a screenplay before transmitting.');try{localStorage.setItem('prehub_master_v1',JSON.stringify({origin:'preHUB',target:'proHUB',projectName:S.projectName,lines,ts:new Date().toISOString()}));autoSave();toast('Transmitted to proHUB bridge!');}catch{toast('Transmission failed.');}}
+function txProHub(){const r=document.getElementById('script-editable-node-rows-stack');const lines=r?Array.from(r.children).map(rw=>{const b=rw.querySelector('.line-editable-box');if(!b)return null;const c=[...b.classList].find(x=>x.indexOf('element-')===0);const type=c?c.slice(8):(b.getAttribute('data-element-type')||'action').toLowerCase().replace(/_/g,'-');const text=(b.innerText||'').trim();return text?{type:type,text:text}:null;}).filter(Boolean):[];if(!lines.length)return toast('Write a screenplay before transmitting.');try{localStorage.setItem('prehub_master_v1',JSON.stringify({origin:'preHUB',target:'proHUB',projectName:S.projectName,titlePage:S.titlePage||null,lines,ts:new Date().toISOString()}));autoSave();toast('Transmitted to proHUB bridge!');}catch{toast('Transmission failed.');}}
 // ========== AUTOSAVE ==========
 let asTimer=120;
 setInterval(()=>{asTimer--;const m=Math.floor(asTimer/60),s=asTimer%60,el=document.getElementById('asc');if(el)el.innerText=`${m}:${String(s).padStart(2,'0')}`;if(asTimer<=0){autoSave();asTimer=S.autosaveInterval;toast('Auto-sync complete.');}},1000);

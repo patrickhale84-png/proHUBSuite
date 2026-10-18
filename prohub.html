@@ -1537,6 +1537,8 @@ function hubGo(page, ev){
   }
   /* From script: the scenes preHUB sent, about four pages a day. Each day gets its first scene's location,
      a set-up per scene timed from its length (an hour a page, in 15-minute steps) and the cast who speak in it. */
+  function directory(){ try{ var a=JSON.parse(localStorage.getItem('prohub_crew_v1')||'null'); return a instanceof Array?a:[]; }catch(e){ return []; } }
+  function actorFor(part){ var p=directory().filter(function(x){ return x.dept==='Cast' && x.role===part && x.name; })[0]; return p?p.name:''; }
   function fromScript(quiet){
     var sc=(typeof scenesFromMaster==='function')?scenesFromMaster():null;
     if(!sc||!sc.length){ if(!quiet) msg('No script yet. Transmit it from preHUB first.'); return false; }
@@ -1551,9 +1553,12 @@ function hubGo(page, ev){
       if(!cur||used+e>32){ cur=blankDay(); cur.location=x.heading.replace(/^(INT\.?\/EXT\.?|I\/E\.?|INT\.|EXT\.|EST\.)\s*/i,'').split(/\s+[-\u2013]\s+/)[0]; cur._t=7*60+30; days.push(cur); used=0; }
       cur.setups.push({time:hm(cur._t), scene:x.num, desc:x.heading+' ('+(e>=8?Math.floor(e/8)+(e%8?' '+e%8+'/8':''):e+'/8')+' pg)'});
       cur._t+=Math.max(15,e*7.5); used+=e;
-      cast.forEach(function(n){ if(!cur.cast.some(function(c){return c.name===n;})) cur.cast.push({name:n,role:'',call:'06:30',pickup:'',notes:'Sc '+x.num}); else { cur.cast.forEach(function(c){ if(c.name===n && c.notes.indexOf('Sc '+x.num)<0) c.notes+=', '+x.num; }); } });
+      cast.forEach(function(n){ if(!cur.cast.some(function(c){return c.role===n;})) cur.cast.push({name:actorFor(n)||n,role:n,call:'06:30',pickup:'',notes:'Sc '+x.num}); else { cur.cast.forEach(function(c){ if(c.role===n && c.notes.indexOf('Sc '+x.num)<0) c.notes+=', '+x.num; }); } });
     });
-    days.forEach(function(d){ d.nextSetup=d.setups[1]?d.setups[1].time:''; d.wrap=hm(d._t+30); delete d._t; });
+    /* the crew come from the suite's crew directory (filmHUB Contacts), everyone with a name, called at general call */
+    var crewDir=directory().filter(function(p){ return p.name && p.dept!=='Cast' && p.dept!=='Writing'; });
+    days.forEach(function(d){ d.nextSetup=d.setups[1]?d.setups[1].time:''; d.wrap=hm(d._t+30); delete d._t;
+      d.crew=crewDir.map(function(p){ return {name:p.name, dept:p.dept, role:p.role, call:d.generalCall}; }); });
     CS.days=days; CS.active=0; save(); render(); setStatus(summary());
     if(!quiet) msg('Call sheet built from the script: '+days.length+' day'+(days.length>1?'s':'')+', '+sc.length+' scenes');
     return true;
