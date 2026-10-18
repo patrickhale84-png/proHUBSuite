@@ -231,7 +231,10 @@ function openVault(){
   $('#vIm',d).addEventListener('click',function(){var i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=function(){var f=i.files[0];if(!f)return;var r=new FileReader();
    r.onload=function(){try{var j=JSON.parse(r.result);S=Object.assign(blank(),j);S.project=Object.assign(blank().project,j.project||{});save();paint();toast('Project restored','good')}catch(e){toast('That file could not be read','bad')}};r.readAsText(f)};i.click()})},60);
 }
+function sentName(){var k=['prohub_staged_payload_v1','prehub_master_v1'];for(var i=0;i<k.length;i++){try{var j=JSON.parse(localStorage.getItem(k[i])||'null');if(j&&j.projectName&&!/^untitled/i.test(j.projectName))return j.projectName}catch(e){}}return ''}
 function paint(){
+ /* an untitled production takes the name of the script preHUB and proHUB sent */
+ if(!S.project.name||S.project.name==='UNTITLED PRODUCTION'){var sn=sentName();if(sn)S.project.name=sn}
  var p=$('#projName');if(p)p.firstChild.nodeValue=S.project.name||'UNTITLED PRODUCTION';
  var m=$('#projMeta');if(m)m.textContent=(S.project.code?'  '+S.project.code:'');
  var d=$('#bnDay');if(d)d.textContent=S.day?('DAY '+S.day):'--';
