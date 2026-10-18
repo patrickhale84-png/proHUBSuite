@@ -117,7 +117,7 @@ FILM.register({
       bar.insertBefore(chip, bar.firstChild);
     }
     if (!current()) {
-      FILM.addTile({ id: 'role-choose', title: 'Choose your role', sub: 'The desk adapts to it', colour: '#E2A93B', icon: 'grid', tag: 'START', run: chooser });
+      FILM.addTile({ id: 'role-choose', title: 'Choose your role', sub: 'The desk adapts to it', colour: '#E2A93B', icon: 'user', tag: 'START', run: chooser });
       setTimeout(chooser, 600);
     } else {
       applyRole();

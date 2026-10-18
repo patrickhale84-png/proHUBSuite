@@ -42,3 +42,28 @@ CI does all three, then boots the assembled file inside a Wix-shaped embed.
 No module ever edits another. Nothing is inserted by hand.
 <!-- ci trigger 08:59:35 -->
 <!-- rerun 09:01:28 -->
+
+## Phone frame (all four hubs)
+
+On phones (and phones held sideways) every hub sits inside one film-strip frame
+that always matches the visible screen, and shrinks above the keyboard. The page
+itself never scrolls; dashboards fit their tiles to the frame, and modules scroll
+inside it.
+
+```
+build/shared/phone-frame.css   frame, one-row header, metro grid, stacked boxes
+build/shared/phone-frame.js    fitting, long-press labels, tile colour borders
+build/inject_frame.py          writes both into each hub between PF:BEGIN / PF:END
+```
+
+After editing either shared file:
+
+```bash
+python3 build/inject_frame.py            # updates prehub, prohub, posthub and the filmHUB shell
+python3 build/build.py --app filmhub     # rebuild filmHUB
+cp build/out/filmhub.html filmhub.html
+```
+
+Per-hub settings (tile grid, main region, drawer, blocks hidden on phones, extra
+tiles for actions that live in hidden blocks) are in `HUBS` in `inject_frame.py`.
+Desktop is untouched: everything is scoped to `html.pf-on`.

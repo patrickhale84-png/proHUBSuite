@@ -1,0 +1,184 @@
+/* ==== Phone frame ====================================================
+   One film-strip border that always matches the visible screen. On phones
+   the page itself never scrolls: everything happens inside the frame.
+   Desktop is untouched (the frame only switches on through html.pf-on).
+   {{PERF}}, {{I_FILM}}, {{I_PRE}}, {{I_PRO}}, {{I_POST}} are filled in by
+   build/inject_frame.py with url-encoded SVG.
+   ===================================================================== */
+:root{
+  --pf-base:#0D0F14;           /* film base */
+  --pf-perf:#C9C2B4;           /* sprocket holes */
+  --pf-lime:#A3E635;           /* logo lime: the frame's one hairline */
+  --pf-paper:#F3F0E8;          /* label bubble */
+  --pf-sl:max(12px, env(safe-area-inset-left, 0px));
+  --pf-sr:max(12px, env(safe-area-inset-right, 0px));
+  --pf-bt:max(8px, env(safe-area-inset-top, 0px));
+  --pf-bb:max(8px, env(safe-area-inset-bottom, 0px));
+  --pf-head:52px;
+}
+.hubnav .hn[data-hub="film"]{--pf-i:url("{{I_FILM}}");}
+.hubnav .hn[data-hub="pre"]{--pf-i:url("{{I_PRE}}");}
+.hubnav .hn[data-hub="pro"]{--pf-i:url("{{I_PRO}}");}
+.hubnav .hn[data-hub="post"]{--pf-i:url("{{I_POST}}");}
+.pf-wrap{display:contents;}
+/* the menu button: same on every hub and every width, drawn without an icon font */
+.hdr-burger{background:transparent!important;border:0!important;color:#C9D3E0!important;cursor:pointer;
+  display:inline-flex!important;align-items:center;justify-content:center;border-radius:7px!important;}
+.hdr-burger:hover{color:#fff!important;background:#131B2C!important;}
+.hdr-burger:focus-visible{outline:2px solid var(--pf-lime);outline-offset:1px;}
+.hdr-burger > i{display:none!important;}
+.hdr-burger::before{content:"";width:20px;height:20px;background:currentColor;
+  -webkit-mask:url("{{I_MENU}}") center/20px 20px no-repeat;mask:url("{{I_MENU}}") center/20px 20px no-repeat;}
+.pf-proxy{display:none!important;}
+
+/* the strip: sprocket holes down both edges, scaled to any height */
+html.pf-on{
+  height:100%!important;overflow:hidden!important;overscroll-behavior:none;
+  background-color:var(--pf-base)!important;
+  background-image:url("{{PERF}}"),url("{{PERF}}")!important;
+  background-position:left top,right top!important;
+  background-size:12px 18px,12px 18px!important;
+  background-repeat:repeat-y,repeat-y!important;
+}
+/* the window inside the strip; position:fixed + transform makes it the
+   containing block for every fixed bar, sheet and drawer of the app */
+html.pf-on body{
+  position:fixed!important;inset:auto!important;
+  left:var(--pf-sl)!important;right:var(--pf-sr)!important;
+  top:calc(var(--pf-vt,0px) + var(--pf-bt))!important;
+  height:calc(var(--pf-vh,100dvh) - var(--pf-bt) - var(--pf-bb))!important;
+  width:auto!important;min-height:0!important;max-height:none!important;
+  margin:0!important;padding:0!important;overflow:hidden!important;
+  transform:translateZ(0);border-radius:10px;
+  box-shadow:0 0 0 1px rgba(163,230,53,.6),0 0 22px rgba(163,230,53,.10);
+  overscroll-behavior:none;
+}
+/* inside a module the frame takes the colour of the tile that opened it:
+   a thin border holding that screen in place */
+html.pf-on body.m-inside{box-shadow:0 0 0 2px var(--pf-edge,var(--pf-lime)),0 0 22px color-mix(in srgb,var(--pf-edge,var(--pf-lime)) 18%,transparent);}
+html.pf-on .pf-wrap{display:block;}
+html.pf-on .pf-main{
+  position:absolute!important;left:0!important;right:0!important;
+  top:var(--pf-head)!important;bottom:var(--pf-foot,0px)!important;
+  height:auto!important;min-height:0!important;max-height:none!important;width:auto!important;
+  margin:0!important;overflow-x:hidden!important;overflow-y:auto!important;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+}
+
+/* views fill the frame exactly and scroll inside it (the phone CSS sized
+   them to the whole screen with 100svh, which is taller than the frame) */
+html.pf-on .pf-main > .mw{height:100%!important;min-height:0!important;}
+html.pf-on .pf-main .vs{min-height:0!important;}
+html.pf-on .pf-main .vs.ac{height:100%!important;}
+
+/* one header row: menu, logo, four hub icons; tools live in the drawer */
+html.pf-on .hdr-bar{
+  position:absolute!important;top:0!important;left:0!important;right:0!important;width:auto!important;
+  height:var(--pf-head)!important;min-height:0!important;max-height:none!important;
+  flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;
+  padding:0 8px!important;gap:6px!important;row-gap:0!important;z-index:1100!important;
+}
+html.pf-on .hdr-bar .hdr-sub,html.pf-on .hdr-bar .hdr-stage,html.pf-on .hdr-bar .hdr-spacer{display:none!important;}
+html.pf-on .hdr-bar .hdr-col{flex:0 1 auto!important;min-width:0!important;}
+html.pf-on .hdr-bar .hdr-row ~ *{display:none!important;}  /* logo only: no project line under it */
+html.pf-on .hdr-bar .hdr-logo{font-size:21px!important;}
+html.pf-on .hdr-bar :has(> .hubnav){margin-left:auto!important;display:flex!important;flex-wrap:nowrap!important;max-width:none!important;}
+html.pf-on .hdr-bar .hubnav{display:inline-flex!important;flex-wrap:nowrap!important;gap:4px!important;margin-left:auto!important;}
+html.pf-on .hubnav .hn{
+  font-size:0!important;letter-spacing:0!important;line-height:0!important;
+  width:36px!important;height:36px!important;padding:0!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  border-radius:7px!important;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;
+}
+html.pf-on .hubnav .hn::before{
+  content:"";width:20px;height:20px;background:currentColor;
+  -webkit-mask:var(--pf-i) center/20px 20px no-repeat;mask:var(--pf-i) center/20px 20px no-repeat;
+}
+html.pf-on .hubnav .hn.on{color:var(--pf-base)!important;background:var(--pf-lime)!important;border-color:var(--pf-lime)!important;}
+html.pf-on .hdr-drawer .pf-dup{display:none!important;}
+
+/* header tools moved into the drawer on phones */
+.pf-tools{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:12px 10px 18px;margin-top:8px;border-top:1px solid #1B2335;}
+.pf-tools[hidden]{display:none!important;}
+.pf-tools-h{width:100%;font:700 10px/1 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:#6B7A90;padding:0 2px 4px;}
+.pf-tools > *:not(.pf-tools-h){margin:0!important;max-width:100%;}
+
+/* dashboard blocks that do not fit the frame */
+html.pf-on .pf-hide{display:none!important;}
+/* on a dashboard the tiles are already on screen; the TILES shortcut is for modules */
+html.pf-on body:not(.m-inside) #mob-tiles-btn{display:none!important;}
+html.pf-on .pf-wrap > .pf-grid{margin:0 8px!important;}
+
+/* metro grid: every tile on one screen, icons only */
+html.pf-on .pf-grid{
+  display:grid!important;
+  grid-template-columns:repeat(var(--pf-cols,2),minmax(0,1fr))!important;
+  grid-template-rows:repeat(var(--pf-rows,4),minmax(0,1fr))!important;
+  grid-auto-rows:minmax(0,1fr)!important;grid-auto-flow:row dense!important;
+  gap:6px!important;height:var(--pf-gh,auto)!important;
+  min-height:0!important;max-height:none!important;width:auto!important;max-width:none!important;
+  margin:0!important;padding:0!important;align-content:stretch!important;
+}
+html.pf-on .pf-grid > *{
+  min-height:0!important;min-width:0!important;height:auto!important;width:auto!important;
+  margin:0!important;padding:0!important;display:flex!important;flex-direction:column!important;
+  align-items:center!important;justify-content:center!important;
+  border-radius:3px!important;overflow:hidden!important;position:relative!important;
+  transform:none!important;box-shadow:none!important;
+  -webkit-touch-callout:none;user-select:none;-webkit-user-select:none;
+}
+html.pf-on .pf-grid > *:active{filter:brightness(1.12);}
+html.pf-on .pf-grid > *:focus-visible{outline:2px solid var(--pf-lime)!important;outline-offset:-3px;}
+html.pf-on .pf-grid :is(.mtit,.msub,.mbadge,.mt-rz,.tagx2,.tl,.ts){display:none!important;}
+html.pf-on .pf-grid .micon{
+  width:auto!important;height:auto!important;flex:none!important;margin:0!important;padding:0!important;
+  background:none!important;border:0!important;box-shadow:none!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  font-size:30px!important;line-height:1!important;color:#fff!important;
+}
+html.pf-on .pf-grid .micon i{font-size:inherit!important;}
+html.pf-on .pf-grid > .pf-hero .micon{font-size:48px!important;}
+html.pf-on .pf-grid .row{justify-content:center!important;}
+html.pf-on .pf-grid .ic{width:34px!important;height:34px!important;}
+html.pf-on .pf-grid > .pf-hero .ic{width:52px!important;height:52px!important;}
+
+/* postHUB launchpad sits under the header, inside the frame */
+html.pf-on #launchpadModal{top:var(--pf-head)!important;padding:8px!important;backdrop-filter:none!important;background:#05070C!important;}
+html.pf-on #launchpadModal > .tiles{margin:0!important;}
+
+/* the module title bar shows the hub logo */
+#m-bar .mb-title.hdr-logo{font-family:'Bauhaus 93','Bauhaus','Bauhaus Bold',Impact,sans-serif!important;font-weight:700!important;
+  font-size:21px!important;letter-spacing:0!important;text-transform:none!important;color:#fff!important;cursor:pointer;}
+#m-bar .mb-title.hdr-logo .pre{color:var(--pf-lime);}
+
+/* side-by-side panels stack into full-width boxes, edged in the module's colour */
+html.pf-on .pf-stack{
+  display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;align-items:stretch!important;
+  gap:10px!important;height:auto!important;max-height:none!important;overflow:visible!important;
+  grid-template-columns:none!important;padding:8px!important;
+}
+html.pf-on .pf-stack > *{
+  width:auto!important;max-width:none!important;min-width:0!important;flex:none!important;
+  height:auto!important;max-height:none!important;min-height:280px;
+  border:1px solid color-mix(in srgb,var(--pf-edge,#1F2A3F) 45%,#1F2A3F)!important;border-radius:8px!important;
+}
+html.pf-on .pf-unclip{overflow:visible!important;max-height:none!important;}
+
+/* a tapped tile grows to fill the frame, then fades to show its screen */
+.pf-zoom{position:fixed;z-index:3500;pointer-events:none;border-radius:3px;
+  transition:left .24s cubic-bezier(.2,.7,.2,1),top .24s cubic-bezier(.2,.7,.2,1),width .24s cubic-bezier(.2,.7,.2,1),height .24s cubic-bezier(.2,.7,.2,1),border-radius .24s,opacity .18s ease .26s;}
+.pf-zoom.go{border-radius:10px;opacity:0;}
+@media (prefers-reduced-motion:reduce){.pf-zoom{display:none!important;}}
+
+/* long-press label (words as tooltips) */
+#pf-tip{
+  position:fixed;z-index:4000;pointer-events:none;left:0;top:0;
+  background:var(--pf-paper);color:var(--pf-base);
+  font:600 13px/1.2 'IBM Plex Mono',ui-monospace,monospace;
+  padding:7px 10px;border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.45);white-space:nowrap;
+  opacity:0;transform:translate(-50%,-100%) scale(.96);transition:opacity .12s,transform .12s;
+}
+#pf-tip.below{transform:translate(-50%,0) scale(.96);}
+#pf-tip.on{opacity:1;transform:translate(-50%,-100%) scale(1);}
+#pf-tip.below.on{transform:translate(-50%,0) scale(1);}
+@media (prefers-reduced-motion:reduce){#pf-tip{transition:none;}}

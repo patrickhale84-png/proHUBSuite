@@ -59,7 +59,7 @@ FILM.register({
   id: 'addons',
   mount: function () {
     if (!FILM.tiles().some(function (t) { return t.id === 'add-modules'; })) {
-      FILM.addTile({ id: 'add-modules', title: 'Add modules', sub: 'Pull in anything else', colour: '#00ABA9', icon: 'add' in {} ? 'grid' : 'grid', tag: 'DESK', run: picker });
+      FILM.addTile({ id: 'add-modules', title: 'Add modules', sub: 'Pull in anything else', colour: '#00ABA9', icon: 'add', tag: 'DESK', run: picker });
     }
     reapply();
     var roles = FILM.state && FILM.state().modules && FILM.state().modules.roles;
