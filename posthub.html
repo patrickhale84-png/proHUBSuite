@@ -923,8 +923,9 @@ $('#btnProhubConform').onclick = function(){
       toast('Conformed ' + panels.length + ' proHUB storyboard panels!', 'good');
     } else {
       scenes.forEach(function(sc){
-        var durFrames = Math.round(5.0 * FPS);
-        registerClip('SC' + sc.num + '_' + (sc.heading||''), 5.0, false, null, null);
+        var secs = sc.seconds || 5.0;   /* proHUB sends each scene's length: about 7.5 seconds per eighth of a page */
+        var durFrames = Math.round(secs * FPS);
+        registerClip('SC' + sc.num + '_' + (sc.heading||''), secs, false, null, null);
         TRACKS.v1.push({
           name: 'SC' + sc.num + ' ' + (sc.heading||''),
           startFrame: curFrame,
@@ -934,7 +935,7 @@ $('#btnProhubConform').onclick = function(){
         });
         curFrame += durFrames;
       });
-      toast('Conformed ' + scenes.length + ' script scenes!', 'good');
+      toast('Conformed ' + scenes.length + ' script scenes' + (p.projectName ? ' from ' + p.projectName : '') + '!', 'good');
     }
     renderTimeline();
     updatePlayhead();

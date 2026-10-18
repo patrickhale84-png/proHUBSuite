@@ -2881,10 +2881,10 @@ She throws it in reverse!`;
               if ((prevY - y) > 20) rawAccumulatedLines.push({ text: '', x: 0 });
             }
             const tokens = lineBuckets[y].sort((a, b) => a.x - b.x);
-            const lineText = tokens.map(t => t.str).join(' ').trim();
+            const lineText = tokens.map(t => t.str).join(' ').replace(/\s+/g,' ').trim();
             if (lineText) {
               if (/^\d+\.?$/.test(lineText) && lineText.length <= 4) return;
-              rawAccumulatedLines.push({ text: lineText, x: tokens[0].x });
+              rawAccumulatedLines.push({ text: lineText, x: tokens[0].x, page: i });
             }
           });
           // Blank sentinel between pages resets speaker state across page breaks
@@ -2892,14 +2892,28 @@ She throws it in reverse!`;
         }
 
         onProgress(85, "Normalizing screenplay grammar from PDF coordinates...");
-        const normalized = this.normalizeRawTokensToScriptNodes(rawAccumulatedLines);
+        /* Title page: everything before the script's first heading or transition. The first line is the
+           title, the name(s) after "Written by" the author; e-mails and phone numbers are contact details. */
+        let title = '', author = '', start = 0;
+        const firstScript = rawAccumulatedLines.findIndex(l => /^(\d+[A-Z]?\s+)?(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)|^(FADE IN|OVER BLACK|COLD OPEN|TEASER)/i.test(l.text.trim()));
+        if (firstScript > 0 && firstScript < 25) {
+          const tp = rawAccumulatedLines.slice(0, firstScript).map(l => l.text.trim()).filter(Boolean);
+          title = tp[0] || '';
+          const wb = tp.findIndex(t => /^written by|^by$|^screenplay by/i.test(t));
+          if (wb >= 0 && tp[wb + 1] && !/@/.test(tp[wb + 1])) author = tp[wb + 1];
+          start = firstScript;
+        }
+        const normalized = this.normalizeRawTokensToScriptNodes(rawAccumulatedLines.slice(start), true);
+        if (title) normalized.title = title;
+        if (author) normalized.author = author;
         onProgress(100, "Done!");
         return normalized;
       }
 
-      static normalizeRawTokensToScriptNodes(tokenLines) {
+      static normalizeRawTokensToScriptNodes(tokenLines, fromPdf) {
         let resultLines = [];
         let speakerActive = false;
+        let afterMore = false, lastCue = '';
 
         // PDF X-coordinate thresholds (72pt/in basis, typical screenplay PDF layout)
         // Action / Scene Heading starts at ~108pt (1.5in left margin)
@@ -2911,12 +2925,15 @@ She throws it in reverse!`;
         const X_CHAR    = 230;  // center indent threshold for character name
         const X_DIAL    = 150;  // dialogue / parenthetical indent (between left and char)
 
+        let gap = true;
         tokenLines.forEach(item => {
           const t = item.text.trim();
           if (!t) {
             speakerActive = false;
+            gap = true;
             return;
           }
+          item._gap = gap; gap = false;
 
           let type = "ACTION";
           const x = item.x || 0;
@@ -2926,10 +2943,11 @@ She throws it in reverse!`;
           // Strip suffixes for detection
           const cl2 = t.replace(/\s*\(CONT['']D\)\s*$/i,'').replace(/\s*\(V\.O\.\)\s*$/i,'').replace(/\s*\(O\.S\.\)\s*$/i,'').replace(/\s*\(O\.C\.\)\s*$/i,'').trim();
 
+          if (fromPdf && /^\(MORE\)$/i.test(t)) { afterMore = true; return; }
           if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(ht)) {
             type = "SCENE_HEADING";
             speakerActive = false;
-          } else if (/^(FADE IN:|FADE OUT[.!]|CUT TO:|SMASH CUT TO:|DISSOLVE TO:|MATCH CUT TO:|JUMP CUT TO:)/i.test(t) || /\bTO:$/.test(t.toUpperCase())) {
+          } else if (/^(FADE IN:|FADE OUT[.!]?|FADE TO BLACK[.!]?|CUT TO:|SMASH CUT TO:|DISSOLVE TO:|MATCH CUT TO:|JUMP CUT TO:|FADE IN\/OUT:|OVER BLACK:|ROLL CREDITS\.?|CUE SERIES TITLE:)/i.test(t) || /\bTO:$/.test(t.toUpperCase()) || (fromPdf && x > 380 && t === t.toUpperCase() && /[A-Z]/.test(t) && t.length < 40)) {
             type = "TRANSITION";
             speakerActive = false;
           } else if (t.startsWith("(") && t.endsWith(")")) {
@@ -2951,7 +2969,19 @@ She throws it in reverse!`;
             speakerActive = false;
           }
 
-          resultLines.push({ type, text: t });
+          let text = t;
+          if (type === "SCENE_HEADING") text = ht.replace(/\s+\d+[A-Z]?\.?$/, '').trim();   // scene numbers on both sides
+          if (fromPdf) {
+            const prev = resultLines[resultLines.length - 1];
+            // a (CONT'D) cue straight after (MORE) continues the same speech across the page break
+            if (type === "CHARACTER" && afterMore && cl2 === lastCue) { afterMore = false; return; }
+            afterMore = false;
+            if (type === "CHARACTER") lastCue = cl2;
+            // wrapped lines: the printed page breaks long action and speeches; join them back
+            if (prev && !item._gap && prev.type === type && (type === "ACTION" || type === "DIALOGUE")) { prev.text += ' ' + text; return; }
+            if (prev && prev.type === "PARENTHETICAL" && !/\)$/.test(prev.text)) { prev.text += ' ' + text; return; }
+          }
+          resultLines.push({ type, text });
         });
 
         return { lines: resultLines };
@@ -3609,16 +3639,23 @@ let isTitlePageVisible = false;
             if(lineNode.type === 'scene-heading') seenScene = true;
             if(!seenScene){
               if(skipNext){ skipNext = false; return; }
-              if(/^(title|author|authors|credit|source)\s*:/i.test(t)) return;
+              if(/^(title|author|authors|credit|source|contact|draft date|copyright|notes|revision)\s*:/i.test(t)) return;
               if(/^(written by|by)$/i.test(t)){ skipNext = true; return; }
               if(/^written by\s*:?\s*/i.test(t)) return;
               if(parsed.title && t.toLowerCase()===String(parsed.title).trim().toLowerCase()) return;
               if(parsed.author && t.toLowerCase()===String(parsed.author).trim().toLowerCase()) return;
             }
+            /* Fountain's forced elements: ">TEXT" transition, ".TEXT" heading, "@NAME" cue, ">TEXT<" centred action */
+            if(/^>.*<$/.test(t)) { this.injectScreenplayLineRowNode('ACTION', t.slice(1,-1).trim()); return; }
+            if(/^>\s*\S/.test(t)) { this.injectScreenplayLineRowNode('TRANSITION', t.replace(/^>\s*/,'').toUpperCase()); return; }
+            if(/^\.[A-Za-z0-9]/.test(t) && !/^\.\./.test(t)) { seenScene = true; this.injectScreenplayLineRowNode('SCENE_HEADING', t.slice(1).toUpperCase()); return; }
+            if(/^@\S/.test(t)) { this.injectScreenplayLineRowNode('CHARACTER', t.slice(1).toUpperCase()); return; }
             this.injectScreenplayLineRowNode(lineNode.type, lineNode.text);
           });
 
           document.getElementById('title-page-main-heading').textContent = (parsed.title || 'UNTITLED').toUpperCase();
+          /* the script's own title names the project, unless the project already has a name */
+          try{ var pni=document.getElementById('pni'); if(parsed.title && pni && (!pni.value || /^untitled/i.test(pni.value))){ pni.value=String(parsed.title).toUpperCase(); if(typeof syncT==='function') syncT(); if(typeof autoSave==='function') autoSave(); } }catch(e){}
           document.getElementById('title-page-author-name').textContent = (parsed.author || '').toUpperCase();
 
           currentVersionLevelCounter++;
