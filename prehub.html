@@ -2036,7 +2036,13 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 /* Screenwriter: white shadowed pages, stacked with grey gaps at each 11in break, scrolling in the workspace */
 .paper-sheet-container{
   background-color:#ffffff!important;
-  background-image:repeating-linear-gradient(to bottom,#ffffff 0,#ffffff 11in,#5b6370 11in,#5b6370 calc(11in + 14px));
+  /* page breaks: a hairline in the margins only, so no line of text is ever crossed or hidden */
+  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(11in - 1px),#9aa1ab calc(11in - 1px),#9aa1ab 11in),
+    repeating-linear-gradient(to bottom,transparent 0,transparent calc(11in - 1px),#9aa1ab calc(11in - 1px),#9aa1ab 11in);
+  background-position:left top,right top;
+  background-size:min(1.2in,8%) 100%,min(0.8in,6%) 100%;
+  background-repeat:no-repeat;
+  max-width:100%!important;container-type:inline-size;
   border:1px solid #d6d9de!important;
   box-shadow:0 2px 6px rgba(0,0,0,.35),0 18px 44px rgba(0,0,0,.45)!important;
   margin:28px auto 40px!important;
@@ -2045,6 +2051,13 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
   color:#111827!important;
 }
 #screenplay-paper-sheet > div{flex:0 0 auto!important;}
+/* a sheet narrower than 8.5in (tablets, split screens) switches to proportional indents so nothing runs off the paper */
+@container (max-width:5.9in){
+  .line-editable-box{overflow-wrap:anywhere;}
+  .element-character{padding-left:37%!important;}
+  .element-parenthetical{padding-left:27%!important;padding-right:20%!important;}
+  .element-dialogue{padding-left:17%!important;padding-right:17%!important;}
+}
 #script-editable-node-rows-stack{overflow:visible!important;}
 .paper-sheet-container *{color:#111827;}
 .paper-sheet-container .line-editable-box{color:#111827!important;}
@@ -3470,89 +3483,78 @@ let isTitlePageVisible = false;
 
       executeReformatSyncCommand() {
         const sel = window.getSelection();
+        const allRows = Array.from(this.rowsContainer.querySelectorAll('.script-line-row'));
         let targetRows = [];
 
         // Check if user has highlighted text across rows
         if (sel && !sel.isCollapsed && sel.rangeCount > 0) {
           const range = sel.getRangeAt(0);
-          const allRows = Array.from(this.rowsContainer.querySelectorAll('.script-line-row'));
           targetRows = allRows.filter(row => range.intersectsNode(row));
         }
 
         // If none highlighted, reformat ALL rows in editor
-        if (targetRows.length === 0) {
-          targetRows = Array.from(this.rowsContainer.querySelectorAll('.script-line-row'));
-        }
+        if (targetRows.length === 0) targetRows = allRows;
 
         if (targetRows.length === 0) {
           return this.showSystemToast("No lines to reformat.", true);
         }
 
-        let updatedCount = 0;
-        let speakerActive = false;
+        const boxOf = row => row.querySelector('.line-editable-box');
+        const textOf = row => { const b = boxOf(row); return b ? b.innerText.trim() : ''; };
+        const typeOf = row => { const b = boxOf(row); return b ? (b.getAttribute('data-element-type') || 'ACTION') : 'ACTION'; };
+        // Character extensions are kept, never stripped: (V.O.) (O.S.) (O.C.) (CONT'D) (PRE-LAP) …
+        const EXT = /\s*\((?:V\.O\.|O\.S\.|O\.C\.|CONT[''’]D|CONT\.|PRE-LAP|FILTERED|ON PHONE|ON RADIO|ON TV|SUBTITLED)\)\s*$/i;
+        const HEADING = /^(INT\.|EXT\.|EST\.|INT\.?\/EXT\.|I\/E\.?)(\s|$)/i;
+        const TRANSITION = /^(FADE IN:|FADE OUT\.?|FADE TO BLACK\.?|CUT TO:|SMASH CUT TO:|DISSOLVE TO:|MATCH CUT TO:|JUMP CUT TO:|CUT TO BLACK\.?)$/i;
+        const NOT_A_NAME = /^(THE|A|AN|AND|IN|ON|AT|BY|TO|OF|IT|HE|SHE|WE|THEY|ALL|BUT|FOR|OR|NOR|SO|YET|NOT|ONLY|CONTINUED|CONT|MORE|END|THE END|FADE|CUT|SMASH|DISSOLVE|MATCH|JUMP|BACK|SILENCE|BLACK|DARKNESS|LATER|MONTAGE|FLASHBACK|TITLE|SUPER|INSERT)$/;
+        const looksLikeName = t => {
+          const base = t.replace(EXT, '').trim();
+          return base === base.toUpperCase() && /[A-Z]/.test(base) && base.length >= 2 && base.length < 38 &&
+            !/[.!?,:;]$/.test(base) && !/^\d[\d\s]*$/.test(base) && (base.match(/-/g) || []).length < 2 &&
+            !NOT_A_NAME.test(base) && !HEADING.test(base);
+        };
+        // The next non-empty row, used to confirm a character cue really has something spoken under it
+        const nextText = row => { for (let i = allRows.indexOf(row) + 1; i < allRows.length; i++) { const t = textOf(allRows[i]); if (t) return t; } return ''; };
 
+        // Seed the dialogue state from the row before the selection, so a selection that starts mid-scene keeps its speaker
+        let block = 'none'; // none | speaker (after a cue or parenthetical) | dialogue
+        for (let i = allRows.indexOf(targetRows[0]) - 1; i >= 0; i--) {
+          if (!textOf(allRows[i])) break;
+          const t = typeOf(allRows[i]);
+          block = (t === 'CHARACTER' || t === 'PARENTHETICAL') ? 'speaker' : t === 'DIALOGUE' ? 'dialogue' : 'none';
+          break;
+        }
+
+        let updatedCount = 0;
         targetRows.forEach((row) => {
-          const box = row.querySelector('.line-editable-box');
+          const box = boxOf(row);
           if (!box) return;
           const rawText = box.innerText.trim();
-          if (!rawText) return;
+          if (!rawText) { block = 'none'; return; } // a blank line always ends a dialogue block
+          const was = box.getAttribute('data-element-type') || 'ACTION';
 
-          let newType = "ACTION";
+          let newType = 'ACTION';
           let formattedText = rawText;
 
-          // Strip common suffixes before type detection
-          const stripped = rawText.replace(/\s*\(CONT['']D\)\s*$/i,'').replace(/\s*\(V\.O\.\)\s*$/i,'').replace(/\s*\(O\.S\.\)\s*$/i,'').replace(/\s*\(O\.C\.\)\s*$/i,'').trim();
-
-          // 1. Scene Headings
-          if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(stripped)) {
-            newType = "SCENE_HEADING";
-            formattedText = rawText.toUpperCase();
-            speakerActive = false;
-          }
-          // 2. Transitions
-          else if (/^(FADE IN:|FADE OUT[.!]|CUT TO:|SMASH CUT TO:|DISSOLVE TO:|MATCH CUT TO:|JUMP CUT TO:)/i.test(rawText) || /\bTO:$/.test(rawText.toUpperCase())) {
-            newType = "TRANSITION";
-            formattedText = rawText.toUpperCase();
-            speakerActive = false;
-          }
-          // 3. Parentheticals
-          else if (rawText.startsWith("(") && rawText.endsWith(")")) {
-            newType = "PARENTHETICAL";
-            // parentheticals lowercase inside parens
-            formattedText = '(' + rawText.slice(1,-1).toLowerCase() + ')';
-          }
-          // 4. Character names — must be ALL CAPS, short, not a transition/slugline word, not a sentence
-          else if (
-            stripped === stripped.toUpperCase() &&
-            stripped.length >= 2 && stripped.length < 40 &&
-            !stripped.endsWith(':') &&
-            !/[.!?,]$/.test(stripped) &&
-            // Must contain a letter (not just numbers/punctuation)
-            /[A-Z]/.test(stripped) &&
-            // Not a standalone common word that happens to be caps
-            !/^(THE|A|AN|AND|IN|ON|AT|BY|TO|OF|IT|HE|SHE|WE|THEY|ALL|BUT|FOR|OR|NOR|SO|YET|BOTH|EITHER|NEITHER|NOT|ONLY|SAME|SUCH|THAN|TOO|VERY|CONTINUED|CONT|MORE|END|THE END|FADE|CUT|SMASH|DISSOLVE|MATCH|JUMP|BACK)$/.test(stripped) &&
-            // Not all digits or scene numbers
-            !/^\d[\d\s]*$/.test(stripped) &&
-            // Sound effects often have multiple hyphens
-            (stripped.match(/-/g)||[]).length < 2 &&
-            // Real character names don't start with these
-            !/^(INT\b|EXT\b|EST\b)/i.test(stripped)
-          ) {
-            newType = "CHARACTER";
-            formattedText = stripped.toUpperCase();
-            speakerActive = true;
-          }
-          // 5. Dialogue — only if immediately after a CHARACTER or PARENTHETICAL
-          else if (speakerActive) {
-            newType = "DIALOGUE";
-            // speakerActive stays true through dialogue (multi-line dialogue)
-          }
-          // 6. Action default
-          else {
-            newType = "ACTION";
-            speakerActive = false;
+          if (HEADING.test(rawText)) {
+            newType = 'SCENE_HEADING'; formattedText = rawText.toUpperCase(); block = 'none';
+          } else if (TRANSITION.test(rawText) || (/^[A-Z ]+TO:$/.test(rawText) && rawText.length < 30)) {
+            newType = 'TRANSITION'; formattedText = rawText.toUpperCase(); block = 'none';
+          } else if (rawText.startsWith('(') && rawText.endsWith(')') && block !== 'none') {
+            // A parenthetical belongs to a speaker; its words keep their own case: "(to MARA)"
+            newType = 'PARENTHETICAL'; block = 'speaker';
+          } else if (block === 'none' && looksLikeName(rawText) && nextText(row) && !HEADING.test(nextText(row)) && !looksLikeName(nextText(row))) {
+            const base = rawText.replace(EXT, '').trim().toUpperCase();
+            const ext = (rawText.match(EXT) || [''])[0].trim().toUpperCase();
+            newType = 'CHARACTER'; formattedText = ext ? base + ' ' + ext : base; block = 'speaker';
+          } else if (block === 'speaker' || (block === 'dialogue' && was === 'DIALOGUE')) {
+            // Dialogue follows a cue or parenthetical; after that it continues only on rows already marked as dialogue
+            newType = 'DIALOGUE'; block = 'dialogue';
+          } else {
+            newType = 'ACTION'; block = 'none';
           }
 
+          if (newType === was && formattedText === rawText) return;
           box.innerText = formattedText;
           box.className = `line-editable-box ${this.getStyleClassForElementType(newType)}`;
           box.setAttribute('data-element-type', newType);
@@ -3563,7 +3565,7 @@ let isTitlePageVisible = false;
         this.recordActiveStateToHistorySnapshotStack("Reformat & Sync");
         this.runRealTimeLinguisticLintingSweep();
         this.recalculatePageHUDCounters();
-        this.showSystemToast(`Reformat & Sync Complete: Normalized ${updatedCount} screenplay lines!`);
+        this.showSystemToast(updatedCount ? `Reformatted ${updatedCount} line${updatedCount === 1 ? '' : 's'}.` : 'Already formatted. Nothing changed.');
       },
 
       toggleIngestModal(visible) {
