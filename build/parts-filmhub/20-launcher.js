@@ -8,9 +8,9 @@
 var EP_KEY = 'filmhub_endpoints_v1';
 
 var APPS = [
-  { id: 'prehub',  title: 'preHUB',  sub: 'Writing desk · script · breakdown', colour: '#00ABA9', icon: 'grid',   tag: 'PRE',  file: 'prehub.html'  },
-  { id: 'prohub',  title: 'proHUB',  sub: 'Production desk · nine modules',     colour: '#E51400', icon: 'rocket', tag: 'PROD', file: 'prohub.html'  },
-  { id: 'posthub', title: 'postHUB', sub: 'Edit desk · ingest · timeline',      colour: '#7137C8', icon: 'play',   tag: 'POST', file: 'posthub.html' }
+  { id: 'prehub',  title: 'preHUB',  sub: 'Writing desk · script · breakdown', colour: '#00ABA9', icon: 'pen',      tag: 'PRE',  file: 'prehub.html'  },
+  { id: 'prohub',  title: 'proHUB',  sub: 'Production desk · nine modules',     colour: '#E51400', icon: 'clapper',  tag: 'PROD', file: 'prohub.html'  },
+  { id: 'posthub', title: 'postHUB', sub: 'Edit desk · ingest · timeline',      colour: '#7137C8', icon: 'scissors', tag: 'POST', file: 'posthub.html' }
 ];
 
 function readEP() { try { var r = localStorage.getItem(EP_KEY); return r ? JSON.parse(r) : {}; } catch (e) { return {}; } }

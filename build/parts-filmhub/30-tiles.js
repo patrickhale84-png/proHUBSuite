@@ -32,7 +32,7 @@ function toTile(t) { return { id: t.id, title: t.title, sub: t.sub, colour: t.co
                               run: function () { openUrl(t.url); } }; }
 function managerTile() {
   return { id: 'tile-manager', title: 'Tile manager', sub: 'Add · reorder · size · presets', colour: '#E2A93B',
-           icon: 'grid', tag: 'DESK', run: openManager };
+           icon: 'sliders', tag: 'DESK', run: openManager };
 }
 
 /* ---- layout: rebuild the grid in the stored order, then apply sizes ---- */
