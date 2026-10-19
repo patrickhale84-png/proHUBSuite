@@ -1,0 +1,2736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>proHUB | Post-Production</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --ink: #04060A;
+  --bar: #070B14;
+  --panel: #0A0F1D;
+  --panel-light: #111828;
+  --line: #162033;
+  --line-active: #2A3C5E;
+  --tx: #E6ECF5;
+  --tx-muted: #7E8FA6;
+  --lime: #88C13F;
+  --gold: #E5A93C;
+  --amber: #F0A30A;
+  --cyan: #00ABA9;
+  --red: #E51400;
+  --purple: #7137C8;
+  --purple-light: #9B5DE5;
+  --blue: #1BA1E2;
+  --track-v2: #582B8C;
+  --track-v1: #1E3A66;
+  --track-a1: #184E48;
+  --track-a2: #264A22;
+  --fd: 'Barlow Condensed', 'Impact', sans-serif;
+  --fb: system-ui, -apple-system, sans-serif;
+  --fm: 'IBM Plex Mono', monospace;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+*:focus { outline: none; }
+*:focus-visible { outline: 2px solid var(--purple-light); outline-offset: 2px; }
+button, a, input, select, textarea { font-family: inherit; }
+html, body { height: 100%; margin: 0; padding: 0; background: var(--ink); color: var(--tx); font-family: var(--fb); font-size: 13px; line-height: 1.4; overflow: hidden; user-select: none; }
+#grain { position: fixed; inset: 0; pointer-events: none; opacity: 0.035; z-index: 9999; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+/* Icon Utilities */
+.ic { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; display: inline-block; vertical-align: -2px; }
+
+/* Top Header Bar */
+.topbar { display: flex; align-items: center; gap: 10px; padding: 4px 12px; background: var(--bar); border-bottom: 1px solid var(--line); min-height: 44px; z-index: 300; }
+.brand { font-family: 'Bauhaus 93','Bauhaus','Bauhaus Bold',Impact,sans-serif; font-size: 22px; letter-spacing: 0; line-height: 1; cursor: pointer; display: flex; align-items: baseline; gap: 0; white-space: nowrap; }
+.brand b { color: #A3E635; font-weight: 900; }
+.brand i { font-style: normal; color: #fff; }
+.tagx { font-family: var(--fm); font-size: 9.5px; letter-spacing: 0.12em; color: var(--amber); border: 1px solid rgba(240,163,10,0.45); background: rgba(240,163,10,0.1); padding: 1px 5px; border-radius: 3px; }
+.chip { font-family: var(--fm); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid var(--line); color: var(--tx-muted); background: #070B14; padding: 3px 7px; border-radius: 3px; white-space: nowrap; }
+.chip.active { border-color: var(--cyan); color: var(--cyan); }
+
+.btn { display: inline-flex; align-items: center; gap: 4px; font-family: var(--fb); font-size: 11px; font-weight: 600; color: var(--tx); background: #111728; border: 1px solid var(--line); padding: 4px 8px; border-radius: 3px; cursor: pointer; transition: background 0.1s, border-color 0.1s; white-space: nowrap; }
+.btn:hover { background: #18233A; border-color: var(--line-active); color: #fff; }
+.btn.pri { background: linear-gradient(135deg, var(--amber), #C98708); color: #05070D; border-color: transparent; font-weight: 700; }
+.btn.pri:hover { filter: brightness(1.1); }
+.btn.active { border-color: var(--cyan); background: #142238; color: #fff; }
+.btn.snap-on { border-color: var(--lime); background: #132717; color: #DFF6C6; }
+
+/* Layout Shell */
+.workspace { display: flex; flex-direction: column; width: 100vw; height: calc(100vh - 44px); position: relative; }
+
+/* Grid Modes */
+.nle-grid { display: grid; grid-template-columns: var(--bin-w, 280px) 1fr 1fr; grid-template-rows: 1fr var(--tl-h, 280px); gap: 3px; padding: 3px; background: #020307; height: 100%; overflow: hidden; }
+.nle-grid.mode-single { grid-template-columns: var(--bin-w, 280px) 1fr; }
+.nle-grid.mode-single #panelMaster { grid-column: 2; }
+.nle-grid.mode-single #panelSource { display: none; }
+.nle-grid.mode-text { grid-template-columns: var(--bin-w, 280px) 1fr 1fr; }
+.nle-grid.mode-text #panelSource { display: none; }
+.nle-grid.mode-text #panelTextEdit { display: flex; }
+
+.nle-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 3px; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+.nle-tab { height: 28px; padding: 0 8px; background: #0B101E; border-bottom: 2px solid #1C273D; font-family: var(--fm); font-size: 10.5px; color: var(--tx-muted); display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.05em; }
+.nle-tab.on { border-bottom-color: var(--cyan); color: #fff; }
+
+/* Media Bin */
+.bin-mount { flex: 1; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
+.clip-item { background: #0E1526; border: 1px solid #18233A; padding: 5px 7px; border-radius: 3px; font-family: var(--fm); font-size: 10.5px; cursor: grab; display: flex; align-items: center; justify-content: space-between; }
+.clip-item:active { cursor: grabbing; }
+.clip-item:hover { background: #162238; border-color: var(--cyan); }
+.clip-thumb { width: 44px; height: 25px; border-radius: 2px; background: #000; object-fit: cover; margin-right: 6px; border: 1px solid #1C2B45; }
+.dropzone-bin { border: 1px dashed #20314F; border-radius: 3px; padding: 12px 6px; text-align: center; font-size: 10.5px; color: #5F7491; cursor: pointer; transition: 0.15s; }
+.dropzone-bin:hover { border-color: var(--gold); color: #B3C4DA; }
+
+/* Viewers & Real-Time Canvas fallback */
+.viewer-box { flex: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+.viewer-box video { max-width: 100%; max-height: 100%; outline: none; object-fit: contain; }
+.viewer-box canvas { position: absolute; max-width: 100%; max-height: 100%; object-fit: contain; }
+.checker { background: repeating-conic-gradient(#0E1422 0% 25%, #060912 0% 50%) 50% / 16px 16px; }
+
+/* HUD Inspection Bars */
+.viewer-hud { display: flex; align-items: center; gap: 8px; padding: 4px 8px; background: #060911; border-top: 1px solid var(--line); font-family: var(--fm); font-size: 10.5px; color: #788BA3; white-space: nowrap; overflow-x: auto; }
+.hud-tag { background: #111A2E; color: var(--cyan); padding: 1px 5px; border-radius: 2px; font-weight: 700; border: 1px solid #1E2D4A; }
+.hud-val { color: #fff; font-weight: 600; }
+.hud-accent { color: var(--gold); }
+.tc-form { display: flex; align-items: center; gap: 4px; padding: 4px 6px; background: #080C16; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.tc-input { background: #0C1220; border: 1px solid var(--line); color: var(--gold); font-family: var(--fm); font-size: 11px; padding: 3px 5px; width: 88px; text-align: center; border-radius: 2px; }
+
+/* VU Level Meters */
+.vu-meter-wrap { width: 14px; background: #06080E; border-left: 1px solid var(--line); display: flex; gap: 1px; padding: 2px; position: relative; }
+.vu-bar { flex: 1; height: 100%; background: #111624; position: relative; display: flex; align-items: flex-end; }
+.vu-fill { width: 100%; height: 0%; background: linear-gradient(to top, var(--lime) 0%, var(--lime) 60%, var(--amber) 80%, var(--red) 100%); transition: height 0.05s ease-out; }
+
+/* Text to Edit Assembly Panel */
+#panelTextEdit { display: none; }
+.transcript-flow { flex: 1; overflow-y: auto; padding: 8px; font-family: var(--fm); font-size: 11px; line-height: 1.6; }
+.t-block { padding: 5px 7px; margin-bottom: 4px; border-radius: 3px; cursor: pointer; background: #0B101E; border-left: 3px solid var(--tx-muted); }
+.t-block:hover { border-left-color: var(--cyan); background: #131A2E; }
+.t-block.added { border-left-color: var(--lime); opacity: 0.65; }
+
+/* Timeline Structure */
+.tl-area { grid-column: 1 / -1; display: flex; flex-direction: column; background: #05070D; }
+.tl-toolbar { height: 32px; padding: 0 8px; background: #0A0E1A; display: flex; gap: 5px; align-items: center; border-bottom: 1px solid var(--line); }
+.tl-scroll { flex: 1; overflow-y: auto; overflow-x: auto; position: relative; padding: 4px 0; }
+.tl-lane { height: 42px; display: flex; align-items: center; background: #070B14; border-bottom: 1px solid #101626; position: relative; margin-bottom: 2px; }
+.tl-tag { width: 44px; height: 100%; background: #0D1322; border-right: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-family: var(--fm); font-size: 10.5px; color: #7688A1; position: sticky; left: 0; z-index: 25; }
+.tl-track-body { flex: 1; height: 100%; position: relative; min-width: 2400px; }
+.tl-clip { height: 34px; background: var(--track-v1); border-radius: 2px; padding: 0 7px; font-family: var(--fm); font-size: 10.5px; color: #fff; display: inline-flex; align-items: center; border-left: 3px solid var(--cyan); position: absolute; cursor: pointer; user-select: none; overflow: hidden; white-space: nowrap; border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(0,0,0,0.4); }
+.tl-clip.v2 { background: var(--track-v2); border-left-color: #B565FF; }
+.tl-clip.audio { background: var(--track-a1); border-left-color: var(--lime); }
+.tl-clip.a2 { background: var(--track-a2); border-left-color: #38EF7D; }
+.tl-clip:hover { filter: brightness(1.15); }
+.tl-clip .trim-handle { position: absolute; top: 0; bottom: 0; width: 6px; cursor: col-resize; background: rgba(0,0,0,0.25); }
+.tl-clip .trim-handle.left { left: 0; }
+.tl-clip .trim-handle.right { right: 0; }
+
+.playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: #F0A30A; pointer-events: none; z-index: 40; box-shadow: 0 0 8px rgba(240,163,10,0.6); }
+
+/* Launchpad Tile Overlay */
+.launchpad-modal { position: fixed; inset: 0; background: rgba(3,5,10,0.96); backdrop-filter: blur(8px); z-index: 1000; display: none; overflow-y: auto; padding: 20px 14px; }
+.launchpad-modal.on { display: block; }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 16px; max-width: none; margin: 20px auto 40px; }
+/* Tile palette — deep base, hub anchor on the hero tile, complement bar on every tile */
+#tilesMount{--hb:#2A1656;--ha:#7137C8;--hc:#5E8A2A;--hk:#FFFFFF;}
+.mtile{background:var(--hb)!important;}
+.mtile.hero{background:var(--ha)!important;}
+.mtile.hero .mtit,.mtile.hero .msub,.mtile.hero .micon,.mtile.hero .mbadge{color:var(--hk)!important;}
+.mtile.hero .mbadge{background:rgba(0,0,0,.14);}
+.mtile::after{content:'';position:absolute;left:0;right:0;bottom:0;height:6px;background:var(--hc);}
+/* Shared tile spec — identical across Pre-production, Production, Post-production */
+.mtile { border-radius: 6px; padding: 20px 18px 18px; cursor: pointer; transition: transform .15s, box-shadow .15s; display: flex; flex-direction: column; justify-content: space-between; min-height: 130px; position: relative; overflow: hidden; user-select: none; color: #fff; }
+.mtile:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 18px 40px rgba(0,0,0,.55); }
+.mtile:active { transform: scale(.98); }
+.mbadge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,.38); color: rgba(255,255,255,.9); font-size: 8.5px; font-weight: 800; letter-spacing: .08em; padding: 3px 7px 3px 6px; border-radius: 4px; text-transform: uppercase; display: flex; align-items: center; gap: 3px; font-family: var(--fm); }
+.mbadge::after { content: '↗'; font-size: 9px; }
+.micon { font-size: 2rem; color: rgba(255,255,255,.95); margin-bottom: 6px; }
+.mtit { font-size: 14px; font-weight: 900; color: #fff; text-transform: uppercase; letter-spacing: .03em; font-family: var(--fd); line-height: 1.15; }
+/* titles share one baseline across tiles: fixed icon box, content top-aligned, descriptor flows below */
+.mtile{justify-content:flex-start!important;padding-top:20px!important;}
+.micon{height:40px!important;min-height:40px;flex:0 0 40px!important;line-height:40px!important;margin-bottom:10px!important;display:flex;align-items:center;}
+.msub { font-size: 10px; color: rgba(255,255,255,.7); margin-top: 2px; font-weight: 500; font-family: var(--fm); }
+@media (max-width: 768px) {
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 12px; }
+  .mtile { min-height: 110px; padding: 14px 12px; }
+  .micon { font-size: 1.4rem; }
+  .mtit { font-size: 12px; }
+  .msub { font-size: 8.5px; }
+}
+
+/* Standard Desk Dialog Box */
+.desk-box { max-width: 1080px; margin: 30px auto; background: var(--panel); border: 1px solid var(--line); border-top: 4px solid var(--purple); border-radius: 6px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.85); }
+.desk-hd { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: #0C1220; }
+.desk-hd h2 { font-family: var(--fd); font-size: 20px; color: #fff; margin: 0; }
+.desk-bd { padding: 16px; }
+
+
+/* ── Monitor scrubbers (source + program) ── */
+.viewport-scrubber { height: 18px; background: #06080E; border-top: 1px solid #121826; border-bottom: 1px solid #121826; position: relative; cursor: pointer; display: flex; align-items: center; padding: 0 6px; flex-shrink: 0; touch-action: none; }
+.scrubber-track { width: 100%; height: 4px; background: #131A2C; border-radius: 2px; position: relative; }
+.scrubber-played { position: absolute; left: 0; top: 0; bottom: 0; background: var(--cyan); border-radius: 2px; }
+.scrubber-thumb { position: absolute; top: -5px; width: 6px; height: 14px; background: #fff; border-radius: 1px; box-shadow: 0 0 4px rgba(0,0,0,.8); transform: translateX(-50%); pointer-events: none; }
+.scrubber-range-inout { position: absolute; top: -3px; bottom: -3px; background: rgba(229,169,60,.22); border-left: 1px solid var(--gold); border-right: 1px solid var(--gold); pointer-events: none; }
+
+/* ── Resizable panel gutters (bin width, timeline height) ── */
+.rz-gutter { position: absolute; z-index: 20; background: transparent; touch-action: none; }
+.rz-gutter::after { content: ''; position: absolute; background: #1B2436; transition: background .15s; }
+.rz-col { top: 0; bottom: 0; width: 6px; cursor: col-resize; }
+.rz-col::after { top: 0; bottom: 0; left: 2px; width: 2px; }
+.rz-row { left: 0; right: 0; height: 6px; cursor: row-resize; }
+.rz-row::after { left: 0; right: 0; top: 2px; height: 2px; }
+.rz-gutter:hover::after, .rz-gutter:focus-visible::after, .rz-gutter.dragging::after { background: var(--cyan); }
+.rz-gutter:focus-visible { outline: none; }
+
+/* ── HTML video export dialog ── */
+.export-modal { position: fixed; inset: 0; background: rgba(2,3,6,0.94); z-index: 1100; display: none; align-items: center; justify-content: center; padding: 16px; }
+.export-modal.on { display: flex; }
+.export-card { width: 100%; max-width: 460px; background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--cyan); border-radius: 6px; padding: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.85); }
+.prog-bar-wrap { width: 100%; height: 8px; background: #0E1422; border-radius: 4px; overflow: hidden; margin: 12px 0 6px; }
+.prog-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--lime)); transition: width .15s; }
+
+/* ===== MOBILE FIXES ===== */
+@media(max-width: 768px) {
+  /* Unlock body — posthub sets overflow:hidden globally */
+  html, body { overflow-y: auto !important; height: auto !important; }
+  /* Workspace fills height, allows scroll */
+  .workspace { height: auto !important; overflow-y: auto !important; }
+  /* Topbar: stack vertically, wrap buttons */
+  .topbar { flex-direction: column !important; align-items: stretch !important; height: auto !important; padding: 6px 8px !important; gap: 6px !important; }
+  .topbar > div, .topbar > a, .topbar > button { flex-wrap: wrap !important; }
+  /* NLE grid: single column, each panel auto height */
+  .rz-gutter { display: none !important; }
+  .nle-grid { grid-template-columns: 1fr !important; grid-template-rows: auto !important; overflow-y: auto !important; height: auto !important; }
+  .nle-grid .nle-panel { min-height: 200px; }
+  /* Hide source + text-edit panels on mobile; show master only */
+  #panelSource { display: none !important; }
+  #panelTextEdit { display: none !important; }
+  #panelMaster { display: flex !important; min-height: 240px !important; }
+  /* Timeline spans full width */
+  .tl-area { grid-column: auto !important; min-height: 180px; }
+  /* Launchpad tiles: 1 col */
+  /* Hide non-essential topbar controls to save space */
+  #btnProhubConform, #btnExportXml, #btnExportEdl { display: none !important; }
+  /* Keep fps + timecode + ingest visible but compact */
+  #fpsSelect { max-width: 90px; }
+  /* Layout mode buttons compact */
+  .btn.sm { font-size: 10px !important; padding: 3px 6px !important; }
+}
+@media(max-width: 480px) {
+  /* Further collapse topbar on very small phones */
+  #layoutDual, #layoutSingle, #layoutText { font-size: 9px !important; padding: 2px 5px !important; }
+  #masterTcChip { display: none !important; }
+}
+
+@media (max-width:480px){.mbadge{display:none!important;}}
+
+/* phone-only tile home button; desktop never shows it */
+#mob-tiles-btn{display:none;}
+@media (max-width:768px){
+  #mob-tiles-btn{display:flex!important;position:fixed;right:12px;bottom:14px;z-index:450;align-items:center;gap:6px;
+    padding:9px 14px;background:#0B0F19;border:1px solid #7137C8;color:#7137C8;font-family:'IBM Plex Mono',monospace;
+    font-size:11px;font-weight:700;letter-spacing:.12em;cursor:pointer;}
+}
+
+/* phone: bright tiles, same typeface as desktop, resizable width via the handle */
+.mt-rz{display:none;}
+@media (max-width:768px){
+  .mtile{background:var(--ha)!important;}
+  .mtile.hero{background:var(--hc)!important;}
+  .mtile .mtit,.mtile .msub,.mtile .micon,.mtile .mbadge{color:var(--hk)!important;}
+  .mtile::after{background:var(--hc)!important;}
+  .mt-rz{display:flex!important;position:absolute;right:6px;bottom:8px;z-index:3;width:30px;height:30px;
+    align-items:center;justify-content:center;padding:0;background:rgba(0,0,0,.28);border:1px solid var(--hk);
+    color:var(--hk);font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:14px;font-weight:700;line-height:1;cursor:pointer;}
+  .mtile.mt-wide{grid-column:span 2!important;}
+}
+
+@media (max-width:768px){
+  .mtile{grid-column:auto!important;min-width:0;}
+  .mtile.mt-wide{grid-column:1 / -1!important;}
+  .mt-rz{top:8px!important;bottom:auto!important;right:8px!important;}
+}
+@media (max-width:768px){ #tilesMount{grid-template-columns:repeat(2,minmax(0,1fr))!important;} }
+/* Edit Desk on phones: Premiere Rush style — one program viewer on top, large timeline below, bottom tool bar */
+@media (max-width:768px){
+  #mainGrid.nle-grid{display:flex!important;flex-direction:column!important;height:calc(100dvh - 120px)!important;min-height:520px;overflow:hidden!important;padding:0!important;gap:0!important;background:#020307;}
+  #mainGrid > .nle-panel:not(#panelMaster):not(.tl-area){display:none!important;}
+  #mainGrid .rz-gutter{display:none!important;}
+  #mainGrid #panelMaster{flex:0 0 44%!important;min-height:0!important;flex-direction:column!important;border-radius:0;}
+  #mainGrid #panelMaster > div:first-child{flex:1;min-height:0;display:flex;flex-direction:column;}
+  #mainGrid #panelMaster .viewer-box{flex:1;min-height:0;}
+  #mainGrid .vu-meter-wrap{display:none!important;}
+  #mainGrid #panelMaster .tc-form{justify-content:center!important;gap:10px!important;}
+  #mainGrid #btnPlayMaster,#mainGrid #btnStepBack,#mainGrid #btnStepFwd{min-height:40px!important;min-width:64px!important;font-size:15px!important;}
+  #mainGrid #tlPlayhead{pointer-events:none;}
+  #mainGrid #prgTimecode{font-size:17px!important;letter-spacing:.04em;font-weight:700;}
+  #mainGrid #panelMaster .tc-form button:not(#btnPlayMaster):not(#btnStepBack):not(#btnStepFwd){display:none!important;}
+  #mainGrid #panelMaster .tc-form input{display:none!important;}
+  #mainGrid .tl-area{flex:1 1 auto!important;min-height:0!important;grid-column:auto!important;overflow:hidden;}
+  #mainGrid .tl-area .tl-toolbar{overflow-x:auto;white-space:nowrap;}
+  #mainGrid .tl-area > *:not(.tl-toolbar){min-height:0;}
+}
+
+
+/* ---- bright per-tile palette and white type, matching the reference screens ---- */
+.mtile{background:linear-gradient(135deg,var(--t1,#3A6EA5),var(--t2,#2A5080))!important;border:none!important;
+  border-radius:12px!important;box-shadow:0 8px 20px rgba(0,0,0,.35)!important;}
+.mtile:hover{transform:translateY(-2px)!important;box-shadow:0 12px 26px rgba(0,0,0,.45)!important;}
+.mtile.hero{background:linear-gradient(135deg,var(--t1,#3A6EA5),var(--t2,#2A5080))!important;}
+.mtile::after{display:none!important;}
+.mtile .mtit,.mtile .msub,.mtile .micon,.mtile.hero .mtit,.mtile.hero .msub,.mtile.hero .micon{color:#fff!important;}
+.mtile .msub{opacity:.85;}
+.mtile .mbadge{background:rgba(0,0,0,.28)!important;color:#fff!important;border:none!important;}
+#tilesMount .mtile:nth-child(1){--t1:#7137C8;--t2:#5A2AA6;}
+#tilesMount .mtile:nth-child(2){--t1:#00ABA9;--t2:#008C8A;}
+#tilesMount .mtile:nth-child(3){--t1:#1BA1E2;--t2:#1583BA;}
+#tilesMount .mtile:nth-child(4){--t1:#E5A93C;--t2:#C48A2A;}
+#tilesMount .mtile:nth-child(5){--t1:#88C13F;--t2:#6FA22E;}
+#tilesMount .mtile:nth-child(6){--t1:#B07CE8;--t2:#8E5BCB;}
+
+/* desktop board: tiles fill the screen and resize within it, no scrolling */
+@media (min-width:769px){
+  .mt-rz{display:flex!important;position:absolute;top:auto!important;right:8px!important;bottom:8px!important;width:26px;height:26px;
+    align-items:center;justify-content:center;padding:0;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.55);
+    color:#fff;font-size:12px;font-weight:700;line-height:1;cursor:pointer;border-radius:6px;}
+  .mtile{grid-column:span var(--w,1)!important;grid-row:span var(--h,1)!important;min-height:0!important;min-width:0;}
+}
+
+/* shared hub line: same three links, same style, on every hub */
+.tilenav{display:inline-flex;gap:6px;align-items:center;flex-shrink:0;}
+.tilenav .hn{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  padding:6px 10px;border:1px solid #26344E;border-radius:6px;color:#8794A6;background:#0E1320;text-decoration:none;white-space:nowrap;}
+.tilenav .hn:hover{color:#fff;border-color:#4B5B73;}
+.tilenav .hn.on{color:#fff;border-color:#4B5B73;background:#18223A;}
+
+.tl-clip.sel{outline:2px solid #F5A623;outline-offset:1px;z-index:3;}
+#phoneBar{display:none;}
+@media (max-width:768px){
+  #phoneBar{display:flex;flex:0 0 auto;align-items:stretch;gap:0;height:64px;padding-right:96px;box-sizing:border-box;background:#1B1F27;border-top:1px solid #2c3340;overflow-x:auto;overflow-y:hidden;}
+  #phoneBar .pb-btn{flex:0 0 auto;min-width:62px;background:none;border:0;color:#B9C2CF;font-size:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 8px;font-family:inherit;}
+  #phoneBar .pb-btn i{font-size:17px;}
+  #phoneBar .pb-btn.on{color:#4DA3FF;}
+  #phoneBar .pb-btn.danger{color:#FF7A7A;}
+  #phoneBar .pb-name{flex:0 0 auto;align-self:center;padding:0 8px;font-size:10px;color:#F5A623;font-family:var(--fm);white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;}
+  #phoneBar .pb-sep{flex:0 0 1px;background:#2c3340;margin:10px 4px;}
+}
+
+/* phone only: Claude-style chrome, same pattern as Pre-production/Production, applied inside the Edit Desk */
+#m-bar,#m-composer,#m-sheet,#m-scrim{display:none;}
+@media (max-width:768px){
+  body.m-inside header.topbar{display:none!important;}
+  body.m-inside{padding-top:52px!important;padding-bottom:64px!important;}
+  body.m-inside #mob-tiles-btn{display:none!important;}
+  body.m-inside #m-bar{display:flex!important;position:fixed;top:0;left:0;right:0;height:52px;z-index:300;align-items:center;gap:10px;padding:0 12px;background:#0B0F19;border-bottom:1px solid #1B2436;font-family:'IBM Plex Mono',monospace;}
+  #m-bar .mb-btn{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;background:#131B2E;border:1px solid #1F2A42;color:#C9D3E3;font-size:14px;cursor:pointer;padding:0;}
+  #m-bar .mb-title{flex:1;text-align:center;font-size:12px;font-weight:700;letter-spacing:.14em;color:#E6ECF5;text-transform:uppercase;}
+  #m-bar .mb-save{font-size:11px;letter-spacing:.1em;width:auto;padding:0 12px;}
+  body.m-inside #m-composer{display:flex!important;position:fixed;left:0;right:0;bottom:0;z-index:300;gap:8px;align-items:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:#0B0F19;border-top:1px solid #1B2436;}
+  #m-composer .mc-pill{flex:1;min-width:0;height:40px;border-radius:20px;background:#131B2E;border:1px solid #1F2A42;color:#7E8FA6;text-align:left;padding:0 16px;font-size:13px;font-family:inherit;cursor:text;}
+  #m-composer .mc-plus{width:40px;height:40px;border-radius:20px;background:#131B2E;border:1px solid #1F2A42;color:#E6ECF5;font-size:18px;cursor:pointer;padding:0;}
+  #m-scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:400;}
+  #m-scrim.on{display:block!important;}
+  #m-sheet{position:fixed;left:0;right:0;bottom:0;z-index:410;background:#111827;border-top:1px solid #1F2A42;border-radius:16px 16px 0 0;padding:10px 14px calc(14px + env(safe-area-inset-bottom,0px));max-height:80vh;overflow-y:auto;}
+  #m-sheet.on{display:block!important;}
+  #m-sheet .ms-grip{width:40px;height:4px;border-radius:2px;background:#2A3650;margin:0 auto 12px;}
+  #m-sheet .ms-title{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#7E8FA6;margin:0 0 10px 2px;}
+  #m-sheet .ms-item{display:flex;align-items:center;gap:12px;width:100%;padding:13px 12px;margin-bottom:6px;border-radius:12px;background:#0E1320;border:1px solid #1F2A42;color:#E6ECF5;font-size:14px;text-align:left;cursor:pointer;}
+  #m-sheet .ms-note{padding:12px;margin-bottom:6px;border-radius:12px;background:#0E1320;border:1px solid #1F2A42;color:#E6ECF5;font-size:14px;line-height:1.4;white-space:pre-wrap;}
+  #m-sheet .ms-note small{display:block;margin-top:6px;color:#7E8FA6;font-size:11px;}
+  #m-sheet textarea{width:100%;min-height:120px;background:#0B0F19;border:1px solid #1F2A42;border-radius:12px;color:#E6ECF5;padding:12px;font-size:14px;font-family:inherit;resize:none;}
+  #m-sheet .ms-save{margin-top:10px;width:100%;padding:12px;border-radius:12px;border:0;background:#E6ECF5;color:#0B0F19;font-weight:700;font-size:14px;}
+}
+
+/* ── Shared top bar: identical on Pre-production, Production, Post-production and filmHUB ── */
+.hdr-bar{height:52px!important;min-height:52px!important;max-height:52px!important;background:#0A0E17!important;border-bottom:1px solid #1B2335!important;padding:0 14px!important;gap:10px!important;flex-wrap:nowrap!important;}
+.hdr-col{display:flex;flex-direction:column;justify-content:center;flex-shrink:0;gap:3px;}
+.hdr-row{display:flex;align-items:center;gap:8px;white-space:nowrap;min-width:0;}
+.hdr-logo{font-family:'Bauhaus 93','Bauhaus','Bauhaus Bold',Impact,sans-serif;font-weight:700;font-size:20px;line-height:1;color:#fff;letter-spacing:0;white-space:nowrap;}
+.hdr-logo .pre{color:#A3E635;}
+.hdr-stage{line-height:1.25;display:inline-flex;align-items:center;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#FCD34D;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.45);padding:2px 6px;border-radius:4px;white-space:nowrap;}
+.hdr-slot{width:28px!important;height:28px!important;flex:0 0 28px!important;padding:0!important;margin:0!important;display:inline-flex!important;align-items:center;justify-content:center;}
+@media (max-width:768px){.hdr-spacer.hdr-mob-only{display:none!important;}}
+/* ── Hamburger drawer: same menu at every width; replaces the dashboard's fixed side menu ── */
+.psb{position:fixed!important;top:52px!important;bottom:0!important;left:0!important;height:auto!important;width:270px!important;max-width:82vw!important;transform:translateX(-100%)!important;transition:transform .25s!important;z-index:260!important;box-shadow:12px 0 35px rgba(0,0,0,.85)!important;overflow-y:auto!important;}
+.psb.mo{transform:translateX(0)!important;}
+.psb.cl{width:270px!important;}
+.hdr-drawer{position:fixed;top:52px;bottom:0;left:0;width:270px;max-width:82vw;background:#0A0E17;border-right:1px solid #1B2335;transform:translateX(-100%);transition:transform .25s;z-index:260;overflow-y:auto;padding:12px 10px;box-shadow:12px 0 35px rgba(0,0,0,.85);}
+.hdr-drawer.open{transform:none;}
+.hdr-drawer-h{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#6B7A90;padding:12px 10px 6px;}
+.hdr-drawer a,.hdr-drawer button{display:block;width:100%;box-sizing:border-box;text-align:left;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#C9D3E0;background:#111A2B;border:1px solid #1F2A3F;border-radius:8px;padding:10px 12px;margin-bottom:6px;cursor:pointer;text-decoration:none;}
+.hdr-drawer a.on{color:#fff;border-color:#4B5B73;background:#18223A;}
+#hdr-scrim{display:none;position:fixed;top:52px;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:255;}
+#hdr-scrim.on{display:block;}
+@media (max-width:768px){.hdr-bar{flex-direction:row!important;align-items:center!important;flex-wrap:wrap!important;height:auto!important;min-height:52px!important;max-height:none!important;row-gap:6px!important;padding:6px 10px!important;}.hdr-bar .tilenav{flex-wrap:wrap;}.hdr-bar .ml-auto{flex-wrap:wrap!important;max-width:100%!important;justify-content:flex-start!important;}}
+.hdr-bar{position:sticky!important;top:0;z-index:1100!important;}
+.hdr-sub{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#D4A034;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+</style>
+</head>
+<body>
+<div id="grain"></div>
+
+<!-- Topbar Navigation -->
+<div id="hdr-scrim" onclick="hdrToggle(false)"></div>
+<aside class="hdr-drawer" id="hdrDrawer" aria-label="Menu">
+  <div class="hdr-drawer-h">proHUB</div>\n  <a href="../index.html" onclick="hubGo('../index.html',event)">All tiles</a>
+  <div class="hdr-drawer-h pf-dup">Edit desk</div>
+  <button class="pf-dup" onclick="document.getElementById('layoutDual').click();hdrToggle(false)">Dual View</button>
+  <button class="pf-dup" onclick="document.getElementById('layoutSingle').click();hdrToggle(false)">Single Up</button>
+  <button class="pf-dup" onclick="document.getElementById('layoutText').click();hdrToggle(false)">Text to Edit</button>
+</aside>
+<header class="topbar hdr-bar">
+  <button class="hdr-slot hdr-burger text-gray-300 hover:text-white rounded-md text-base" onclick="hdrToggle()" aria-label="Menu" title="Menu"><i class="fa-solid fa-bars"></i></button><div class="hdr-col"><div class="hdr-row"><span class="hdr-logo" id="btnLaunchpad" title="Open Post-production desks" style="cursor:pointer"><span class="pre">pro</span>HUB</span><span class="hdr-stage">POST-PRODUCTION</span></div><div class="hdr-sub">NLE studio</div></div>
+  <nav class="tilenav" aria-label="Production"><a href="../index.html" onclick="hubGo('../index.html',event)" class="hn on" data-hub="pro">proHUB</a></nav>
+
+  <div style="display: flex; gap: 4px; margin-left: 8px;">
+    <button class="btn sm" id="layoutDual">Dual View</button>
+    <button class="btn sm active" id="layoutSingle">Single Up</button>
+    <button class="btn sm" id="layoutText">Text to Edit</button>
+  </div>
+
+  <div style="margin-left: auto; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+    <button class="btn sm" id="btnProhubConform" style="border-color: var(--amber); color: var(--gold);" title="Conform Storyboard manifest from Production">
+      <svg class="ic" viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M4 12h16M12 4v16"/></svg> Auto-Conform Production
+    </button>
+    <select id="fpsSelect" class="btn sm" style="font-family: var(--fm); padding: 3px 6px;">
+      <option value="23.976">23.976 fps</option>
+      <option value="24" selected>24.00 fps</option>
+      <option value="25">25.00 fps</option>
+      <option value="29.97">29.97 fps</option>
+      <option value="30">30.00 fps</option>
+    </select>
+    <span class="chip" id="masterTcChip">00:00:00:00</span>
+    <button class="btn sm pri" id="btnQuickImport">+ Ingest Media</button>
+    <button class="btn sm" id="btnExportXml" title="Export FCP/DaVinci Open XML">Export XML</button>
+    <button class="btn sm" id="btnExportEdl">EDL</button>
+    <button class="btn sm" id="btnExportVideo" title="Render the timeline to a WebM with picture and sound" style="background: linear-gradient(135deg, #00ABA9, #006B69); color:#fff; border:0; font-weight:700;">Export Video</button>
+  </div>
+</header>
+
+<!-- Workspace Structure -->
+<div class="workspace">
+  <div class="rz-gutter rz-col" id="rzCol" role="separator" aria-orientation="vertical" aria-label="Resize media bin" tabindex="0" title="Drag to resize the bin · double-click to reset"></div>
+  <div class="rz-gutter rz-row" id="rzRow" role="separator" aria-orientation="horizontal" aria-label="Resize timeline" tabindex="0" title="Drag to resize the timeline · double-click to reset"></div>
+  <div class="nle-grid mode-single" id="mainGrid">
+    <!-- Panel 1: Integrated Project Bin -->
+    <div class="nle-panel">
+      <div class="nle-tab on">
+        <span>Project Media Bin</span>
+        <span id="binCountBadge" style="color: var(--gold);">0 Clips</span>
+      </div>
+      <div class="bin-mount" id="binMount">
+        <div class="dropzone-bin" id="dropBin">
+          Click or Drop Media Here<br>
+          <span style="font-size: 9.5px; color: #556B8A">MP4, MOV, WEBM, WAV, PNG</span>
+        </div>
+      </div>
+      <div style="padding: 5px 8px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center;">
+        <button class="btn sm" id="btnGenBars" style="font-size: 9.5px;">+ Bars &amp; Tone</button>
+        <span style="font-family: var(--fm); font-size: 9.5px; color: var(--tx-muted)" id="audioSyncNotice">Auto-Sync Ready</span>
+      </div>
+    </div>
+
+    <!-- Panel 2A: Source Monitor -->
+    <div class="nle-panel" id="panelSource">
+      <div class="nle-tab">
+        <span>Source Monitor</span>
+        <span id="srcTimecode" style="color: var(--gold)">00:00:00:00</span>
+      </div>
+      <div class="viewer-box checker">
+        <video id="srcVideoEl" playsinline></video>
+        <canvas id="srcCanvasFallback"></canvas>
+      </div>
+        <div class="viewport-scrubber" id="srcScrubberTrack" title="Click or drag to scrub the source clip">
+          <div class="scrubber-track">
+            <div class="scrubber-range-inout" id="srcScrubRange" style="left:0%;width:0%;"></div>
+            <div class="scrubber-played" id="srcScrubPlayed" style="width:0%;"></div>
+            <div class="scrubber-thumb" id="srcScrubThumb" style="left:0%;"></div>
+          </div>
+        </div>
+      <!-- Source HUD -->
+      <div class="viewer-hud" id="srcHudBar">
+        <span class="hud-tag">SRC</span>
+        <span id="srcHudClipName" class="hud-val">NO MEDIA LOADED</span>
+        <span>IN:</span><span id="srcHudIn" class="hud-accent">00:00:00:00</span>
+        <span>OUT:</span><span id="srcHudOut" class="hud-accent">00:00:00:00</span>
+        <span>DUR:</span><span id="srcHudDur">00:00:00:00</span>
+      </div>
+      <div class="tc-form">
+        <button class="btn sm" id="btnSetIn">Mark In (I)</button>
+        <input type="text" class="tc-input" id="tcSourceIn" value="00:00:00:00">
+        <button class="btn sm" id="btnSetOut">Mark Out (O)</button>
+        <input type="text" class="tc-input" id="tcSourceOut" value="00:00:04:00">
+        <button class="btn sm pri" id="btnInsertCut">Insert (,)</button>
+      </div>
+    </div>
+
+    <!-- Panel 2B: Text-to-Edit Assembly -->
+    <div class="nle-panel" id="panelTextEdit">
+      <div class="nle-tab on">
+        <span>Text-Based Storyboard Assembly</span>
+        <button class="btn sm" id="btnAssembleAllBeats" style="font-size: 9.5px; padding: 2px 5px">Assemble All</button>
+      </div>
+      <div class="transcript-flow" id="transcriptMount">
+        <div style="color: var(--tx-muted); padding: 12px; text-align: center;">Click "Auto-Conform Production" or ingest media to populate interactive text beats.</div>
+      </div>
+    </div>
+
+    <!-- Panel 3: Program Master Monitor & Stereo VU Meter -->
+    <div class="nle-panel" id="panelMaster" style="flex-direction: row;">
+      <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+        <div class="nle-tab on">
+          <span id="prgTitle">Program Master (Hardware Accelerated)</span>
+          <span id="prgTimecode" style="color: var(--cyan)">00:00:00:00</span>
+        </div>
+        <div class="viewer-box checker">
+          <video id="prgVideoEl" playsinline></video>
+          <canvas id="prgCanvasMaster"></canvas>
+        </div>
+        <div class="viewport-scrubber" id="prgScrubberTrack" title="Click or drag to scrub the timeline">
+          <div class="scrubber-track">
+            <div class="scrubber-played" id="prgScrubPlayed" style="width:0%;"></div>
+            <div class="scrubber-thumb" id="prgScrubThumb" style="left:0%;"></div>
+          </div>
+        </div>
+        <!-- Master HUD -->
+        <div class="viewer-hud" id="prgHudBar">
+          <span class="hud-tag" id="prgHudTrack">V1</span>
+          <span id="prgHudClipName" class="hud-val">GAP / EMPTY</span>
+          <span>IN:</span><span id="prgHudIn" class="hud-accent">--:--:--:--</span>
+          <span>OUT:</span><span id="prgHudOut" class="hud-accent">--:--:--:--</span>
+          <span>DUR:</span><span id="prgHudDur">--:--:--:--</span>
+          <span>SPEED:</span><span id="prgHudShuttle" style="color: var(--lime)">1X</span>
+        </div>
+        <div class="tc-form">
+          <button class="btn sm" id="btnShuttleRev" title="Reverse Shuttle (J)">&laquo; J</button>
+          <button class="btn sm" id="btnShuttleStop" title="Stop / Pause (K)">K</button>
+          <button class="btn sm" id="btnShuttleFwd" title="Forward Shuttle (L)">L &raquo;</button>
+          <button class="btn sm pri" id="btnPlayMaster">Play (Space)</button>
+          <button class="btn sm" id="btnStepBack">&larr; 1f</button>
+          <button class="btn sm" id="btnStepFwd">1f &rarr;</button>
+          <input type="text" class="tc-input" id="tcMasterRec" value="00:00:00:00" style="margin-left: auto;">
+        </div>
+      </div>
+
+      <!-- Stereo VU Meters -->
+      <div class="vu-meter-wrap" title="Master Audio Output Meters">
+        <div class="vu-bar"><div class="vu-fill" id="vuL"></div></div>
+        <div class="vu-bar"><div class="vu-fill" id="vuR"></div></div>
+      </div>
+    </div>
+
+    <!-- Panel 4: Multi-Track Timeline Engine -->
+    <div class="nle-panel tl-area">
+      <div class="tl-toolbar">
+        <button class="btn sm active" id="toolSelect">Select (V)</button>
+        <button class="btn sm" id="toolRazor">Razor (C)</button>
+        <button class="btn sm" id="toolTrim">Trim (B)</button>
+        <button class="btn sm snap-on" id="btnSnapToggle">Snap: ON (S)</button>
+        <button class="btn sm" id="btnClearSeq">Clear</button>
+        <div style="display: flex; align-items: center; gap: 4px; margin-left: 8px;">
+          <span style="font-family: var(--fm); font-size: 10px; color: var(--tx-muted)">Zoom</span>
+          <input type="range" id="tlZoomRange" min="0.25" max="3" step="0.25" value="1" style="width: 70px; accent-color: var(--cyan);">
+        </div>
+        <span style="font-family: var(--fm); font-size: 10.5px; color: var(--tx-muted); margin-left: auto;" id="snapInfoTag">Precision: 24.00 Intra</span>
+      </div>
+
+      <div class="tl-scroll" id="tlScrollArea">
+        <div class="playhead" id="tlPlayhead" style="left: 44px"></div>
+        <div class="tl-lane"><div class="tl-tag">V2</div><div class="tl-track-body" id="trackV2" data-track="v2"></div></div>
+        <div class="tl-lane"><div class="tl-tag">V1</div><div class="tl-track-body" id="trackV1" data-track="v1"></div></div>
+        <div class="tl-lane"><div class="tl-tag">A1</div><div class="tl-track-body" id="trackA1" data-track="a1"></div></div>
+        <div class="tl-lane"><div class="tl-tag">A2</div><div class="tl-track-body" id="trackA2" data-track="a2"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modular Tile Launchpad Modal -->
+<div class="launchpad-modal" id="launchpadModal">
+  <div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+    <div class="brand"><b>post</b><i>HUB</i> <span class="tagx">MODULAR DESKS</span></div>
+    <button class="btn sm pri" id="btnCloseLaunchpad">Return to Edit Suite</button>
+  </div>
+  <main class="tiles" id="tilesMount"></main>
+
+  <div class="desk-box" id="deskDetailBox" style="display: none;">
+    <div class="desk-hd">
+      <h2 id="deskDetailTitle">Desk Title</h2>
+      <button class="btn sm" id="btnCloseDeskDetail" style="margin-left: auto;">Close Desk</button>
+    </div>
+    <div class="desk-bd" id="deskDetailBody"></div>
+  </div>
+</div>
+
+<div class="export-modal" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+  <div class="export-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+      <h3 id="exportTitle" style="margin:0;font-family:var(--fd);font-size:16px;color:#fff;">HTML VIDEO EXPORT</h3>
+      <span class="tagx">WEBM</span>
+    </div>
+    <p id="exportStatus" style="color:var(--tx-muted);font-size:11px;margin:8px 0 0;">Playing the timeline and recording picture and sound in real time. Keep this tab in front.</p>
+    <div class="prog-bar-wrap"><div class="prog-bar-fill" id="exportProgFill"></div></div>
+    <div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:10px;color:var(--tx-muted);">
+      <span id="exportFrameCount">Frame 0 / 0</span><span id="exportPercent">0%</span>
+    </div>
+    <div style="margin-top:14px;display:flex;justify-content:flex-end;">
+      <button class="btn sm" id="btnCancelExport">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<div id="m-bar"><button class="mb-btn" id="mb-menu" aria-label="Tiles"><i class="fa-solid fa-bars"></i></button>
+  <div class="mb-title">proHUB</div><button class="mb-btn mb-save" id="mb-save" aria-label="Save">Save</button></div>
+<div id="m-composer"><button class="mc-pill" id="mc-pill">Add a note…</button><button class="mc-plus" id="mc-plus" aria-label="Options">+</button></div>
+<div id="m-scrim"></div>
+<div id="m-sheet" role="dialog" aria-modal="true"></div>
+<script>
+(function(){
+'use strict';
+function $(s,r){ return (r||document).querySelector(s); }
+function $$(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+
+/* Constants & Global State */
+var FPS = 24.0;
+var BASE_PX_PER_FRAME = 0.8;
+var ZOOM = 1.0;
+var CLIPS = [];
+var TRACKS = { v2:[], v1:[], a1:[], a2:[] };
+var ACTIVE_TOOL = 'select'; // 'select' | 'razor' | 'trim'
+var SNAPPING = true;
+var PLAY_FRAME = 0;
+var SHUTTLE_SPEED = 0; // -4, -2, -1, 0, 1, 2, 4
+var PLAYING = false;
+var ACTIVE_SRC_CLIP = null;
+var AUDIO_CTX = null;
+
+function pad(n){ return (n < 10 ? '0' : '') + n; }
+
+function pxPerFrame(){ return BASE_PX_PER_FRAME * ZOOM; }
+function setText(id, v){ var el = document.getElementById(id); if(el) el.textContent = v; }
+function clamp01(p){ return Math.min(1, Math.max(0, p)); }
+
+function frameToTc(frame){
+  frame = Math.max(0, Math.round(frame));
+  var f = frame % Math.round(FPS);
+  var totalSec = Math.floor(frame / FPS);
+  var s = totalSec % 60, m = Math.floor(totalSec / 60) % 60, h = Math.floor(totalSec / 3600);
+  return pad(h) + ':' + pad(m) + ':' + pad(s) + ':' + pad(f);
+}
+
+function tcToFrame(tcStr){
+  if(!tcStr) return 0;
+  var p = String(tcStr).trim().split(':');
+  if(p.length < 4) return Math.round((parseFloat(tcStr)||0) * FPS);
+  var h = parseInt(p[0],10)||0, m = parseInt(p[1],10)||0, s = parseInt(p[2],10)||0, f = parseInt(p[3],10)||0;
+  return Math.round((h * 3600 + m * 60 + s) * FPS + f);
+}
+
+function toast(m, kind){
+  var c = $('#toasts'); if(!c) return;
+  var d = document.createElement('div');
+  d.className = 'toast' + (kind === 'good' ? ' good' : kind === 'bad' ? ' bad' : '');
+  d.textContent = m; c.appendChild(d);
+  setTimeout(function(){ d.remove(); }, 2200);
+}
+
+function dl(name, text, mime){
+  try {
+    var b = new Blob([text], {type:(mime||'text/plain') + ';charset=utf-8'}), u = URL.createObjectURL(b), a = document.createElement('a');
+    a.href = u; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(u); }, 3000);
+    toast('Exported ' + name, 'good');
+  } catch(e){ toast('Download blocked', 'bad'); }
+}
+
+/* ==========================================================
+   WEB AUDIO API ENGINE: Scrub Clicks & VU Meters
+   ========================================================== */
+function initAudio(){
+  if(!AUDIO_CTX){
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if(AC) AUDIO_CTX = new AC();
+  }
+}
+
+function playScrubClick(freq){
+  try {
+    initAudio();
+    if(!AUDIO_CTX) return;
+    var osc = AUDIO_CTX.createOscillator();
+    var gain = AUDIO_CTX.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq || 440, AUDIO_CTX.currentTime);
+    gain.gain.setValueAtTime(0.04, AUDIO_CTX.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, AUDIO_CTX.currentTime + 0.03);
+    osc.connect(gain);
+    gain.connect(AUDIO_CTX.destination);
+    osc.start();
+    osc.stop(AUDIO_CTX.currentTime + 0.035);
+  } catch(e){}
+}
+
+function updateVuMeter(active){
+  var l = $('#vuL'), r = $('#vuR');
+  if(!l || !r) return;
+  if(!active){
+    l.style.height = '0%';
+    r.style.height = '0%';
+    return;
+  }
+  var base = 40 + Math.random() * 55;
+  l.style.height = base + '%';
+  r.style.height = (base + (Math.random() * 10 - 5)) + '%';
+}
+
+/* ==========================================================
+   PROCEDURAL TEST GENERATOR: Color Bars & Storyboard Slate
+   ========================================================== */
+function generateSmpteBars(canvas, label){
+  if(!canvas) return;
+  canvas.width = 640; canvas.height = 360;
+  var ctx = canvas.getContext('2d');
+  var colors = ['#C0C0C0','#C0C000','#00C0C0','#00C000','#C000C0','#C00000','#0000C0'];
+  var w = canvas.width / colors.length;
+  for(var i=0; i<colors.length; i++){
+    ctx.fillStyle = colors[i];
+    ctx.fillRect(i*w, 0, w, canvas.height * 0.7);
+  }
+  ctx.fillStyle = '#080808';
+  ctx.fillRect(0, canvas.height * 0.7, canvas.width, canvas.height * 0.3);
+  ctx.fillStyle = '#E5A93C';
+  ctx.font = 'bold 24px "IBM Plex Mono", monospace';
+  ctx.fillText(label || 'TEST SLATE 24FPS', 30, canvas.height * 0.85);
+}
+
+function renderCanvasProgram(clip, elapsedFrames){
+  var cv = $('#prgCanvasMaster');
+  var vid = $('#prgVideoEl');
+  if(!cv) return;
+  
+  if(clip && clip.url){
+    cv.style.display = 'none';
+    if(vid){
+      vid.style.display = 'block';
+      var key = clip.url + '@' + clip.startFrame;
+      var targetSec = (clip.offsetFrames + elapsedFrames) / FPS;
+      if(vid.getAttribute('data-clip') !== key){
+        vid.setAttribute('data-clip', key);
+        vid.src = clip.url;
+        vid.currentTime = targetSec;
+      }
+      var drift = Math.abs(vid.currentTime - targetSec);
+      if(PLAYING && SHUTTLE_SPEED === 0){
+        if(vid.paused) vid.play().catch(function(){});
+        if(drift > 0.25) vid.currentTime = targetSec;
+      } else {
+        if(!vid.paused) vid.pause();
+        if(drift > 0.04) vid.currentTime = targetSec;
+      }
+    }
+    return;
+  }
+
+  // Fallback to Canvas Render (Storyboard sketch or Slate)
+  if(vid) vid.style.display = 'none';
+  cv.style.display = 'block';
+  cv.width = 640; cv.height = 360;
+  var ctx = cv.getContext('2d');
+  
+  if(clip && clip.thumb){
+    var img = new Image();
+    img.onload = function(){ ctx.drawImage(img, 0, 0, 640, 360); };
+    img.src = clip.thumb;
+  } else {
+    var label = clip ? clip.name : 'GAP / NO SIGNAL';
+    if(cv.getAttribute('data-slate') !== label){
+      cv.setAttribute('data-slate', label);
+      generateSmpteBars(cv, label);
+    }
+  }
+}
+
+/* ==========================================================
+   MEDIA INTAKE & Production CONFORM
+   ========================================================== */
+function registerClip(name, durSec, isAudio, url, thumbUrl, transcriptText){
+  var durFrames = Math.max(1, Math.round(durSec * FPS));
+  CLIPS.push({
+    id: 'c_' + Date.now() + Math.random().toString(36).substr(2,4),
+    name: name,
+    durationFrames: durFrames,
+    isAudio: !!isAudio,
+    url: url || null,
+    thumb: thumbUrl || null,
+    transcript: transcriptText || (name + ' dialogue beat at 24fps.')
+  });
+  renderBin();
+  renderTextToEdit();
+}
+
+function renderBin(){
+  var mount = $('#binMount');
+  var drop = $('#dropBin');
+  mount.innerHTML = '';
+  mount.appendChild(drop);
+  setText('binCountBadge', CLIPS.length + ' Clips');
+
+  CLIPS.forEach(function(c, idx){
+    var el = document.createElement('div');
+    el.className = 'clip-item';
+    el.draggable = true;
+    var thumbHtml = c.thumb ? '<img src="'+c.thumb+'" class="clip-thumb">' : '';
+    el.innerHTML = '<div style="display:flex;align-items:center;min-width:0;overflow:hidden">' + thumbHtml +
+      '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (c.isAudio ? '🎵 ' : '🎬 ') + esc(c.name) + '</span></div>' +
+      '<span style="color:var(--tx-muted);font-size:10px;margin-left:4px">' + frameToTc(c.durationFrames) + '</span>';
+    
+    el.ondblclick = function(){ loadSourceMonitor(c); };
+    el.ondragstart = function(e){ e.dataTransfer.setData('text/plain', JSON.stringify({ clipIdx: idx })); };
+    mount.appendChild(el);
+  });
+}
+
+function renderTextToEdit(){
+  var mount = $('#transcriptMount');
+  if(!CLIPS.length){
+    mount.innerHTML = '<div style="color:var(--tx-muted);padding:12px;text-align:center">Ingest media or conform Production to generate rough cut text beats.</div>';
+    return;
+  }
+  mount.innerHTML = '';
+  CLIPS.forEach(function(c){
+    var div = document.createElement('div');
+    div.className = 't-block';
+    div.innerHTML = '<b>' + esc(c.name) + '</b> (' + frameToTc(c.durationFrames) + ')<br><span style="color:var(--tx-muted)">' + esc(c.transcript) + '</span>';
+    div.onclick = function(){
+      div.classList.add('added');
+      var startF = getSnappedFrame(PLAY_FRAME, 'v1');
+      TRACKS.v1.push({
+        name: c.name,
+        startFrame: startF,
+        durationFrames: c.durationFrames,
+        offsetFrames: 0,
+        thumb: c.thumb,
+        url: c.url,
+        isAudio: c.isAudio
+      });
+      PLAY_FRAME = startF + c.durationFrames;
+      renderTimeline();
+      updatePlayhead();
+      toast('Assembled beat: ' + c.name, 'good');
+    };
+    mount.appendChild(div);
+  });
+}
+
+$('#btnAssembleAllBeats').onclick = function(){
+  CLIPS.forEach(function(c){
+    var startF = getSnappedFrame(PLAY_FRAME, 'v1');
+    TRACKS.v1.push({
+      name: c.name,
+      startFrame: startF,
+      durationFrames: c.durationFrames,
+      offsetFrames: 0,
+      thumb: c.thumb,
+      url: c.url,
+      isAudio: c.isAudio
+    });
+    PLAY_FRAME = startF + c.durationFrames;
+  });
+  renderTimeline();
+  updatePlayhead();
+  toast('Assembled all rough cut beats to V1', 'good');
+};
+
+function loadSourceMonitor(clip){
+  ACTIVE_SRC_CLIP = clip;
+  var vid = $('#srcVideoEl');
+  var cv = $('#srcCanvasFallback');
+  
+  if(clip.url){
+    cv.style.display = 'none';
+    vid.style.display = 'block';
+    vid.src = clip.url;
+    vid.currentTime = 0;
+  } else {
+    vid.style.display = 'none';
+    cv.style.display = 'block';
+    if(clip.thumb){
+      var img = new Image();
+      img.onload = function(){
+        cv.width = 640; cv.height = 360;
+        cv.getContext('2d').drawImage(img, 0, 0, 640, 360);
+      };
+      img.src = clip.thumb;
+    } else {
+      generateSmpteBars(cv, clip.name);
+    }
+  }
+
+  $('#tcSourceIn').value = '00:00:00:00';
+  $('#tcSourceOut').value = frameToTc(clip.durationFrames);
+  setText('srcTimecode', frameToTc(clip.durationFrames));
+
+  setText('srcHudClipName', clip.name.toUpperCase());
+  setText('srcHudIn', '00:00:00:00');
+  setText('srcHudOut', frameToTc(clip.durationFrames));
+  setText('srcHudDur', frameToTc(clip.durationFrames));
+  updateSourceScrubber();
+  toast('Source loaded: ' + clip.name);
+}
+
+/* Production Storyboard Auto-Conform */
+$('#btnProhubConform').onclick = function(){
+  var raw = localStorage.getItem('posthub_staged_payload_v1') || localStorage.getItem('prohub_staged_payload_v1');
+  if(!raw){
+    toast('No staged Production project found in local memory', 'bad');
+    return;
+  }
+  try {
+    var p = JSON.parse(raw);
+    var panels = p.storyboardManifest || [];
+    var scenes = p.sceneManifest || [];
+    if(!panels.length && !scenes.length){
+      toast('Empty Production manifest', 'bad');
+      return;
+    }
+
+    TRACKS.v1 = [];
+    var curFrame = 0;
+
+    if(panels.length){
+      panels.forEach(function(panel){
+        var durFrames = Math.round(4.0 * FPS);
+        registerClip('SC' + panel.sceneNum + '_' + (panel.type||'Shot'), 4.0, false, null, panel.drawing||null, panel.desc||'');
+        TRACKS.v1.push({
+          name: 'SC' + panel.sceneNum + ' [' + (panel.type||'Shot') + ']',
+          startFrame: curFrame,
+          durationFrames: durFrames,
+          offsetFrames: 0,
+          thumb: panel.drawing || null
+        });
+        curFrame += durFrames;
+      });
+      toast('Conformed ' + panels.length + ' Production storyboard panels!', 'good');
+    } else {
+      scenes.forEach(function(sc){
+        var durFrames = Math.round(5.0 * FPS);
+        registerClip('SC' + sc.num + '_' + (sc.heading||''), 5.0, false, null, null);
+        TRACKS.v1.push({
+          name: 'SC' + sc.num + ' ' + (sc.heading||''),
+          startFrame: curFrame,
+          durationFrames: durFrames,
+          offsetFrames: 0,
+          thumb: null
+        });
+        curFrame += durFrames;
+      });
+      toast('Conformed ' + scenes.length + ' script scenes!', 'good');
+    }
+    renderTimeline();
+    updatePlayhead();
+  } catch(e){
+    toast('Corrupt Production payload', 'bad');
+  }
+};
+
+/* Ingest Inputs */
+$('#btnQuickImport').onclick = function(){
+  var inp = document.createElement('input'); inp.type = 'file'; inp.multiple = true;
+  inp.onchange = function(){
+    if(!inp.files.length) return;
+    Array.from(inp.files).forEach(function(f){
+      var isAudio = f.type.indexOf('audio') >= 0;
+      var url = URL.createObjectURL(f);
+      var v = document.createElement(isAudio ? 'audio' : 'video');
+      v.preload = 'metadata';
+      v.onloadedmetadata = function(){ registerClip(f.name, v.duration || 6, isAudio, url, null); };
+      v.onerror = function(){ registerClip(f.name, 6, isAudio, url, null); };
+      v.src = url;
+    });
+    toast('Ingested ' + inp.files.length + ' local clips', 'good');
+  };
+  inp.click();
+};
+$('#dropBin').onclick = function(){ $('#btnQuickImport').click(); };
+
+$('#btnGenBars').onclick = function(){
+  registerClip('SMPTE_COLOR_BARS_1KHZ', 10.0, false, null, null, 'Reference color bars & 1kHz tone.');
+  toast('Generated SMPTE test bars', 'good');
+};
+
+/* ==========================================================
+   3-POINT INTAKE CONTROLS
+   ========================================================== */
+$('#btnSetIn').onclick = function(){
+  var vid = $('#srcVideoEl');
+  var f = Math.round((vid.currentTime || 0) * FPS);
+  $('#tcSourceIn').value = frameToTc(f);
+  setText('srcHudIn', frameToTc(f));
+  var outF = tcToFrame($('#tcSourceOut').value);
+  if(outF > f) setText('srcHudDur', frameToTc(outF - f));
+  playScrubClick(520);
+};
+
+$('#btnSetOut').onclick = function(){
+  var vid = $('#srcVideoEl');
+  var f = Math.round((vid.currentTime || (ACTIVE_SRC_CLIP ? ACTIVE_SRC_CLIP.durationFrames / FPS : 4)) * FPS);
+  $('#tcSourceOut').value = frameToTc(f);
+  setText('srcHudOut', frameToTc(f));
+  var inF = tcToFrame($('#tcSourceIn').value);
+  if(f > inF) setText('srcHudDur', frameToTc(f - inF));
+  playScrubClick(640);
+};
+
+$('#btnInsertCut').onclick = function(){
+  if(!ACTIVE_SRC_CLIP){ toast('Select a clip in Project Bin first', 'bad'); return; }
+  var inF = tcToFrame($('#tcSourceIn').value);
+  var outF = tcToFrame($('#tcSourceOut').value);
+  if(outF <= inF) outF = inF + Math.round(4.0 * FPS);
+  var durF = outF - inF;
+
+  var insStart = SNAPPING ? getSnappedFrame(PLAY_FRAME, 'v1') : PLAY_FRAME;
+  TRACKS.v1.push({
+    name: ACTIVE_SRC_CLIP.name,
+    startFrame: insStart,
+    durationFrames: durF,
+    offsetFrames: inF,
+    thumb: ACTIVE_SRC_CLIP.thumb,
+    url: ACTIVE_SRC_CLIP.url,
+    isAudio: ACTIVE_SRC_CLIP.isAudio
+  });
+
+  renderTimeline();
+  updatePlayhead();
+  playScrubClick(880);
+  toast('Inserted into V1 at ' + frameToTc(insStart), 'good');
+};
+
+/* ==========================================================
+   TIMELINE ENGINE: Snapping, Multi-Track Drag & Trimming
+   ========================================================== */
+$('#btnSnapToggle').onclick = function(){
+  SNAPPING = !SNAPPING;
+  this.className = 'btn sm' + (SNAPPING ? ' snap-on' : '');
+  this.textContent = 'Snap: ' + (SNAPPING ? 'ON (S)' : 'OFF (S)');
+  setText('snapInfoTag', SNAPPING ? 'Precision: 24.00 Intra' : 'Free Float');
+};
+
+function getSnappedFrame(targetFrame, trackKey){
+  if(!SNAPPING) return targetFrame;
+  var thresholdFrames = Math.round(8 / pxPerFrame());
+  var snapPoints = [0, PLAY_FRAME];
+
+  (TRACKS[trackKey] || []).forEach(function(c){
+    snapPoints.push(c.startFrame);
+    snapPoints.push(c.startFrame + c.durationFrames);
+  });
+
+  for(var i=0; i<snapPoints.length; i++){
+    if(Math.abs(targetFrame - snapPoints[i]) <= thresholdFrames){
+      return snapPoints[i];
+    }
+  }
+  return targetFrame;
+}
+
+function setupTimelineDragDrop(){
+  ['v2','v1','a1','a2'].forEach(function(tk){
+    var el = $('#track' + tk.toUpperCase());
+    el.ondragover = function(e){ e.preventDefault(); };
+    el.ondrop = function(e){
+      e.preventDefault();
+      var raw = e.dataTransfer.getData('text/plain');
+      if(!raw) return;
+      var data = JSON.parse(raw);
+      var clip = CLIPS[data.clipIdx];
+      if(!clip) return;
+
+      var rect = el.getBoundingClientRect();
+      var dropX = Math.max(0, e.clientX - rect.left);
+      var rawFrame = Math.round(dropX / pxPerFrame());
+      var finalStart = getSnappedFrame(rawFrame, tk);
+
+      TRACKS[tk].push({
+        name: clip.name,
+        startFrame: finalStart,
+        durationFrames: clip.durationFrames,
+        offsetFrames: 0,
+        thumb: clip.thumb,
+        url: clip.url,
+        isAudio: clip.isAudio
+      });
+
+      renderTimeline();
+      updatePlayhead();
+      playScrubClick(700);
+      toast('Placed ' + clip.name + ' on ' + tk.toUpperCase(), 'good');
+    };
+  });
+}
+
+function renderTimeline(){
+  ['v2','v1','a1','a2'].forEach(function(tk){
+    var el = $('#track' + tk.toUpperCase());
+    el.innerHTML = '';
+    TRACKS[tk].forEach(function(c, idx){
+      var b = document.createElement('div');
+      var cls = 'tl-clip';
+      if(tk === 'v2') cls += ' v2';
+      if(tk === 'a1') cls += ' audio';
+      if(tk === 'a2') cls += ' a2';
+      if(SEL && SEL.c === c) cls += ' sel';
+      b.className = cls;
+      b.style.left = (c.startFrame * pxPerFrame()) + 'px';
+      b.style.width = Math.max(20, (c.durationFrames * pxPerFrame())) + 'px';
+      
+      var imgHtml = c.thumb ? '<img src="'+c.thumb+'" style="height:20px;border-radius:2px;margin-right:4px">' : '';
+      b.innerHTML = '<div class="trim-handle left"></div>' + imgHtml + '<span>' + esc(c.name) + '</span><div class="trim-handle right"></div>';
+
+      // Clip Interaction: Razor & Trim
+      b.onclick = function(e){
+        e.stopPropagation();
+        if(ACTIVE_TOOL !== 'razor') selectClip(tk, c);
+        if(ACTIVE_TOOL === 'razor'){
+          var rect = b.getBoundingClientRect();
+          var offsetF = Math.round((e.clientX - rect.left) / pxPerFrame());
+          if(offsetF > 4 && offsetF < c.durationFrames - 4){
+            var second = Object.assign({}, c);
+            second.startFrame += offsetF;
+            second.durationFrames -= offsetF;
+            second.offsetFrames += offsetF;
+            c.durationFrames = offsetF;
+            TRACKS[tk].splice(idx + 1, 0, second);
+            renderTimeline();
+            updatePlayhead();
+            playScrubClick(900);
+            toast('Split cut applied');
+          }
+        }
+      };
+
+      // Edge Trimming handlers
+      var hLeft = b.querySelector('.trim-handle.left');
+      var hRight = b.querySelector('.trim-handle.right');
+      
+      hLeft.onmousedown = function(e){
+        e.stopPropagation();
+        var startX = e.clientX, origStart = c.startFrame, origDur = c.durationFrames;
+        function onMove(ev){
+          var diffFrames = Math.round((ev.clientX - startX) / pxPerFrame());
+          if(origDur - diffFrames > 4){
+            c.startFrame = origStart + diffFrames;
+            c.durationFrames = origDur - diffFrames;
+            b.style.left = (c.startFrame * pxPerFrame()) + 'px';
+            b.style.width = (c.durationFrames * pxPerFrame()) + 'px';
+          }
+        }
+        function onUp(){
+          window.removeEventListener('mousemove', onMove);
+          window.removeEventListener('mouseup', onUp);
+          renderTimeline();
+          updatePlayhead();
+        }
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+      };
+
+      hRight.onmousedown = function(e){
+        e.stopPropagation();
+        var startX = e.clientX, origDur = c.durationFrames;
+        function onMove(ev){
+          var diffFrames = Math.round((ev.clientX - startX) / pxPerFrame());
+          if(origDur + diffFrames > 4){
+            c.durationFrames = origDur + diffFrames;
+            b.style.width = (c.durationFrames * pxPerFrame()) + 'px';
+          }
+        }
+        function onUp(){
+          window.removeEventListener('mousemove', onMove);
+          window.removeEventListener('mouseup', onUp);
+          renderTimeline();
+          updatePlayhead();
+        }
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+      };
+
+      el.appendChild(b);
+    });
+  });
+}
+
+/* Tool Toggles */
+$('#toolSelect').onclick = function(){ setTool('select'); };
+$('#toolRazor').onclick = function(){ setTool('razor'); };
+$('#toolTrim').onclick = function(){ setTool('trim'); };
+function setTool(t){
+  ACTIVE_TOOL = t;
+  $('#toolSelect').classList.toggle('active', t === 'select');
+  $('#toolRazor').classList.toggle('active', t === 'razor');
+  $('#toolTrim').classList.toggle('active', t === 'trim');
+}
+
+$('#btnClearSeq').onclick = function(){
+  TRACKS = { v2:[], v1:[], a1:[], a2:[] };
+  renderTimeline();
+  updatePlayhead();
+  toast('Timeline cleared');
+};
+
+$('#tlZoomRange').oninput = function(){
+  ZOOM = parseFloat(this.value);
+  renderTimeline();
+  updatePlayhead();
+};
+
+/* ==========================================================
+   PRECISION JKL SHUTTLE & PLAYHEAD ENGINE
+   ========================================================== */
+function inspectTimelineHUD(){
+  var order = ['v2', 'v1', 'a1', 'a2'];
+  var foundTrack = null, foundClip = null;
+
+  for(var i=0; i<order.length; i++){
+    var tk = order[i];
+    var clips = TRACKS[tk] || [];
+    for(var j=0; j<clips.length; j++){
+      var c = clips[j];
+      if(PLAY_FRAME >= c.startFrame && PLAY_FRAME < (c.startFrame + c.durationFrames)){
+        foundTrack = tk.toUpperCase();
+        foundClip = c;
+        break;
+      }
+    }
+    if(foundClip) break;
+  }
+
+  if(foundClip){
+    setText('prgHudTrack', foundTrack);
+    $('#prgHudTrack').style.color = (foundTrack === 'V2') ? '#B565FF' : (foundTrack.startsWith('A') ? '#88C13F' : '#00ABA9');
+    setText('prgHudClipName', foundClip.name.toUpperCase());
+    setText('prgHudIn', frameToTc(foundClip.startFrame));
+    setText('prgHudOut', frameToTc(foundClip.startFrame + foundClip.durationFrames));
+    setText('prgHudDur', frameToTc(foundClip.durationFrames));
+    
+    var elapsed = PLAY_FRAME - foundClip.startFrame;
+    renderCanvasProgram(foundClip, elapsed);
+  } else {
+    setText('prgHudTrack', '--');
+    $('#prgHudTrack').style.color = 'var(--tx-muted)';
+    setText('prgHudClipName', 'GAP / EMPTY');
+    setText('prgHudIn', '--:--:--:--');
+    setText('prgHudOut', '--:--:--:--');
+    setText('prgHudDur', '--:--:--:--');
+    renderCanvasProgram(null, 0);
+  }
+
+  // Shuttle telemetry
+  var shutStr = 'STOP';
+  if(SHUTTLE_SPEED > 0) shutStr = '+' + SHUTTLE_SPEED + 'X FWD';
+  if(SHUTTLE_SPEED < 0) shutStr = SHUTTLE_SPEED + 'X REV';
+  setText('prgHudShuttle', shutStr);
+}
+
+function updatePlayhead(){
+  var px = 44 + (PLAY_FRAME * pxPerFrame());
+  $('#tlPlayhead').style.left = px + 'px';
+  var tc = frameToTc(PLAY_FRAME);
+  setText('masterTcChip', tc);
+  setText('prgTimecode', tc);
+  $('#tcMasterRec').value = tc;
+  inspectTimelineHUD();
+  updateProgramScrubber(PLAY_FRAME);
+  centrePhonePlayhead();
+}
+function centrePhonePlayhead(){
+  if(!window.matchMedia || !matchMedia('(max-width:768px)').matches) return;
+  var area = document.getElementById('tlScrollArea'); if(!area) return;
+  var px = 44 + (PLAY_FRAME * pxPerFrame());
+  area.scrollLeft = Math.max(0, px - area.clientWidth / 2);
+}
+
+/* Master Playback Animation Loop */
+var lastTime = performance.now();
+var frameAccumulator = 0;
+
+function stepPlayback(now){
+  var deltaSec = (now - lastTime) / 1000;
+  lastTime = now;
+
+  if(PLAYING || SHUTTLE_SPEED !== 0){
+    var multiplier = SHUTTLE_SPEED !== 0 ? SHUTTLE_SPEED : 1;
+    frameAccumulator += deltaSec * FPS * multiplier;
+    
+    if(Math.abs(frameAccumulator) >= 1){
+      var stepFrames = Math.floor(frameAccumulator);
+      PLAY_FRAME = Math.max(0, PLAY_FRAME + stepFrames);
+      frameAccumulator -= stepFrames;
+      updatePlayhead();
+      updateVuMeter(true);
+      playScrubClick(300 + Math.abs(multiplier) * 100);
+    }
+  } else {
+    updateVuMeter(false);
+  }
+}
+function playbackLoop(now){
+  try { stepPlayback(now); } catch(err){ console.error(err); }
+  requestAnimationFrame(playbackLoop);
+}
+requestAnimationFrame(playbackLoop);
+
+/* JKL Key & Button Controls */
+function shuttleJ(){
+  initAudio();
+  PLAYING = false;
+  if(SHUTTLE_SPEED > 0) SHUTTLE_SPEED = -1;
+  else if(SHUTTLE_SPEED === -1) SHUTTLE_SPEED = -2;
+  else if(SHUTTLE_SPEED === -2) SHUTTLE_SPEED = -4;
+  else SHUTTLE_SPEED = -1;
+  updatePlayhead();
+}
+
+function shuttleK(){
+  initAudio();
+  PLAYING = false;
+  SHUTTLE_SPEED = 0;
+  setText('btnPlayMaster', 'Play (Space)');
+  updatePlayhead();
+}
+
+function shuttleL(){
+  initAudio();
+  PLAYING = false;
+  if(SHUTTLE_SPEED < 0) SHUTTLE_SPEED = 1;
+  else if(SHUTTLE_SPEED === 1) SHUTTLE_SPEED = 2;
+  else if(SHUTTLE_SPEED === 2) SHUTTLE_SPEED = 4;
+  else SHUTTLE_SPEED = 1;
+  updatePlayhead();
+}
+
+$('#btnShuttleRev').onclick = shuttleJ;
+$('#btnShuttleStop').onclick = shuttleK;
+$('#btnShuttleFwd').onclick = shuttleL;
+
+$('#btnPlayMaster').onclick = function(){
+  initAudio();
+  PLAYING = !PLAYING;
+  SHUTTLE_SPEED = 0;
+  this.textContent = PLAYING ? 'Pause (Space)' : 'Play (Space)';
+};
+
+$('#btnStepBack').onclick = function(){
+  shuttleK();
+  PLAY_FRAME = Math.max(0, PLAY_FRAME - 1);
+  playScrubClick(400);
+  updatePlayhead();
+};
+
+$('#btnStepFwd').onclick = function(){
+  shuttleK();
+  PLAY_FRAME++;
+  playScrubClick(450);
+  updatePlayhead();
+};
+
+/* Click and Touch scrub on Timeline */
+function scrubTimelineAtEvent(e){
+  var rect = $('#tlScrollArea').getBoundingClientRect();
+  var clickX = Math.max(0, e.clientX - rect.left + $('#tlScrollArea').scrollLeft - 44);
+  var targetF = Math.round(clickX / pxPerFrame());
+  PLAY_FRAME = SNAPPING ? getSnappedFrame(targetF, 'v1') : targetF;
+  playScrubClick(350);
+  updatePlayhead();
+}
+
+var isScrubbing = false;
+$('#tlScrollArea').addEventListener('mousedown', function(e){
+  if(e.target.closest('.tl-clip')) return;
+  isScrubbing = true;
+  shuttleK();
+  scrubTimelineAtEvent(e);
+});
+
+window.addEventListener('mousemove', function(e){
+  if(isScrubbing) scrubTimelineAtEvent(e);
+});
+
+window.addEventListener('mouseup', function(){
+  isScrubbing = false;
+});
+
+/* Touch scrub support for mobile */
+$('#tlScrollArea').addEventListener('touchmove', function(e){
+  if(!e.touches.length) return;
+  var touch = e.touches[0];
+  var rect = $('#tlScrollArea').getBoundingClientRect();
+  var clickX = Math.max(0, touch.clientX - rect.left + $('#tlScrollArea').scrollLeft - 44);
+  PLAY_FRAME = Math.round(clickX / pxPerFrame());
+  updatePlayhead();
+}, { passive: true });
+
+/* Manual Seek Jump */
+$('#tcMasterRec').onchange = function(){
+  PLAY_FRAME = tcToFrame(this.value);
+  updatePlayhead();
+};
+
+/* ==========================================================
+   VIEWPORT LAYOUTS
+   ========================================================== */
+var mainGrid = $('#mainGrid');
+$('#layoutDual').onclick = function(){
+  mainGrid.className = 'nle-grid';
+  setLayoutBtn(this);
+};
+$('#layoutSingle').onclick = function(){
+  mainGrid.className = 'nle-grid mode-single';
+  setLayoutBtn(this);
+};
+$('#layoutText').onclick = function(){
+  mainGrid.className = 'nle-grid mode-text';
+  setLayoutBtn(this);
+};
+function setLayoutBtn(btn){
+  $$('#layoutDual, #layoutSingle, #layoutText').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+/* ==========================================================
+   INTERCHANGE EXPORTS: Open XML & EDL CMX 3600
+   ========================================================== */
+$('#btnExportXml').onclick = function(){
+  var v1Clips = TRACKS.v1.map(function(c, i){
+    return '      <clipitem id="clipitem-' + (i+1) + '">' +
+           '<name>' + esc(c.name) + '</name>' +
+           '<in>' + c.offsetFrames + '</in><out>' + (c.offsetFrames + c.durationFrames) + '</out>' +
+           '<start>' + c.startFrame + '</start><end>' + (c.startFrame + c.durationFrames) + '</end>' +
+           '</clipitem>';
+  }).join('\n');
+
+  var xml = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<xmeml version="4">\n' +
+    '  <sequence>\n' +
+    '    <name>Post-production_Master_Conform</name>\n' +
+    '    <rate><timebase>' + Math.round(FPS) + '</timebase></rate>\n' +
+    '    <media><video><track>\n' + v1Clips + '\n    </track></video></media>\n' +
+    '  </sequence>\n' +
+    '</xmeml>';
+  dl('Sequence_Conform_24fps.xml', xml, 'text/xml');
+};
+
+$('#btnExportEdl').onclick = function(){
+  var edl = 'TITLE: Post-production_Master\nFCM: NON-DROP FRAME\n\n' +
+    TRACKS.v1.map(function(c, i){
+      return pad(i+1) + '  AX  V  C  ' + frameToTc(c.offsetFrames) + ' ' + frameToTc(c.offsetFrames + c.durationFrames) +
+             ' ' + frameToTc(c.startFrame) + ' ' + frameToTc(c.startFrame + c.durationFrames) +
+             '\n* FROM CLIP: ' + c.name;
+    }).join('\n\n');
+  dl('Master_Sequence_3600.edl', edl, 'text/plain');
+};
+
+/* ==========================================================
+   MODULAR LAUNCHPAD TILES & DESKS
+   ========================================================== */
+var TILES_DEF = [
+  { id: 'suite', title: 'Edit Desk', sub: 'Studio NLE Multi-Track', colour: '#7137C8', tag: 'STUDIO', icon: 'fa-solid fa-clapperboard' },
+  { id: 'ingest', title: 'Ingest Bin', sub: 'Drive media decode & bars', colour: '#00ABA9', tag: 'MEDIA', icon: 'fa-solid fa-download' },
+  { id: 'timeline', title: 'Cut List', sub: 'Conform & ripple assembly', colour: '#1BA1E2', tag: 'EDIT', icon: 'fa-solid fa-scissors' },
+  { id: 'notes', title: 'Cut Notes', sub: 'Timecoded annotations', colour: '#E5A93C', tag: 'LOG', icon: 'fa-solid fa-note-sticky' },
+  { id: 'sync', title: 'Sync Matrix', sub: 'Audio waveform alignment', colour: '#88C13F', tag: 'AUDIO', icon: 'fa-solid fa-wave-square' },
+  { id: 'deliverables', title: 'Deliverables', sub: 'Open XML, EDL, Master QC', colour: '#B07CE8', tag: 'OUTPUT', icon: 'fa-solid fa-box-archive' }
+];
+
+function mountLaunchpad(){
+  $('#tilesMount').innerHTML = TILES_DEF.map(function(t, i){
+    return '<div class="mtile' + (t.id === 'suite' ? ' hero' : '') + '" data-tid="'+t.id+'">' +
+      '<div class="mbadge">'+t.tag+'</div>' +
+      '<div class="micon"><i class="'+t.icon+'"></i></div>' +
+      '<div><div class="mtit">'+t.title+'</div><div class="msub">'+t.sub+'</div></div></div>';
+  }).join('');
+}
+
+$('#btnLaunchpad').onclick = function(){
+  $('#launchpadModal').classList.add('on');
+  mountLaunchpad();
+};
+
+$('#btnCloseLaunchpad').onclick = function(){
+  $('#launchpadModal').classList.remove('on');
+};
+
+document.addEventListener('click', function(e){
+  var t = e.target.closest('[data-tid]');
+  if(t){
+    var id = t.getAttribute('data-tid');
+    if(id === 'suite'){
+      $('#launchpadModal').classList.remove('on');
+    } else {
+      openDeskDetail(id);
+    }
+  }
+});
+
+function openDeskDetail(id){
+  var box = $('#deskDetailBox');
+  var title = $('#deskDetailTitle');
+  var body = $('#deskDetailBody');
+  box.style.display = 'block';
+
+  if(id === 'ingest'){
+    title.textContent = 'Media Ingest Desk';
+    body.innerHTML = '<p style="color:var(--tx-muted)">Local drive media stream pipeline.</p>' +
+      '<button class="btn sm pri" onclick="document.getElementById(\'btnQuickImport\').click()">Select Files</button>';
+  } else if(id === 'timeline'){
+    title.textContent = 'Timeline Cut List & Ripple';
+    body.innerHTML = '<p style="color:var(--tx-muted)">Timeline status: ' + TRACKS.v1.length + ' clips assembled on V1.</p>';
+  } else if(id === 'notes'){
+    title.textContent = 'Timecoded Review Notes';
+    body.innerHTML = '<textarea style="width:100%;height:100px;background:#05070D;border:1px solid #162033;color:#fff;padding:8px" placeholder="01:00:03:00 - Check contrast..."></textarea>';
+  } else if(id === 'sync'){
+    title.textContent = 'Audio Waveform Sync Engine';
+    body.innerHTML = '<p style="color:var(--tx-muted)">A1/A2 audio sync pipeline active with sample cross-correlation.</p>';
+  } else if(id === 'deliverables'){
+    title.textContent = 'Master Deliverables & QC';
+    body.innerHTML = '<div style="display:flex;gap:8px">' +
+      '<button class="btn sm" onclick="document.getElementById(\'btnExportXml\').click()">Export Open XML</button>' +
+      '<button class="btn sm" onclick="document.getElementById(\'btnExportEdl\').click()">Export CMX 3600 EDL</button>' +
+      '<button class="btn sm pri" onclick="document.getElementById(\'btnExportVideo\').click()">Export Video (WebM)</button>' +
+      '</div>';
+  }
+}
+
+$('#btnCloseDeskDetail').onclick = function(){
+  $('#deskDetailBox').style.display = 'none';
+};
+
+/* Keyboard Shortcut System */
+document.addEventListener('keydown', function(e){
+  if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  var k = e.key.toLowerCase();
+  if(e.key === ' '){ e.preventDefault(); $('#btnPlayMaster').click(); }
+  else if(k === 'j'){ shuttleJ(); }
+  else if(k === 'k'){ shuttleK(); }
+  else if(k === 'l'){ shuttleL(); }
+  else if(k === 'i'){ $('#btnSetIn').click(); }
+  else if(k === 'o'){ $('#btnSetOut').click(); }
+  else if(e.key === ','){ $('#btnInsertCut').click(); }
+  else if(k === 'v'){ setTool('select'); }
+  else if(k === 'c'){ setTool('razor'); }
+  else if(k === 'b'){ setTool('trim'); }
+  else if(k === 's'){ $('#btnSnapToggle').click(); }
+});
+
+/* Boot */
+function boot(){
+  setupTimelineDragDrop();
+  renderBin();
+  renderTimeline();
+  updatePlayhead();
+
+  // Test generator: auto-create slate so timeline is immediately playable
+  generateSmpteBars($('#prgCanvasMaster'), 'Post-production PRO NLE 24FPS');
+
+  // Load Production staged data on boot if exists
+  var raw = localStorage.getItem('posthub_staged_payload_v1') || localStorage.getItem('prohub_staged_payload_v1');
+  if(raw){
+    try {
+      var p = JSON.parse(raw);
+      if(p.projectName) document.title = p.projectName + ' | Post-production';
+    } catch(e){}
+  }
+}
+
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+/* ==========================================================
+   MONITOR SCRUBBERS — source (clip-relative) and program (timeline)
+   ========================================================== */
+var SRC_FRAME = 0;
+
+function timelineLength(){
+  var maxF = 0;
+  ['v1','v2','a1','a2'].forEach(function(tk){
+    (TRACKS[tk]||[]).forEach(function(c){ maxF = Math.max(maxF, c.startFrame + c.durationFrames); });
+  });
+  return maxF;
+}
+
+function updateSourceScrubber(){
+  var vid = $('#srcVideoEl');
+  var total = ACTIVE_SRC_CLIP ? Math.max(1, ACTIVE_SRC_CLIP.durationFrames) : 1;
+  var cur = (ACTIVE_SRC_CLIP && ACTIVE_SRC_CLIP.url && vid) ? Math.round(vid.currentTime * FPS) : SRC_FRAME;
+  var played = clamp01(cur / total) * 100;
+  $('#srcScrubPlayed').style.width = played + '%';
+  $('#srcScrubThumb').style.left = played + '%';
+  var inF = tcToFrame($('#tcSourceIn').value), outF = tcToFrame($('#tcSourceOut').value);
+  var a = clamp01(inF / total) * 100, b = clamp01(outF / total) * 100;
+  var r = $('#srcScrubRange');
+  r.style.left = a + '%';
+  r.style.width = Math.max(0, b - a) + '%';
+  if(ACTIVE_SRC_CLIP) setText('srcTimecode', frameToTc(cur));
+}
+
+function seekSourceToPct(p){
+  if(!ACTIVE_SRC_CLIP) return;
+  var total = Math.max(1, ACTIVE_SRC_CLIP.durationFrames);
+  SRC_FRAME = Math.round(clamp01(p) * total);
+  var vid = $('#srcVideoEl');
+  if(ACTIVE_SRC_CLIP.url && vid) vid.currentTime = SRC_FRAME / FPS;
+  updateSourceScrubber();
+}
+
+function programSpan(){ return Math.max(240, timelineLength()); } // 10 s floor so an empty timeline still scrubs
+function updateProgramScrubber(f){
+  var total = programSpan();
+  var played = clamp01(f / total) * 100;
+  $('#prgScrubPlayed').style.width = played + '%';
+  $('#prgScrubThumb').style.left = played + '%';
+}
+
+function seekProgramToPct(p){
+  var total = programSpan();
+  PLAY_FRAME = Math.round(clamp01(p) * total);
+  shuttleK();
+  updatePlayhead();
+}
+
+function bindScrubber(sel, onPct){
+  var track = $(sel), dragging = false;
+  function at(clientX){
+    var r = track.getBoundingClientRect();
+    onPct((clientX - r.left) / r.width);
+  }
+  track.addEventListener('mousedown', function(e){ dragging = true; at(e.clientX); e.preventDefault(); });
+  track.addEventListener('touchstart', function(e){ dragging = true; at(e.touches[0].clientX); }, {passive:true});
+  window.addEventListener('mousemove', function(e){ if(dragging) at(e.clientX); });
+  window.addEventListener('touchmove', function(e){ if(dragging) at(e.touches[0].clientX); }, {passive:true});
+  window.addEventListener('mouseup', function(){ dragging = false; });
+  window.addEventListener('touchend', function(){ dragging = false; });
+}
+
+bindScrubber('#srcScrubberTrack', seekSourceToPct);
+bindScrubber('#prgScrubberTrack', seekProgramToPct);
+$('#srcVideoEl').addEventListener('timeupdate', updateSourceScrubber);
+['#btnSetIn', '#btnSetOut', '#tcSourceIn', '#tcSourceOut'].forEach(function(sel){
+  $(sel).addEventListener('change', function(){ setTimeout(updateSourceScrubber, 0); });
+  $(sel).addEventListener('click', function(){ setTimeout(updateSourceScrubber, 0); });
+});
+
+/* ==========================================================
+   RESIZABLE PANELS — bin width and timeline height, remembered
+   ========================================================== */
+var LAYOUT_KEY = 'posthub_layout_v1';
+var LAYOUT_DEFAULT = { bin: 280, tl: 0 }; /* tl 0 = timeline takes the bottom half of the workspace */
+function tlDefault(){ var ws=document.querySelector('.workspace'); return Math.round((ws?ws.clientHeight:560)/2); }
+var LAYOUT = { bin: LAYOUT_DEFAULT.bin, tl: LAYOUT_DEFAULT.tl };
+
+(function loadLayout(){
+  try {
+    var saved = JSON.parse(localStorage.getItem(LAYOUT_KEY) || 'null');
+    if(saved && typeof saved.bin === 'number') LAYOUT.bin = saved.bin;
+    if(saved && typeof saved.tl === 'number') LAYOUT.tl = saved.tl;
+  } catch(e){}
+})();
+
+function saveLayout(){
+  try { localStorage.setItem(LAYOUT_KEY, JSON.stringify(LAYOUT)); } catch(e){}
+}
+
+function applyLayout(){
+  var ws = $('.workspace');
+  var W = ws.clientWidth, H = ws.clientHeight;
+  LAYOUT.bin = Math.round(Math.max(180, Math.min(Math.min(560, W * 0.4), LAYOUT.bin)));
+  if(!LAYOUT.tl) LAYOUT.tl = tlDefault();
+  LAYOUT.tl  = Math.round(Math.max(150, Math.min(H - 200, LAYOUT.tl)));
+  var g = $('#mainGrid');
+  g.style.setProperty('--bin-w', LAYOUT.bin + 'px');
+  g.style.setProperty('--tl-h', LAYOUT.tl + 'px');
+  // Gutters sit in the 6px gap between panels (3px padding + 3px gap).
+  $('#rzCol').style.left = (LAYOUT.bin + 1.5) + 'px';
+  $('#rzRow').style.bottom = (LAYOUT.tl + 1.5) + 'px';
+  $('#rzCol').setAttribute('aria-valuenow', LAYOUT.bin);
+  $('#rzRow').setAttribute('aria-valuenow', LAYOUT.tl);
+}
+
+function wireGutters(){
+  var col = $('#rzCol'), row = $('#rzRow'), drag = null;
+  function begin(kind, e){
+    drag = kind;
+    (kind === 'col' ? col : row).classList.add('dragging');
+    document.body.style.cursor = kind === 'col' ? 'col-resize' : 'row-resize';
+    e.preventDefault();
+  }
+  function end(){
+    if(!drag) return;
+    col.classList.remove('dragging'); row.classList.remove('dragging');
+    document.body.style.cursor = '';
+    drag = null;
+    saveLayout();
+  }
+  col.addEventListener('mousedown', function(e){ begin('col', e); });
+  row.addEventListener('mousedown', function(e){ begin('row', e); });
+  window.addEventListener('mousemove', function(e){
+    if(!drag) return;
+    var r = $('.workspace').getBoundingClientRect();
+    if(drag === 'col') LAYOUT.bin = e.clientX - r.left - 4.5;
+    else LAYOUT.tl = (r.bottom - e.clientY) - 4.5;
+    applyLayout();
+  });
+  window.addEventListener('mouseup', end);
+  [col, row].forEach(function(gut){
+    gut.addEventListener('dblclick', function(){
+      if(gut === col) LAYOUT.bin = LAYOUT_DEFAULT.bin; else LAYOUT.tl = tlDefault();
+      applyLayout(); saveLayout();
+    });
+    gut.addEventListener('keydown', function(e){
+      var step = e.shiftKey ? 64 : 16, k = e.key;
+      var grow = (gut === col) ? 'ArrowRight' : 'ArrowUp';
+      var shrink = (gut === col) ? 'ArrowLeft' : 'ArrowDown';
+      if(k === grow){ if(gut === col) LAYOUT.bin += step; else LAYOUT.tl += step; }
+      else if(k === shrink){ if(gut === col) LAYOUT.bin -= step; else LAYOUT.tl -= step; }
+      else if(k === 'Home'){ if(gut === col) LAYOUT.bin = LAYOUT_DEFAULT.bin; else LAYOUT.tl = tlDefault(); }
+      else return;
+      e.preventDefault();
+      applyLayout(); saveLayout();
+    });
+  });
+  window.addEventListener('resize', applyLayout);
+}
+
+/* ==========================================================
+   HTML VIDEO EXPORT — plays the timeline through the same media
+   elements and records the composite picture plus mixed audio.
+   Runs in real time: a 2-minute cut takes about 2 minutes.
+   ========================================================== */
+var EXPORT = null;
+var EXPORT_W = 1280, EXPORT_H = 720;
+
+function expElement(url, isAudio){
+  var m = EXPORT.els[url];
+  if(!m){
+    var el = document.createElement(isAudio ? 'audio' : 'video');
+    el.src = url; el.preload = 'auto'; el.playsInline = true;
+    var node = EXPORT.ctx.createMediaElementSource(el);
+    node.connect(EXPORT.dest);
+    node.connect(EXPORT.ctx.destination); // lets you hear the render
+    m = EXPORT.els[url] = { el: el };
+  }
+  return m.el;
+}
+
+function expImage(src){
+  var img = EXPORT.imgs[src];
+  if(!img){ img = EXPORT.imgs[src] = new Image(); img.src = src; }
+  return img;
+}
+
+function expActive(f){
+  var out = { video: null, audio: [] };
+  ['v2', 'v1'].forEach(function(tk){
+    if(out.video) return;
+    (TRACKS[tk]||[]).forEach(function(c){
+      if(!out.video && f >= c.startFrame && f < c.startFrame + c.durationFrames) out.video = { c: c, tk: tk };
+    });
+  });
+  ['a1', 'a2'].forEach(function(tk){
+    (TRACKS[tk]||[]).forEach(function(c){
+      if(c.url && f >= c.startFrame && f < c.startFrame + c.durationFrames) out.audio.push(c);
+    });
+  });
+  return out;
+}
+
+function expSync(el, c, f){
+  var target = (c.offsetFrames + (f - c.startFrame)) / FPS;
+  if(el.paused){
+    if(Math.abs(el.currentTime - target) > 0.05) el.currentTime = target;
+    el.play().catch(function(){});
+  } else if(Math.abs(el.currentTime - target) > 0.25){
+    el.currentTime = target;
+  }
+}
+
+function expDrawFit(el){
+  var g = EXPORT.g, W = EXPORT_W, H = EXPORT_H;
+  var vw = el.videoWidth || W, vh = el.videoHeight || H;
+  var s = Math.min(W / vw, H / vh);
+  var dw = vw * s, dh = vh * s;
+  g.drawImage(el, (W - dw) / 2, (H - dh) / 2, dw, dh);
+}
+
+function expRender(f){
+  var g = EXPORT.g, W = EXPORT_W, H = EXPORT_H;
+  g.fillStyle = '#000';
+  g.fillRect(0, 0, W, H);
+  var a = expActive(f);
+  var keep = {};
+
+  if(a.video){
+    var c = a.video.c;
+    if(c.url && !c.isAudio){
+      var el = expElement(c.url, false);
+      keep[c.url] = true;
+      expSync(el, c, f);
+      if(el.readyState >= 2) expDrawFit(el);
+    } else if(c.thumb){
+      var img = expImage(c.thumb);
+      if(img.complete && img.naturalWidth) g.drawImage(img, 0, 0, W, H);
+    } else {
+      g.fillStyle = '#0A1020'; g.fillRect(0, 0, W, H);
+      g.fillStyle = '#88C13F'; g.font = 'bold 40px "IBM Plex Mono", monospace';
+      g.fillText(c.name, 60, H / 2);
+    }
+  }
+
+  // Audio: every audio clip that covers this frame plays through the mix.
+  a.audio.forEach(function(c){
+    var el = expElement(c.url, true);
+    keep[c.url] = true;
+    expSync(el, c, f);
+  });
+
+  // Pause anything that is no longer under the playhead.
+  Object.keys(EXPORT.els).forEach(function(u){
+    if(!keep[u] && !EXPORT.els[u].el.paused) EXPORT.els[u].el.pause();
+  });
+
+  // Burn-in timecode, bottom-left.
+  g.fillStyle = 'rgba(0,0,0,0.6)';
+  g.fillRect(16, H - 46, 250, 30);
+  g.fillStyle = '#A3E635';
+  g.font = 'bold 20px "IBM Plex Mono", monospace';
+  g.fillText(frameToTc(f), 26, H - 25);
+}
+
+function expEnd(save){
+  var st = EXPORT;
+  if(!st || st.ending) return;
+  st.ending = true;
+  st.save = save;
+  cancelAnimationFrame(st.raf);
+  Object.keys(st.els).forEach(function(u){ st.els[u].el.pause(); });
+  if(st.rec.state !== 'inactive') st.rec.stop();
+  else finishExport(st);
+}
+
+function finishExport(st){
+  $('#exportModal').classList.remove('on');
+  if(st.save && st.chunks.length){
+    var blob = new Blob(st.chunks, { type: 'video/webm' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = 'Post-production_Proxy_' + Math.round(FPS) + 'fps.webm';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+    toast('Video exported', 'good');
+  } else if(!st.save){
+    toast('Export cancelled');
+  }
+  if(EXPORT === st) EXPORT = null;
+}
+
+function expStart(){
+  if(EXPORT) return;
+  var total = timelineLength();
+  if(!total){ toast('Timeline is empty', 'bad'); return; }
+  if(!window.MediaRecorder || !window.MediaStream){ toast('This browser cannot record video. Try Chrome or Edge.', 'bad'); return; }
+  initAudio();
+  if(!AUDIO_CTX || !AUDIO_CTX.createMediaStreamDestination){ toast('Audio engine unavailable for export', 'bad'); return; }
+  if(AUDIO_CTX.state === 'suspended') AUDIO_CTX.resume();
+
+  var cv = document.createElement('canvas');
+  cv.width = EXPORT_W; cv.height = EXPORT_H;
+  var dest = AUDIO_CTX.createMediaStreamDestination();
+  // A silent source keeps the audio track live even when no clip has sound yet.
+  var silent = AUDIO_CTX.createConstantSource ? AUDIO_CTX.createConstantSource() : null;
+  if(silent){ var silentGain = AUDIO_CTX.createGain(); silentGain.gain.value = 0; silent.connect(silentGain); silentGain.connect(dest); silent.start(); }
+  var stream = new MediaStream(cv.captureStream(FPS).getVideoTracks().concat(dest.stream.getAudioTracks()));
+  var mime = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+    .filter(function(m){ return MediaRecorder.isTypeSupported(m); })[0];
+  var rec;
+  try { rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream); }
+  catch(err){ toast('Could not start the recorder', 'bad'); return; }
+
+  var st = EXPORT = {
+    ctx: AUDIO_CTX, dest: dest, g: cv.getContext('2d'),
+    els: {}, imgs: {}, total: total, rec: rec, chunks: [],
+    raf: 0, t0: 0, last: -1, ending: false, save: false
+  };
+  rec.ondataavailable = function(e){ if(e.data && e.data.size) st.chunks.push(e.data); };
+  rec.onstop = function(){ finishExport(st); };
+
+  $('#exportModal').classList.add('on');
+  $('#exportProgFill').style.width = '0%';
+  $('#exportPercent').textContent = '0%';
+  $('#exportFrameCount').textContent = 'Frame 0 / ' + total;
+  shuttleK();
+  rec.start(250);
+  st.t0 = performance.now();
+
+  function tick(now){
+    if(EXPORT !== st || st.ending) return;
+    var f = Math.min(st.total, Math.floor(((now - st.t0) / 1000) * FPS));
+    if(f !== st.last){
+      st.last = f;
+      PLAY_FRAME = f;
+      expRender(f);
+      updatePlayhead();
+      var pct = Math.round((f / st.total) * 100);
+      $('#exportProgFill').style.width = pct + '%';
+      $('#exportPercent').textContent = pct + '%';
+      $('#exportFrameCount').textContent = 'Frame ' + f + ' / ' + st.total;
+    }
+    if(f >= st.total){ expEnd(true); return; }
+    st.raf = requestAnimationFrame(tick);
+  }
+  st.raf = requestAnimationFrame(tick);
+}
+
+$('#btnExportVideo').onclick = expStart;
+$('#btnCancelExport').onclick = function(){ expEnd(false); };
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape' && EXPORT){ expEnd(false); }
+});
+
+/* Boot additions */
+applyLayout();
+wireGutters();
+updateSourceScrubber();
+updateProgramScrubber(PLAY_FRAME);
+
+/* Phone bottom bar: default tools, and clip tools that change with the tapped video or audio clip */
+var SEL = null;
+function selectClip(tk, c){
+  SEL = { tk: tk, c: c, kind: (tk === 'a1' || tk === 'a2') ? 'audio' : 'video' };
+  renderTimeline();
+  renderPhoneBar();
+}
+function clearSel(){ SEL = null; renderTimeline(); renderPhoneBar(); }
+function deleteSel(){
+  if(!SEL) return;
+  var arr = TRACKS[SEL.tk], i = arr.indexOf(SEL.c);
+  if(i >= 0) arr.splice(i, 1);
+  toast('Clip removed');
+  SEL = null; renderTimeline(); updatePlayhead(); renderPhoneBar();
+}
+function pbBtn(icon, label, fn, cls){
+  return '<button class="pb-btn '+(cls||'')+'" data-pb="'+label+'"><i class="'+icon+'"></i>'+label+'</button>';
+}
+function renderPhoneBar(){
+  var bar = document.getElementById('phoneBar'); if(!bar) return;
+  var cur = ACTIVE_TOOL;
+  var h = '';
+  if(SEL){
+    var nm = (SEL.c && SEL.c.name) ? SEL.c.name : 'Clip';
+    h += '<span class="pb-name">'+esc(nm)+'</span>';
+    h += pbBtn('fa-solid fa-arrow-pointer', 'Select', 1, cur==='select'?'on':'');
+    h += pbBtn('fa-solid fa-scissors', 'Razor', 1, cur==='razor'?'on':'');
+    h += pbBtn('fa-solid fa-arrows-left-right', 'Trim', 1, cur==='trim'?'on':'');
+    if(SEL.kind === 'video') h += pbBtn('fa-solid fa-circle-info', 'Info', 1);
+    else h += pbBtn('fa-solid fa-volume-high', 'Level', 1);
+    h += pbBtn('fa-solid fa-trash', 'Delete', 1, 'danger');
+    h += pbBtn('fa-solid fa-xmark', 'Done', 1);
+  } else {
+    h += pbBtn('fa-solid fa-circle-plus', 'Ingest', 1);
+    h += pbBtn('fa-solid fa-arrow-pointer', 'Select', 1, cur==='select'?'on':'');
+    h += pbBtn('fa-solid fa-scissors', 'Razor', 1, cur==='razor'?'on':'');
+    h += pbBtn('fa-solid fa-arrows-left-right', 'Trim', 1, cur==='trim'?'on':'');
+    h += '<span class="pb-sep"></span>';
+    h += pbBtn('fa-solid fa-wave-square', 'Bars', 1);
+    h += pbBtn('fa-solid fa-file-export', 'Export', 1);
+  }
+  bar.innerHTML = h;
+  bar.querySelectorAll('.pb-btn').forEach(function(btn){
+    btn.onclick = function(){ phoneBarAction(btn.getAttribute('data-pb')); };
+  });
+}
+function phoneBarAction(label){
+  if(label === 'Select' || label === 'Razor' || label === 'Trim'){ setTool(label.toLowerCase()); renderPhoneBar(); return; }
+  if(label === 'Ingest'){ var b = document.getElementById('btnQuickImport'); if(b) b.click(); return; }
+  if(label === 'Bars'){ var g = document.getElementById('btnGenBars'); if(g) g.click(); return; }
+  if(label === 'Export'){ var e = document.getElementById('btnExportVideo'); if(e) e.click(); return; }
+  if(label === 'Delete'){ deleteSel(); return; }
+  if(label === 'Done'){ clearSel(); return; }
+  if(label === 'Info' && SEL){ toast((SEL.c.name||'Clip') + ' · ' + SEL.c.durationFrames + ' frames'); return; }
+  if(label === 'Level' && SEL){ toast('Level control is on the desktop inspector'); return; }
+}
+/* ---- phone chrome: menu, Save, note composer, options and notes sheets ---- */
+var PH_NOTES_KEY='posthub_quick_notes', PH_TIMELINE_KEY='posthub_timeline_v1';
+function phSheetOn(on){ document.getElementById('m-sheet').classList.toggle('on',on); document.getElementById('m-scrim').classList.toggle('on',on); }
+function phReadNotes(){ try{ return JSON.parse(localStorage.getItem(PH_NOTES_KEY))||[]; }catch(e){ return []; } }
+function phWriteNotes(l){ try{ localStorage.setItem(PH_NOTES_KEY, JSON.stringify(l)); return true; }catch(e){ return false; } }
+function phDeskItems(){
+  var items=[{label:'Tiles',icon:'fa-solid fa-border-all',run:function(){ document.getElementById('btnLaunchpad').click(); }}];
+  TILES_DEF.forEach(function(t){
+    if(t.id==='suite') return;
+    items.push({label:t.title,icon:t.icon,run:function(){ openDeskDetail(t.id); }});
+  });
+  items.push({label:'Export video',icon:'fa-solid fa-file-export',run:function(){ document.getElementById('btnExportVideo').click(); }});
+  items.push({label:'Notes ('+phReadNotes().length+')',icon:'fa-solid fa-note-sticky',run:function(){ phOpenNotes(); }});
+  return items;
+}
+function phOpenOptions(){
+  var s=document.getElementById('m-sheet'), items=phDeskItems();
+  s.innerHTML='<div class="ms-grip"></div><div class="ms-title">Post-production options</div>'+items.map(function(it,i){return '<button class="ms-item" data-i="'+i+'"><i class="'+it.icon+'"></i><span>'+esc(it.label)+'</span></button>';}).join('');
+  s.querySelectorAll('.ms-item').forEach(function(b){ b.onclick=function(){ phSheetOn(false); items[+b.getAttribute('data-i')].run(); }; });
+  phSheetOn(true);
+}
+function phOpenNotes(){
+  var s=document.getElementById('m-sheet'), list=phReadNotes();
+  s.innerHTML='<div class="ms-grip"></div><div class="ms-title">Notes ('+list.length+')</div>'+
+    (list.length? list.map(function(n){ return '<div class="ms-note">'+esc(n.text)+'<small>'+esc(new Date(n.at).toLocaleString())+'</small></div>'; }).join('')
+                : '<div class="ms-note">No notes yet. Use the bar at the bottom to add one.</div>')+
+    '<button class="ms-save" id="ms-clear">'+(list.length?'Clear notes':'Close')+'</button>';
+  var c=document.getElementById('ms-clear'), armed=false;
+  c.onclick=function(){
+    if(!list.length){ phSheetOn(false); return; }
+    if(!armed){ armed=true; c.textContent='Tap again to clear all notes'; return; }
+    phWriteNotes([]); phSheetOn(false); toast('Notes cleared');
+  };
+  phSheetOn(true);
+}
+function phOpenText(){
+  var s=document.getElementById('m-sheet');
+  s.innerHTML='<div class="ms-grip"></div><div class="ms-title">Add a note</div><textarea id="mt-text" placeholder="Write a note…"></textarea><button class="ms-save" id="mt-save">Save note</button>';
+  document.getElementById('mt-save').onclick=function(){
+    var t=(document.getElementById('mt-text').value||'').trim(); if(!t) return;
+    var list=phReadNotes(); list.unshift({text:t,at:Date.now()});
+    if(phWriteNotes(list)) toast('Note saved'); else toast('Could not save note', 'bad');
+    phSheetOn(false);
+  };
+  phSheetOn(true); setTimeout(function(){ var x=document.getElementById('mt-text'); if(x) x.focus(); },50);
+}
+function phSaveTimeline(){
+  try{ localStorage.setItem(PH_TIMELINE_KEY, JSON.stringify(TRACKS)); toast('Timeline saved'); }
+  catch(e){ toast('Timeline too large to save in this browser', 'bad'); }
+}
+function phRestoreTimeline(){
+  try{
+    var saved=JSON.parse(localStorage.getItem(PH_TIMELINE_KEY)||'null');
+    if(saved && saved.v1 && saved.a1){ TRACKS=saved; renderTimeline(); updatePlayhead(); }
+  }catch(e){}
+}
+document.getElementById('mb-menu').onclick=function(){ document.getElementById('btnLaunchpad').click(); };
+document.getElementById('mb-save').onclick=phSaveTimeline;
+document.getElementById('mc-pill').onclick=phOpenText;
+document.getElementById('mc-plus').onclick=phOpenOptions;
+document.getElementById('m-scrim').onclick=function(){ phSheetOn(false); };
+function phSync(){ document.body.classList.toggle('m-inside', !document.getElementById('launchpadModal').classList.contains('on')); }
+new MutationObserver(phSync).observe(document.getElementById('launchpadModal'),{attributes:true,attributeFilter:['class']});
+phSync();
+phRestoreTimeline();
+(function mountPhoneBar(){
+  var g = document.getElementById('mainGrid'); if(!g || document.getElementById('phoneBar')) return;
+  var bar = document.createElement('div'); bar.id = 'phoneBar';
+  g.appendChild(bar);
+  renderPhoneBar();
+})();
+
+})();
+</script>
+<script>
+/* back-to-landing navigation. Links back to the landing page. Resolve against this document's own address and, when embedded, move the top window there instead. */
+function hubGo(page, ev){
+  if(ev && ev.preventDefault) ev.preventDefault();
+  var u = page;
+  try { u = new URL(page, location.href).href; } catch(e) {}
+  var emb = false; try { emb = window.self !== window.top; } catch(e) { emb = true; }
+  if(emb){ try { window.top.location.href = u; return; } catch(e) {} }
+  try { location.href = u; } catch(e) {}
+}
+</script>
+<button id="mob-tiles-btn" onclick="document.getElementById('btnLaunchpad').click()" aria-label="Tiles"><i class="fa-solid fa-border-all"></i><span>TILES</span></button>
+<script>
+/* Phone: start on the tile home. Desktop keeps the editor as its first screen. */
+(function(){
+  if(window.innerWidth<=768){ var b=document.getElementById('btnLaunchpad'); if(b) b.click(); }
+})();
+</script>
+<script>
+/* phone: each tile gets a resize handle that toggles it between half and full width */
+(function(){
+  var KEY='posthub_tiles_v1', SEL='#tilesMount';
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } }
+  function save(o){ try{ localStorage.setItem(KEY, JSON.stringify(o)); }catch(e){} }
+  function decorate(){
+    var saved=load();
+    document.querySelectorAll(SEL+' .mtile').forEach(function(t){
+      if(t.dataset.rzDone) return;
+      t.dataset.rzDone='1';
+      var key=((t.querySelector('.mtit')||{}).textContent||'').trim();
+      var h=document.createElement('button');
+      h.type='button'; h.className='mt-rz'; h.setAttribute('aria-label','Resize tile'); h.textContent='\u2194';
+      h.addEventListener('click', function(e){
+        e.stopPropagation(); e.preventDefault();
+        var w=!t.classList.contains('mt-wide'); t.classList.toggle('mt-wide', w);
+        var o=load(); o[key]=w; save(o);
+      });
+      t.appendChild(h);
+      if(saved[key]) t.classList.add('mt-wide');
+    });
+  }
+  decorate();
+  new MutationObserver(decorate).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
+<script>
+/* desktop board: fit the grid to the window and let tiles resize within it */
+(function(){
+  var SEL='#tilesMount', KEY='posthub_board_v2', C=3, PAD=36;
+  var SIZES=[[1,1],[2,1],[1,2],[2,2]];
+  function desk(){ return window.innerWidth>768; }
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } }
+  function save(o){ try{ localStorage.setItem(KEY,JSON.stringify(o)); }catch(e){} }
+  function grid(){ return document.querySelector(SEL); }
+  function tiles(g){ return Array.prototype.slice.call(g.querySelectorAll('.mtile')); }
+  function title(t){ var m=t.querySelector('.mtit'); return m?m.textContent.trim():''; }
+  function fits(g){
+    var gr=g.getBoundingClientRect(), ok=true;
+    tiles(g).forEach(function(t){ var r=t.getBoundingClientRect(); if(r.bottom>gr.bottom+1||r.right>gr.right+1) ok=false; });
+    return ok;
+  }
+  function place(){
+    if(!desk()) return;
+    var g=grid(); if(!g) return;
+    var box=g.getBoundingClientRect();
+    if(box.height===0 && box.width===0) return;
+    var n=tiles(g).length, R=Math.max(1,Math.ceil(n/C));
+    var below=parseFloat(getComputedStyle(g).marginBottom)||0;
+    var el=g.nextElementSibling;
+    while(el){ var cs=getComputedStyle(el); if(cs.display!=='none' && cs.position!=='fixed'){ below+=el.getBoundingClientRect().height+(parseFloat(cs.marginTop)||0)+(parseFloat(cs.marginBottom)||0); } el=el.nextElementSibling; }
+    g.style.height=Math.max(240, window.innerHeight-box.top-below-PAD)+'px';
+    g.style.gridTemplateColumns='repeat('+C+', minmax(0,1fr))';
+    g.style.gridTemplateRows='repeat('+R+', minmax(0,1fr))';
+    g.style.gridAutoRows='minmax(0,1fr)';
+    g.style.gridAutoFlow='dense';
+    g.style.overflow='hidden';
+    var saved=load();
+    tiles(g).forEach(function(t){ var s=saved[title(t)]||[1,1]; t.style.setProperty('--w',s[0]); t.style.setProperty('--h',s[1]); });
+    if(!fits(g)){
+      tiles(g).forEach(function(t){ t.style.setProperty('--w',1); t.style.setProperty('--h',1); });
+      save({});
+    }
+  }
+  document.addEventListener('click', function(e){
+    var h=e.target.closest && e.target.closest('.mt-rz'); if(!h || !desk()) return;
+    e.stopImmediatePropagation(); e.preventDefault(); e.stopPropagation();
+    var t=h.closest('.mtile'), g=t.parentNode;
+    var w=parseInt(t.style.getPropertyValue('--w'))||1, hh=parseInt(t.style.getPropertyValue('--h'))||1;
+    var idx=0; for(var i=0;i<SIZES.length;i++){ if(SIZES[i][0]===w&&SIZES[i][1]===hh){ idx=i; break; } }
+    for(var k=1;k<=SIZES.length;k++){
+      var s=SIZES[(idx+k)%SIZES.length];
+      t.style.setProperty('--w',s[0]); t.style.setProperty('--h',s[1]);
+      if(fits(g)){ var o=load(); o[title(t)]=s; save(o); return; }
+    }
+    t.style.setProperty('--w',w); t.style.setProperty('--h',hh);
+  }, true);
+  window.addEventListener('resize', place);
+  setTimeout(place, 50);
+  new MutationObserver(function(){ place(); }).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
+<script>
+function hdrToggle(force){var d=document.getElementById('hdrDrawer'),sc=document.getElementById('hdr-scrim');if(!d)return;var on=typeof force==='boolean'?force:!d.classList.contains('open');d.classList.toggle('open',on);if(sc)sc.classList.toggle('on',on);}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')hdrToggle(false);});
+</script>
+<!-- PF:BEGIN -->
+<style id="pf-style">
+/* ==== Phone frame ====================================================
+   One film-strip border that always matches the visible screen. On phones
+   the page itself never scrolls: everything happens inside the frame.
+   Desktop is untouched (the frame only switches on through html.pf-on).
+   data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='18' viewBox='0 0 12 18'%3E%3Crect x='3' y='4.5' width='6' height='9' rx='1.6' fill='%23C9C2B4' fill-opacity='.82'/%3E%3C/svg%3E, data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M7 3v18M17 3v18M3 7.5h4M3 12h4M3 16.5h4M17 7.5h4M17 12h4M17 16.5h4'/%3E%3C/svg%3E, data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E, data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 11h16v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z'/%3E%3Cpath d='m4 11-.9-3.4a1 1 0 0 1 .7-1.2L17 3l1.1 3.9z'/%3E%3Cpath d='m7.6 5.6 3 3.3M12.5 4.3l3 3.3'/%3E%3C/svg%3E, data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='6' cy='6' r='3'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Cpath d='M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12'/%3E%3C/svg%3E are filled in by
+   build/inject_frame.py with url-encoded SVG.
+   ===================================================================== */
+:root{
+  --pf-base:#0D0F14;           /* film base */
+  --pf-perf:#C9C2B4;           /* sprocket holes */
+  --pf-lime:#A3E635;           /* logo lime: the frame's one hairline */
+  --pf-paper:#F3F0E8;          /* label bubble */
+  --pf-sl:max(12px, env(safe-area-inset-left, 0px));
+  --pf-sr:max(12px, env(safe-area-inset-right, 0px));
+  --pf-bt:max(8px, env(safe-area-inset-top, 0px));
+  --pf-bb:max(8px, env(safe-area-inset-bottom, 0px));
+  --pf-head:52px;
+}
+.tilenav .hn[data-hub="film"]{--pf-i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cpath d='M7 3v18M17 3v18M3 7.5h4M3 12h4M3 16.5h4M17 7.5h4M17 12h4M17 16.5h4'/%3E%3C/svg%3E");}
+.tilenav .hn[data-hub="pre"]{--pf-i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");}
+.tilenav .hn[data-hub="pro"]{--pf-i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 11h16v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z'/%3E%3Cpath d='m4 11-.9-3.4a1 1 0 0 1 .7-1.2L17 3l1.1 3.9z'/%3E%3Cpath d='m7.6 5.6 3 3.3M12.5 4.3l3 3.3'/%3E%3C/svg%3E");}
+.tilenav .hn[data-hub="post"]{--pf-i:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='6' cy='6' r='3'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Cpath d='M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12'/%3E%3C/svg%3E");}
+.pf-wrap{display:contents;}
+/* the menu button: same on every hub and every width, drawn without an icon font */
+.hdr-burger{background:transparent!important;border:0!important;color:#C9D3E0!important;cursor:pointer;
+  display:inline-flex!important;align-items:center;justify-content:center;border-radius:7px!important;}
+.hdr-burger:hover{color:#fff!important;background:#131B2C!important;}
+.hdr-burger:focus-visible{outline:2px solid var(--pf-lime);outline-offset:1px;}
+.hdr-burger > i{display:none!important;}
+.hdr-burger::before{content:"";width:20px;height:20px;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16M4 12h16M4 17h16'/%3E%3C/svg%3E") center/20px 20px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7h16M4 12h16M4 17h16'/%3E%3C/svg%3E") center/20px 20px no-repeat;}
+.pf-proxy{display:none!important;}
+
+/* the strip: sprocket holes down both edges, scaled to any height */
+html.pf-on{
+  height:100%!important;overflow:hidden!important;overscroll-behavior:none;
+  background-color:var(--pf-base)!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='18' viewBox='0 0 12 18'%3E%3Crect x='3' y='4.5' width='6' height='9' rx='1.6' fill='%23C9C2B4' fill-opacity='.82'/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='18' viewBox='0 0 12 18'%3E%3Crect x='3' y='4.5' width='6' height='9' rx='1.6' fill='%23C9C2B4' fill-opacity='.82'/%3E%3C/svg%3E")!important;
+  background-position:left top,right top!important;
+  background-size:12px 18px,12px 18px!important;
+  background-repeat:repeat-y,repeat-y!important;
+}
+/* the window inside the strip; position:fixed + transform makes it the
+   containing block for every fixed bar, sheet and drawer of the app */
+html.pf-on body{
+  position:fixed!important;inset:auto!important;
+  left:var(--pf-sl)!important;right:var(--pf-sr)!important;
+  top:calc(var(--pf-vt,0px) + var(--pf-bt))!important;
+  height:calc(var(--pf-vh,100dvh) - var(--pf-bt) - var(--pf-bb))!important;
+  width:auto!important;min-height:0!important;max-height:none!important;
+  margin:0!important;padding:0!important;overflow:hidden!important;
+  transform:translateZ(0);border-radius:10px;
+  box-shadow:0 0 0 1px rgba(163,230,53,.6),0 0 22px rgba(163,230,53,.10);
+  overscroll-behavior:none;
+}
+/* inside a screen the frame takes the colour of the tile that opened it:
+   a thin border holding that screen in place */
+html.pf-on body.m-inside{box-shadow:0 0 0 2px var(--pf-edge,var(--pf-lime)),0 0 22px color-mix(in srgb,var(--pf-edge,var(--pf-lime)) 18%,transparent);}
+html.pf-on .pf-wrap{display:block;}
+html.pf-on .pf-main{
+  position:absolute!important;left:0!important;right:0!important;
+  top:var(--pf-head)!important;bottom:var(--pf-foot,0px)!important;
+  height:auto!important;min-height:0!important;max-height:none!important;width:auto!important;
+  margin:0!important;overflow-x:hidden!important;overflow-y:auto!important;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+}
+
+/* views fill the frame exactly and scroll inside it (the phone CSS sized
+   them to the whole screen with 100svh, which is taller than the frame) */
+html.pf-on .pf-main > .mw{height:100%!important;min-height:0!important;}
+html.pf-on .pf-main .vs{min-height:0!important;}
+html.pf-on .pf-main .vs.ac{height:100%!important;}
+
+/* one header row: menu, logo, four hub icons; tools live in the drawer */
+html.pf-on .hdr-bar{
+  position:absolute!important;top:0!important;left:0!important;right:0!important;width:auto!important;
+  height:var(--pf-head)!important;min-height:0!important;max-height:none!important;
+  flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;
+  padding:0 8px!important;gap:6px!important;row-gap:0!important;z-index:1100!important;
+}
+html.pf-on .hdr-bar .hdr-sub,html.pf-on .hdr-bar .hdr-stage,html.pf-on .hdr-bar .hdr-spacer{display:none!important;}
+html.pf-on .hdr-bar .hdr-col{flex:0 1 auto!important;min-width:0!important;}
+html.pf-on .hdr-bar .hdr-row ~ *{display:none!important;}  /* logo only: no project line under it */
+html.pf-on .hdr-bar .hdr-logo{font-size:21px!important;}
+html.pf-on .hdr-bar :has(> .tilenav){margin-left:auto!important;display:flex!important;flex-wrap:nowrap!important;max-width:none!important;}
+html.pf-on .hdr-bar .tilenav{display:inline-flex!important;flex-wrap:nowrap!important;gap:4px!important;margin-left:auto!important;}
+html.pf-on .tilenav .hn{
+  font-size:0!important;letter-spacing:0!important;line-height:0!important;
+  width:36px!important;height:36px!important;padding:0!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  border-radius:7px!important;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;
+}
+html.pf-on .tilenav .hn::before{
+  content:"";width:20px;height:20px;background:currentColor;
+  -webkit-mask:var(--pf-i) center/20px 20px no-repeat;mask:var(--pf-i) center/20px 20px no-repeat;
+}
+html.pf-on .tilenav .hn.on{color:var(--pf-base)!important;background:var(--pf-lime)!important;border-color:var(--pf-lime)!important;}
+html.pf-on .hdr-drawer .pf-dup{display:none!important;}
+
+/* header tools moved into the drawer on phones */
+.pf-tools{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:12px 10px 18px;margin-top:8px;border-top:1px solid #1B2335;}
+.pf-tools[hidden]{display:none!important;}
+.pf-tools-h{width:100%;font:700 10px/1 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:#6B7A90;padding:0 2px 4px;}
+.pf-tools > *:not(.pf-tools-h){margin:0!important;max-width:100%;}
+
+/* dashboard blocks that do not fit the frame */
+html.pf-on .pf-hide{display:none!important;}
+/* on a dashboard the tiles are already on screen; the TILES shortcut is for screens */
+html.pf-on body:not(.m-inside) #mob-tiles-btn{display:none!important;}
+html.pf-on .pf-wrap > .pf-grid{margin:0 8px!important;}
+
+/* metro grid: every tile on one screen, icons only */
+html.pf-on .pf-grid{
+  display:grid!important;
+  grid-template-columns:repeat(var(--pf-cols,2),minmax(0,1fr))!important;
+  grid-template-rows:repeat(var(--pf-rows,4),minmax(0,1fr))!important;
+  grid-auto-rows:minmax(0,1fr)!important;grid-auto-flow:row dense!important;
+  gap:6px!important;height:var(--pf-gh,auto)!important;
+  min-height:0!important;max-height:none!important;width:auto!important;max-width:none!important;
+  margin:0!important;padding:0!important;align-content:stretch!important;
+}
+html.pf-on .pf-grid > *{
+  min-height:0!important;min-width:0!important;height:auto!important;width:auto!important;
+  margin:0!important;padding:0!important;display:flex!important;flex-direction:column!important;
+  align-items:center!important;justify-content:center!important;
+  border-radius:3px!important;overflow:hidden!important;position:relative!important;
+  transform:none!important;box-shadow:none!important;
+  -webkit-touch-callout:none;user-select:none;-webkit-user-select:none;
+}
+html.pf-on .pf-grid > *:active{filter:brightness(1.12);}
+html.pf-on .pf-grid > *:focus-visible{outline:2px solid var(--pf-lime)!important;outline-offset:-3px;}
+html.pf-on .pf-grid :is(.mtit,.msub,.mbadge,.mt-rz,.tagx2,.tl,.ts){display:none!important;}
+html.pf-on .pf-grid .micon{
+  width:auto!important;height:auto!important;flex:none!important;margin:0!important;padding:0!important;
+  background:none!important;border:0!important;box-shadow:none!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  font-size:30px!important;line-height:1!important;color:#fff!important;
+}
+html.pf-on .pf-grid .micon i{font-size:inherit!important;}
+html.pf-on .pf-grid > .pf-hero .micon{font-size:48px!important;}
+html.pf-on .pf-grid .row{justify-content:center!important;}
+html.pf-on .pf-grid .ic{width:34px!important;height:34px!important;}
+html.pf-on .pf-grid > .pf-hero .ic{width:52px!important;height:52px!important;}
+
+/* Post-production launchpad sits under the header, inside the frame */
+html.pf-on #launchpadModal{top:var(--pf-head)!important;padding:8px!important;backdrop-filter:none!important;background:#05070C!important;}
+html.pf-on #launchpadModal > .tiles{margin:0!important;}
+
+/* the screen title bar shows the hub logo */
+#m-bar .mb-title.hdr-logo{font-family:'Bauhaus 93','Bauhaus','Bauhaus Bold',Impact,sans-serif!important;font-weight:700!important;
+  font-size:21px!important;letter-spacing:0!important;text-transform:none!important;color:#fff!important;cursor:pointer;}
+#m-bar .mb-title.hdr-logo .pre{color:var(--pf-lime);}
+
+/* side-by-side panels stack into full-width boxes, edged in the screen's colour */
+html.pf-on .pf-stack{
+  display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;align-items:stretch!important;
+  gap:10px!important;height:auto!important;max-height:none!important;overflow:visible!important;
+  grid-template-columns:none!important;padding:8px!important;
+}
+html.pf-on .pf-stack > *{
+  width:auto!important;max-width:none!important;min-width:0!important;flex:none!important;
+  height:auto!important;max-height:none!important;min-height:280px;
+  border:1px solid color-mix(in srgb,var(--pf-edge,#1F2A3F) 45%,#1F2A3F)!important;border-radius:8px!important;
+}
+html.pf-on .pf-unclip{overflow:visible!important;max-height:none!important;}
+
+/* a tapped tile grows to fill the frame, then fades to show its screen */
+.pf-zoom{position:fixed;z-index:3500;pointer-events:none;border-radius:3px;
+  transition:left .24s cubic-bezier(.2,.7,.2,1),top .24s cubic-bezier(.2,.7,.2,1),width .24s cubic-bezier(.2,.7,.2,1),height .24s cubic-bezier(.2,.7,.2,1),border-radius .24s,opacity .18s ease .26s;}
+.pf-zoom.go{border-radius:10px;opacity:0;}
+@media (prefers-reduced-motion:reduce){.pf-zoom{display:none!important;}}
+
+/* long-press label (words as tooltips) */
+#pf-tip{
+  position:fixed;z-index:4000;pointer-events:none;left:0;top:0;
+  background:var(--pf-paper);color:var(--pf-base);
+  font:600 13px/1.2 'IBM Plex Mono',ui-monospace,monospace;
+  padding:7px 10px;border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.45);white-space:nowrap;
+  opacity:0;transform:translate(-50%,-100%) scale(.96);transition:opacity .12s,transform .12s;
+}
+#pf-tip.below{transform:translate(-50%,0) scale(.96);}
+#pf-tip.on{opacity:1;transform:translate(-50%,-100%) scale(1);}
+#pf-tip.below.on{transform:translate(-50%,0) scale(1);}
+@media (prefers-reduced-motion:reduce){#pf-tip{transition:none;}}
+
+</style>
+<script>window.PF_CONFIG={"grid": "#tilesMount", "main": ".workspace", "drawer": "#hdrDrawer", "tileClass": "mtile", "homeClick": "#btnLaunchpad", "hide": ["#launchpadModal > :first-child"], "proxies": [{"label": "Back to the edit desk", "icon": "fa-solid fa-film", "click": "#btnCloseLaunchpad", "color": "#0E7C7B"}]};</script>
+<script id="pf-script">
+/* Phone frame: one film-strip border that follows the visible screen.
+   Config comes from window.PF_CONFIG, set per hub by build/inject_frame.py:
+     grid     tile grid selector          drawer   where header tools go on phones
+     main     main region selector        hide     dashboard blocks hidden on phones
+     proxies  extra tiles for actions that live in hidden blocks */
+(function(){
+  if (window.__pfFrame) return; window.__pfFrame = true;
+  var C = window.PF_CONFIG || {};
+  var root = document.documentElement;
+  var MQ = window.matchMedia('(max-width:768px), (max-height:500px) and (pointer:coarse)');
+  var on = false, moved = [], wrap = null, mainEl = null, raf = 0, styled = [];
+
+  function $(s, r){ try { return (r || document).querySelector(s); } catch (e) { return null; } }
+  function $$(s, r){ try { return Array.prototype.slice.call((r || document).querySelectorAll(s)); } catch (e) { return []; } }
+  function addCls(el, c){ if (el && !el.classList.contains(c)) el.classList.add(c); }
+  function remCls(el, c){ if (el && el.classList.contains(c)) el.classList.remove(c); }
+  function header(){ return $('.hdr-bar'); }
+
+  /* the frame follows the visual viewport, so it contracts above the keyboard */
+  function setViewport(){
+    var v = window.visualViewport;
+    root.style.setProperty('--pf-vh', (v ? v.height : window.innerHeight) + 'px');
+    root.style.setProperty('--pf-vt', (v ? v.offsetTop : 0) + 'px');
+  }
+
+  /* words become tooltips: title for pointers, aria-label for screen readers */
+  function labelOf(t){
+    var e = t.querySelector('.mtit, .tl');
+    return (t.getAttribute('data-pf-label') || (e && e.textContent) || t.getAttribute('aria-label') || '').trim();
+  }
+  function labelAll(){
+    if (C.grid) $$(C.grid + ' > *').forEach(function(t){
+      var s = labelOf(t);
+      if (s && t.getAttribute('aria-label') !== s){ t.setAttribute('aria-label', s); t.setAttribute('title', s); }
+    });
+    $$('.tilenav .hn').forEach(function(a){
+      var s = a.textContent.trim();
+      if (s && a.getAttribute('aria-label') !== s) a.setAttribute('aria-label', s);
+    });
+    var bg = $('.hdr-burger');
+    if (bg && !bg.getAttribute('aria-label')) bg.setAttribute('aria-label', 'Menu');
+  }
+
+  /* actions that lived in hidden dashboard blocks come back as tiles */
+  function addProxies(){
+    var g = C.grid && $(C.grid);
+    if (!g || !C.proxies) return;
+    C.proxies.forEach(function(p, i){
+      if (g.querySelector('[data-pf-proxy="' + i + '"]')) return;
+      var t = document.createElement('div');
+      t.className = (C.tileClass || 'mtile') + ' pf-proxy';
+      t.setAttribute('data-pf-proxy', String(i));
+      t.setAttribute('data-pf-label', p.label);
+      t.setAttribute('role', 'button');
+      t.tabIndex = 0;
+      if (p.color) t.style.background = p.color;
+      t.innerHTML = '<div class="micon"><i class="' + p.icon + '"></i></div><div><div class="mtit"></div></div>';
+      t.querySelector('.mtit').textContent = p.label;
+      var go = function(){
+        if (p.click){ var b = $(p.click); if (b) b.click(); }
+        if (p.fn && typeof window[p.fn] === 'function') window[p.fn]();
+      };
+      t.addEventListener('click', go);
+      t.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } });
+      g.appendChild(t);
+    });
+  }
+
+  /* header tools move into the drawer on phones and come back on desktop */
+  function keep(el){
+    return el.classList.contains('hdr-burger') || el.classList.contains('hdr-slot') || el.classList.contains('hdr-col') ||
+           el.classList.contains('mob-menu-btn') || el.classList.contains('tilenav') ||
+           el.classList.contains('hdr-logo') || !!el.querySelector('.hdr-logo');
+  }
+  function moveTools(){
+    var h = header(), d = C.drawer && $(C.drawer);
+    if (!h || !d || moved.length) return;
+    var box = d.querySelector(':scope > .pf-tools');
+    if (!box){
+      box = document.createElement('div'); box.className = 'pf-tools';
+      box.innerHTML = '<div class="pf-tools-h">Tools</div>';
+      d.appendChild(box);
+    }
+    var units = [];
+    Array.prototype.slice.call(h.children).forEach(function(c){
+      if (keep(c)) return;
+      if (c.querySelector('.tilenav')){
+        Array.prototype.slice.call(c.children).forEach(function(cc){
+          if (!keep(cc) && !cc.querySelector('.tilenav')) units.push(cc);
+        });
+      } else units.push(c);
+    });
+    units.forEach(function(u){
+      var mark = document.createComment('pf-tool');
+      u.parentNode.insertBefore(mark, u);
+      box.appendChild(u);
+      moved.push([u, mark]);
+    });
+    box.hidden = !units.length;
+  }
+  function restoreTools(){
+    moved.forEach(function(p){
+      if (p[1].parentNode){ p[1].parentNode.insertBefore(p[0], p[1]); p[1].parentNode.removeChild(p[1]); }
+    });
+    moved = [];
+    $$('.pf-tools').forEach(function(b){ b.hidden = true; });
+  }
+
+  /* the region under the header scrolls inside the frame, never the page */
+  function findMain(){
+    if (C.main){ var m = $(C.main); if (m) return m; }
+    var h = header();
+    if (!h) return null;
+    if (wrap) return wrap;
+    var sib = [], n = h.nextElementSibling;
+    while (n){
+      var nx = n.nextElementSibling;
+      if (!/^(SCRIPT|STYLE|TEMPLATE|NOSCRIPT|LINK|DIALOG)$/.test(n.tagName) && getComputedStyle(n).position !== 'fixed' && n.id !== 'pf-tip') sib.push(n);
+      n = nx;
+    }
+    if (!sib.length) return null;
+    wrap = document.createElement('div'); wrap.className = 'pf-wrap';
+    h.parentNode.insertBefore(wrap, sib[0]);
+    sib.forEach(function(s){ wrap.appendChild(s); });
+    return wrap;
+  }
+
+  /* fit every tile on one screen: pick the column count that keeps tiles
+     closest to square, give the first tile a 2x2 hero slot, and stretch the
+     last tile across any gap so the bottom row is always full */
+  function clearGrid(){
+    styled.forEach(function(t){
+      ['order', 'grid-column', 'grid-row'].forEach(function(k){ t.style.removeProperty(k); });
+      remCls(t, 'pf-hero');
+    });
+    styled = [];
+    $$('.pf-grid').forEach(function(g){
+      ['--pf-cols', '--pf-rows', '--pf-gh'].forEach(function(k){ g.style.removeProperty(k); });
+      remCls(g, 'pf-grid');
+    });
+  }
+  function fitGrid(){
+    var g = C.grid && $(C.grid);
+    if (!g || !g.getClientRects().length) return;
+    addCls(g, 'pf-grid');
+    var tiles = Array.prototype.slice.call(g.children).filter(function(t){
+      return !t.hidden && getComputedStyle(t).display !== 'none';
+    });
+    var n = tiles.length;
+    if (!n) return;
+    var hero = tiles.filter(function(t){ return t.classList.contains('hero'); })[0] || tiles[0];
+    var others = tiles.filter(function(t){ return t !== hero; });
+    var body = document.body.getBoundingClientRect(), gr = g.getBoundingClientRect();
+    var H = Math.max(140, Math.floor(body.bottom - gr.top - (C.bottomPad || 8)));
+    var W = g.clientWidth, gap = 6, cells = 4 + others.length, best = null;
+    [2, 3, 4].forEach(function(cols){
+      var rows = Math.ceil(cells / cols);
+      var w = (W - gap * (cols - 1)) / cols, h = (H - gap * (rows - 1)) / rows;
+      var score = Math.abs(Math.log(w / h)) + (rows < 2 ? 5 : 0);
+      if (!best || score < best.score) best = { cols: cols, rows: rows, score: score };
+    });
+    var spare = best.rows * best.cols - cells;
+    styled = tiles.slice();
+    hero.style.setProperty('order', '-1', 'important');
+    hero.style.setProperty('grid-column', 'span 2', 'important');
+    hero.style.setProperty('grid-row', 'span 2', 'important');
+    addCls(hero, 'pf-hero');
+    others.forEach(function(t, i){
+      remCls(t, 'pf-hero');
+      t.style.setProperty('order', String(i), 'important');
+      var span = (i === others.length - 1 && spare > 0) ? 1 + spare : 1;
+      t.style.setProperty('grid-column', 'span ' + span, 'important');
+      t.style.setProperty('grid-row', 'span 1', 'important');
+    });
+    g.style.setProperty('--pf-cols', String(best.cols));
+    g.style.setProperty('--pf-rows', String(best.rows));
+    g.style.setProperty('--pf-gh', H + 'px');
+    /* anything the wrappers add below the grid comes off the grid, so the
+       dashboard never scrolls */
+    var m = g.closest('.pf-main');
+    var extra = m ? m.scrollHeight - m.clientHeight : 0;
+    if (extra > 0) g.style.setProperty('--pf-gh', Math.max(140, H - extra) + 'px');
+  }
+
+  /* a tile's colour: its background colour, or the first colour of its gradient */
+  function tileColour(t){
+    if (!t) return '';
+    var cs = getComputedStyle(t), bg = cs.backgroundColor;
+    if (bg && !/rgba\(0, 0, 0, 0\)|transparent/.test(bg)) return bg;
+    var m = (cs.backgroundImage || '').match(/rgba?\([^)]+\)|#[0-9a-f]{3,8}\b/i);
+    return m ? m[0] : '';
+  }
+  var lastTile = '';
+  /* the border of the open screen takes the colour of the tile that opens it */
+  function setEdge(){
+    if (!document.body.classList.contains('m-inside')) return;
+    var v = $('.vs.ac'), id = v && v.id ? v.id.replace(/^v-/, '') : '';
+    var t = (id && C.grid) ? $(C.grid + ' > [onclick*="sw(\'' + id + '\')"]') : null;
+    var c = t ? tileColour(t) : '';
+    if (!c) return;   /* opened from somewhere else: keep the colour of the last tile */
+    if (c && root.style.getPropertyValue('--pf-edge') !== c) root.style.setProperty('--pf-edge', c);
+  }
+  function zoom(t){
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var b = document.body.getBoundingClientRect(), r = t.getBoundingClientRect();
+    var z = document.createElement('div');
+    z.className = 'pf-zoom';
+    z.style.background = getComputedStyle(t).background || lastTile;
+    z.style.left = (r.left - b.left) + 'px'; z.style.top = (r.top - b.top) + 'px';
+    z.style.width = r.width + 'px'; z.style.height = r.height + 'px';
+    document.body.appendChild(z);
+    z.getBoundingClientRect();
+    z.style.left = '0px'; z.style.top = '0px'; z.style.width = b.width + 'px'; z.style.height = b.height + 'px';
+    z.classList.add('go');
+    setTimeout(function(){ if (z.parentNode) z.parentNode.removeChild(z); }, 520);
+  }
+  document.addEventListener('click', function(e){
+    if (!on || !e.target.closest) return;
+    var t = e.target.closest('.pf-grid > *');
+    if (!t) return;
+    lastTile = tileColour(t) || lastTile;
+    if (lastTile) root.style.setProperty('--pf-edge', lastTile);
+    zoom(t);
+  });
+
+  /* side-by-side panels in a screen become stacked boxes on phones */
+  var stackKey = '', stacked = [], unclipped = [], stackTimer = 0;
+  var NO_STACK = '.pf-grid, #mainGrid, table, canvas, svg, .hdr-bar, #m-bar, #m-composer, #m-sheet, .hdr-drawer, .psb, #pf-tip';
+  function clearStack(){
+    stacked.forEach(function(e){ remCls(e, 'pf-stack'); });
+    unclipped.forEach(function(e){ remCls(e, 'pf-unclip'); });
+    stacked = []; unclipped = []; stackKey = '';
+  }
+  function visibleKids(e){
+    return Array.prototype.filter.call(e.children, function(c){
+      var s = getComputedStyle(c);
+      return s.display !== 'none' && s.position !== 'absolute' && s.position !== 'fixed' && c.getBoundingClientRect().height > 0;
+    });
+  }
+  function stackPanels(force){
+    if (!on || !document.body.classList.contains('m-inside')) return;
+    var view = $('.vs.ac') || mainEl;
+    if (!view) return;
+    var key = (view.id || 'main') + '|' + document.body.clientWidth;
+    if (!force && key === stackKey) return;
+    var fresh = key !== stackKey;
+    stackKey = key;
+    var W = view.getBoundingClientRect().width;
+    $$('*', view).forEach(function(e){
+      if (e.classList.contains('pf-stack') || (e.closest && e.closest(NO_STACK))) return;
+      var kids = visibleKids(e);
+      if (kids.length < 2 || kids.length > 4) return;
+      var er = e.getBoundingClientRect();
+      if (er.width < W * 0.6) return;
+      var rs = kids.map(function(k){ return k.getBoundingClientRect(); });
+      var side = rs.some(function(r, i){ return i > 0 && Math.abs(r.left - rs[0].left) > 40 && r.top < rs[0].bottom - 20; });
+      if (!side) return;
+      if (!rs.every(function(r){ return r.height > 120; })) return;
+      if (Math.min.apply(null, rs.map(function(r){ return r.width; })) > er.width * 0.5) return;
+      addCls(e, 'pf-stack'); stacked.push(e);
+      for (var a = e; a && a !== view; a = a.parentElement){
+        if (/(hidden|clip)/.test(getComputedStyle(a).overflowY)){ addCls(a, 'pf-unclip'); unclipped.push(a); }
+      }
+    });
+    /* screens often fill in after they open: look once more */
+    if (fresh){ clearTimeout(stackTimer); stackTimer = setTimeout(function(){ stackPanels(true); }, 450); }
+  }
+
+  function fit(){
+    raf = 0;
+    if (!on) return;
+    setEdge();
+    stackPanels(false);
+    setViewport();
+    var h = header();
+    var head = (h && getComputedStyle(h).display !== 'none') ? h.offsetHeight : 0, foot = 0;
+    /* inside a screen the screen sits between its top bar and the composer */
+    if (C.insetInside && document.body.classList.contains('m-inside')){
+      var mb = $('#m-bar'), mc = $('#m-composer');
+      if (mb && getComputedStyle(mb).display !== 'none') head = mb.offsetHeight;
+      if (mc && getComputedStyle(mc).display !== 'none') foot = mc.offsetHeight;
+    }
+    root.style.setProperty('--pf-head', (head || 0) + 'px');
+    root.style.setProperty('--pf-foot', foot + 'px');
+    labelAll();
+    addProxies();
+    fitGrid();
+  }
+  function schedule(){ if (!raf) raf = requestAnimationFrame(fit); }
+
+  function enable(){
+    if (on) return;
+    on = true;
+    addCls(root, 'pf-on');
+    (C.hide || []).forEach(function(s){ $$(s).forEach(function(e){ addCls(e, 'pf-hide'); }); });
+    mainEl = findMain();
+    addCls(mainEl, 'pf-main');
+    moveTools();
+    fit();
+  }
+  function disable(){
+    if (!on) return;
+    on = false;
+    remCls(root, 'pf-on');
+    remCls(mainEl, 'pf-main');
+    restoreTools();
+    clearGrid();
+    clearStack();
+    hideTip();
+  }
+  function sync(){ if (MQ.matches) enable(); else disable(); }
+
+  /* long-press shows the tile's name; a plain tap still opens it */
+  var tip = null, timer = 0, shown = false, suppress = false;
+  var TARGET = '.pf-grid > *, .hdr-bar .tilenav .hn, .hdr-bar .hdr-burger';
+  function tipEl(){
+    if (!tip){ tip = document.createElement('div'); tip.id = 'pf-tip'; tip.setAttribute('role', 'tooltip'); document.body.appendChild(tip); }
+    return tip;
+  }
+  function showTip(el){
+    var s = el.getAttribute('aria-label') || el.getAttribute('title');
+    if (!s) return;
+    var t = tipEl(), b = document.body.getBoundingClientRect(), r = el.getBoundingClientRect();
+    var x = Math.min(Math.max(r.left + r.width / 2 - b.left, 70), b.width - 70);
+    var below = (r.top - b.top) < 48;
+    t.textContent = s;
+    t.style.left = x + 'px';
+    t.style.top = (below ? (r.bottom - b.top + 8) : (r.top - b.top - 8)) + 'px';
+    if (below) addCls(t, 'below'); else remCls(t, 'below');
+    addCls(t, 'on'); shown = true;
+  }
+  function hideTip(){ if (tip) remCls(tip, 'on'); shown = false; }
+  document.addEventListener('pointerdown', function(e){
+    if (!on || !e.target.closest) return;
+    var el = e.target.closest(TARGET);
+    clearTimeout(timer);
+    if (!el) return;
+    suppress = false;
+    timer = setTimeout(function(){ showTip(el); suppress = true; }, 380);
+  }, true);
+  document.addEventListener('pointerup', function(){ clearTimeout(timer); if (shown) setTimeout(hideTip, 900); }, true);
+  document.addEventListener('pointercancel', function(){ clearTimeout(timer); hideTip(); }, true);
+  document.addEventListener('click', function(e){
+    if (suppress){ suppress = false; e.preventDefault(); e.stopImmediatePropagation(); }
+  }, true);
+  document.addEventListener('contextmenu', function(e){
+    if (on && e.target.closest && e.target.closest(TARGET)) e.preventDefault();
+  }, true);
+
+  /* the logo always goes home to this hub's dashboard, in place: no reload,
+     so nothing in memory is lost, and the tiles come back at the same sizes */
+  function closeMenus(){
+    ['hdrToggle', 'togSB', 'proToggleSB'].forEach(function(f){ if (typeof window[f] === 'function') try { window[f](false); } catch (e) {} });
+  }
+  function goHome(){
+    closeMenus();
+    if (C.homeClick){ var b = $(C.homeClick); if (b) b.click(); }
+    else if (C.home === 'sw' && typeof window.sw === 'function') window.sw('dashboard');
+    var m = mainEl || $('.pf-main');
+    if (m) m.scrollTop = 0;
+    if (C.home === 'top') window.scrollTo(0, 0);
+    schedule();
+  }
+  function wireLogos(){
+    /* the screen title bar shows the same logo, and it goes home too */
+    $$('#m-bar .mb-title').forEach(function(t){
+      if (t.classList.contains('hdr-logo')) return;
+      var m = t.textContent.trim().match(/^(pre|pro|post|film)HUB$/i);
+      if (m){ t.textContent = ''; var s = document.createElement('span'); s.className = 'pre'; s.textContent = m[1].toLowerCase(); t.appendChild(s); t.appendChild(document.createTextNode('HUB')); }
+      t.classList.add('hdr-logo');
+    });
+    $$('.hdr-logo').forEach(function(l){
+      if (l.getAttribute('data-pf-home')) return;
+      l.setAttribute('data-pf-home', '1');
+      if (!l.getAttribute('title')) l.setAttribute('title', 'Dashboard');
+      l.setAttribute('role', 'button'); l.tabIndex = 0;
+      l.style.cursor = 'pointer';
+      /* Post-production's logo is its own launchpad button and already opens the dashboard */
+      if (C.homeClick && l.matches(C.homeClick)) return;
+      l.addEventListener('click', function(e){ e.preventDefault(); goHome(); });
+      l.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); goHome(); } });
+    });
+  }
+
+  function init(){
+    wireLogos();
+    if (MQ.addEventListener) MQ.addEventListener('change', sync); else if (MQ.addListener) MQ.addListener(sync);
+    window.addEventListener('resize', schedule);
+    window.addEventListener('orientationchange', schedule);
+    if (window.visualViewport){
+      window.visualViewport.addEventListener('resize', schedule);
+      window.visualViewport.addEventListener('scroll', schedule);
+    }
+    if (window.ResizeObserver) new ResizeObserver(schedule).observe(document.body);
+    new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    sync();
+    setTimeout(schedule, 300);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+
+</script>
+<!-- PF:END -->
+</body>
+</html>

@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>proHUB | Production Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{
+  --ink:#05070B; --bar:#080C14; --line:#1A2233; --line2:#25344E;
+  --tx:#E9EDF5; --mu:#7E8FA6; --dim:#4A5A70;
+  --pre:#A3E635; --shoot:#E8703A; --post:#A78BFA;
+  --fd:'Barlow Condensed','Impact',sans-serif;
+  --fm:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--ink);color:var(--tx);
+  font-family:var(--fm);-webkit-font-smoothing:antialiased;}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.045;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");}
+button{font-family:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;}
+a{color:inherit;text-decoration:none;}
+:focus-visible{outline:2px solid var(--pre);outline-offset:2px;}
+.shell{position:relative;z-index:1;height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{flex:0 0 44px;height:44px;display:flex;align-items:center;gap:10px;
+  padding:0 10px 0 13px;background:var(--bar);border-bottom:1px solid var(--line);}
+.brand{font-family:'Bauhaus 93','Bauhaus','Bauhaus Bold',Impact,sans-serif;font-weight:700;
+  font-size:19px;line-height:1;letter-spacing:0;white-space:nowrap;color:#fff;
+  display:inline-flex;align-items:baseline;padding:4px 6px;border-radius:6px;transition:background .15s;}
+.brand span{color:#A3E635;}
+.brand:hover{background:#131B2C;}
+.stage{font-size:8.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#FCD34D;
+  background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.4);
+  padding:2px 6px;border-radius:4px;white-space:nowrap;}
+.tabs{display:flex;align-items:center;gap:4px;margin-left:6px;min-width:0;overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:0 0 auto;font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--mu);background:#0C1220;border:1px solid var(--line);border-radius:6px;
+  padding:6px 10px;transition:color .15s,background .15s,border-color .15s;white-space:nowrap;}
+.tab:hover{color:var(--tx);border-color:var(--line2);}
+.tab.on{color:#05070B;font-weight:700;}
+.tab[data-mode="pre"].on{background:var(--pre);border-color:var(--pre);}
+.tab[data-mode="shoot"].on{background:var(--shoot);border-color:var(--shoot);}
+.tab[data-mode="post"].on{background:var(--post);border-color:var(--post);}
+.tab[data-mode="all"].on{background:#E9EDF5;border-color:#E9EDF5;}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex:0 0 auto;}
+.proj{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);
+  max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ibtn{display:inline-flex;align-items:center;gap:6px;font-size:9.5px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--mu);background:#0C1220;
+  border:1px solid var(--line);border-radius:6px;padding:6px 9px;transition:.15s;white-space:nowrap;}
+.ibtn:hover{color:var(--tx);border-color:var(--line2);}
+.ibtn i{font-size:10px;}
+.ibtn.warn{color:var(--shoot);border-color:rgba(232,112,58,.45);background:rgba(232,112,58,.1);}
+.ibtn.lit{color:var(--pre);border-color:rgba(163,230,53,.45);background:rgba(163,230,53,.08);}
+.grid{flex:1 1 auto;min-height:0;display:grid;gap:6px;padding:6px;overflow:hidden;
+  grid-auto-flow:row dense;}
+.tile{position:relative;display:flex;flex-direction:column;justify-content:space-between;
+  min-width:0;min-height:0;overflow:hidden;border-radius:10px;cursor:pointer;
+  padding:clamp(7px,1.25vh,15px) clamp(9px,1vw,17px);
+  background:linear-gradient(135deg,var(--t1),var(--t2));
+  box-shadow:0 10px 22px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.09);
+  transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+  animation:rise .34s cubic-bezier(.2,.7,.2,1) both;}
+.tile:hover{transform:translateY(-2px);box-shadow:0 16px 30px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.14);}
+.tile:active{transform:scale(.985);}
+.tile::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--hc);}
+.tile-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-height:0;}
+.tile-ico{font-size:clamp(15px,2.5vh,28px);line-height:1;color:rgba(255,255,255,.95);}
+.tile-badge{font-size:clamp(6.5px,.9vh,9px);font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.92);background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px;white-space:nowrap;}
+.tile-bot{min-height:0;}
+.tile-title{margin:0;font-family:var(--fd);font-weight:800;text-transform:uppercase;letter-spacing:.03em;
+  line-height:1.02;font-size:clamp(12px,1.85vh,23px);color:#fff;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.tile-sub{margin:3px 0 0;font-size:clamp(7.5px,1vh,10.5px);line-height:1.32;color:rgba(255,255,255,.74);
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.tile-num{position:absolute;right:9px;bottom:8px;font-size:9px;letter-spacing:.14em;color:rgba(255,255,255,.34);}
+.tile-rz{position:absolute;left:6px;bottom:5px;width:20px;height:20px;display:flex;align-items:center;
+  justify-content:center;border-radius:4px;color:rgba(255,255,255,.5);font-size:10px;
+  opacity:0;transition:opacity .15s,background .15s;}
+.tile:hover .tile-rz{opacity:1;}
+.tile-rz:hover{background:rgba(0,0,0,.35);color:#fff;}
+.tile.hero .tile-title{font-size:clamp(16px,3vh,34px);-webkit-line-clamp:3;}
+.tile.hero .tile-sub{font-size:clamp(8.5px,1.3vh,12.5px);-webkit-line-clamp:3;}
+.tile.hero .tile-ico{font-size:clamp(20px,3.8vh,42px);}
+.tile.hero .tile-badge{font-size:clamp(7px,1vh,9.5px);}
+@keyframes rise{from{opacity:0;transform:translateY(9px) scale(.985);}to{opacity:1;transform:none;}}
+.layer{position:fixed;inset:0;z-index:900;display:none;background:#04060A;}
+.layer.on{display:flex;flex-direction:column;}
+.lb{flex:0 0 36px;height:36px;display:flex;align-items:center;gap:9px;padding:0 6px 0 11px;
+  background:var(--bar);border-bottom:1px solid var(--line);}
+.lb-home{font-family:'Bauhaus 93','Bauhaus','Bauhaus Bold',Impact,sans-serif;font-weight:700;
+  font-size:16px;line-height:1;color:#fff;padding:4px 6px;border-radius:5px;white-space:nowrap;}
+.lb-home span{color:#A3E635;}
+.lb-home:hover{background:#131B2C;}
+.lb-sep{width:1px;height:16px;background:var(--line2);flex:0 0 1px;}
+.lb-title{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--tx);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lb-state{font-size:8.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  border:1px solid currentColor;border-radius:4px;padding:2px 5px;opacity:.9;}
+.lb-right{margin-left:auto;display:flex;align-items:center;gap:6px;}
+.lb-btn{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--mu);border:1px solid var(--line);border-radius:5px;padding:5px 8px;}
+.lb-btn:hover{color:var(--tx);border-color:var(--line2);}
+.lb-x{width:28px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:5px;
+  color:var(--mu);border:1px solid var(--line);}
+.lb-x:hover{color:#fff;border-color:#7F1D1D;background:rgba(127,29,29,.35);}
+.lb-body{position:relative;flex:1 1 auto;min-height:0;}
+.lb-body iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:#05070B;}
+.lb-body iframe.on{display:block;}
+.note{position:absolute;left:0;right:0;top:0;z-index:6;display:none;align-items:center;gap:9px;
+  padding:7px 11px;background:rgba(232,112,58,.13);border-bottom:1px solid rgba(232,112,58,.38);
+  color:#F7CEB4;font-size:10px;line-height:1.45;}
+.note.on{display:flex;}
+.note b{color:#FFE6D6;font-weight:700;}
+.note code{background:rgba(0,0,0,.35);padding:1px 5px;border-radius:3px;color:#FFD9BF;}
+.note-x{margin-left:auto;color:#F7CEB4;font-size:13px;flex:0 0 auto;padding:0 3px;}
+.sheet{position:fixed;inset:0;z-index:950;display:none;align-items:center;justify-content:center;
+  padding:18px;background:rgba(3,5,9,.82);backdrop-filter:blur(3px);}
+.sheet.on{display:flex;}
+.sheet-box{width:100%;max-width:480px;background:#0B111C;border:1px solid var(--line2);
+  border-radius:10px;overflow:hidden;box-shadow:0 26px 60px rgba(0,0,0,.7);}
+.sheet-hd{display:flex;align-items:center;gap:9px;padding:11px 13px;background:#0A0F19;
+  border-bottom:1px solid var(--line);}
+.sheet-hd h2{margin:0;font-family:var(--fd);font-size:15px;font-weight:800;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--tx);}
+.sheet-hd .x{margin-left:auto;color:var(--mu);font-size:15px;padding:2px 5px;}
+.sheet-bd{padding:14px 15px 16px;}
+.sheet-bd p{margin:0 0 11px;font-size:10.5px;line-height:1.7;color:var(--mu);}
+.sheet-bd p b{color:var(--tx);font-weight:500;}
+.mod-list{list-style:none;margin:0 0 13px;padding:0;border:1px solid var(--line);border-radius:7px;overflow:hidden;}
+.mod-list li{display:flex;align-items:center;gap:9px;padding:8px 11px;background:#080D16;
+  border-bottom:1px solid #0F1725;font-size:10.5px;color:var(--mu);min-width:0;}
+.mod-list li:last-child{border-bottom:0;}
+.mod-list li .dot{width:7px;height:7px;border-radius:50%;background:#2C3A50;flex:0 0 7px;}
+.mod-list li.ok .dot{background:var(--pre);box-shadow:0 0 7px rgba(163,230,53,.6);}
+.mod-list li .nm{color:var(--tx);font-weight:500;min-width:88px;flex:0 0 auto;}
+.mod-list li .sz{margin-left:auto;font-size:9px;color:var(--dim);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;max-width:42%;}
+.sheet-act{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;}
+.sbtn{flex:1 1 auto;min-width:110px;text-align:center;padding:9px 12px;border-radius:6px;
+  border:1px solid var(--line2);background:#111A2B;color:var(--tx);font-size:10px;font-weight:700;
+  letter-spacing:.09em;text-transform:uppercase;transition:.15s;}
+.sbtn:hover{background:#18233A;}
+.sbtn.pri{background:linear-gradient(135deg,#A3E635,#7FAE1F);color:#08120A;border-color:transparent;}
+.sbtn:disabled{opacity:.4;cursor:not-allowed;}
+.sbtn.ghost{color:var(--mu);background:transparent;}
+.sheet-note{font-size:9.5px !important;line-height:1.7;color:var(--dim) !important;margin:0 !important;}
+.toast{position:fixed;left:50%;bottom:16px;transform:translate(-50%,8px);z-index:1200;
+  background:#111A2B;border:1px solid var(--line2);color:var(--tx);font-size:10.5px;
+  letter-spacing:.04em;padding:7px 14px;border-radius:7px;opacity:0;pointer-events:none;
+  transition:opacity .18s,transform .18s;max-width:78vw;text-align:center;}
+.toast.on{opacity:1;transform:translate(-50%,0);}
+@media (max-width:768px){
+  .topbar{flex:0 0 40px;height:40px;gap:5px;padding:0 6px 0 8px;}
+  .brand{font-size:16px;padding:4px 4px;}
+  .stage,.proj{display:none;}
+  .tab{font-size:8.5px;padding:5px 7px;letter-spacing:.08em;}
+  .grid{gap:5px;padding:5px;}
+  .lb-title{max-width:30vw;}
+  .lb-btn span{display:none;}
+  .ibtn span{display:none;}
+}
+@media (prefers-reduced-motion:reduce){
+  .tile{animation:none !important;}
+  .tile,.toast,.note{transition:none !important;}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <button class="brand" id="brandBtn" title="Back to the tile dashboard">pro<span>HUB</span></button>
+    <span class="stage">Production suite</span>
+    <nav class="tabs" id="tabs" aria-label="Production state">
+      <button class="tab" data-mode="pre" aria-pressed="false">Pre</button>
+      <button class="tab" data-mode="shoot" aria-pressed="false">Production</button>
+      <button class="tab" data-mode="post" aria-pressed="false">Post</button>
+      <button class="tab on" data-mode="all" aria-pressed="true">All 21</button>
+    </nav>
+    <div class="top-right">
+      <span class="proj" id="projName">UNTITLED PROJECT</span>
+      <button class="ibtn" id="resetBtn" title="Reset tile sizes"><i class="fa-solid fa-rotate-left"></i></button>
+      <button class="ibtn" id="pubBtn" title="Fill filmHUB from Pre-production and Production"><i class="fa-solid fa-tower-broadcast"></i><span>Publish</span></button>
+      <a class="ibtn" id="filmHubLink" href="filmhub.html" title="Front desk"><i class="fa-solid fa-arrow-up-right-from-square"></i><span>filmHUB</span></a>
+    </div>
+  </header>
+  <main class="grid" id="grid" aria-label="Production tiles" style="grid-template-columns: repeat(7, minmax(0px, 1fr)); grid-template-rows: repeat(3, minmax(0px, 1fr));"></main>
+</div>
+<div class="layer" id="layer" role="dialog" aria-modal="true" aria-labelledby="lbTitle">
+  <div class="lb">
+    <button class="lb-home" id="lbHome" title="Back to the dashboard">pro<span>HUB</span></button>
+    <span class="lb-sep"></span>
+    <span class="lb-title" id="lbTitle">Screenwriter</span>
+    <span class="lb-state" id="lbState" style="color: rgb(163, 230, 53);">PRE</span>
+    <div class="lb-right">
+      <button class="lb-btn" id="lbReload" title="Reload this screen"><i class="fa-solid fa-arrows-rotate"></i><span>Reload</span></button>
+      <a class="lb-btn" id="lbTab" target="_blank" rel="noopener" title="Open this screen in its own tab" href="tiles/pre-production.html"><i class="fa-solid fa-arrow-up-right-from-square"></i><span>Tab</span></a>
+      <button class="lb-x" id="lbClose" title="Close (Esc)"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+  <div class="lb-body">
+    <div class="note" id="note">
+      <i class="fa-solid fa-circle-info"></i>
+      <span id="noteText">The browser is blocking access to a file opened from disk. Open this page from a web server (GitHub Pages works) and every tile opens straight onto its studio.</span>
+      <button class="note-x" id="noteX" aria-label="Dismiss">×</button>
+    </div>
+    <iframe id="frame-pre" title="Pre-production"></iframe>
+    <iframe id="frame-pro" title="Production"></iframe>
+    <iframe id="frame-post" title="Post-production"></iframe>
+  </div>
+</div>
+<div class="sheet" id="pubSheet" role="dialog" aria-modal="true" aria-labelledby="pubTitle">
+  <div class="sheet-box">
+    <div class="sheet-hd">
+      <i class="fa-solid fa-tower-broadcast" style="color:var(--shoot);font-size:12px;"></i>
+      <h2 id="pubTitle">Publish to filmHUB</h2>
+      <button class="x" id="pubX" aria-label="Close">×</button>
+    </div>
+    <div class="sheet-bd">
+      <p>Reads what Pre-production and Production have already saved, folds cast and crew into one roster by department, and writes filmHUB's own state so its tiles fill on next open. <b>filmHUB's file is never modified.</b></p>
+      <ul class="mod-list" id="pubList"></ul>
+      <div class="sheet-act">
+        <button class="sbtn pri" id="pubRun">Publish</button>
+        <button class="sbtn" id="pubOpen">Publish and open</button>
+      </div>
+      <p class="sheet-note" id="pubNote"></p>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+(function(){
+'use strict';
+var STATE = {
+  pre:  {short:'PRE',   accent:'#A3E635', hc:'#88C13F'},
+  shoot:{short:'SHOOT', accent:'#E8703A', hc:'#E5A93C'},
+  post: {short:'POST',  accent:'#A78BFA', hc:'#00ABA9'}
+};
+var SCREENS = {
+  pre:  {file:'tiles/pre-production.html',  label:'Pre-production'},
+  pro:  {file:'tiles/production.html',      label:'Production'},
+  post: {file:'tiles/post-production.html', label:'Post-production'}
+};
+var TILES = [
+  {n:1,  id:'writer',      mod:'pre',  title:'Screenwriter',      sub:'Courier Prime - tab engine - snapshots',   badge:'AST Parser',  icon:'fa-file-lines',          t:['#0B4F4E','#127E76'], enter:{k:'sw', a:'writer'}},
+  {n:2,  id:'coverage',    mod:'pre',  title:'Evaluator Studio',  sub:'100-parameter - HALION engine',            badge:'Heuristic',   icon:'fa-stethoscope',         t:['#55103E','#8C1B63'], enter:{k:'sw', a:'coverage'}},
+  {n:3,  id:'pitch',       mod:'pre',  title:'Pitch Deck',        sub:'10 slides - world lore - comp titles',     badge:'Architect',   icon:'fa-images',              t:['#2A1668','#4A2A9E'], enter:{k:'sw', a:'pitch'}},
+  {n:4,  id:'storyboard',  mod:'pre',  title:'Storyboards',       sub:'6-rule framing - draw - world map',        badge:'6-Rule',      icon:'fa-clapperboard',        t:['#55300C','#8E4412'], enter:{k:'sw', a:'storyboard'}},
+  {n:5,  id:'budget',      mod:'pre',  title:'Pre-Lim Budget',    sub:'1/8 rule - ATL - BTL - contingency',       badge:'Top Sheet',   icon:'fa-file-invoice-dollar', t:['#0C3F22','#146B39'], enter:{k:'sw', a:'budget'}},
+  {n:6,  id:'scripts',     mod:'pre',  title:'Script Reader',     sub:'load - analyze - compare drafts',          badge:'Parser',      icon:'fa-scroll',              t:['#0B3550','#1461A0'], enter:{k:'sw', a:'scripts'}},
+  {n:7,  id:'filmdb',      mod:'pre',  title:'Film Database',     sub:'TMDB comps - loglines - research',         badge:'TMDB',        icon:'fa-film',                t:['#4A1120','#7C1B33'], enter:{k:'sw', a:'filmdb'}},
+  {n:8,  id:'outreach',    mod:'pre',  title:'Outreach',          sub:'distributors - query letters - log',       badge:'Tracker',     icon:'fa-envelope-open-text',  t:['#4E3A0C','#8C6A12'], enter:{k:'sw', a:'outreach'}},
+  {n:9,  id:'pshotlist',   mod:'pre',  title:'Shot List (Draft)', sub:'breakdown sheet - eighths - CSV',          badge:'Draft',       icon:'fa-list-ol',             t:['#0B4A5A','#0F7286'], enter:{k:'sw', a:'shotlist'}},
+  {n:10, id:'mastershot',  mod:'shoot',title:'Shot List (Master)',sub:'setups - thumbnails - status',             badge:'Master',      icon:'fa-list-check',          t:['#5E2A0B','#94470F'], enter:{k:'sw', a:'shotlist'}},
+  {n:11, id:'oneliner',    mod:'shoot',title:'One-Liner Strip',   sub:'scene rows - expand every setup',          badge:'Breakdown',   icon:'fa-bars-staggered',      t:['#5A2408','#8C3A0D'], enter:{k:'sw', a:'oneliner'}},
+  {n:12, id:'masterscript',mod:'shoot',title:'Master Script',     sub:'coloured revisions - scene numbers',       badge:'Revisions',   icon:'fa-scroll',              t:['#4C1A0A','#7E2C10'], enter:{k:'sw', a:'masterscript'}},
+  {n:13, id:'callsheet',   mod:'shoot',title:'Call Sheet',        sub:'crew - cast - publish to filmHUB',         badge:'Daily',       icon:'fa-calendar-days',       t:['#5E3A08','#96610F'], enter:{k:'sw', a:'callsheet'}},
+  {n:14, id:'dailies',     mod:'shoot',title:'Dailies Log',       sub:'takes - circle takes - camera notes',      badge:'Log',         icon:'fa-film',                t:['#5A1220','#8E2135'], enter:{k:'sw', a:'dailies'}},
+  {n:15, id:'bridge',      mod:'shoot',title:'Sync from Pre',    sub:'pull scenes - seed shots - draft colour',  badge:'Bridge',      icon:'fa-satellite-dish',      t:['#4A2A08','#7A460D'], enter:{k:'fn', a:'loadBridgeData'}},
+  {n:16, id:'editdesk',    mod:'post', title:'Edit Desk',         sub:'NLE - timeline - JKL shuttle',             badge:'Studio',      icon:'fa-clapperboard',        t:['#2A1660','#4525A0'], enter:{k:'suite', a:''}},
+  {n:17, id:'ingest',      mod:'post', title:'Ingest Bin',        sub:'media decode - bars and tone',             badge:'Media',       icon:'fa-download',            t:['#1D1650','#30268C'], enter:{k:'desk', a:'ingest'}},
+  {n:18, id:'cutlist',     mod:'post', title:'Cut List',          sub:'conform - ripple assembly',                badge:'Edit',        icon:'fa-scissors',            t:['#251A5C','#3E2C96'], enter:{k:'desk', a:'timeline'}},
+  {n:19, id:'cutnotes',    mod:'post', title:'Cut Notes',         sub:'timecoded annotations',                    badge:'Log',         icon:'fa-note-sticky',         t:['#33175E','#542A9C'], enter:{k:'desk', a:'notes'}},
+  {n:20, id:'syncmatrix',  mod:'post', title:'Sync Matrix',       sub:'audio waveform alignment',                 badge:'Audio',       icon:'fa-wave-square',         t:['#1A1550','#2E2588'], enter:{k:'desk', a:'sync'}},
+  {n:21, id:'deliver',     mod:'post', title:'Deliverables',      sub:'Open XML - EDL - WebM master',             badge:'Output',      icon:'fa-box-archive',         t:['#3A1A66','#5F2BA8'], enter:{k:'desk', a:'deliverables'}}
+];
+var DEFAULT_HEROES = {pre:'writer', shoot:'mastershot', post:'editdesk'};
+var KEY = 'prohub_shell_v1';
+var shell = {mode:'pre', heroes:{pre:'writer', shoot:'mastershot', post:'editdesk'}, allHero:null};
+function loadShell(){
+  try{
+    var raw = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if(!raw) return;
+    if(raw.mode) shell.mode = raw.mode;
+    if(raw.heroes){
+      shell.heroes.pre   = raw.heroes.pre   !== undefined ? raw.heroes.pre   : DEFAULT_HEROES.pre;
+      shell.heroes.shoot = raw.heroes.shoot !== undefined ? raw.heroes.shoot : DEFAULT_HEROES.shoot;
+      shell.heroes.post  = raw.heroes.post  !== undefined ? raw.heroes.post  : DEFAULT_HEROES.post;
+    }
+    if(raw.allHero !== undefined) shell.allHero = raw.allHero;
+  }catch(e){}
+}
+function saveShell(){ try{ localStorage.setItem(KEY, JSON.stringify(shell)); }catch(e){} }
+var grid   = document.getElementById('grid');
+var tabs   = document.getElementById('tabs');
+var layer  = document.getElementById('layer');
+var note   = document.getElementById('note');
+var noteTx = document.getElementById('noteText');
+var toastEl= document.getElementById('toast');
+var activeTile = null;
+var toastTimer = 0;
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toastEl.classList.remove('on'); }, 2600);
+}
+function projectName(){
+  try{
+    var d = JSON.parse(localStorage.getItem('prehub_v3') || 'null');
+    if(d && d.projectName) return String(d.projectName).toUpperCase();
+  }catch(e){}
+  return 'Untitled project';
+}
+function paintProject(){
+  var el = document.getElementById('projName');
+  if(el) el.textContent = projectName();
+}
+function tilesFor(mode){
+  return mode === 'all' ? TILES.slice() : TILES.filter(function(t){ return t.mod === mode; });
+}
+function colsFor(mode){
+  var w = window.innerWidth;
+  if(mode === 'all') return w >= 951 ? 7 : (w >= 601 ? 5 : 3);
+  return w >= 601 ? 3 : 2;
+}
+function heroFor(mode){ return mode === 'all' ? shell.allHero : shell.heroes[mode]; }
+function render(){
+  var mode  = shell.mode;
+  var list  = tilesFor(mode);
+  var cols  = colsFor(mode);
+  var heroId= heroFor(mode);
+  var hasHero = !!(heroId && list.some(function(t){ return t.id === heroId; }));
+  var cells = list.length + (hasHero ? 3 : 0);
+  var rows  = Math.max(1, Math.ceil(cells / cols));
+  var spare = rows * cols - cells;
+  grid.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0,1fr))';
+  grid.style.gridTemplateRows    = 'repeat(' + rows + ', minmax(0,1fr))';
+  var html = '';
+  for(var i = 0; i < list.length; i++){
+    var t = list[i];
+    var isHero = hasHero && t.id === heroId;
+    var span = '';
+    if(isHero) span = 'grid-column:span 2;grid-row:span 2;';
+    else if(i === list.length - 1 && spare > 0) span = 'grid-column:span ' + (1 + spare) + ';';
+    var accent = STATE[t.mod];
+    html += '<article class="tile' + (isHero ? ' hero' : '') + '"'
+      + ' data-id="' + t.id + '" role="button" tabindex="0"'
+      + ' aria-label="' + t.title + '. ' + t.sub + '"'
+      + ' style="' + span + '--t1:' + t.t[0] + ';--t2:' + t.t[1] + ';--hc:' + accent.hc + ';animation-delay:' + (i * 18) + 'ms">'
+      + '<div class="tile-top"><span class="tile-ico"><i class="fa-solid ' + t.icon + '"></i></span>'
+      + '<span class="tile-badge">' + t.badge + '</span></div>'
+      + '<div class="tile-bot"><h2 class="tile-title">' + t.title + '</h2>'
+      + '<p class="tile-sub">' + t.sub + '</p></div>'
+      + '<span class="tile-num">' + (t.n < 10 ? '0' + t.n : t.n) + '</span>'
+      + '<button class="tile-rz" data-rz="' + t.id + '" title="Make this the hero tile" aria-label="Resize ' + t.title + '"><i class="fa-solid fa-up-right-and-down-left-from-center"></i></button>'
+      + '</article>';
+  }
+  grid.innerHTML = html;
+  var tabEls = tabs.querySelectorAll('.tab');
+  for(var k = 0; k < tabEls.length; k++){
+    var on = tabEls[k].getAttribute('data-mode') === mode;
+    tabEls[k].classList.toggle('on', on);
+    tabEls[k].setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+}
+function toggleHero(id){
+  var mode = shell.mode;
+  if(mode === 'all') shell.allHero = (shell.allHero === id) ? null : id;
+  else shell.heroes[mode] = (shell.heroes[mode] === id) ? null : id;
+  saveShell();
+  render();
+  toast('Hero tile updated');
+}
+function frameEl(mod){ return document.getElementById('frame-' + mod); }
+/* Production tiles are grouped as 'shoot' but live in the 'pro' frame. */
+function fk(mod){ return mod === 'shoot' ? 'pro' : mod; }
+/* Links inside a tile used to navigate the whole window away. Send them back to this landing page instead. */
+function routeHub(page){
+  var p = String(page || '');
+  if(/filmhub/.test(p)){ window.location.href = 'filmhub.html'; return; }
+  closeLayer();
+}
+function patchHubNav(mod){
+  try{
+    var w = frameEl(mod).contentWindow;
+    w.hubGo = function(page, ev){ if(ev && ev.preventDefault) ev.preventDefault(); routeHub(page); };
+  }catch(e){}
+}
+function showFrame(mod){
+  ['pre','pro','post'].forEach(function(k){ frameEl(k).classList.toggle('on', k === mod); });
+  var f = frameEl(mod);
+  if(f.dataset.booted === '1') return;
+  f.dataset.booted = '1';
+  f.addEventListener('load', function(){
+    patchHubNav(mod);
+    if(activeTile && fk(activeTile.mod) === mod) enterTarget(mod, activeTile.enter, 0);
+  });
+  f.src = SCREENS[mod].file;
+}
+function runTarget(w, d, target){
+  if(!target) return true;
+  if(target.k === 'sw'){
+    if(typeof w.sw === 'function'){ w.sw(target.a); return true; }
+    return false;
+  }
+  if(target.k === 'fn'){
+    if(typeof w[target.a] === 'function'){ w[target.a](); return true; }
+    return false;
+  }
+  if(target.k === 'suite'){
+    var lp = d.getElementById('launchpadModal');
+    if(lp && lp.classList.contains('on')){ var b = d.getElementById('btnCloseLaunchpad'); if(b) b.click(); }
+    return true;
+  }
+  if(target.k === 'desk'){
+    var lp2 = d.getElementById('launchpadModal');
+    var open = d.getElementById('btnLaunchpad');
+    if(lp2 && !lp2.classList.contains('on') && open) open.click();
+    var tile = d.querySelector('[data-tid="' + target.a + '"]');
+    if(tile){ tile.click(); return true; }
+    return false;
+  }
+  return true;
+}
+function enterTarget(mod, target, tries){
+  var f = frameEl(mod);
+  var w = null, d = null, blocked = false;
+  try{ w = f.contentWindow; d = w ? w.document : null; }catch(err){ blocked = true; }
+  if(!blocked && d && d.readyState !== 'loading'){
+    var ok = false;
+    try{ ok = runTarget(w, d, target); }catch(err2){ blocked = true; }
+    if(ok){ hideNote(); return; }
+  }
+  if(tries < 14){ setTimeout(function(){ enterTarget(mod, target, tries + 1); }, 320); return; }
+  if(blocked){
+    showNote('The browser is blocking access to a file opened from disk. Open this page from a web server (GitHub Pages works) and every tile opens straight onto its studio.');
+    return;
+  }
+  var empty = true;
+  try{ empty = !(d && d.body && d.body.children.length > 0); }catch(err3){ empty = true; }
+  if(empty){
+    showNote(SCREENS[mod].label + ' could not be loaded. Check that the tiles folder sits next to this page.');
+    return;
+  }
+  showNote('Opened on the start screen - that screen cannot be reached directly from here.');
+}
+function showNote(text){ noteTx.innerHTML = text; note.classList.add('on'); }
+function hideNote(){ note.classList.remove('on'); noteTx.innerHTML = ''; }
+function openTile(id){
+  var t = null;
+  for(var i = 0; i < TILES.length; i++){ if(TILES[i].id === id) t = TILES[i]; }
+  if(!t) return;
+  activeTile = t;
+  hideNote();
+  layer.classList.add('on');
+  document.getElementById('lbTitle').textContent = t.title;
+  var st = document.getElementById('lbState');
+  st.textContent = STATE[t.mod].short;
+  st.style.color = STATE[t.mod].accent;
+  document.getElementById('lbTab').href = SCREENS[fk(t.mod)].file;
+  showFrame(fk(t.mod));
+  enterTarget(fk(t.mod), t.enter, 0);
+}
+function closeLayer(){
+  layer.classList.remove('on');
+  ['pre','pro','post'].forEach(function(k){
+    try{
+      var doc = frameEl(k).contentDocument;
+      if(!doc) return;
+      var media = doc.querySelectorAll('video, audio');
+      for(var i = 0; i < media.length; i++){ if(!media[i].paused) media[i].pause(); }
+    }catch(e){}
+  });
+  if(activeTile){
+    var back = grid.querySelector('[data-id="' + activeTile.id + '"]');
+    if(back) back.focus({preventScroll:true});
+  }
+  activeTile = null;
+}
+/* BRIDGE:START */
+function createBridge(store){
+  var K = {
+    record:   'carrion_production_v1',
+    filmhub:  'filmhub_carrion_state_v10',
+    prehub:   'prehub_v3',
+    transmit: 'prehub_master_v1',
+    preShots: 'prehub_shotlist',
+    proShots: 'prohub_v1',
+    call:     'prohub_callsheet_v1'
+  };
+  function get(k){ try{ return JSON.parse(store.getItem(k) || 'null'); }catch(e){ return null; } }
+  function put(k, v){ try{ store.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
+  function keyOf(s){ return String(s == null ? '' : s).trim().toLowerCase().replace(/\s+/g, ' '); }
+  function words(s){ return String(s || '').trim().split(/\s+/).filter(Boolean).length; }
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+  function decode(s){
+    return String(s || '')
+      .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&apos;/g, "'")
+      .replace(/&mdash;/g, '-').replace(/&ndash;/g, '-')
+      .replace(/&rsquo;/g, "'").replace(/&lsquo;/g, "'")
+      .replace(/&ldquo;/g, '"').replace(/&rdquo;/g, '"');
+  }
+  function textOf(chunk){
+    var m = chunk.match(/class="[^"]*line-editable-box[^"]*"[^>]*>([\s\S]*)$/);
+    if(!m) return '';
+    var t = m[1];
+    var cut = t.indexOf('<span class="sn-');
+    if(cut >= 0) t = t.slice(0, cut);
+    t = t.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
+    return decode(t).replace(/\u00a0/g, ' ').replace(/[ \t]+/g, ' ').trim();
+  }
+  function parseSnapshot(html){
+    var out = [];
+    if(!html) return out;
+    var parts = String(html).split(/<div class="[^"]*script-line-row/).slice(1);
+    for(var i = 0; i < parts.length; i++){
+      var p = parts[i];
+      var q = p.indexOf('"');
+      var cls = q > 0 ? p.slice(0, q) : '';
+      var typeM = p.match(/data-element-type="([A-Z_]+)"/);
+      var boxM  = p.match(/line-editable-box\s+element-([a-z-]+)/);
+      var type  = typeM ? typeM[1].toLowerCase().replace(/_/g, '-') : (boxM ? boxM[1] : 'action');
+      var text  = textOf(p);
+      if(!text) continue;
+      var numM = p.match(/<span class="sn-left"[^>]*>([^<]*)<\/span>/);
+      out.push({
+        type: type, text: text, num: numM ? numM[1].trim() : '',
+        revised: /\bline-revised\b/.test(cls), omitted: /\bscene-omitted\b/.test(cls)
+      });
+    }
+    return out;
+  }
+  function normaliseLine(l){
+    var t = String((l && l.type) || 'action').toLowerCase().replace(/_/g, '-');
+    if(t === 'sceneheading') t = 'scene-heading';
+    if(!(t === 'character' || t === 'dialogue' || t === 'parenthetical' || t === 'transition' || t === 'action')){
+      if(t.indexOf('scene') === 0) t = 'scene-heading';
+    }
+    return {type: t, text: String((l && l.text) || '').trim()};
+  }
+  function collectScript(){
+    var s = get(K.prehub);
+    var snaps = (s && s.versionHistory) || [];
+    for(var i = 0; i < snaps.length; i++){
+      var rows = parseSnapshot(snaps[i] && snaps[i].html);
+      if(rows.length) return {rows: rows, source: 'snapshot ' + (snaps[i].version || 'v1')};
+    }
+    var m = get(K.transmit);
+    if(m && m.lines && m.lines.length){
+      var mapped = m.lines.map(normaliseLine).filter(function(l){ return l.text; });
+      if(mapped.length) return {rows: mapped, source: 'transmit'};
+    }
+    return {rows: [], source: 'none'};
+  }
+  function dnsOf(heading){
+    var h = String(heading || '').toUpperCase();
+    if(/\b(DUSK|DAWN)\b/.test(h)) return 'D';
+    if(/\bNIGHT\b/.test(h)) return 'N';
+    if(/\b(STUDIO|STAGE|VOID)\b/.test(h)) return 'S';
+    return 'D';
+  }
+  function buildScenes(rows){
+    var scenes = [], cur = null, ord = 0;
+    (rows || []).forEach(function(r){
+      if(r.type === 'scene-heading'){
+        ord++;
+        cur = {num: r.num || String(ord), heading: r.text, omitted: !!r.omitted, lines: [], chars: []};
+        scenes.push(cur);
+      } else if(cur){
+        cur.lines.push({type: r.type, text: r.text, revised: !!r.revised});
+        if(r.type === 'character'){
+          var n = r.text.replace(/\s*\(.*?\)\s*$/g, '').trim().toUpperCase();
+          if(n && cur.chars.indexOf(n) < 0) cur.chars.push(n);
+        }
+      }
+    });
+    scenes.forEach(function(s){
+      var w = words(s.heading);
+      s.lines.forEach(function(l){ w += words(l.text); });
+      s.words = w;
+      s.eighths = Math.max(1, Math.round(w / 185 * 8));
+      s.dns = dnsOf(s.heading);
+    });
+    return scenes;
+  }
+  function findScene(scenes, raw){
+    var k = String(raw == null ? '' : raw).trim().toUpperCase();
+    if(!k) return null;
+    var i;
+    for(i = 0; i < scenes.length; i++){ if(String(scenes[i].num).toUpperCase() === k) return scenes[i]; }
+    if(k.length > 3){ for(i = 0; i < scenes.length; i++){ if(scenes[i].heading.toUpperCase().indexOf(k) >= 0) return scenes[i]; } }
+    return null;
+  }
+  function toMin(v){
+    var s = String(v == null ? '' : v).trim();
+    if(!s) return null;
+    var pm = /p\.?m\.?/i.test(s), am = /a\.?m\.?/i.test(s);
+    s = s.replace(/[ap]\.?m\.?/ig, '').trim();
+    var m = s.match(/^(\d{1,2}):(\d{2})$/);
+    if(!m) return null;
+    var h = parseInt(m[1], 10);
+    if(pm && h < 12) h += 12;
+    if(am && h === 12) h = 0;
+    return h * 60 + parseInt(m[2], 10);
+  }
+  function toHHMM(t){
+    if(t === null || t === undefined || isNaN(t)) return '--:--';
+    t = ((Math.round(t) % 1440) + 1440) % 1440;
+    return pad(Math.floor(t / 60)) + ':' + pad(t % 60);
+  }
+  function buildDays(scenes, cs){
+    var schedules = {}, sides = {}, moves = {}, locations = [];
+    var days = (cs && cs.days) || [];
+    days.forEach(function(d, i){
+      var n = i + 1, rows = [], texts = [];
+      var setups = (d.setups || []).slice().sort(function(a, b){
+        var A = toMin(a.time), B = toMin(b.time);
+        return (A === null ? 1e9 : A) - (B === null ? 1e9 : B);
+      });
+      setups.forEach(function(st, j){
+        var sc = findScene(scenes, st.scene);
+        var next = setups[j + 1];
+        var start = toMin(st.time);
+        var end = next ? toMin(next.time) : (start === null ? null : start + 30);
+        rows.push({
+          time: st.time ? toHHMM(start) : '--:--',
+          endTime: toHHMM(end),
+          pages: sc ? Math.round(sc.eighths) / 8 : 0,
+          scene: sc ? sc.heading : ('SCENE ' + (st.scene || '') + (st.desc ? ' - ' + st.desc : '')),
+          cast: sc ? sc.chars.join(', ') : '',
+          notes: st.desc || '',
+          dns: sc ? sc.dns : '-'
+        });
+        if(sc) texts.push(sc.heading + '\n' + sc.lines.map(function(l){ return l.text; }).join('\n'));
+      });
+      schedules[n] = rows;
+      sides[n] = texts.join('\n\n');
+      moves[n] = d.location ? (d.location + (d.move ? ' - company move' : '')) : '';
+      if(d.location){
+        locations.push({
+          title: d.location, address: d.location, time: d.date || '', imgUrl: '', driveLink: '',
+          specs: [d.generalCall ? 'General call ' + d.generalCall : '', d.wrap ? 'Wrap ' + d.wrap : '', d.notes || ''].filter(Boolean).join(' | ')
+        });
+      }
+    });
+    return {schedules: schedules, sides: sides, moves: moves, locations: locations};
+  }
+  function buildRoster(cs, prev){
+    var prevList = (prev && prev.crewRoster) || [];
+    var prevBy = {};
+    prevList.forEach(function(p){ if(p && p.name) prevBy[keyOf(p.name)] = p; });
+    var seen = {}, roster = [], crewRows = [];
+    var days = (cs && cs.days) || [];
+    function add(name, role, call, dept){
+      var k = keyOf(name);
+      if(!k || seen[k]) return;
+      seen[k] = 1;
+      var old = prevBy[k] || {};
+      var row = {
+        id: old.id || ('CR-' + pad(roster.length + 1)),
+        name: String(name).trim(),
+        role: role || old.role || '',
+        email: old.email || '', phone: old.phone || '',
+        call: call || old.call || '',
+        inTime: old.inTime || '--',
+        status: old.status || 'UNCHECKED'
+      };
+      roster.push(row);
+      if(dept) crewRows.push({name: row.name, dept: dept, role: row.role, call: row.call, phone: row.phone, email: row.email});
+    }
+    days.forEach(function(d){ (d.cast || []).forEach(function(c){ add(c.name, 'Cast - ' + (c.role || 'role'), c.call, ''); }); });
+    days.forEach(function(d){ (d.crew || []).forEach(function(c){ add(c.name, c.role || '', c.call, c.dept || 'Production'); }); });
+    prevList.forEach(function(p){
+      var k = keyOf(p.name);
+      if(!k || seen[k]) return;
+      seen[k] = 1;
+      roster.push({
+        id: p.id || ('CR-' + pad(roster.length + 1)),
+        name: p.name, role: p.role || '', email: p.email || '', phone: p.phone || '',
+        call: p.call || '', inTime: p.inTime || '--', status: p.status || 'UNCHECKED'
+      });
+    });
+    return {roster: roster, crewRows: crewRows};
+  }
+  function buildHeads(crewRows, prev){
+    var prevHeads = (prev && prev.departmentHeads) || [];
+    var byName = {};
+    prevHeads.forEach(function(h){ if(h && h.name) byName[keyOf(h.name)] = h; });
+    var order = [], groups = {};
+    crewRows.forEach(function(r){
+      var d = r.dept || 'Production';
+      if(!groups[d]){ groups[d] = []; order.push(d); }
+      groups[d].push(r);
+    });
+    return order.map(function(d){
+      var first = groups[d][0];
+      var old = byName[keyOf(first.name)] || {};
+      return {role: d, name: first.name, phone: first.phone || old.phone || '', email: first.email || old.email || '', walkie: old.walkie || ''};
+    });
+  }
+  function matchRole(roster, re){
+    for(var i = 0; i < roster.length; i++){
+      var r = roster[i];
+      if(/^cast -/i.test(r.role)) continue;
+      if(re.test(r.role)) return r;
+    }
+    return null;
+  }
+  function namePhone(r, fallback){
+    if(!r) return fallback || '';
+    return r.name + (r.phone ? ' ' + r.phone : '');
+  }
+  function scan(){
+    var prev = get(K.filmhub) || {};
+    var script = collectScript();
+    var scenes = buildScenes(script.rows);
+    var cs = get(K.call);
+    var days = (cs && cs.days) || [];
+    var shots = ((get(K.proShots) || {}).shots) || get(K.preShots) || [];
+    var castN = 0, crewN = 0;
+    days.forEach(function(d){ castN += (d.cast || []).length; crewN += (d.crew || []).length; });
+    return {
+      script: {source: script.source, scenes: scenes.length},
+      days: days.length, cast: castN, crew: crewN,
+      shots: (shots && shots.length) || 0,
+      filmhub: {
+        props: (prev.props || []).length, gear: (prev.gear || []).length,
+        bids: (prev.contractorBids || []).length, insurance: !!prev.insurance,
+        locations: (prev.locations || []).length
+      }
+    };
+  }
+  function build(){
+    var prev = get(K.filmhub) || {};
+    var s = get(K.prehub) || {};
+    var script = collectScript();
+    var scenes = buildScenes(script.rows);
+    var cs = get(K.call);
+    var days = buildDays(scenes, cs);
+    var rb = buildRoster(cs, prev);
+    var heads = buildHeads(rb.crewRows, prev);
+    var director = matchRole(rb.roster, /director(?!\s+of\s+photography)/i);
+    var ad1      = matchRole(rb.roster, /(1st\s*ad|first\s*assistant|assistant\s*director)/i);
+    var dp       = matchRole(rb.roster, /(photography|\bdp\b|\bcamera\b)/i);
+    var eighths = 0;
+    scenes.forEach(function(sc){ eighths += sc.eighths; });
+    var title = s.projectName || (get(K.transmit) || {}).projectName || prev.projectTitle || 'UNTITLED PROJECT';
+    return {
+      version: 1,
+      builtAt: new Date().toISOString(),
+      title: String(title).toUpperCase(),
+      scriptSource: script.source,
+      scenes: scenes,
+      totals: {
+        scenes: scenes.length, eighths: eighths,
+        pages: Math.round(eighths / 8 * 10) / 10,
+        days: Object.keys(days.schedules).length,
+        names: rb.roster.length, crew: rb.crewRows.length
+      },
+      crewRoster: rb.roster,
+      departmentHeads: heads,
+      daySchedules: days.schedules,
+      daySides: days.sides,
+      dayMoves: days.moves,
+      locations: days.locations,
+      director: namePhone(director, prev.director),
+      firstAD: namePhone(ad1, prev.firstAD),
+      dp: namePhone(dp, prev.dp)
+    };
+  }
+  function publish(){
+    var prev = get(K.filmhub) || {};
+    var rec = build();
+    var next = {};
+    var k;
+    for(k in prev){ if(Object.prototype.hasOwnProperty.call(prev, k)) next[k] = prev[k]; }
+    if(rec.scenes.length){
+      next.projectTitle = rec.title;
+      next.daySchedules = rec.daySchedules;
+      next.daySides = rec.daySides;
+      next.dayMoves = rec.dayMoves;
+      next.fullScriptExcerpt = rec.scenes.map(function(sc){
+        return sc.heading + '\n' + sc.lines.map(function(l){ return l.text; }).join('\n');
+      }).join('\n\n');
+    }
+    if(rec.crewRoster.length) next.crewRoster = rec.crewRoster;
+    if(rec.departmentHeads.length) next.departmentHeads = rec.departmentHeads;
+    if(rec.director) next.director = rec.director;
+    if(rec.firstAD) next.firstAD = rec.firstAD;
+    if(rec.dp) next.dp = rec.dp;
+    if(rec.locations.length){
+      var byTitle = {};
+      (next.locations || []).forEach(function(l){ if(l && l.title) byTitle[keyOf(l.title)] = l; });
+      rec.locations.forEach(function(l){
+        var old = byTitle[keyOf(l.title)];
+        if(!old) next.locations = (next.locations || []).concat([l]);
+        else { old.time = l.time || old.time; old.specs = l.specs || old.specs; }
+      });
+    }
+    var okA = put(K.record, rec);
+    var okB = put(K.filmhub, next);
+    return {ok: okA && okB, record: rec, filmhub: next};
+  }
+  return {scan: scan, build: build, publish: publish, keys: K};
+}
+
+/* BRIDGE:END */
+var bridge = createBridge(window.localStorage);
+window.proHubBridge = bridge;
+var pubSheet = document.getElementById('pubSheet');
+function paintPub(){
+  var s = bridge.scan();
+  var rows = [
+    {ok: s.script.scenes > 0, name: 'Script',
+     state: s.script.scenes ? s.script.scenes + ' scenes' : 'not found',
+     meta: s.script.scenes ? s.script.source : 'press Transmit in Pre-production'},
+    {ok: s.days > 0, name: 'Call sheet',
+     state: s.days ? s.days + ' day' + (s.days === 1 ? '' : 's') : 'not saved',
+     meta: s.days ? (s.cast + ' cast - ' + s.crew + ' crew') : 'save it in the desk'},
+    {ok: s.shots > 0, name: 'Shot list',
+     state: s.shots + ' shot' + (s.shots === 1 ? '' : 's'), meta: 'from Production'},
+    {ok: true, name: 'Preserved',
+     state: s.filmhub.props + ' props - ' + s.filmhub.gear + ' gear', meta: 'no upstream editor'}
+  ];
+  document.getElementById('pubList').innerHTML = rows.map(function(r){
+    return '<li class="' + (r.ok ? 'ok' : '') + '"><span class="dot"></span>'
+      + '<span class="nm">' + r.name + '</span><span>' + r.state + '</span>'
+      + '<span class="sz">' + r.meta + '</span></li>';
+  }).join('');
+  var can = (s.script.scenes > 0 || s.days > 0 || s.crew > 0);
+  document.getElementById('pubRun').disabled = !can;
+  document.getElementById('pubOpen').disabled = !can;
+  document.getElementById('pubNote').textContent = can
+    ? 'Names are merged by match, so filmHUB keeps existing badge IDs, emails and check-in status.'
+    : 'Nothing to publish yet. Save a script in Pre-production and a call sheet in Production first.';
+}
+function runPublish(thenOpen){
+  var res = bridge.publish();
+  if(!res.ok){ toast('Could not write filmHUB state'); return; }
+  var r = res.record;
+  toast('filmHUB fed: ' + r.totals.scenes + ' scenes, ' + r.totals.days + ' days, ' + r.totals.names + ' names');
+  pubSheet.classList.remove('on');
+  document.getElementById('pubBtn').classList.add('lit');
+  if(thenOpen) setTimeout(goFilmHub, 450);
+}
+function closeSheet(){ pubSheet.classList.remove('on'); }
+function goFilmHub(){
+  var u = 'filmhub.html';
+  try{ u = new URL('filmhub.html', location.href).href; }catch(e){}
+  var emb = false;
+  try{ emb = window.self !== window.top; }catch(e){ emb = true; }
+  if(emb){ try{ window.top.location.href = u; return; }catch(e){} }
+  location.href = u;
+}
+grid.addEventListener('click', function(e){
+  var rz = e.target.closest('[data-rz]');
+  if(rz){ e.stopPropagation(); toggleHero(rz.getAttribute('data-rz')); return; }
+  var tile = e.target.closest('.tile');
+  if(tile) openTile(tile.getAttribute('data-id'));
+});
+grid.addEventListener('keydown', function(e){
+  if(e.key !== 'Enter' && e.key !== ' ') return;
+  var tile = e.target.closest('.tile');
+  if(!tile) return;
+  e.preventDefault();
+  openTile(tile.getAttribute('data-id'));
+});
+tabs.addEventListener('click', function(e){
+  var tab = e.target.closest('.tab');
+  if(!tab) return;
+  shell.mode = tab.getAttribute('data-mode');
+  saveShell();
+  render();
+});
+document.getElementById('brandBtn').addEventListener('click', function(){
+  if(layer.classList.contains('on')) closeLayer();
+  else window.scrollTo(0, 0);
+});
+document.getElementById('lbHome').addEventListener('click', closeLayer);
+document.getElementById('lbClose').addEventListener('click', closeLayer);
+document.getElementById('noteX').addEventListener('click', hideNote);
+document.getElementById('lbReload').addEventListener('click', function(){
+  if(!activeTile) return;
+  var mod = fk(activeTile.mod);
+  var f = frameEl(mod);
+  delete f.dataset.booted;
+  f.src = SCREENS[mod].file;
+  toast('Reloading ' + SCREENS[mod].label);
+});
+document.getElementById('resetBtn').addEventListener('click', function(){
+  shell.heroes = {pre:DEFAULT_HEROES.pre, shoot:DEFAULT_HEROES.shoot, post:DEFAULT_HEROES.post};
+  shell.allHero = null;
+  saveShell();
+  render();
+  toast('Tile sizes reset');
+});
+document.getElementById('pubBtn').addEventListener('click', function(){
+  paintPub();
+  pubSheet.classList.add('on');
+});
+document.getElementById('pubX').addEventListener('click', function(){ pubSheet.classList.remove('on'); });
+pubSheet.addEventListener('click', function(e){ if(e.target === pubSheet) pubSheet.classList.remove('on'); });
+document.getElementById('pubRun').addEventListener('click', function(){ runPublish(false); });
+document.getElementById('pubOpen').addEventListener('click', function(){ runPublish(true); });
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'Escape') return;
+  if(pubSheet.classList.contains('on')){ closeSheet(); return; }
+  if(layer.classList.contains('on')) closeLayer();
+});
+document.getElementById('filmHubLink').addEventListener('click', function(ev){
+  ev.preventDefault();
+  goFilmHub();
+});
+var rzTimer = 0;
+window.addEventListener('resize', function(){
+  clearTimeout(rzTimer);
+  rzTimer = setTimeout(render, 140);
+});
+loadShell();
+paintProject();
+render();
+window.addEventListener('focus', paintProject);
+setInterval(paintProject, 8000);
+})();
+</script>
+
+
+</body></html>
