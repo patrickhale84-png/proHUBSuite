@@ -60,8 +60,8 @@ def assemble(app):
     os.makedirs(OUTDIR, exist_ok=True)
     with open(os.path.join(OUTDIR, app + '.html'), 'w', encoding='utf-8') as fh:
         fh.write(out)
-    script = re.search(r'<script>\n(.*)\n</script>', out, re.S)
-    js = script.group(1) if script else ''
+    scripts = re.findall(r'<script>\n?(.*?)\n?</script>', out, re.S)
+    js = '\n'.join(scripts)
     with open(os.path.join(OUTDIR, app + '.js'), 'w', encoding='utf-8') as fh:
         fh.write(js)
     print('%-8s %6d bytes  %d modules  script %d chars' % (
