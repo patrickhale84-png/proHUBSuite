@@ -13,12 +13,6 @@ var EDITORS = [
     url:'https://www.photopea.com/', colour:'#3B7BF6', note:'closest to Photoshop; hosted by Photopea' },
   { id:'graphite', title:'Graphite', sub:'Vector and raster - Apache-2.0, 27k stars',
     url:'https://editor.graphite.rs/', colour:'#E2A93B', note:'Illustrator-class, runs in the browser' },
-  { id:'svgedit', title:'SVG-Edit', sub:'SVG vector editor - MIT',
-    url:'https://svg-edit.github.io/svgedit/', colour:'#8FC13F', note:'light, made for SVG' },
-  { id:'minipaint', title:'miniPaint', sub:'Photoshop-like - licence unverified (NOASSERTION)',
-    url:'https://viliusle.github.io/miniPaint/', colour:'#B07CE8', note:'framed only; licence to be confirmed' },
-  { id:'jspaint', title:'JS Paint', sub:'MS Paint, revived - MIT',
-    url:'https://jspaint.app/', colour:'#5AA9E6', note:'quick touch-ups, tiny and reliable' }
 ];
 
 for (var ei = 0; ei < EDITORS.length; ei++) {
