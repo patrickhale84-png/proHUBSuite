@@ -131,3 +131,6 @@ var PdfDeck = (function () {
   }
   return { exportDeck: exportDeck, build: build, wrap: wrap };
 })();
+
+/* the module publishes itself, so no wrapper surgery is needed at assembly time */
+if (typeof window !== 'undefined') { window.PdfDeck = PdfDeck; }
