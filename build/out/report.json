@@ -1,0 +1,195 @@
+{
+  "generated": "2026-10-20T01:08:39.800Z",
+  "commit": "f767f5fb03c45afdcdf29f9d86181bb56e76797c",
+  "run": "39212718827",
+  "summary": {
+    "total": 30,
+    "passed": 20,
+    "failed": 10,
+    "missing": 0
+  },
+  "missing": [],
+  "verdict": "FAIL",
+  "results": [
+    {
+      "file": "prohub.html",
+      "check": "target served",
+      "ok": true,
+      "detail": "200 harness?f=prohub.html&s=allow-same-origin%20allow-scripts%20allow-forms%20allow-popups%20allow-p"
+    },
+    {
+      "file": "prohub.html",
+      "check": "boots inside a Wix-shaped embed",
+      "ok": true,
+      "detail": "frame attached"
+    },
+    {
+      "file": "prohub.html",
+      "check": "exposes proHUB",
+      "ok": false,
+      "detail": "undefined"
+    },
+    {
+      "file": "prohub.html",
+      "check": "target completed",
+      "ok": false,
+      "detail": "threw: frame.evaluate: TypeError: Cannot read properties of undefined (reading 'state')\n    at eval (eval at evaluate (:234:30), <anonymous>:1:15)\n"
+    },
+    {
+      "file": "prehub (assembled)",
+      "check": "target served",
+      "ok": true,
+      "detail": "200 prehub.html"
+    },
+    {
+      "file": "prehub (assembled)",
+      "check": "boots inside a Wix-shaped embed",
+      "ok": true,
+      "detail": "frame attached"
+    },
+    {
+      "file": "prehub (assembled)",
+      "check": "exposes preHUB",
+      "ok": true,
+      "detail": "object"
+    },
+    {
+      "file": "prehub (assembled)",
+      "check": "nine tiles render",
+      "ok": true,
+      "detail": "9 tiles"
+    },
+    {
+      "file": "prehub (assembled)",
+      "check": "staging canvas opens",
+      "ok": true,
+      "detail": "stagecv present"
+    },
+    {
+      "file": "prehub (assembled)",
+      "check": "lighting rigs in the panel",
+      "ok": true,
+      "detail": "5 rigs"
+    },
+    {
+      "file": "prehub (assembled)",
+      "check": "poses in the panel",
+      "ok": true,
+      "detail": "6 poses"
+    },
+    {
+      "file": "prehub (assembled)",
+      "check": "camera angles and framing",
+      "ok": true,
+      "detail": "3 angles / 3 framings"
+    },
+    {
+      "file": "prehub (assembled)",
+      "check": "no page or console errors",
+      "ok": true,
+      "detail": "clean"
+    },
+    {
+      "file": "posthub.html",
+      "check": "target served",
+      "ok": true,
+      "detail": "200 harness?f=posthub.html&s=allow-same-origin%20allow-scripts%20allow-forms%20allow-popups%20allow-"
+    },
+    {
+      "file": "posthub.html",
+      "check": "boots inside a Wix-shaped embed",
+      "ok": true,
+      "detail": "frame attached"
+    },
+    {
+      "file": "posthub.html",
+      "check": "exposes postHUB",
+      "ok": false,
+      "detail": "undefined"
+    },
+    {
+      "file": "posthub.html",
+      "check": "five desk modules registered",
+      "ok": false,
+      "detail": "missing: ingest, timeline, notes, sync, deliverables"
+    },
+    {
+      "file": "posthub.html",
+      "check": "desk registry holds five desks",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "file": "posthub.html",
+      "check": "tab bar renders five tabs",
+      "ok": false,
+      "detail": ""
+    },
+    {
+      "file": "posthub.html",
+      "check": "notes, sync and deliverables answer state()",
+      "ok": false,
+      "detail": "threw: POST is not defined"
+    },
+    {
+      "file": "posthub.html",
+      "check": "sync ships platform columns",
+      "ok": false,
+      "detail": "-1 platforms"
+    },
+    {
+      "file": "posthub.html",
+      "check": "deliverables carry QC checklists",
+      "ok": false,
+      "detail": "threw: POST is not defined"
+    },
+    {
+      "file": "posthub.html",
+      "check": "tab labels correct",
+      "ok": false,
+      "detail": "missing labels: Ingest, Timeline, Notes, Sync, Deliverables"
+    },
+    {
+      "file": "posthub.html",
+      "check": "no page or console errors",
+      "ok": true,
+      "detail": "clean"
+    },
+    {
+      "file": "filmhub.html",
+      "check": "target served",
+      "ok": true,
+      "detail": "200 harness?f=filmhub.html&s=allow-same-origin%20allow-scripts%20allow-forms%20allow-popups%20allow-"
+    },
+    {
+      "file": "filmhub.html",
+      "check": "boots inside a Wix-shaped embed",
+      "ok": true,
+      "detail": "frame attached"
+    },
+    {
+      "file": "filmhub.html",
+      "check": "three filmHUB modules registered",
+      "ok": true,
+      "detail": "banner, roles, addons, endpoints, contacts, launcher, tiles, production-suite"
+    },
+    {
+      "file": "filmhub.html",
+      "check": "launcher and tile manager tiles present",
+      "ok": true,
+      "detail": "role-choose, add-modules, app-addresses, contacts, tile-manager, tile-storyboard, tile-oneline, tile-shootingscript, tile-budget, tile-av, tile-dood, tile-cast, tile-callsheet, app-prohub, app-posthub, app-prehub"
+    },
+    {
+      "file": "filmhub.html",
+      "check": "filmHUB state readable",
+      "ok": true,
+      "detail": "{\"mods\":[\"banner\",\"roles\",\"addons\",\"endpoints\",\"contacts\",\"launcher\",\"tiles\",\"production-s"
+    },
+    {
+      "file": "filmhub.html",
+      "check": "no page or console errors",
+      "ok": true,
+      "detail": "clean"
+    }
+  ]
+}
