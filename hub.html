@@ -171,8 +171,24 @@ var HubBridge=(function(){
   document.addEventListener('visibilitychange',function(){ if(document.hidden) save('hide') });
   window.addEventListener('beforeunload',function(){ save('unload') });
  }
- return {start:start,save:save,load:load,snapshot:snapshot,history:history,recordImport:recordImport,mode:function(){return mode},saveScript:function(){
-   var s=ModalSync.get('screenplay:main');return save('script:'+((s&&s.content)?s.content.length:0))}};
+ function history(){
+  var r=ModalSync.get('imports:list');
+  return (r&&r.items)?r.items:[];
+ }
+ function recordImport(meta){
+  meta=meta||{};
+  var entry={id:'imp'+Date.now(),at:new Date().toISOString(),
+   filename:meta.filename||'(pasted text)',format:meta.format||'text',
+   lines:meta.lines||0,scenes:meta.scenes||0,cast:meta.cast||0,content:meta.content||''};
+  var items=history().slice(0);
+  items.unshift(entry);
+  items=items.slice(0,5);
+  var total=0;
+  items=items.filter(function(x){total+=(x.content||'').length;return total<400000});
+  ModalSync.publish('imports:list',{items:items},'bridge');
+  return entry;
+ }
+ return {start:start,save:save,load:load,snapshot:snapshot,history:(typeof history==='function')?history:function(){return []},recordImport:(typeof recordImport==='function')?recordImport:function(){return null},mode:function(){return mode},saveScript:function(meta){if(meta&&(meta.filename||meta.format)){try{recordImport(meta)}catch(e){}}var s=ModalSync.get('screenplay:main');return save('script:'+((s&&s.content)?s.content.length:0))}};
 })();
 window.HubBridge=HubBridge;
 })();
