@@ -54,6 +54,6 @@ var HubBridge=(function(){
   document.addEventListener('visibilitychange',function(){ if(document.hidden) save('hide') });
   window.addEventListener('beforeunload',function(){ save('unload') });
  }
- return {start:start,save:save,load:load,snapshot:snapshot,mode:function(){return mode},saveScript:function(){
+ return {start:start,save:save,load:load,snapshot:snapshot,history:history,recordImport:recordImport,mode:function(){return mode},saveScript:function(){
    var s=ModalSync.get('screenplay:main');return save('script:'+((s&&s.content)?s.content.length:0))}};
 })();

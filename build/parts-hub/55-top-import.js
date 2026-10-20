@@ -9,9 +9,48 @@
   function say(msg) { var s = el('tiState'); if (s) s.textContent = msg; }
 
   function announce(res, counts) {
+    var content = (res.lines || []).map(function (l) { return l.text; }).join('\n');
     say(res.format + ' · ' + counts.lines + ' lines · ' + counts.scenes + ' scenes · ' +
         counts.cast + ' characters · ' + counts.locations + ' locations');
-    try { HubBridge.saveScript(); } catch (e) {}
+    try {
+      HubBridge.saveScript({ filename: res.filename || '(pasted text)', format: res.format,
+                             lines: counts.lines, scenes: counts.scenes, cast: counts.cast,
+                             content: content });
+    } catch (e) {}
+    fillHistory();
+  }
+
+  function fmtWhen(iso) {
+    try {
+      var d = new Date(iso);
+      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (e) { return iso || ''; }
+  }
+
+  function fillHistory() {
+    var sel = el('tiHist');
+    if (!sel) return;
+    var items = [];
+    try { items = HubBridge.history() || []; } catch (e) {}
+    var opts = ['<option value="">history (' + items.length + ')</option>'];
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      opts.push('<option value="' + it.id + '">' + fmtWhen(it.at) + ' · ' +
+                HUB.esc(it.filename || '') + ' · ' + (it.lines || 0) + ' lines</option>');
+    }
+    sel.innerHTML = opts.join('');
+    sel.onchange = function () {
+      var id = this.value;
+      if (!id) return;
+      var found = null;
+      for (var k = 0; k < items.length; k++) if (items[k].id === id) found = items[k];
+      if (!found) return;
+      var lines = HubImport.classifyLines(found.content || '');
+      var counts = HubImport.publish({ format: found.format || 'text', filename: found.filename || '',
+                                       lines: lines, confidence: 'reverted from import history (' + fmtWhen(found.at) + ')' });
+      say('reverted to ' + (found.filename || 'earlier import') + ' · ' + counts.lines + ' lines · ' + counts.scenes + ' scenes');
+      this.value = '';
+    };
   }
 
   function parseAndPublish(res) {
@@ -58,6 +97,7 @@
     if (input) input.onchange = function () { if (this.files && this.files[0]) fromFile(this.files[0]); };
     if (prof) prof.onclick = fromProfile;
     if (past) past.onclick = pasteDialog;
+    fillHistory();
 
     // a profile that arrives from the page should be reported here too
     try {
@@ -72,7 +112,7 @@
   }
 
   // test hook: run an import without the file picker
-  window.TopImport = { run: parseAndPublish, fromText: fromText, fromProfile: fromProfile };
+  window.TopImport = { run: parseAndPublish, fromText: fromText, fromProfile: fromProfile, history: fillHistory };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();
