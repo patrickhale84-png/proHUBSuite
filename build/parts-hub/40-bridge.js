@@ -4,7 +4,14 @@
    answer within 1200ms) it falls back to localStorage so the app still works on a laptop. */
 var HubBridge=(function(){
  var KEY='prohub_profile_v1', pending={}, seq=0, timer=null, mode='local';
- function post(msg){ try{ if(window.parent&&window.parent!==window) window.parent.postMessage(msg,'*'); return true }catch(e){ return false } }
+ function parentOrigin(){
+  if(typeof window!=='undefined'&&window.HUB_PARENT_ORIGIN) return window.HUB_PARENT_ORIGIN;
+  try{ var m=document.querySelector('meta[name="hub-parent-origin"]'); return m?m.getAttribute('content'):''; }catch(e){ return ''; }
+ }
+ /* The page that embeds us is the only frame allowed to publish tags. Without this check any
+    third-party frame on the same page could write over screenplay:main in the member's profile. */
+ var PARENT_ORIGIN=parentOrigin();
+ function post(msg){ try{ if(window.parent&&window.parent!==window) window.parent.postMessage(msg, PARENT_ORIGIN || '*'); return true }catch(e){ return false } }
  function readLocal(){ try{var r=localStorage.getItem(KEY);return r?JSON.parse(r):null}catch(e){return null} }
  function writeLocal(v){ try{localStorage.setItem(KEY,JSON.stringify(v));return true}catch(e){return false} }
  function apply(profile,fromLocal){
@@ -41,6 +48,7 @@ var HubBridge=(function(){
   return true;
  }
  window.addEventListener('message',function(e){
+  if(PARENT_ORIGIN && e.origin && e.origin!==PARENT_ORIGIN) return;
   var d=e.data; if(!d||typeof d!=='object') return;
   if(d.hub==='profile'){ apply(d.profile); return }
   if(d.hub==='saved'&&d.id){ delete pending[d.id]; mode='profile'; return }
@@ -71,5 +79,5 @@ var HubBridge=(function(){
   ModalSync.publish('imports:list',{items:items},'bridge');
   return entry;
  }
- return {start:start,save:save,load:load,snapshot:snapshot,history:(typeof history==='function')?history:function(){return []},recordImport:(typeof recordImport==='function')?recordImport:function(){return null},mode:function(){return mode},saveScript:function(meta){if(meta&&(meta.filename||meta.format)){try{recordImport(meta)}catch(e){}}var s=ModalSync.get('screenplay:main');return save('script:'+((s&&s.content)?s.content.length:0))}};
+ return {start:start,parentOrigin:function(){return PARENT_ORIGIN},save:save,load:load,snapshot:snapshot,history:(typeof history==='function')?history:function(){return []},recordImport:(typeof recordImport==='function')?recordImport:function(){return null},mode:function(){return mode},saveScript:function(meta){if(meta&&(meta.filename||meta.format)){try{recordImport(meta)}catch(e){}}var s=ModalSync.get('screenplay:main');return save('script:'+((s&&s.content)?s.content.length:0))}};
 })();
