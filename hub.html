@@ -162,7 +162,7 @@ function boot(){
  busTick();
  if(window.HUB_READY)HUB_READY();
 }
-window.HUB={reg:reg,open:open,close:close,layout:layout,sizeGrid:sizeGrid,tiles:function(){return TILES.map(function(t){return t.id})},busTick:busTick,esc:esc};
+window.HUB={reg:reg,open:open,close:close,boot:boot,layout:layout,sizeGrid:sizeGrid,tiles:function(){return TILES.map(function(t){return t.id})},busTick:busTick,esc:esc};
 window.HUB_READY=function(){document.getElementById('tagline').textContent='production suite · '+TILES.length+' modalities'};
 })();
 ;
@@ -223,7 +223,7 @@ HUB.reg({id:'notes',title:'Notes',sub:'Watches the script and counts it live',ta
   });
   draw();
  }});
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){HUB.boot()});else HUB.boot();
 })();
 </script>
 </body>

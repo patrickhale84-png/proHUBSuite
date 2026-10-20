@@ -61,4 +61,4 @@ function boot(){
  busTick();
  if(window.HUB_READY)HUB_READY();
 }
-window.HUB={reg:reg,open:open,close:close,layout:layout,sizeGrid:sizeGrid,tiles:function(){return TILES.map(function(t){return t.id})},busTick:busTick,esc:esc};
+window.HUB={reg:reg,open:open,close:close,boot:boot,layout:layout,sizeGrid:sizeGrid,tiles:function(){return TILES.map(function(t){return t.id})},busTick:busTick,esc:esc};
