@@ -327,12 +327,15 @@ function sizeGrid(){
   if(!W||!H||!TILES.length) return;
   var units=0, most=1;
   for(var i=0;i<TILES.length;i++){ var s=spanOf(TILES[i].id); units+=s.w*s.h; }
-  var best=null;
+  var best=null, GAP=12;                    // must match #tgrid gap in the stylesheet
   for(var cols=1;cols<=Math.min(10,units);cols++){
     var rows=Math.ceil(units/cols);
-    var cw=W/cols, ch=H/rows;
+    /* the row gaps are part of the height budget: without subtracting them the grid overflowed
+       by (rows-1)*gap, which clipped the last row on a phone */
+    var cw=(W-(cols-1)*GAP)/cols;
+    var ch=(H-(rows-1)*GAP)/rows;
     var cell=Math.min(cw,ch);
-    if(cell<40) continue;
+    if(cell<34) continue;
     var aspect=Math.abs(Math.log(cw/ch));            // 0 when the cell is square
     var score=cell/(1+aspect*2.2);                    // favour size, then squareness
     if(!best||score>best.score) best={cols:cols,rows:rows,cell:cell,score:score};
