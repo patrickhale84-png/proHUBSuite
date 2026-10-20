@@ -21,6 +21,9 @@ function deskLoad() {
   DESK.loading = fetch(DESK.source, { cache: 'no-store' })
     .then(function (r) { return r.text(); })
     .then(function (html) {
+      // the desk's schedule view touches a Tailwind runtime global; define a harmless stub so
+      // the port does not throw. Its stylesheet is already compiled into the desk.
+      try { if (!window.tailwind) window.tailwind = { config: {}, theme: { extend: function () {} } }; } catch (e) {}
       var doc = new DOMParser().parseFromString(html, 'text/html');
 
       // 1. styles, once
