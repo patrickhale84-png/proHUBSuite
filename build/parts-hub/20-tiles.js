@@ -21,7 +21,7 @@ function layout(){
 function sizeGrid(){
  var g=document.getElementById('tgrid');if(!g)return;
  var avail=g.clientWidth-32,availH=g.clientHeight-32;
- var cols=Math.max(2,Math.min(6,Math.floor(avail/230)));
+ var cols=Math.max(2,Math.min(6,Math.floor(avail/230),Math.max(2,TILES.length)));
  var rows=Math.max(1,Math.round(availH/168));
  g.style.gridTemplateColumns='repeat('+cols+',minmax(0,1fr))';
  g.style.gridAutoRows=Math.max(120,Math.floor(availH/rows))+'px';

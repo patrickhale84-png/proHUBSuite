@@ -1,3 +1,7 @@
+/* publish a starting script so the bus is never empty on a cold load */
+if(!ModalSync.get('screenplay:main')){
+ ModalSync.publish('screenplay:main',{content:'INT. KITCHEN - DAY\n\nMARY\nWe have to go before the light turns.\n\n2  EXT. WOODS - DAY\n\nThey run.'},'boot');
+}
 /* two modalities, to prove the bus end to end: the script publishes screenplay:main, and the
    notes tile watches it and re-counts live without either knowing the other exists. */
 HUB.reg({id:'script',title:'Screenplay',sub:'The draft, published to the bus',tag:'screenplay',colour:'#E2A93B',big:true,

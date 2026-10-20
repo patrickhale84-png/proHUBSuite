@@ -122,7 +122,7 @@ function layout(){
 function sizeGrid(){
  var g=document.getElementById('tgrid');if(!g)return;
  var avail=g.clientWidth-32,availH=g.clientHeight-32;
- var cols=Math.max(2,Math.min(6,Math.floor(avail/230)));
+ var cols=Math.max(2,Math.min(6,Math.floor(avail/230),Math.max(2,TILES.length)));
  var rows=Math.max(1,Math.round(availH/168));
  g.style.gridTemplateColumns='repeat('+cols+',minmax(0,1fr))';
  g.style.gridAutoRows=Math.max(120,Math.floor(availH/rows))+'px';
@@ -168,6 +168,10 @@ window.HUB_READY=function(){document.getElementById('tagline').textContent='prod
 ;
 /* demo */
 (function(){
+/* publish a starting script so the bus is never empty on a cold load */
+if(!ModalSync.get('screenplay:main')){
+ ModalSync.publish('screenplay:main',{content:'INT. KITCHEN - DAY\n\nMARY\nWe have to go before the light turns.\n\n2  EXT. WOODS - DAY\n\nThey run.'},'boot');
+}
 /* two modalities, to prove the bus end to end: the script publishes screenplay:main, and the
    notes tile watches it and re-counts live without either knowing the other exists. */
 HUB.reg({id:'script',title:'Screenplay',sub:'The draft, published to the bus',tag:'screenplay',colour:'#E2A93B',big:true,
