@@ -3,6 +3,32 @@
 var TILES=[],OPEN=null;
 function reg(t){TILES.push(t)}
 function busTick(){var n=window.ModalSync?ModalSync.getTags().length:0;var el=document.getElementById('tagcount');if(el)el.textContent=n}
+/* the front end's own design language: a gradient per tile, Barlow Condensed for the heading,
+   Plex Mono for the labels, a number and a badge on every card. */
+var TILE_FA = { filmcraft:'fa-clapperboard', photopea:'fa-image', 'edit-graphite':'fa-pen-nib',
+  storyboard:'fa-table-columns', pitch:'fa-presentation-screen', outreach:'fa-paper-plane',
+  scripts:'fa-book-open', import:'fa-file-import', notes:'fa-note-sticky', script:'fa-pen-fancy' };
+function faFor(t){
+  if(TILE_FA[t.id]) return TILE_FA[t.id];
+  if(t.id.indexOf('prod-')===0) return 'fa-list-ol';
+  if(t.id.indexOf('modal-')===0) return 'fa-sliders';
+  return t.tag==='production' ? 'fa-film' : 'fa-cube';
+}
+function shade(hex,amt){
+  var h=String(hex||'#E2A93B').replace('#','');
+  if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  var n=parseInt(h,16);
+  function cl(v){return Math.max(0,Math.min(255,v))}
+  var r=cl(((n>>16)&255)+amt), g=cl(((n>>8)&255)+amt), b=cl((n&255)+amt);
+  return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+function badgeFor(t){
+  if(t.id.indexOf('prod-')===0) return 'DESK';
+  if(t.id.indexOf('modal-')===0) return 'FORM';
+  if(t.id==='filmcraft') return 'NLE';
+  if(t.id.indexOf('edit-')===0) return 'EDITOR';
+  return String(t.tag||'MOD').toUpperCase();
+}
 function layout(){
  loadSpans();
  var g=document.getElementById('tgrid');if(!g)return;
@@ -127,3 +153,4 @@ window.HUB={reg:reg,open:open,close:close,boot:boot,layout:layout,sizeGrid:sizeG
 (function(){var s=document.createElement('style');s.textContent="\n/* the grip that extends a tile, and a grid that never scrolls */\n.tile{position:relative;overflow:hidden}\n.tzgrip{position:absolute;right:6px;bottom:6px;width:14px;height:14px;border-radius:3px;cursor:nwse-resize;opacity:.35;\n background:linear-gradient(135deg,transparent 45%,#7E8FA6 45%,#7E8FA6 55%,transparent 55%,transparent 70%,#7E8FA6 70%,#7E8FA6 80%,transparent 80%)}\n.tile:hover .tzgrip{opacity:.8}\n#tgrid{overflow:hidden !important;overscroll-behavior:none}\n@supports(height:100dvh){.wrap{height:100dvh}}\n";document.head.appendChild(s);})();
 /* shrink behaviour */
 (function(){var s=document.createElement('style');s.textContent="\n/* shrinking: the dot and the title always survive; the sub text and the tag label give way first */\n[data-hub-size] .tile{display:flex;flex-direction:column;justify-content:flex-start;gap:5px;min-height:0}\n[data-hub-size] .tile .row{flex:0 0 auto;align-items:center;gap:6px;min-width:0}\n[data-hub-size] .tile .dot{flex:0 0 auto;width:9px;height:9px}\n[data-hub-size] .tile h2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;\n  margin:0;flex:0 0 auto;overflow-wrap:anywhere}\n[data-hub-size] .tile p{flex:1 1 auto;overflow:hidden;margin:0}\n[data-hub-size=\"md\"] .tile p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}\n[data-hub-size=\"md\"] .tile h2{font-size:16px;line-height:1.2}\n[data-hub-size=\"sm\"] .tile p{display:none}\n[data-hub-size=\"sm\"] .tile .k{display:none}\n[data-hub-size=\"sm\"] .tile h2{font-size:13.5px;line-height:1.15}\n[data-hub-size=\"sm\"] .tile{padding:10px;gap:3px}\n";document.head.appendChild(s);})();
+(function(){var s=document.createElement('style');s.textContent="\n/* proHUBFront tile design: gradient card, condensed heading, mono labels, number and badge */\n.tile{position:relative;overflow:hidden;border-radius:12px;border:1px solid rgba(255,255,255,.10);\n  padding:13px 14px;color:#F2F5FA;display:flex;flex-direction:column;gap:7px;transition:transform .12s,box-shadow .15s}\n.tile:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.45)}\n.tile .ttop{display:flex;align-items:center;gap:8px;flex:0 0 auto}\n.tile .tn{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.10em;opacity:.62}\n.tile .ttop i{font-size:13px;opacity:.92}\n.tile .badge{margin-left:auto;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:9px;letter-spacing:.12em;\n  padding:2px 6px;border-radius:4px;background:rgba(0,0,0,.32);color:rgba(255,255,255,.82);text-transform:uppercase}\n.tile h2{font-family:'Barlow Condensed','Oswald','Arial Narrow',system-ui,sans-serif;font-weight:700;\n  text-transform:uppercase;letter-spacing:.02em;margin:0;line-height:1.06;display:-webkit-box;\n  -webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere;font-size:21px}\n.tile p{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:10.5px;letter-spacing:.02em;line-height:1.45;\n  margin:0;color:rgba(255,255,255,.72);overflow:hidden}\n[data-hub-size=\"md\"] .tile h2{font-size:17px}\n[data-hub-size=\"md\"] .tile p{-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical}\n[data-hub-size=\"sm\"] .tile h2{font-size:13.5px}\n[data-hub-size=\"sm\"] .tile p,[data-hub-size=\"sm\"] .tile .badge{display:none}\n[data-hub-size=\"sm\"] .tile{padding:9px 10px;gap:4px}\n";document.head.appendChild(s);})();
