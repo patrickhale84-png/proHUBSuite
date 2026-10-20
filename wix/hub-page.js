@@ -4,7 +4,7 @@ import { loadProfile, saveProfile } from 'backend/profiles.js';
 // the hub lives on its own origin; every postMessage is addressed to it, and anything arriving
 // from elsewhere is ignored. Wix's onMessage may not expose event.origin - where it does not,
 // the hub's own check is the one doing the work, so keep both.
-const HUB_ORIGIN = 'https://www.rooksproductions.com/prohub';   // <-- your hosted hub
+const HUB_ORIGIN = 'https://silver-heliotrope-2122e8.netlify.app';   // <-- your hosted hub
 const FRAME = '#hubFrame';        // rename to your HTML component id
 let queue = Promise.resolve();    // serialise writes - two fast saves must not race
 
