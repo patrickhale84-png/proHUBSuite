@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>proHUB · A/V studio</title>
+
+  <!-- External Libraries -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            siteDark: '#0b0f19',
+            siteNavy: '#131926',
+            siteCard: '#182032',
+            siteBorder: '#232d42',
+            goldAccent: '#FFD700',
+            blueAccent: '#60a5fa'
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    *, ::before, ::after { box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100%; margin: 0; padding: 0; background-color: #0b0f19; color: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow-x: hidden; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    input, textarea, select { font-size: 13px !important; outline: none; resize: none; color-scheme: dark; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0b0f19; }
+    ::-webkit-scrollbar-thumb { background: #232d42; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #60a5fa; }
+
+    th { position: relative; background-clip: padding-box; }
+    .resizer { position: absolute; top: 0; right: -3px; width: 6px; height: 100%; cursor: col-resize; z-index: 10; user-select: none; touch-action: none; }
+    .resizer:hover, .resizer:active { background-color: rgba(96,165,250,0.5); }
+
+    .sortable-ghost { opacity: 0.35; background-color: #38bdf8 !important; border: 2px dashed #0284c7; }
+    .scene-group { cursor: grab; }
+    .scene-group:active { cursor: grabbing !important; }
+    .print-block { cursor: grab; }
+    .print-block:active { cursor: grabbing !important; }
+
+    /* Tagging Classifications */
+    .tag-cast { background-color: #1e3a8a; color: #93c5fd; font-weight: bold; padding: 1px 4px; border-radius: 3px; border: 1px solid #3b82f6; }
+    .tag-prop { background-color: #713f12; color: #fde047; font-weight: bold; padding: 1px 4px; border-radius: 3px; border: 1px solid #eab308; }
+    .tag-wardrobe { background-color: #14532d; color: #86efac; font-weight: bold; padding: 1px 4px; border-radius: 3px; border: 1px solid #22c55e; }
+    .tag-sfx { background-color: #7f1d1d; color: #fca5a5; font-weight: bold; padding: 1px 4px; border-radius: 3px; border: 1px solid #ef4444; }
+    .tag-vfx { background-color: #581c87; color: #d8b4fe; font-weight: bold; padding: 1px 4px; border-radius: 3px; border: 1px solid #a855f7; }
+
+    @media print {
+      @page { size: portrait; margin: 8mm; }
+      body { background: white !important; color: black !important; min-width: 1024px !important; }
+      header, .no-print, nav, #input-section, #export-modal, #floating-tagger { display: none !important; }
+      .pdf-exclude { display: none !important; }
+      .table-scroll, .window-content, #schedule-container, #shots-container, #script-content { 
+          display: block !important; max-height: none !important; overflow: visible !important; width: 100% !important; 
+      }
+      .bg-siteDark, .bg-siteNavy, .bg-siteCard { background: white !important; color: black !important; border: none !important; box-shadow: none !important; }
+      table { width: 100% !important; border-collapse: collapse; }
+      th, td { font-size: 9px !important; padding: 4px !important; color: black !important; border: 1px solid #000 !important; }
+      tr, .print-break { page-break-inside: avoid !important; }
+      .page-break-before { page-break-before: always !important; }
+      input, textarea, select { color: black !important; border: none !important; background: transparent !important; }
+      
+      body.print-sides-active { padding: 0 !important; margin: 0 !important; }
+      body.print-sides-active .view-section { display: none !important; }
+      body.print-sides-active #sides-render-area { display: block !important; width: 100% !important; font-size: 14px; }
+    }
+  </style>
+<style>#tab-navigation{display:none !important}</style></head>
+<body data-modality="shots" class="p-2 sm:p-4 pb-20">
+
+  <!-- TOP PRODUCTION HEADER -->
+  <header class="w-full bg-siteNavy border border-siteBorder rounded-xl p-4 mb-4 shadow-lg flex flex-col md:flex-row items-center justify-between gap-4 print-hide relative">
+    <div class="flex items-center gap-3 w-full md:w-auto">
+      <div class="w-10 h-10 rounded-lg bg-blueAccent flex items-center justify-center text-siteDark font-black text-xl shrink-0 shadow">P+</div>
+      <div class="flex-1 min-w-[240px]">
+        <input type="text" id="project-name-input" value="UNTITLED PROJECT" oninput="window.state.projectName = this.value; window.triggerAutoSave();" class="font-black tracking-wider text-white uppercase bg-transparent border-b border-transparent hover:border-siteBorder focus:border-blueAccent text-base w-full">
+        <input type="text" id="ad-contact-input" value="1ST AD: JANE DOE | 555-0199" oninput="window.state.adContact = this.value; window.triggerAutoSave();" class="font-mono text-xs text-gray-400 uppercase bg-transparent border-b border-transparent hover:border-siteBorder focus:border-blueAccent w-full">
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+      <button onclick="window.resyncProject()" class="text-xs bg-siteDark border border-siteBorder hover:border-blueAccent text-blueAccent px-3 py-2 rounded-lg flex items-center gap-1.5 font-bold transition shadow">
+        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Resync Engine
+      </button>
+      <button onclick="window.sendBackup()" class="text-xs bg-siteDark border border-siteBorder hover:border-goldAccent text-goldAccent px-3 py-2 rounded-lg flex items-center gap-1.5 font-mono transition shadow">
+        <i data-lucide="download" class="w-3.5 h-3.5"></i> Backup JSON
+      </button>
+      <button onclick="window.openExportModal()" class="text-xs bg-white hover:bg-blueAccent text-siteDark font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 transition shadow">
+        <i data-lucide="printer" class="w-3.5 h-3.5"></i> Export Studio
+      </button>
+      <button onclick="window.triggerHardReset()" class="text-xs bg-red-900/20 border border-red-500/50 text-red-400 hover:bg-red-600 hover:text-white px-3 py-2 rounded-lg transition font-bold">
+        Hard Reset
+      </button>
+    </div>
+  </header>
+
+  <!-- LOGISTICS STRIP -->
+  <section class="w-full bg-siteNavy border border-siteBorder rounded-xl p-3 mb-4 shadow text-xs flex flex-wrap gap-4 items-center print-break no-print">
+    <div class="flex items-center gap-2">
+      <i data-lucide="map-pin" class="w-4 h-4 text-blueAccent"></i>
+      <span class="font-bold text-white uppercase text-[11px]">Zip Code:</span>
+      <input type="text" id="logistics-zip" placeholder="10001" onkeyup="if(this.value.length===5) window.updateLogistics()" onchange="window.updateLogistics()" class="w-20 bg-siteDark border border-siteBorder rounded px-2 py-1 text-white outline-none focus:border-blueAccent text-center mono font-bold">
+    </div>
+    <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+      <i data-lucide="cloud-sun" class="w-4 h-4 text-goldAccent"></i>
+      <span class="font-bold text-white uppercase text-[11px]">Weather:</span>
+      <input type="text" id="logistics-weather" placeholder="Syncing weather..." onchange="window.state.logistics.weather = this.value; window.triggerAutoSave();" class="w-full bg-siteDark border border-siteBorder rounded px-2 py-1 text-white outline-none focus:border-blueAccent">
+    </div>
+    <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+      <i data-lucide="cross" class="w-4 h-4 text-red-400"></i>
+      <span class="font-bold text-white uppercase text-[11px]">Hospital:</span>
+      <input type="text" id="logistics-hospital" placeholder="Nearest ER..." onchange="window.state.logistics.hospital = this.value; window.triggerAutoSave();" class="w-full bg-siteDark border border-siteBorder rounded px-2 py-1 text-white outline-none focus:border-blueAccent">
+    </div>
+  </section>
+
+  <!-- SCRIPT INGESTION BOX -->
+  <section id="input-section" class="w-full bg-siteNavy border border-siteBorder rounded-xl p-4 mb-4 shadow-xl no-print">
+    <div class="flex justify-between items-center mb-2">
+      <span class="text-xs font-bold uppercase text-white flex items-center gap-2">
+        <i data-lucide="file-text" class="w-4 h-4 text-blueAccent"></i> Universal Script Ingestion
+      </span>
+      <div class="flex items-center gap-3">
+        <button onclick="window.loadSampleText()" class="text-xs text-blueAccent hover:underline font-bold">Load Sample Script</button>
+        <label class="cursor-pointer text-xs text-goldAccent hover:underline font-bold flex items-center gap-1 bg-siteDark border border-siteBorder px-2.5 py-1 rounded">
+          <i data-lucide="upload" class="w-3 h-3"></i> Upload Script (.FDX, .PDF, .TXT)
+          <input type="file" accept=".pdf,.fdx,.fountain,.txt" class="hidden" onchange="window.handleScriptUpload(event)">
+        </label>
+      </div>
+    </div>
+    <div id="drop-zone" class="w-full border-2 border-dashed border-siteBorder rounded-lg p-1 transition-all relative">
+      <textarea id="script-input" rows="5" placeholder="Paste screenplay text, Fountain markdown, or drag and drop a script file here..." class="w-full bg-siteDark border-none rounded p-3 text-xs mono text-white outline-none focus:ring-1 focus:ring-blueAccent transition"></textarea>
+    </div>
+    <div class="mt-3 flex justify-between items-center">
+      <span class="text-[11px] text-gray-500 italic">Automatic scene parsing, day/night continuity, prop extraction, and timing logic.</span>
+      <button onclick="window.runScriptBreakdownEngine()" class="bg-blueAccent hover:brightness-110 text-siteDark font-bold text-xs px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Parse & Populate Engine
+      </button>
+    </div>
+  </section>
+
+  <!-- NAVIGATION TABS -->
+  <div class="flex w-full justify-between items-center border-b border-siteBorder mb-4 pb-2 no-print gap-2">
+    <nav id="tab-navigation" class="flex flex-wrap w-full gap-1 sm:gap-2 text-xs font-bold">
+      <button onclick="window.setTab('schedule')" id="tab-schedule" class="flex-grow sm:flex-1 px-2 py-2 rounded transition text-center bg-blueAccent text-siteDark">One-Line</button>
+      <button onclick="window.setTab('callsheet')" id="tab-callsheet" class="flex-grow sm:flex-1 px-2 py-2 rounded transition text-center bg-siteNavy border border-siteBorder text-white hover:bg-siteCard">Call Sheet</button>
+      <button onclick="window.setTab('screenplay')" id="tab-screenplay" class="flex-grow sm:flex-1 px-2 py-2 rounded transition text-center bg-siteNavy border border-siteBorder text-white hover:bg-siteCard">Screenwriter</button>
+      <button onclick="window.setTab('cast')" id="tab-cast" class="flex-grow sm:flex-1 px-2 py-2 rounded transition text-center bg-siteNavy border border-siteBorder text-white hover:bg-siteCard">Crew & Cast</button>
+      <button onclick="window.setTab('shots')" id="tab-shots" class="flex-grow sm:flex-1 px-2 py-2 rounded transition text-center bg-siteNavy border border-siteBorder text-white hover:bg-siteCard">A/V Studio</button>
+      <button onclick="window.setTab('props')" id="tab-props" class="flex-grow sm:flex-1 px-2 py-2 rounded transition text-center bg-siteNavy border border-siteBorder text-white hover:bg-siteCard">Assets & Loc</button>
+      <button onclick="window.setTab('budget')" id="tab-budget" class="flex-grow sm:flex-1 px-2 py-2 rounded transition text-center bg-siteNavy border border-siteBorder text-white hover:bg-siteCard">Standard Budget</button>
+      <button onclick="window.setTab('indieplus')" id="tab-indieplus" class="flex-grow sm:flex-1 px-2 py-2 rounded transition text-center bg-siteDark border border-goldAccent text-goldAccent hover:bg-siteNavy">indiePLUS</button>
+      <button onclick="window.setTab('shootingscript')" id="tab-shootingscript" class="flex-grow sm:flex-1 px-2 py-2 rounded transition text-center bg-siteDark border border-blueAccent text-blueAccent hover:bg-siteNavy">Shooting Script</button>
+    </nav>
+  </div>
+
+  <main id="main-sections-wrapper" class="w-full">
+
+    <!-- ONE-LINE STRIPBOARD -->
+    <section id="view-schedule" class="hidden space-y-4 view-section">
+      <div class="bg-siteNavy border border-siteBorder rounded-xl p-3 flex flex-wrap justify-between items-center text-xs gap-3 no-print">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1 bg-siteDark rounded-lg border border-siteBorder p-1 text-xs font-bold">
+            <span class="px-2 text-gray-400">Target Shoot Days:</span>
+            <button onclick="window.adjustDays(-1)" class="w-6 h-6 rounded bg-siteNavy hover:bg-siteCard text-white flex items-center justify-center">-</button>
+            <span id="target-days-ui" class="px-2 text-blueAccent mono font-bold">1</span>
+            <button onclick="window.adjustDays(1)" class="w-6 h-6 rounded bg-siteNavy hover:bg-siteCard text-white flex items-center justify-center">+</button>
+          </div>
+          <div class="flex bg-siteDark rounded-lg border border-siteBorder p-1 text-xs">
+            <button onclick="window.setScheduleMode('linear')" id="btn-sched-linear" class="px-3 py-1 rounded bg-blueAccent text-siteDark font-bold">Script Order</button>
+            <button onclick="window.setScheduleMode('optimized')" id="btn-sched-opt" class="px-3 py-1 rounded text-gray-400 hover:text-white">Optimized (D->N)</button>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-gray-400">Total Scenes: <b id="stat-scenes" class="text-white">0</b> | Pages: <b id="stat-pages" class="text-white">0</b></span>
+        </div>
+      </div>
+      <div id="schedule-container" class="space-y-6 w-full overflow-x-auto"></div>
+    </section>
+
+    <!-- CALL SHEET GENERATOR -->
+    <section id="view-callsheet" class="space-y-4 view-section">
+      <div class="bg-siteNavy border border-siteBorder rounded-xl p-3 flex flex-wrap justify-between items-center text-xs gap-3 no-print">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-gray-400 uppercase tracking-wider">Select Shoot Day:</span>
+          <select id="callsheet-day-select" onchange="window.renderCallSheet()" class="bg-siteDark border border-siteBorder rounded px-3 py-1.5 text-goldAccent font-mono outline-none"></select>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="window.printDailySides()" class="bg-white text-siteDark px-4 py-2 rounded font-bold hover:bg-gray-200 transition shadow flex items-center gap-2">
+            <i data-lucide="book-open" class="w-4 h-4"></i> Print Daily Sides
+          </button>
+          <button onclick="window.emailCallSheet()" class="bg-blueAccent text-siteDark px-4 py-2 rounded font-bold hover:brightness-110 transition flex items-center gap-2">
+            <i data-lucide="mail" class="w-4 h-4"></i> Email Call Sheet
+          </button>
+        </div>
+      </div>
+      <div class="bg-white text-black border-2 border-black p-4 sm:p-8 shadow-inner font-sans text-sm max-h-[75vh] overflow-y-auto print-break" id="callsheet-render-area">
+        <p class="text-center text-gray-500 italic mt-10">Process a script and verify schedule to populate the Call Sheet.</p>
+      </div>
+    </section>
+
+    <!-- SCREENWRITER SYNC -->
+    <section id="view-screenplay" class="space-y-4 view-section">
+      <div class="bg-siteNavy border border-siteBorder rounded-xl p-3 flex justify-between items-center text-xs no-print">
+        <div class="flex items-center gap-2 text-gray-400">
+          <i data-lucide="edit-3" class="w-4 h-4 text-blueAccent"></i>
+          <span>Live Editor: Any edits resync throughout schedules, DOODs, and call sheets instantly.</span>
+        </div>
+        <button onclick="window.syncScreenplayEditorToBreakdown()" class="bg-blueAccent hover:brightness-110 text-siteDark font-bold px-4 py-2 rounded-lg flex items-center gap-2">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Sync Script to Production Suite
+        </button>
+      </div>
+      <div class="bg-siteDark border border-siteBorder rounded-xl p-4 sm:p-8 flex justify-center">
+        <textarea id="live-screenplay-editor" class="w-full max-w-3xl bg-transparent font-mono text-sm leading-relaxed text-white min-h-[600px] outline-none border-none resize-y" placeholder="Screenplay text appears here for live editing..."></textarea>
+      </div>
+    </section>
+
+    <!-- CREW & CAST (DOOD + HMU + SIGN-IN) -->
+    <section id="view-cast" class="space-y-4 view-section">
+      <!-- DOOD -->
+      <div class="bg-siteNavy border border-siteBorder rounded-xl p-3 flex flex-wrap justify-between items-center no-print gap-2">
+        <span class="text-gray-400 text-xs italic">SAG-AFTRA DOOD auto-generates directly from stripboard schedule.</span>
+      </div>
+      <div id="dood-container" class="bg-white text-black border-2 border-black p-4 shadow-inner text-xs overflow-x-auto print-break"></div>
+
+      <!-- Cast HMU -->
+      <div class="bg-siteNavy border border-siteBorder rounded-xl p-3 print-break mt-4">
+        <div class="text-xs font-bold uppercase text-white mb-2 tracking-wider flex items-center gap-2">
+          <i data-lucide="users" class="w-4 h-4 text-blueAccent"></i> Cast & HMU Continuity
+        </div>
+        <div class="table-scroll max-h-[60vh] overflow-y-auto pr-2 pb-6">
+          <table class="w-full text-left text-xs" id="cast-table">
+            <thead>
+              <tr class="border-b border-siteBorder text-gray-400 uppercase tracking-wider text-[10px] select-none">
+                <th class="p-2 w-1/4 relative print-th">Character & App.<div class="resizer"></div></th>
+                <th class="p-2 w-1/3 relative print-th">Wardrobe Notes & Time Requirements<div class="resizer"></div></th>
+                <th class="p-2 w-1/3 relative print-th">SFX Makeup & Continuity State<div class="resizer"></div></th>
+                <th class="p-2 w-10 text-center no-print">Del</th>
+              </tr>
+            </thead>
+            <tbody id="cast-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Crew Sign-In -->
+      <div class="bg-siteNavy border border-siteBorder rounded-xl p-3 print-break mt-4">
+        <div class="flex justify-between items-center mb-2">
+          <div class="text-xs font-bold uppercase text-white tracking-wider flex items-center gap-2">
+            <i data-lucide="clipboard-signature" class="w-4 h-4 text-blueAccent"></i> Daily Crew Sign-In Sheet
+          </div>
+          <button onclick="window.addNewCrewRow()" class="bg-blueAccent text-siteDark text-xs px-3 py-1.5 rounded font-bold no-print">+ Add Crew</button>
+        </div>
+        <div class="table-scroll max-h-[60vh] overflow-y-auto pr-2 pb-6">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-siteDark text-gray-400 uppercase tracking-wider text-[10px] border-b border-siteBorder">
+              <tr>
+                <th class="p-2" style="min-width: 140px;">Name</th>
+                <th class="p-2" style="min-width: 130px;">Role / Dept</th>
+                <th class="p-2" style="min-width: 60px;">Call</th>
+                <th class="p-2" style="min-width: 60px;">In</th>
+                <th class="p-2" style="min-width: 60px;">Meal 1</th>
+                <th class="p-2" style="min-width: 60px;">Meal 2</th>
+                <th class="p-2" style="min-width: 60px;">Wrap</th>
+                <th class="p-2 text-center no-print w-10">Del</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-siteBorder/60" id="signin-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- A/V STUDIO (STORYBOARDS + DAILIES + SLATE) -->
+    <section id="view-shots" class="space-y-4 view-section">
+      <!-- Shot Studio -->
+      <div class="bg-siteNavy border border-siteBorder rounded-xl p-3 flex flex-wrap justify-between items-center text-xs no-print gap-3">
+        <label class="bg-siteDark border border-siteBorder text-blueAccent px-3 py-1.5 rounded cursor-pointer hover:border-blueAccent transition text-xs font-bold flex items-center gap-1">
+          <i data-lucide="image-plus" class="w-3.5 h-3.5"></i> Import Shot Photos (.CSV)
+          <input type="file" accept=".csv" class="hidden" onchange="window.uploadShotsCSV(event)">
+        </label>
+        <div class="flex items-center gap-2 flex-wrap">
+          <input type="number" id="new-shot-scene" placeholder="Scn #" class="bg-siteDark border border-siteBorder rounded px-2 py-1.5 text-white text-xs w-16">
+          <input type="text" id="new-shot-type" placeholder="Angle (e.g. ECU, OTS)" class="bg-siteDark border border-siteBorder rounded px-2 py-1.5 text-white text-xs w-36">
+          <input type="text" id="new-shot-desc" placeholder="Setup Description" class="bg-siteDark border border-siteBorder rounded px-2 py-1.5 text-white text-xs w-56">
+          <button onclick="window.addManualShot()" class="bg-blueAccent text-siteDark px-3 py-1.5 rounded font-bold hover:brightness-110 text-xs">+ Add Setup</button>
+        </div>
+      </div>
+      <div id="shots-container" class="space-y-3 max-h-[50vh] overflow-y-auto pr-2 pb-6"></div>
+
+      <!-- Dailies Viewer & Slate combined block -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Dailies -->
+        <div class="bg-siteNavy border border-siteBorder rounded-xl p-4 shadow-xl print-card">
+          <div class="flex justify-between items-center pb-3 border-b border-siteBorder mb-3">
+            <h2 class="text-sm font-bold text-white uppercase"><i data-lucide="video" class="w-4 h-4 inline text-blueAccent mb-1"></i> Dailies / Proxies Viewer</h2>
+            <div class="flex items-center gap-2 no-print">
+              <label class="cursor-pointer text-xs bg-siteDark border border-siteBorder px-2 py-1 rounded text-white hover:text-blueAccent">
+                Upload <input type="file" accept="video/*" onchange="window.handleDailiesUpload(event)" class="hidden">
+              </label>
+            </div>
+          </div>
+          <div class="flex flex-col gap-3">
+            <div class="w-full bg-black rounded-xl border border-siteBorder overflow-hidden shadow-2xl relative flex items-center justify-center h-48">
+              <video id="dailies-video-player" class="w-full h-full object-contain" controls></video>
+              <div id="dailies-empty-notice" class="absolute inset-0 flex flex-col items-center justify-center text-gray-500 text-xs bg-black z-0">
+                <span>No dailies loaded.</span>
+              </div>
+            </div>
+            <div class="bg-siteDark p-2 rounded-xl border border-siteBorder h-32 flex flex-col">
+              <div class="text-[10px] font-bold text-gray-400 uppercase border-b border-siteBorder pb-1 mb-1 flex justify-between">
+                <span>Playlist Queue</span><span id="dailies-queue-count">0</span>
+              </div>
+              <div id="dailies-playlist-container" class="overflow-y-auto flex-1 text-xs space-y-1"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Digital Slate -->
+        <div class="bg-siteNavy border border-siteBorder rounded-xl p-4 shadow-xl print-card">
+          <div class="flex justify-between items-center pb-3 border-b border-siteBorder mb-3">
+            <h2 class="text-sm font-bold text-white uppercase"><i data-lucide="camera" class="w-4 h-4 inline text-red-400 mb-1"></i> Camera Take Recorder</h2>
+            <button onclick="window.startCameraStream()" id="btn-camera-toggle" class="bg-siteDark border border-siteBorder text-white text-xs px-2 py-1 rounded">Start Camera</button>
+          </div>
+          <div class="flex flex-col gap-3">
+            <div class="w-full bg-black rounded-xl border-2 border-siteBorder overflow-hidden relative flex items-center justify-center h-48">
+              <video id="live-camera-feed" autoplay playsinline muted class="w-full h-full object-cover"></video>
+              <canvas id="live-capture-canvas" class="hidden absolute inset-0 w-full h-full object-cover"></canvas>
+              <div class="absolute top-2 left-2 right-2 flex justify-between pointer-events-none text-white font-mono text-[10px] bg-black/60 px-2 py-1 rounded border border-white/10 z-10">
+                <div>SC: <strong id="hud-scene" class="text-goldAccent font-bold">1</strong> | TK: <strong id="hud-take" class="text-goldAccent font-bold">1</strong></div>
+                <div id="hud-timecode" class="text-red-400 font-bold">00:00:00:00</div>
+              </div>
+              <div id="cam-standby-placeholder" class="absolute inset-0 flex items-center justify-center text-gray-500 bg-siteDark text-xs z-0">Camera Standby</div>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <input type="text" id="slate-scene-input" value="1" oninput="window.updateSlateHud()" placeholder="Sc" class="w-16 bg-siteDark border border-siteBorder p-1.5 rounded text-white text-center">
+              <button onclick="window.adjustTake(-1)" class="w-8 h-8 rounded bg-siteDark border border-siteBorder text-white">-</button>
+              <input type="number" id="slate-take-input" value="1" oninput="window.updateSlateHud()" class="w-16 bg-siteDark border border-siteBorder p-1.5 rounded text-white text-center">
+              <button onclick="window.adjustTake(1)" class="w-8 h-8 rounded bg-siteDark border border-siteBorder text-white">+</button>
+              <button onclick="window.captureSlateSnapshot()" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-1.5 rounded text-center">Capture</button>
+            </div>
+            <div id="captured-takes-feed" class="h-12 overflow-y-auto text-[10px] font-mono text-gray-400 space-y-1"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROPS, LOCATIONS, & GEAR ASSETS -->
+    <section id="view-props" class="space-y-4 view-section">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Props -->
+        <div class="bg-siteNavy border border-siteBorder rounded-xl p-3 print-break">
+          <div class="text-xs font-bold uppercase text-white mb-2 tracking-wider flex items-center gap-2">
+            <i data-lucide="box" class="w-4 h-4 text-blueAccent"></i> Master Props Breakdown
+          </div>
+          <div class="table-scroll max-h-[60vh] overflow-y-auto pr-2">
+            <table class="w-full text-left text-xs whitespace-nowrap" id="props-table">
+              <thead class="text-gray-400 uppercase tracking-wider text-[10px]">
+                <tr class="border-b border-siteBorder select-none">
+                  <th class="p-2 w-12 text-center relative print-th">Acq<div class="resizer"></div></th>
+                  <th class="p-2 w-16 text-center relative print-th">Scn #<div class="resizer"></div></th>
+                  <th class="p-2 w-32 relative print-th">Dept<div class="resizer"></div></th>
+                  <th class="p-2 w-48 relative print-th">Item<div class="resizer"></div></th>
+                </tr>
+              </thead>
+              <tbody id="props-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <!-- Locations -->
+        <div class="bg-siteNavy border border-siteBorder rounded-xl p-3 print-break">
+          <div class="text-xs font-bold uppercase text-white mb-2 tracking-wider flex items-center gap-2">
+            <i data-lucide="map" class="w-4 h-4 text-blueAccent"></i> Locations & Sets
+          </div>
+          <div class="table-scroll max-h-[60vh] overflow-y-auto pr-2">
+            <table class="w-full text-left text-xs whitespace-nowrap" id="locations-table">
+              <thead class="text-gray-400 uppercase tracking-wider text-[10px]">
+                <tr class="border-b border-siteBorder select-none">
+                  <th class="p-2 w-48 relative print-th">Script Heading<div class="resizer"></div></th>
+                  <th class="p-2 relative print-th">Address / Notes<div class="resizer"></div></th>
+                </tr>
+              </thead>
+              <tbody id="locations-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <!-- Gear List -->
+      <div class="bg-siteNavy border border-siteBorder rounded-xl p-3 print-break">
+        <div class="flex justify-between items-center mb-2">
+          <div class="text-xs font-bold uppercase text-white tracking-wider flex items-center gap-2">
+            <i data-lucide="video" class="w-4 h-4 text-blueAccent"></i> Gear & Equipment Rentals
+          </div>
+          <button onclick="window.addGearRow()" class="bg-blueAccent text-siteDark text-xs px-3 py-1.5 rounded font-bold no-print">+ Add Gear</button>
+        </div>
+        <div class="table-scroll max-h-[60vh] overflow-y-auto pr-2">
+          <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="text-gray-400 uppercase tracking-wider text-[10px] border-b border-siteBorder">
+              <tr>
+                <th class="p-2 w-10 text-center">Req</th>
+                <th class="p-2 w-48">Category</th>
+                <th class="p-2 w-64">Item Description</th>
+                <th class="p-2 text-right w-32">Day Rate</th>
+                <th class="p-2 text-center w-10 no-print">Del</th>
+              </tr>
+            </thead>
+            <tbody id="gear-tbody" class="divide-y divide-siteBorder"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- STANDARD BUDGET GLOBALS -->
+    <section id="view-budget" class="space-y-4 view-section">
+      <div class="bg-siteNavy border border-siteBorder rounded-xl p-3 no-print">
+        <div class="flex flex-wrap gap-4 items-center justify-between text-xs">
+          <span class="text-white font-bold uppercase tracking-wider">Production Timeline Constants</span>
+          <div class="flex gap-4">
+            <label class="flex items-center gap-2 text-gray-400 font-bold">Prep: <input type="number" id="budget-prep-days" value="2" onchange="window.updateBudgetGlobals()" class="w-16 bg-siteDark border border-siteBorder rounded p-1 text-center text-goldAccent mono"></label>
+            <label class="flex items-center gap-2 text-gray-400 font-bold">Shoot: <span id="budget-shoot-days" class="w-16 inline-block bg-siteDark border border-siteBorder rounded p-1 text-center text-blueAccent mono">0</span></label>
+            <label class="flex items-center gap-2 text-gray-400 font-bold">Hrs/Day: <input type="number" id="budget-shoot-hours" value="12" step="0.5" onchange="window.updateBudgetGlobals()" class="w-16 bg-siteDark border border-siteBorder rounded p-1 text-center text-goldAccent mono"></label>
+            <label class="flex items-center gap-2 text-gray-400 font-bold">Post: <input type="number" id="budget-post-days" value="2" onchange="window.updateBudgetGlobals()" class="w-16 bg-siteDark border border-siteBorder rounded p-1 text-center text-goldAccent mono"></label>
+          </div>
+        </div>
+      </div>
+      <div class="bg-siteNavy border border-siteBorder rounded-xl p-3 print-break">
+        <div class="table-scroll max-h-[60vh] overflow-y-auto pr-2">
+          <table class="w-full text-left text-xs whitespace-nowrap" id="standard-budget-table">
+            <thead class="text-gray-400 uppercase tracking-wider text-[10px]">
+              <tr class="border-b border-siteBorder select-none">
+                <th class="p-2 w-48 relative print-th">Account Section<div class="resizer"></div></th>
+                <th class="p-2 w-64 relative print-th">Role / Item<div class="resizer"></div></th>
+                <th class="p-2 w-32 relative print-th">Type<div class="resizer"></div></th>
+                <th class="p-2 text-right w-32 relative print-th">Base Rate<div class="resizer"></div></th>
+                <th class="p-2 text-center w-32 relative print-th">Units Committed<div class="resizer"></div></th>
+                <th class="p-2 text-right w-32 relative print-th">Subtotal<div class="resizer"></div></th>
+              </tr>
+            </thead>
+            <tbody id="budget-tbody"></tbody>
+          </table>
+        </div>
+        <div class="flex justify-between items-center pt-3 border-t border-siteBorder mt-2 text-xs">
+          <button onclick="window.addStandardRow()" class="bg-blueAccent text-siteDark px-3 py-1.5 rounded font-bold hover:brightness-110 transition">+ Add Line Item</button>
+          <span class="text-white font-bold uppercase tracking-widest">Total: <strong id="budget-sum" class="text-goldAccent mono ml-1 text-sm">$0</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- indiePLUS MASTER BUDGET -->
+    <section id="view-indieplus" class="space-y-4 relative min-h-[400px] view-section">
+      <div id="content-indieplus" class="window-content space-y-4 transition-all">
+        <div id="paywall-container" class="absolute inset-0 z-10 bg-siteDark/95 backdrop-blur-md flex items-start justify-center pt-10 rounded-xl border border-siteBorder no-print">
+          <div class="bg-siteNavy p-8 rounded-xl shadow-2xl max-w-md w-full border border-goldAccent text-center">
+            <i data-lucide="lock" class="w-10 h-10 text-goldAccent mx-auto mb-4"></i>
+            <h2 class="text-white font-bold text-lg mb-2">indiePLUS Master Budget Locked</h2>
+            <p class="text-gray-400 text-xs mb-6">Detailed chart-of-accounts structure (1100–4900) tied directly to shoot length, union formulas, and global constants.</p>
+            <label class="flex items-start gap-2 text-left text-xs text-white font-bold mb-6 bg-siteDark p-3 rounded border border-siteBorder cursor-pointer">
+              <input type="checkbox" id="ready-checkbox" class="mt-0.5 accent-goldAccent" onchange="document.getElementById('paypal-btn').disabled = !this.checked;">
+              <span>I confirm scheduling inputs are finalized.</span>
+            </label>
+            <button id="paypal-btn" disabled onclick="window.unlockIndiePlus()" class="w-full bg-blueAccent disabled:bg-siteBorder disabled:text-gray-500 text-siteDark font-bold py-3 rounded shadow-lg transition flex items-center justify-center gap-2">
+              Unlock indiePLUS Access
+            </button>
+          </div>
+        </div>
+
+        <div id="indieplus-content" class="bg-siteNavy border border-goldAccent/50 rounded-xl p-3 opacity-20 pointer-events-none transition-opacity duration-500">
+          <div class="flex justify-between items-center mb-4 border-b border-siteBorder pb-2">
+            <span class="text-goldAccent font-bold uppercase text-sm flex items-center gap-2"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Master indiePLUS Production Budget</span>
+          </div>
+          <div class="table-scroll max-h-[60vh] overflow-y-auto pr-2 print-break">
+            <table class="w-full text-left text-xs whitespace-nowrap" id="indieplus-table">
+              <thead class="bg-siteDark text-gray-400 uppercase tracking-wider text-[10px]">
+                <tr>
+                  <th class="p-2 border border-siteBorder w-24 relative print-th">Account #<div class="resizer"></div></th>
+                  <th class="p-2 border border-siteBorder w-64 relative print-th">Description<div class="resizer"></div></th>
+                  <th class="p-2 border border-siteBorder text-center w-24 relative print-th">Model<div class="resizer"></div></th>
+                  <th class="p-2 border border-siteBorder text-center w-20 relative print-th">Amt Unit<div class="resizer"></div></th>
+                  <th class="p-2 border border-siteBorder text-center w-20 relative print-th">Qty (x)<div class="resizer"></div></th>
+                  <th class="p-2 border border-siteBorder text-right w-24 relative print-th">Rate<div class="resizer"></div></th>
+                  <th class="p-2 border border-siteBorder text-right w-32 relative print-th">Subtotal<div class="resizer"></div></th>
+                </tr>
+              </thead>
+              <tbody id="indieplus-tbody" class="divide-y divide-siteBorder"></tbody>
+            </table>
+          </div>
+          <div class="flex justify-between items-center pt-3 border-t border-goldAccent mt-2 bg-siteDark p-3 rounded-b-xl">
+            <button onclick="window.addIndiePlusRow()" class="bg-goldAccent text-siteDark px-3 py-1.5 rounded font-bold hover:brightness-110 transition">+ Add Line Item</button>
+            <span class="text-goldAccent font-bold uppercase tracking-widest text-xs">Master Grand Total: <strong id="indieplus-sum" class="text-white text-sm ml-2">$0</strong></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SHOOTING SCRIPT WITH INTERACTIVE TAGGER -->
+    <section id="view-shootingscript" class="space-y-4 relative min-h-[400px] view-section">
+      <div id="content-shootingscript" class="window-content space-y-4 transition-all">
+        <div id="script-paywall-container" class="absolute inset-0 z-10 bg-siteDark/95 backdrop-blur-md flex items-start justify-center pt-10 rounded-xl border border-siteBorder no-print">
+          <div class="bg-siteNavy p-8 rounded-xl shadow-2xl max-w-md w-full border border-blueAccent text-center">
+            <i data-lucide="lock" class="w-10 h-10 text-blueAccent mx-auto mb-4"></i>
+            <h2 class="text-white font-bold text-lg mb-2">Master Shooting Script Locked</h2>
+            <p class="text-gray-400 text-xs mb-6">Unlock the fully formatted shooting script with inline tags, prop alerts, and shot setups injected directly into the narrative.</p>
+            <label class="flex items-start gap-2 text-left text-xs text-white font-bold mb-6 bg-siteDark p-3 rounded border border-siteBorder cursor-pointer">
+              <input type="checkbox" id="script-ready-checkbox" class="mt-0.5 accent-blueAccent" onchange="document.getElementById('script-paypal-btn').disabled = !this.checked;">
+              <span>I confirm my script breakdown is complete.</span>
+            </label>
+            <button id="script-paypal-btn" disabled onclick="window.unlockShootingScript()" class="w-full bg-blueAccent disabled:bg-siteBorder disabled:text-gray-500 text-siteDark font-bold py-3 rounded shadow-lg transition flex items-center justify-center gap-2">
+              Unlock Master Shooting Script
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-siteNavy border border-siteBorder rounded-xl p-3 flex justify-between items-center text-xs no-print opacity-20 pointer-events-none" id="tagger-header">
+          <div class="flex items-center gap-2">
+             <span class="font-bold text-blueAccent uppercase tracking-wider">Interactive Script Tagger</span>
+             <span class="text-gray-400">| Highlight any text to tag custom categories live.</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="tag-cast text-[10px]">Cast</span>
+            <span class="tag-prop text-[10px]">Prop</span>
+            <span class="tag-sfx text-[10px]">SFX</span>
+            <span class="tag-vfx text-[10px]">VFX</span>
+          </div>
+        </div>
+
+        <div id="script-content" onmouseup="window.handleScriptTextSelection(event)" class="bg-white text-black rounded-xl p-4 sm:p-8 opacity-20 pointer-events-none transition-opacity duration-500 font-mono text-sm shadow-inner max-h-[75vh] overflow-y-auto print-break relative">
+          <p class="text-center text-gray-500 italic mt-10">Process a script first to view technical breakdown.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FLOATING INTERACTIVE SCRIPT TAGGER POPUP -->
+  <div id="floating-tagger" class="hidden fixed z-50 bg-siteNavy border border-blueAccent shadow-2xl rounded-xl p-2 flex items-center gap-2 text-xs">
+    <span id="selected-text-preview" class="text-white font-mono font-bold max-w-[120px] truncate border-r border-siteBorder pr-2"></span>
+    <button onclick="window.applyTagToSelection('Cast')" class="bg-blue-900/60 text-blue-300 border border-blue-500 hover:bg-blue-600 hover:text-white px-2 py-1 rounded font-bold">Cast</button>
+    <button onclick="window.applyTagToSelection('Props')" class="bg-yellow-900/60 text-yellow-300 border border-yellow-500 hover:bg-yellow-600 hover:text-white px-2 py-1 rounded font-bold">Prop</button>
+    <button onclick="window.applyTagToSelection('SFX Makeup')" class="bg-red-900/60 text-red-300 border border-red-500 hover:bg-red-600 hover:text-white px-2 py-1 rounded font-bold">SFX</button>
+    <button onclick="window.applyTagToSelection('VFX')" class="bg-purple-900/60 text-purple-300 border border-purple-500 hover:bg-purple-600 hover:text-white px-2 py-1 rounded font-bold">VFX</button>
+    <button onclick="window.closeFloatingTagger()" class="text-gray-400 hover:text-white ml-1 font-bold">✕</button>
+  </div>
+
+  <!-- SIDES RENDER PRINT AREA -->
+  <div id="sides-render-area" class="hidden bg-white text-black font-mono text-sm"></div>
+
+  <!-- MASTER EXPORT & PRINT STUDIO MODAL -->
+  <div id="export-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-start justify-center pt-4 sm:pt-10 p-2 sm:p-4 no-print">
+    <div class="bg-siteNavy border border-siteBorder rounded-2xl w-full max-w-5xl shadow-2xl flex flex-col md:flex-row h-[90vh] overflow-hidden">
+      <!-- LEFT: CSV Data Export -->
+      <div class="w-full md:w-1/3 bg-siteDark p-6 border-r border-siteBorder overflow-y-auto">
+        <h3 class="text-sm font-bold text-blueAccent uppercase border-b border-siteBorder pb-2 mb-4">Raw Data Exports</h3>
+        <div class="space-y-2">
+          <button onclick="window.exportCSV('schedule')" class="w-full px-4 py-2 bg-siteNavy border border-siteBorder hover:border-blueAccent text-left text-xs text-white rounded transition">📄 Stripboard Schedule (CSV)</button>
+          <button onclick="window.exportCSV('dood')" class="w-full px-4 py-2 bg-siteNavy border border-siteBorder hover:border-blueAccent text-left text-xs text-white rounded transition">📄 DOOD Matrix (CSV)</button>
+          <button onclick="window.exportCSV('shots')" class="w-full px-4 py-2 bg-siteNavy border border-siteBorder hover:border-blueAccent text-left text-xs text-white rounded transition">📄 Master Shot List (CSV)</button>
+          <button onclick="window.exportCSV('cast')" class="w-full px-4 py-2 bg-siteNavy border border-siteBorder hover:border-blueAccent text-left text-xs text-white rounded transition">📄 Cast & HMU Log (CSV)</button>
+          <button onclick="window.exportCSV('signin')" class="w-full px-4 py-2 bg-siteNavy border border-siteBorder hover:border-blueAccent text-left text-xs text-white rounded transition">📄 Crew Sign-in Sheet (CSV)</button>
+          <button onclick="window.exportCSV('props')" class="w-full px-4 py-2 bg-siteNavy border border-siteBorder hover:border-blueAccent text-left text-xs text-white rounded transition">📄 Tech Breakdown (CSV)</button>
+          <button onclick="window.exportCSV('locations')" class="w-full px-4 py-2 bg-siteNavy border border-siteBorder hover:border-blueAccent text-left text-xs text-white rounded transition">📄 Locations (CSV)</button>
+          <button onclick="window.exportCSV('gear')" class="w-full px-4 py-2 bg-siteNavy border border-siteBorder hover:border-blueAccent text-left text-xs text-white rounded transition">📄 Gear Rentals (CSV)</button>
+          <button onclick="window.exportCSV('budget')" class="w-full px-4 py-2 bg-siteNavy border border-siteBorder hover:border-blueAccent text-left text-xs text-white rounded transition">📄 Standard Budget (CSV)</button>
+          <button onclick="window.exportCSV('indieplus')" class="w-full px-4 py-2 bg-siteNavy border border-siteBorder hover:border-goldAccent text-left text-xs text-goldAccent rounded transition">📄 indiePLUS Budget (CSV)</button>
+        </div>
+      </div>
+      <!-- RIGHT: PDF Layout Reorder -->
+      <div class="w-full md:w-2/3 bg-gray-100 p-6 flex flex-col h-full relative text-black">
+        <button onclick="window.closeExportModal()" class="absolute top-4 right-4 text-gray-500 hover:text-black font-bold text-xl">✕</button>
+        <h3 class="text-xl font-black text-gray-900 uppercase tracking-widest border-b-2 border-gray-300 pb-2 mb-2">Print Layout Studio</h3>
+        <p class="text-xs text-gray-600 mb-4 font-bold">Drag and drop sections to rearrange PDF sequence. Toggle visibility or adjust zoom scaling per section.</p>
+        <div id="print-blocks-container" class="flex-1 overflow-y-auto space-y-3 pr-2 pb-10"></div>
+        <div class="pt-4 border-t-2 border-gray-300 mt-2 flex justify-between items-center">
+          <button onclick="window.closeExportModal()" class="text-gray-500 font-bold hover:text-black text-sm">Cancel</button>
+          <button onclick="window.executeOrganizedPrint()" class="bg-blue-600 text-white font-black text-sm px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-lg">
+            GENERATE MASTER PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Universal Safe Lucide Initializer
+    window.safeIcons = () => { try { if (typeof lucide !== 'undefined') lucide.createIcons(); } catch(e){} };
+    window.safeIcons();
+
+    // Central Data Model State
+    window.state = {
+      projectName: "UNTITLED PROJECT",
+      adContact: "1ST AD: JANE DOE | 555-0199",
+      logistics: { zip: "10001", weather: "Clear 68°F", hospital: "Emergency Facility" },
+      indiePlusUnlocked: false,
+      scriptUnlocked: false,
+      scenes: [],
+      shots: [],
+      props: [],
+      locations: [],
+      gearList: [],
+      cast: {},
+      techBreakdown: [],
+      budgetGlobals: { prepDays: 2, shootHours: 12, postDays: 2 },
+      budget: [],
+      indiePlusBudget: [],
+      callsheetData: { crew: [], cast: [] },
+      crewRoster: [],
+      dailiesPlaylist: [],
+      capturedTakes: [],
+      targetDays: 2,
+      scheduleMode: 'linear',
+      linearSchedule: [],
+      optimizedSchedule: [],
+      activeSelection: null,
+      printLayout: [
+        { id: 'schedule', title: 'One-Line Schedule', enabled: true, zoom: 100 },
+        { id: 'callsheet', title: 'Call Sheet', enabled: true, zoom: 100 },
+        { id: 'cast', title: 'Cast, DOOD, & Sign-In', enabled: true, zoom: 100 },
+        { id: 'shots', title: 'A/V Shot Studio', enabled: true, zoom: 100 },
+        { id: 'props', title: 'Props, Gear, & Locations', enabled: true, zoom: 100 },
+        { id: 'budget', title: 'Standard Budget', enabled: true, zoom: 100 },
+        { id: 'indieplus', title: 'indiePLUS Budget', enabled: true, zoom: 100 },
+        { id: 'shootingscript', title: 'Master Shooting Script', enabled: true, zoom: 100 }
+      ]
+    };
+
+    let cameraStream = null;
+
+    // Global Project Resync Method
+    window.resyncProject = function() {
+      if (!window.state.scenes || window.state.scenes.length === 0) return;
+
+      let totalPages = window.state.scenes.reduce((acc, s) => acc + (s.pagesDec || 0), 0);
+      window.state.targetDays = Math.max(1, Math.ceil(totalPages / 4.0));
+      document.getElementById('target-days-ui').innerText = window.state.targetDays;
+      document.getElementById('budget-shoot-days').innerText = window.state.targetDays;
+
+      window.generateSchedules();
+      window.generateIndiePlusBudget();
+      window.initCallSheetData();
+      
+      // Auto-populate locations from scenes
+      let locSet = new Set();
+      window.state.scenes.forEach(s => locSet.add(s.loc));
+      locSet.forEach(l => {
+        if(!window.state.locations.find(x => x.name === l)) {
+          window.state.locations.push({ name: l, address: "", notes: "" });
+        }
+      });
+
+      window.renderAll();
+      window.triggerAutoSave();
+    };
+
+    window.triggerAutoSave = function() {
+      localStorage.setItem("prohub_logic_v300", JSON.stringify(window.state));
+    };
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const raw = localStorage.getItem("prohub_logic_v300");
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.scenes && parsed.scenes.length > 0) {
+            window.state = { ...window.state, ...parsed };
+            document.getElementById('input-section').classList.add('hidden');
+            document.getElementById('project-name-input').value = window.state.projectName;
+            document.getElementById('ad-contact-input').value = window.state.adContact;
+            document.getElementById('logistics-zip').value = window.state.logistics.zip || "";
+            document.getElementById('logistics-weather').value = window.state.logistics.weather || "";
+            document.getElementById('logistics-hospital').value = window.state.logistics.hospital || "";
+            
+            if (window.state.indiePlusUnlocked) window.finalizeIndiePlusUnlock();
+            if (window.state.scriptUnlocked) window.finalizeShootingScriptUnlock();
+            window.setScheduleMode(window.state.scheduleMode || 'linear');
+          }
+        } catch(e) { console.error("Could not parse saved storage", e); }
+      }
+
+      // Timecode clock update
+      setInterval(() => {
+        const d = new Date();
+        const tc = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}:${String(Math.floor(d.getMilliseconds()/40)).padStart(2,'0')}`;
+        const el = document.getElementById('hud-timecode');
+        if (el) el.textContent = tc;
+      }, 40);
+
+      window.renderAll();
+      setTimeout(window.makeAllTablesResizable, 200);
+    });
+
+    window.sendBackup = function() {
+      const blob = new Blob([JSON.stringify(window.state, null, 2)], { type: "application/json" });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${window.state.projectName.replace(/\s+/g, '_')}_MasterBackup.json`;
+      a.click();
+    };
+
+    window.triggerHardReset = function() {
+      if(confirm("Erase all schedules, tags, scripts and restore default state?")) {
+        localStorage.removeItem("prohub_logic_v300");
+        window.location.reload();
+      }
+    };
+
+    // Tab Switching
+    window.setTab = function(tab) {
+      ["schedule", "callsheet", "screenplay", "cast", "shots", "props", "budget", "indieplus", "shootingscript"].forEach(t => {
+        const v = document.getElementById("view-" + t);
+        const b = document.getElementById("tab-" + t);
+        if (v) v.classList.add("hidden");
+        if (b) {
+          if (t === 'indieplus') b.className = "flex-grow sm:flex-1 px-2 py-2 rounded transition text-center bg-siteDark border border-goldAccent text-goldAccent hover:bg-siteNavy";
+          else if (t === 'shootingscript') b.className = "flex-grow sm:flex-1 px-2 py-2 rounded transition text-center bg-siteDark border border-blueAccent text-blueAccent hover:bg-siteNavy";
+          else b.className = "flex-grow sm:flex-1 px-2 py-2 rounded transition text-center bg-siteNavy border border-siteBorder text-white hover:bg-siteCard";
+        }
+      });
+      const activeV = document.getElementById("view-" + tab);
+      const activeB = document.getElementById("tab-" + tab);
+      if (activeV) activeV.classList.remove("hidden");
+      if (activeB) activeB.className = "flex-grow sm:flex-1 px-2 py-2 rounded transition text-center bg-blueAccent text-siteDark font-bold";
+
+      if (tab === 'cast') { window.renderDOOD(); window.renderCast(); window.renderSignIn(); }
+      if (tab === 'callsheet') window.renderCallSheet();
+      if (tab === 'screenplay') window.populateScreenplayEditor();
+      if (tab === 'indieplus' && window.state.indiePlusUnlocked) window.renderIndiePlus();
+      if (tab === 'shootingscript' && window.state.scriptUnlocked) window.renderShootingScript();
+      if (tab === 'shots') { window.renderShots(); window.renderDailies(); window.renderTakes(); }
+      if (tab === 'props') { window.renderProps(); window.renderLocations(); window.renderGear(); }
+      window.safeIcons();
+    };
+
+    // Script Upload Parser
+    window.handleScriptUpload = async function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const ext = file.name.split('.').pop().toLowerCase();
+      const input = document.getElementById('script-input');
+      input.value = "Reading " + file.name + "...";
+
+      if (ext === 'pdf') {
+        try {
+          const buffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+          let full = "";
+          for(let i=1; i<=pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            content.items.sort((a,b) => Math.abs(a.transform[5] - b.transform[5]) > 5 ? b.transform[5] - a.transform[5] : a.transform[4] - b.transform[4]);
+            full += content.items.map(it => it.str).join(" ") + "\n\n";
+          }
+          input.value = full;
+        } catch(err) { alert("Error parsing PDF."); }
+      } else if (ext === 'fdx') {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          const parser = new DOMParser();
+          const xml = parser.parseFromString(evt.target.result, "text/xml");
+          const paras = xml.getElementsByTagName("Paragraph");
+          let out = "";
+          for(let p of paras) {
+            let texts = p.getElementsByTagName("Text");
+            for(let t of texts) out += t.textContent;
+            out += "\n";
+          }
+          input.value = out;
+        };
+        reader.readAsText(file);
+      } else {
+        const reader = new FileReader();
+        reader.onload = (evt) => { input.value = evt.target.result; };
+        reader.readAsText(file);
+      }
+    };
+
+    window.loadSampleText = function() {
+      document.getElementById("script-input").value = `EXT. RED SKY - NIGHT\nA sea of boiling clouds, violent electrical storms.\nRAVEN (32) plummets headfirst - her face contorts in terror.\nShe thrusts her palms out, gripping a silver CLEAVER. Sparks of LIGHTNING surge around her.\n\nCHILD (O.S.)\nI can guide but you must follow.\n\nRaven clutches her throat. Blood drips down her cheek.\n\nRAVEN\n(telepathic)\nWho are you?\n\nA mechanical SONIC BOOM echoes through the void.\n\nINT. INTERROGATION ROOM - DAY\nBLAM! Raven slams her fists down. The DETECTIVE (35) jumps.\nJACK BREWER (40) sits holding an analog RADIO.\n\nBREWER\n(to Detective)\nYou gonna finish that?\n\nDETECTIVE\n(to Raven)\nThat's it? That's all you remember?`;
+    };
+
+    // Automated Parsing & Tagging Engine
+    window.runScriptBreakdownEngine = function() {
+      const text = document.getElementById("script-input").value.trim();
+      if (!text) return alert("Please enter or paste script text.");
+
+      window.state.scenes = [];
+      window.state.shots = [];
+      window.state.techBreakdown = [];
+      window.state.cast = {};
+      window.state.props = [];
+      window.state.locations = [];
+
+      const lines = text.split(/\r?\n/);
+      let curScene = null;
+      let lineCount = 0;
+      let prevSpeaker = null;
+
+      const rxHeading = /^(INT\.|EXT\.|I\/E\.|INT\/EXT\.)/i;
+      const rxProps = /\b(CLEAVER|PISTOL|GUN|WEAPON|KNIFE|RADIO|PHONE|KEYS|BADGE|COIN|DOORKNOB|TABLET)\b/gi;
+      const rxVfx = /\b(LIGHTNING|PORTAL|EXPLOSION|FIRE|HOLOGRAM|SPARKS|ENERGY)\b/gi;
+      const rxSfx = /\b(BLOOD|BLOODY|CUT|BRUISE|SCAR|BURNS|WOUND)\b/gi;
+
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        if (!line) continue;
+
+        if (rxHeading.test(line)) {
+          if (curScene) window.commitScene(curScene, lineCount);
+          let dns = line.toUpperCase().includes("NIGHT") ? "N" : "D";
+          let loc = line.replace(/^(INT\.|EXT\.|I\/E\.|INT\/EXT\.)\s*/i, '').split('-')[0].trim();
+          curScene = {
+            num: window.state.scenes.length + 1,
+            heading: line.toUpperCase(),
+            loc: loc,
+            dns: dns,
+            props: new Set(),
+            cast: new Set(),
+            scriptBlocks: []
+          };
+          lineCount = 0;
+        } else if (curScene) {
+          lineCount++;
+          let isChar = line === line.toUpperCase() && !line.includes(":") && line.length < 30 && !line.startsWith("(");
+          let isParen = line.startsWith("(");
+
+          if (isChar) {
+            let clean = line.replace(/\(.*?\)/g, '').trim();
+            if (clean && !["CUT TO", "FADE IN", "SMASH CUT"].includes(clean)) {
+              curScene.cast.add(clean);
+              if (!window.state.cast[clean]) {
+                window.state.cast[clean] = { costume: "Standard Wardrobe", makeup: "Standard", scenesAppearing: [], totalPages: 0 };
+              }
+              if (!window.state.cast[clean].scenesAppearing.includes(curScene.num)) {
+                window.state.cast[clean].scenesAppearing.push(curScene.num);
+              }
+              prevSpeaker = clean;
+              curScene.scriptBlocks.push({ type: 'char', raw: line, text: clean });
+            }
+          } else if (isParen) {
+            curScene.scriptBlocks.push({ type: 'paren', raw: line, text: line });
+          } else if (prevSpeaker && !line.startsWith("(")) {
+            curScene.scriptBlocks.push({ type: 'dialogue', raw: line, text: line, speaker: prevSpeaker });
+            prevSpeaker = null;
+          } else {
+            let pMatch = line.match(rxProps);
+            if (pMatch) pMatch.forEach(p => {
+              let item = p.toUpperCase();
+              curScene.props.add(item);
+              window.state.techBreakdown.push({ scene: curScene.num, dept: "Props", item: item, ctx: line });
+              if(!window.state.props.some(x => x.scene === curScene.num && x.item === item)) {
+                window.state.props.push({ scene: curScene.num, dept: "Props", item: item, context: line, acquired: false });
+              }
+            });
+
+            let vMatch = line.match(rxVfx);
+            if (vMatch) vMatch.forEach(v => {
+              window.state.techBreakdown.push({ scene: curScene.num, dept: "VFX", item: v.toUpperCase(), ctx: line });
+            });
+
+            let sMatch = line.match(rxSfx);
+            if (sMatch) sMatch.forEach(s => {
+              window.state.techBreakdown.push({ scene: curScene.num, dept: "SFX Makeup", item: s.toUpperCase(), ctx: line });
+            });
+
+            curScene.scriptBlocks.push({ type: 'action', raw: line, text: line });
+          }
+        }
+      }
+      if (curScene) window.commitScene(curScene, lineCount);
+      if (window.state.scenes.length === 0) return alert("No valid scene headings found.");
+
+      // Establish Standard Baseline Budgets if empty
+      if (window.state.budget.length === 0) {
+        window.state.budget = [
+          { section: "1100-PRODUCERS", role: "Line Producer", type: "Daily", rate: 800, actPrep: true, actShoot: true, actPost: false },
+          { section: "1300-DIRECTOR", role: "Director", type: "Daily", rate: 2500, actPrep: true, actShoot: true, actPost: true },
+          { section: "1400-CAST", role: "Principal Lead", type: "Daily", rate: 1250, actPrep: false, actShoot: true, actPost: false },
+          { section: "2000-STAFF", role: "1st AD", type: "Daily", rate: 1000, actPrep: true, actShoot: true, actPost: false },
+          { section: "3300-CAMERA", role: "Director of Photography", type: "Daily", rate: 900, actPrep: true, actShoot: true, actPost: false },
+          { section: "3400-SOUND", role: "Sound Recordist", type: "Daily", rate: 500, actPrep: false, actShoot: true, actPost: false }
+        ];
+      }
+
+      window.resyncProject();
+      document.getElementById('input-section').classList.add('hidden');
+    };
+
+    window.commitScene = function(sc, count) {
+      let eighths = Math.max(1, Math.round(count / 6.5));
+      sc.pagesDec = eighths / 8;
+      let w = Math.floor(sc.pagesDec);
+      let r = eighths % 8;
+      sc.pagesEighths = (w > 0 ? w + " " : "") + (r > 0 ? r + "/8" : (w === 0 ? "1/8" : "")).trim();
+      sc.cast = Array.from(sc.cast);
+      sc.props = Array.from(sc.props);
+      window.state.scenes.push(sc);
+    };
+
+    window.generateSchedules = function() {
+      window.state.linearSchedule = window.chunkScenes(JSON.parse(JSON.stringify(window.state.scenes)), window.state.targetDays);
+      let sorted = JSON.parse(JSON.stringify(window.state.scenes)).sort((a,b) => (a.dns === b.dns ? 0 : a.dns === 'D' ? -1 : 1));
+      window.state.optimizedSchedule = window.chunkScenes(sorted, window.state.targetDays);
+      window.recalcTimes();
+    };
+
+    window.chunkScenes = function(arr, numDays) {
+      let sched = [];
+      let totalPgs = arr.reduce((a, b) => a + b.pagesDec, 0);
+      let pgsPerDay = totalPgs / numDays;
+      let d = 1; let dayPgs = 0; let cur = [];
+
+      arr.forEach(sc => {
+        if (dayPgs + sc.pagesDec > pgsPerDay + 0.5 && cur.length > 0 && d < numDays) {
+          sched.push({ day: d, scenes: cur, pagesDec: dayPgs });
+          d++; cur = []; dayPgs = 0;
+        }
+        cur.push(sc);
+        dayPgs += sc.pagesDec;
+      });
+      if (cur.length > 0) sched.push({ day: d, scenes: cur, pagesDec: dayPgs });
+      return sched;
+    };
+
+    window.adjustDays = function(diff) {
+      window.state.targetDays = Math.max(1, window.state.targetDays + diff);
+      document.getElementById('target-days-ui').innerText = window.state.targetDays;
+      window.generateSchedules();
+      window.generateIndiePlusBudget();
+      window.renderAll();
+    };
+
+    window.setScheduleMode = function(m) {
+      window.state.scheduleMode = m;
+      document.getElementById('btn-sched-linear').className = m === 'linear' ? "px-3 py-1 rounded bg-blueAccent text-siteDark font-bold" : "px-3 py-1 rounded text-gray-400 hover:text-white";
+      document.getElementById('btn-sched-opt').className = m === 'optimized' ? "px-3 py-1 rounded bg-blueAccent text-siteDark font-bold" : "px-3 py-1 rounded text-gray-400 hover:text-white";
+      window.recalcTimes();
+      window.renderSchedule();
+      window.renderCallSheet();
+    };
+
+    window.recalcTimes = function() {
+      const active = window.state.scheduleMode === 'linear' ? window.state.linearSchedule : window.state.optimizedSchedule;
+      active.forEach(d => {
+        let mins = 8 * 60; // 08:00 AM Call
+        let dayStart = mins;
+        let lunchAdded = false;
+
+        d.scenes.forEach(sc => {
+          if (!lunchAdded && (mins - dayStart) >= 360) {
+            mins += 60;
+            lunchAdded = true;
+            sc.insertLunchBefore = true;
+          } else {
+            sc.insertLunchBefore = false;
+          }
+          let h = Math.floor(mins / 60); let m = mins % 60;
+          sc.startTime = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+          mins += Math.round(sc.pagesDec * 120);
+          let eh = Math.floor(mins / 60); let em = mins % 60;
+          sc.endTime = `${eh.toString().padStart(2,'0')}:${em.toString().padStart(2,'0')}`;
+        });
+      });
+
+      const sel = document.getElementById('callsheet-day-select');
+      if (sel) {
+        sel.innerHTML = active.map(d => `<option value="${d.day}">Day ${d.day}</option>`).join('');
+      }
+    };
+
+    // Render Stripboard
+    window.renderSchedule = function() {
+      const activeSched = window.state.scheduleMode === 'linear' ? window.state.linearSchedule : window.state.optimizedSchedule;
+      const container = document.getElementById("schedule-container");
+      if(!container) return;
+      container.innerHTML = "";
+
+      activeSched.forEach((d, dIdx) => {
+        let card = document.createElement('div');
+        card.className = "bg-siteNavy border border-siteBorder rounded-xl overflow-hidden shadow mb-6 print-break";
+        card.innerHTML = `
+          <div class="bg-siteDark p-3 border-b border-siteBorder flex justify-between items-center text-xs">
+             <span class="font-bold uppercase tracking-wider text-white">Shoot Day ${d.day}</span>
+             <span class="mono text-gray-400">${d.scenes.length} Scenes | Est Pages: ${d.pagesDec.toFixed(3)}</span>
+          </div>
+          <table class="w-full text-left text-xs whitespace-nowrap schedule-day-table" data-day-idx="${dIdx}">
+            <thead class="bg-siteDark text-gray-400 uppercase text-[9px] border-b border-siteBorder">
+              <tr>
+                <th class="p-2 w-12 text-center">Day</th>
+                <th class="p-2 w-20">Time</th>
+                <th class="p-2 w-12 text-center">Sc#</th>
+                <th class="p-2 w-12 text-center">D/N</th>
+                <th class="p-2 w-48">Location Heading</th>
+                <th class="p-2 w-64">Cast Members</th>
+                <th class="p-2 w-32">Props</th>
+                <th class="p-2 text-right w-16">Pages</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-siteBorder">
+              ${d.scenes.map(s => {
+                let lunch = s.insertLunchBefore ? `<tr class="bg-blue-900/30 text-blue-300 font-bold border-y border-blue-500/40 text-center"><td colspan="8" class="p-1.5 uppercase tracking-widest text-[10px]">☕ 1-Hour Meal / Lunch Walkaway</td></tr>` : '';
+                return `
+                  ${lunch}
+                  <tr class="scene-group hover:bg-siteCard transition cursor-grab border-b border-siteBorder" data-scene-num="${s.num}">
+                     <td class="p-2 text-center font-bold text-goldAccent">${d.day}</td>
+                     <td class="p-2 mono text-gray-300 text-[10px]">${s.startTime}-${s.endTime}</td>
+                     <td class="p-2 text-center font-bold text-white">${s.num}</td>
+                     <td class="p-2 text-center text-gray-400 font-bold">${s.dns}</td>
+                     <td class="p-2 font-bold text-white uppercase truncate">${s.heading}</td>
+                     <td class="p-2 text-gray-300 text-[10px] truncate">${s.cast.join(', ')}</td>
+                     <td class="p-2 text-yellow-300 text-[10px] truncate">${s.props.join(', ')}</td>
+                     <td class="p-2 text-right mono font-bold text-white">${s.pagesEighths}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        `;
+        container.appendChild(card);
+      });
+
+      if (typeof Sortable !== 'undefined') {
+        document.querySelectorAll('.schedule-day-table tbody').forEach(tb => {
+          new Sortable(tb, {
+            group: 'stripboard',
+            animation: 150,
+            onEnd: function(evt) {
+              const fromDay = parseInt(evt.from.closest('table').getAttribute('data-day-idx'));
+              const toDay = parseInt(evt.to.closest('table').getAttribute('data-day-idx'));
+              const scNum = parseInt(evt.item.getAttribute('data-scene-num'));
+              
+              let moved = null;
+              activeSched[fromDay].scenes = activeSched[fromDay].scenes.filter(s => {
+                if (s.num === scNum) { moved = s; return false; }
+                return true;
+              });
+              if(moved) activeSched[toDay].scenes.push(moved);
+              window.recalcTimes();
+              window.renderAll();
+            }
+          });
+        });
+      }
+    };
+
+    // Render DOOD (Day Out of Days)
+    window.renderDOOD = function() {
+      const activeSched = window.state.scheduleMode === 'linear' ? window.state.linearSchedule : window.state.optimizedSchedule;
+      const days = activeSched.map(d => d.day);
+      const castList = Object.keys(window.state.cast);
+      const container = document.getElementById('dood-container');
+      if (!container) return;
+
+      let html = `
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="text-sm font-black uppercase tracking-wider">SAG-AFTRA Day Out of Days Matrix (DOOD)</h3>
+          <span class="text-[10px] text-gray-500 font-mono">SW=Start Work | W=Work | H=Hold | WF=Work Finish</span>
+        </div>
+        <table class="w-full text-center border-collapse border border-black text-[11px]">
+          <thead class="bg-gray-200 uppercase font-bold">
+             <tr>
+               <th class="border border-black p-1 text-left">Character</th>
+               ${days.map(d => `<th class="border border-black p-1 w-8">D${d}</th>`).join('')}
+               <th class="border border-black p-1 w-16">Work</th>
+               <th class="border border-black p-1 w-16">Hold</th>
+             </tr>
+          </thead>
+          <tbody>
+      `;
+
+      castList.forEach(c => {
+        let workDays = [];
+        days.forEach(d => {
+          let dData = activeSched.find(sd => sd.day === d);
+          if (dData && dData.scenes.some(sc => sc.cast.includes(c))) workDays.push(d);
+        });
+
+        if(workDays.length > 0) {
+            let first = workDays[0];
+            let last = workDays[workDays.length - 1];
+            let totalW = workDays.length;
+            let totalH = 0;
+
+            html += `<tr><td class="border border-black p-1 text-left font-bold">${c}</td>`;
+            days.forEach(d => {
+              let mark = "";
+              let cls = "";
+              if (workDays.includes(d)) {
+                if (first === last && d === first) { mark = "SWF"; cls = "bg-green-300 font-black"; }
+                else if (d === first) { mark = "SW"; cls = "bg-green-200 font-bold"; }
+                else if (d === last) { mark = "WF"; cls = "bg-red-200 font-bold"; }
+                else { mark = "W"; cls = "bg-blue-100 font-bold"; }
+              } else if (d > first && d < last) {
+                mark = "H";
+                cls = "bg-yellow-100 text-yellow-800 font-bold";
+                totalH++;
+              }
+              html += `<td class="border border-black p-1 ${cls}">${mark}</td>`;
+            });
+            html += `<td class="border border-black p-1 font-bold">${totalW}</td><td class="border border-black p-1 text-gray-600">${totalH}</td></tr>`;
+        }
+      });
+
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+    };
+
+    // Render Call Sheet
+    window.initCallSheetData = function() {
+      window.state.callsheetData = { crew: [], cast: [] };
+      let id = 1;
+      Object.keys(window.state.cast).forEach(c => {
+        window.state.callsheetData.cast.push({ id: id++, character: c, name: "", phone: "", callTime: "07:30" });
+      });
+      window.state.budget.forEach(b => {
+        if(b.actShoot) {
+          window.state.callsheetData.crew.push({ id: id++, role: b.role, name: "", callTime: "07:00" });
+        }
+      });
+    };
+
+    window.renderCallSheet = function() {
+      const area = document.getElementById('callsheet-render-area');
+      const select = document.getElementById('callsheet-day-select');
+      if(!area || window.state.scenes.length === 0) return;
+      let day = parseInt(select ? select.value : 1) || 1;
+      const activeSched = window.state.scheduleMode === 'linear' ? window.state.linearSchedule : window.state.optimizedSchedule;
+      let dData = activeSched.find(d => d.day === day);
+      if(!dData) return;
+
+      area.innerHTML = `
+        <div class="border-b-4 border-black pb-2 mb-4 flex justify-between items-end">
+          <div>
+            <h1 class="text-2xl font-black uppercase tracking-wider">${window.state.projectName}</h1>
+            <p class="text-xs text-gray-600">${window.state.adContact}</p>
+          </div>
+          <div class="text-right">
+             <h2 class="text-xl font-bold uppercase">CALL SHEET DAY ${day} OF ${window.state.targetDays}</h2>
+             <span class="text-xs font-mono font-bold">Crew Call: 07:00 AM | Weather: ${window.state.logistics.weather}</span>
+          </div>
+        </div>
+        <div class="bg-gray-100 p-2 border border-gray-400 mb-3 text-[10px] grid grid-cols-2">
+           <div><strong>Nearest Hospital:</strong> ${window.state.logistics.hospital}</div>
+           <div class="text-right"><strong>Safety Protocol:</strong> Hard Hats on Rigging / Full Closed-Toe Footwear</div>
+        </div>
+        <table class="w-full border-collapse border border-black text-xs mb-4">
+           <thead class="bg-gray-200 font-bold uppercase">
+             <tr><th class="p-1 border border-black">Sc#</th><th class="p-1 border border-black">Heading</th><th class="p-1 border border-black text-center">D/N</th><th class="p-1 border border-black text-center">Time</th><th class="p-1 border border-black">Cast</th><th class="p-1 border border-black text-right">Pages</th></tr>
+           </thead>
+           <tbody>
+             ${dData.scenes.map(s => `<tr><td class="p-1 border border-black text-center font-bold">${s.num}</td><td class="p-1 border border-black uppercase font-bold">${s.heading}</td><td class="p-1 border border-black text-center">${s.dns}</td><td class="p-1 border border-black mono text-center">${s.startTime}</td><td class="p-1 border border-black">${s.cast.join(', ')}</td><td class="p-1 border border-black text-right mono">${s.pagesEighths}</td></tr>`).join('')}
+           </tbody>
+        </table>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <h4 class="font-bold text-xs uppercase mb-1">Cast In-Times</h4>
+            <table class="w-full border-collapse border border-black text-xs">
+              <thead class="bg-gray-200"><tr><th class="p-1 border border-black text-left">Character</th><th class="p-1 border border-black text-center">Call</th></tr></thead>
+              <tbody>
+                ${window.state.callsheetData.cast.map(c => `<tr><td class="p-1 border border-black font-bold">${c.character}</td><td class="p-1 border border-black text-center">${c.callTime}</td></tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <h4 class="font-bold text-xs uppercase mb-1">Department Crew Calls</h4>
+            <table class="w-full border-collapse border border-black text-xs">
+              <thead class="bg-gray-200"><tr><th class="p-1 border border-black text-left">Role</th><th class="p-1 border border-black text-center">Call</th></tr></thead>
+              <tbody>
+                ${window.state.callsheetData.crew.map(c => `<tr><td class="p-1 border border-black">${c.role}</td><td class="p-1 border border-black text-center">${c.callTime}</td></tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    };
+
+    // Screenwriter Studio Sync
+    window.populateScreenplayEditor = function() {
+      const editor = document.getElementById('live-screenplay-editor');
+      if (editor && window.state.scenes.length > 0) {
+        let full = "";
+        window.state.scenes.forEach(sc => {
+          full += sc.heading + "\n";
+          sc.scriptBlocks.forEach(b => { full += b.raw + "\n"; });
+          full += "\n";
+        });
+        editor.value = full;
+      }
+    };
+
+    window.syncScreenplayEditorToBreakdown = function() {
+      const editor = document.getElementById('live-screenplay-editor');
+      if (!editor || !editor.value) return;
+      document.getElementById('script-input').value = editor.value;
+      window.runScriptBreakdownEngine();
+      alert("Screenplay synced. All call sheets, schedules, and breakdown elements refreshed.");
+    };
+
+    // Interactive Click-and-Drag Tagger
+    window.handleScriptTextSelection = function(e) {
+      const sel = window.getSelection();
+      const text = sel.toString().trim();
+      const tagger = document.getElementById('floating-tagger');
+      if (!text || text.length > 40) {
+        tagger.classList.add('hidden');
+        return;
+      }
+      window.state.activeSelection = text;
+      document.getElementById('selected-text-preview').innerText = `"${text}"`;
+      tagger.style.left = `${Math.min(window.innerWidth - 300, e.pageX + 10)}px`;
+      tagger.style.top = `${e.pageY - 40}px`;
+      tagger.classList.remove('hidden');
+    };
+
+    window.closeFloatingTagger = function() {
+      document.getElementById('floating-tagger').classList.add('hidden');
+    };
+
+    window.applyTagToSelection = function(dept) {
+      if(!window.state.activeSelection) return;
+      let term = window.state.activeSelection.toUpperCase();
+      window.state.techBreakdown.push({ scene: 1, dept: dept, item: term, ctx: `Tagged: ${term}` });
+
+      if (dept === "Props") {
+        window.state.scenes.forEach(s => {
+          if (s.scriptBlocks.some(b => b.raw.toUpperCase().includes(term))) s.props.push(term);
+        });
+      } else if (dept === "Cast") {
+        if(!window.state.cast[term]) window.state.cast[term] = { costume: "Custom", makeup: "Custom", scenesAppearing: [1], totalPages: 0 };
+      }
+      window.closeFloatingTagger();
+      window.renderShootingScript();
+      window.renderSchedule();
+      window.renderCast();
+      window.triggerAutoSave();
+    };
+
+    // Render Master Shooting Script
+    window.renderShootingScript = function() {
+      const container = document.getElementById('script-content');
+      if(!container || window.state.scenes.length === 0) return;
+      let html = "";
+      window.state.scenes.forEach(sc => {
+        html += `<div class="font-black text-lg border-b-2 border-black pb-1 mb-2 mt-6 uppercase">${sc.num} ${sc.heading}</div>`;
+        sc.scriptBlocks.forEach(b => {
+          let line = b.raw;
+          Object.keys(window.state.cast).forEach(c => { line = line.replace(new RegExp(`\\b${c}\\b`,'gi'), `<span class="tag-cast">$&</span>`); });
+          sc.props.forEach(p => { line = line.replace(new RegExp(`\\b${p}\\b`,'gi'), `<span class="tag-prop">$&</span>`); });
+
+          if(b.type === 'char') html += `<div class="ml-[25%] font-bold mt-2 text-blue-700">${line}</div>`;
+          else if(b.type === 'dialogue') html += `<div class="ml-[15%] w-[70%] mb-2">${line}</div>`;
+          else if(b.type === 'paren') html += `<div class="ml-[20%] italic text-gray-500">${line}</div>`;
+          else html += `<div class="mb-2 text-gray-800">${line}</div>`;
+        });
+      });
+      container.innerHTML = html;
+    };
+
+    // Render Cast & HMU
+    window.renderCast = function() {
+      const tbody = document.getElementById("cast-tbody");
+      if(!tbody) return;
+      tbody.innerHTML = Object.keys(window.state.cast).map((c, i) => {
+        let d = window.state.cast[c];
+        return `
+          <tr class="border-b border-siteBorder hover:bg-siteCard">
+            <td class="p-2 font-bold text-white">${c}<br><span class="text-[10px] text-blueAccent mono font-normal">Scenes: ${d.scenesAppearing.join(', ')}</span></td>
+            <td class="p-2"><textarea onchange="window.state.cast['${c}'].costume=this.value; window.triggerAutoSave();" class="w-full bg-siteDark p-1 rounded border border-siteBorder text-white text-xs">${d.costume || ''}</textarea></td>
+            <td class="p-2"><textarea onchange="window.state.cast['${c}'].makeup=this.value; window.triggerAutoSave();" class="w-full bg-siteDark p-1 rounded border border-siteBorder text-white text-xs">${d.makeup || ''}</textarea></td>
+            <td class="p-2 text-center"><button onclick="delete window.state.cast['${c}']; window.renderAll();" class="text-red-400 font-bold">✕</button></td>
+          </tr>
+        `;
+      }).join('');
+    };
+
+    // Sign-In Sheet
+    window.addNewCrewRow = function() {
+      window.state.crewRoster.push({ name: "Crew Member", role: "Role", call: "07:00", inTime: "", mealOut: "", mealIn: "", wrap: "", sign: "" });
+      window.renderSignIn();
+      window.triggerAutoSave();
+    };
+
+    window.renderSignIn = function() {
+      const tbody = document.getElementById('signin-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = window.state.crewRoster.map((c, i) => `
+        <tr class="hover:bg-siteCard">
+          <td class="p-2"><input type="text" value="${escapeHtml(c.name)}" onchange="window.state.crewRoster[${i}].name=this.value; window.triggerAutoSave();" class="w-full bg-transparent text-white font-bold"></td>
+          <td class="p-2"><input type="text" value="${escapeHtml(c.role)}" onchange="window.state.crewRoster[${i}].role=this.value; window.triggerAutoSave();" class="w-full bg-transparent text-gray-400 text-xs"></td>
+          <td class="p-2"><input type="text" value="${escapeHtml(c.call)}" onchange="window.state.crewRoster[${i}].call=this.value; window.triggerAutoSave();" class="w-full bg-transparent text-goldAccent mono"></td>
+          <td class="p-2"><input type="text" value="${escapeHtml(c.inTime)}" onchange="window.state.crewRoster[${i}].inTime=this.value; window.triggerAutoSave();" class="w-full bg-transparent text-gray-300 mono"></td>
+          <td class="p-2"><input type="text" value="${escapeHtml(c.mealOut)}" onchange="window.state.crewRoster[${i}].mealOut=this.value; window.triggerAutoSave();" class="w-full bg-transparent text-gray-300 mono"></td>
+          <td class="p-2"><input type="text" value="${escapeHtml(c.mealIn)}" onchange="window.state.crewRoster[${i}].mealIn=this.value; window.triggerAutoSave();" class="w-full bg-transparent text-gray-300 mono"></td>
+          <td class="p-2"><input type="text" value="${escapeHtml(c.wrap)}" onchange="window.state.crewRoster[${i}].wrap=this.value; window.triggerAutoSave();" class="w-full bg-transparent text-gray-300 mono"></td>
+          <td class="p-2 text-center no-print"><button onclick="window.state.crewRoster.splice(${i},1); window.renderSignIn(); window.triggerAutoSave();" class="text-red-400 font-bold hover:text-white">✕</button></td>
+        </tr>
+      `).join('');
+    };
+
+    // Dailies & Slate
+    window.handleDailiesUpload = function(e) {
+      const f = e.target.files[0];
+      if (!f) return;
+      window.state.dailiesPlaylist.push({ title: f.name, url: URL.createObjectURL(f) });
+      window.renderDailies();
+      window.triggerAutoSave();
+    };
+
+    window.renderDailies = function() {
+      const c = document.getElementById('dailies-playlist-container');
+      if (!c) return;
+      document.getElementById('dailies-queue-count').innerText = window.state.dailiesPlaylist.length;
+      c.innerHTML = window.state.dailiesPlaylist.map((v, i) => `
+        <div class="flex justify-between items-center p-1.5 bg-siteDark border border-siteBorder hover:border-blueAccent cursor-pointer rounded" onclick="document.getElementById('dailies-video-player').src='${v.url}'; document.getElementById('dailies-empty-notice').classList.add('hidden');">
+          <span class="truncate text-white text-[10px]">${v.title}</span>
+          <button onclick="event.stopPropagation(); window.state.dailiesPlaylist.splice(${i},1); window.renderDailies(); window.triggerAutoSave();" class="text-gray-500 hover:text-red-400">✕</button>
+        </div>
+      `).join('');
+    };
+
+    window.startCameraStream = async function() {
+      const video = document.getElementById('live-camera-feed');
+      const ph = document.getElementById('cam-standby-placeholder');
+      const btn = document.getElementById('btn-camera-toggle');
+
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+        video.srcObject = null;
+        ph.classList.remove('hidden');
+        btn.textContent = "Start Camera";
+        return;
+      }
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { aspectRatio: 16/9, width: { ideal: 1280 } }, audio: false });
+        video.srcObject = cameraStream;
+        ph.classList.add('hidden');
+        btn.textContent = "Stop Camera";
+      } catch(err) { alert("Camera access denied or unavailable."); }
+    };
+
+    window.updateSlateHud = function() {
+      document.getElementById('hud-scene').textContent = document.getElementById('slate-scene-input').value;
+      document.getElementById('hud-take').textContent = document.getElementById('slate-take-input').value;
+    };
+
+    window.adjustTake = function(d) {
+      let el = document.getElementById('slate-take-input');
+      let val = Math.max(1, (parseInt(el.value, 10) || 1) + d);
+      el.value = val;
+      window.updateSlateHud();
+    };
+
+    window.captureSlateSnapshot = function() {
+      if (!cameraStream) return alert("Start camera stream first!");
+      const video = document.getElementById('live-camera-feed');
+      const canvas = document.getElementById('live-capture-canvas');
+      canvas.width = 1280; canvas.height = 720;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+      ctx.fillRect(0, canvas.height - 75, canvas.width, 75);
+      ctx.fillStyle = "#FFD700";
+      ctx.font = "bold 24px sans-serif";
+      const sc = document.getElementById('slate-scene-input').value;
+      const tk = document.getElementById('slate-take-input').value;
+      const tc = document.getElementById('hud-timecode').textContent;
+      ctx.fillText(`SCENE: ${sc}   TAKE: ${tk}`, 25, canvas.height - 30);
+      ctx.fillStyle = "#FFFFFF";
+      ctx.font = "18px monospace";
+      ctx.fillText(`TC: ${tc}`, canvas.width - 200, canvas.height - 30);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      window.state.capturedTakes.unshift({ scene: sc, take: tk, tc, dataUrl });
+      window.renderTakes();
+      window.adjustTake(1);
+    };
+
+    window.renderTakes = function() {
+      const c = document.getElementById('captured-takes-feed');
+      if(!c) return;
+      c.innerHTML = window.state.capturedTakes.map(t => `
+        <div class="flex justify-between items-center p-1 bg-siteDark border border-siteBorder">
+          <span>SC ${t.scene} / TK ${t.take}</span>
+          <a href="${t.dataUrl}" download="Slate_Sc${t.scene}_Tk${t.take}.jpg" class="text-blueAccent hover:underline">Save Frame</a>
+        </div>
+      `).join('');
+    };
+
+    // Render Props & SFX
+    window.renderProps = function() {
+      const tbody = document.getElementById("props-tbody");
+      if(!tbody) return;
+      tbody.innerHTML = window.state.props.map((p, i) => `
+        <tr class="border-b border-siteBorder hover:bg-siteCard">
+          <td class="p-2 text-center"><input type="checkbox" ${p.acquired?'checked':''} onchange="window.state.props[${i}].acquired=this.checked; window.triggerAutoSave();" class="accent-blueAccent"></td>
+          <td class="p-2 text-center mono font-bold text-blueAccent">${p.scene}</td>
+          <td class="p-2 font-bold text-gray-400 uppercase text-[10px]">${p.dept || 'Props'}</td>
+          <td class="p-2 font-bold text-white uppercase">${p.item}</td>
+        </tr>
+      `).join('');
+    };
+
+    // Render Locations
+    window.renderLocations = function() {
+      const tbody = document.getElementById("locations-tbody");
+      if(!tbody) return;
+      tbody.innerHTML = window.state.locations.map((loc, i) => `
+        <tr class="border-b border-siteBorder hover:bg-siteCard">
+          <td class="p-2 font-bold text-white uppercase">${loc.name}</td>
+          <td class="p-2"><input type="text" placeholder="Address or Note..." value="${loc.address}" onchange="window.state.locations[${i}].address=this.value; window.triggerAutoSave();" class="w-full bg-siteDark border border-siteBorder rounded p-1 text-xs text-white"></td>
+        </tr>
+      `).join('');
+    };
+
+    // Render Gear
+    window.addGearRow = function() {
+      window.state.gearList.push({ req: true, category: "New Category", item: "New Item", rate: 0 });
+      window.renderGear();
+      window.triggerAutoSave();
+    };
+
+    window.renderGear = function() {
+      const tbody = document.getElementById("gear-tbody");
+      if(!tbody) return;
+      tbody.innerHTML = window.state.gearList.map((g, i) => `
+        <tr class="border-b border-siteBorder hover:bg-siteCard">
+          <td class="p-2 text-center"><input type="checkbox" ${g.req?'checked':''} onchange="window.state.gearList[${i}].req=this.checked; window.triggerAutoSave();" class="accent-blueAccent"></td>
+          <td class="p-2"><input type="text" value="${escapeHtml(g.category)}" onchange="window.state.gearList[${i}].category=this.value; window.triggerAutoSave();" class="w-full bg-transparent text-blueAccent text-xs uppercase font-bold"></td>
+          <td class="p-2"><input type="text" value="${escapeHtml(g.item)}" onchange="window.state.gearList[${i}].item=this.value; window.triggerAutoSave();" class="w-full bg-transparent text-white font-bold"></td>
+          <td class="p-2 text-right mono">$<input type="number" value="${g.rate}" onchange="window.state.gearList[${i}].rate=parseFloat(this.value)||0; window.triggerAutoSave();" class="w-16 bg-transparent text-right text-goldAccent font-bold"></td>
+          <td class="p-2 text-center no-print"><button onclick="window.state.gearList.splice(${i},1); window.renderGear(); window.triggerAutoSave();" class="text-red-400 font-bold">✕</button></td>
+        </tr>
+      `).join('');
+    };
+
+    // Render A/V Shots
+    window.addManualShot = function() {
+      let sc = parseInt(document.getElementById('new-shot-scene').value);
+      let tp = document.getElementById('new-shot-type').value;
+      let ds = document.getElementById('new-shot-desc').value;
+      if (!sc || !tp) return alert("Enter Scene # and Angle");
+      window.state.shots.push({ id: `${sc}${String.fromCharCode(65 + window.state.shots.filter(s=>s.sceneNum===sc).length)}`, sceneNum: sc, type: tp, desc: ds });
+      window.renderShots();
+      window.triggerAutoSave();
+    };
+
+    window.renderShots = function() {
+      const container = document.getElementById('shots-container');
+      if(!container) return;
+      container.innerHTML = window.state.shots.map(sh => `
+        <div class="bg-siteNavy border border-siteBorder rounded-xl p-3 flex justify-between items-center text-xs">
+           <div class="flex items-center gap-3">
+              <span class="bg-blueAccent text-siteDark px-2 py-0.5 rounded font-black">SHOT ${sh.id}</span>
+              <span class="font-bold text-white">Sc ${sh.sceneNum} [${sh.type}]</span>
+              <span class="text-gray-400">${sh.desc}</span>
+           </div>
+        </div>
+      `).join('');
+    };
+
+    // Standard Budget Render
+    window.renderBudget = function() {
+      const tbody = document.getElementById("budget-tbody");
+      const sumEl = document.getElementById("budget-sum");
+      if(!tbody) return;
+      let total = 0;
+      tbody.innerHTML = window.state.budget.map((b, i) => {
+        let mult = (b.actPrep ? window.state.budgetGlobals.prepDays : 0) + (b.actShoot ? window.state.targetDays : 0) + (b.actPost ? window.state.budgetGlobals.postDays : 0);
+        let sub = b.rate * mult;
+        total += sub;
+        return `
+          <tr class="border-b border-siteBorder hover:bg-siteCard">
+            <td class="p-2 text-gray-400">${b.section}</td>
+            <td class="p-2 font-bold text-white"><input type="text" value="${b.role}" onchange="window.state.budget[${i}].role=this.value; window.triggerAutoSave();" class="bg-transparent w-full"></td>
+            <td class="p-2 text-blueAccent">${b.type}</td>
+            <td class="p-2 text-right mono">$<input type="number" value="${b.rate}" onchange="window.state.budget[${i}].rate=parseFloat(this.value)||0; window.renderBudget(); window.triggerAutoSave();" class="w-16 bg-transparent text-right"></td>
+            <td class="p-2 text-center text-gray-400">${mult} Units</td>
+            <td class="p-2 text-right mono font-bold text-goldAccent">$${sub.toLocaleString()}</td>
+          </tr>
+        `;
+      }).join('');
+      if(sumEl) sumEl.innerText = '$' + total.toLocaleString();
+    };
+
+    window.addStandardRow = function() {
+      window.state.budget.push({ section: "CUSTOM", role: "Special Role", type: "Daily", rate: 500, actPrep: false, actShoot: true, actPost: false });
+      window.renderBudget();
+    };
+
+    window.updateBudgetGlobals = function() {
+      window.state.budgetGlobals.prepDays = parseInt(document.getElementById('budget-prep-days').value) || 0;
+      window.state.budgetGlobals.shootHours = parseFloat(document.getElementById('budget-shoot-hours').value) || 12;
+      window.state.budgetGlobals.postDays = parseInt(document.getElementById('budget-post-days').value) || 0;
+      window.renderBudget();
+      window.generateIndiePlusBudget();
+      if(window.state.indiePlusUnlocked) window.renderIndiePlus();
+    };
+
+    // indiePLUS Tier-1 Budget
+    window.generateIndiePlusBudget = function() {
+      let d = window.state.targetDays;
+      if (!window.state.indiePlusBudget || window.state.indiePlusBudget.length === 0) {
+        window.state.indiePlusBudget = [
+          { acct: "1101", desc: "Line Producer", model: "Days", amtUnit: "Days", x: d, rate: 800 },
+          { acct: "1301", desc: "Director", model: "Days", amtUnit: "Days", x: d, rate: 2500 },
+          { acct: "1401", desc: "Principal Cast (SAG)", model: "Days", amtUnit: "Days", x: d, rate: 1252 },
+          { acct: "2001", desc: "1st Assistant Director (DGA)", model: "Days", amtUnit: "Days", x: d, rate: 1068 },
+          { acct: "3301", desc: "Director of Photography", model: "Days", amtUnit: "Days", x: d, rate: 950 },
+          { acct: "3401", desc: "Sound Mixer / Tech", model: "Days", amtUnit: "Days", x: d, rate: 650 },
+          { acct: "4501", desc: "Editor (Post)", model: "Days", amtUnit: "Days", x: window.state.budgetGlobals.postDays, rate: 750 }
+        ];
+      } else {
+        window.state.indiePlusBudget.forEach(b => {
+          if (b.model === 'Days') b.x = d;
+        });
+      }
+    };
+
+    window.renderIndiePlus = function() {
+      const tbody = document.getElementById("indieplus-tbody");
+      const sumEl = document.getElementById("indieplus-sum");
+      if(!tbody) return;
+      let total = 0;
+      tbody.innerHTML = window.state.indiePlusBudget.map((b, i) => {
+        let sub = b.x * b.rate;
+        total += sub;
+        return `
+          <tr class="border-b border-siteBorder hover:bg-siteCard">
+            <td class="p-2 border border-siteBorder mono text-gray-400">${b.acct}</td>
+            <td class="p-2 border border-siteBorder font-bold text-white"><input type="text" value="${b.desc}" onchange="window.state.indiePlusBudget[${i}].desc=this.value; window.triggerAutoSave();" class="bg-transparent w-full"></td>
+            <td class="p-2 border border-siteBorder text-center text-blueAccent">${b.model}</td>
+            <td class="p-2 border border-siteBorder text-center text-gray-400">${b.amtUnit}</td>
+            <td class="p-2 border border-siteBorder text-center"><input type="number" value="${b.x}" onchange="window.state.indiePlusBudget[${i}].x=parseFloat(this.value)||0; window.renderIndiePlus(); window.triggerAutoSave();" class="w-12 bg-transparent text-center text-white"></td>
+            <td class="p-2 border border-siteBorder text-right mono">$<input type="number" value="${b.rate}" onchange="window.state.indiePlusBudget[${i}].rate=parseFloat(this.value)||0; window.renderIndiePlus(); window.triggerAutoSave();" class="w-20 bg-transparent text-right"></td>
+            <td class="p-2 border border-siteBorder text-right mono font-bold text-goldAccent">$${sub.toLocaleString()}</td>
+          </tr>
+        `;
+      }).join('');
+      if(sumEl) sumEl.innerText = '$' + total.toLocaleString();
+    };
+
+    window.addIndiePlusRow = function() {
+      window.state.indiePlusBudget.push({ acct: "NEW", desc: "Custom Line Item", model: "Days", amtUnit: "Days", x: window.state.targetDays, rate: 500 });
+      window.renderIndiePlus();
+    };
+
+    // Unlock Routines
+    window.unlockIndiePlus = function() {
+      window.state.indiePlusUnlocked = true;
+      window.finalizeIndiePlusUnlock();
+      window.triggerAutoSave();
+    };
+
+    window.finalizeIndiePlusUnlock = function() {
+      document.getElementById('paywall-container').classList.add('hidden');
+      const content = document.getElementById('indieplus-content');
+      content.classList.remove('opacity-20', 'pointer-events-none');
+      window.renderIndiePlus();
+    };
+
+    window.unlockShootingScript = function() {
+      window.state.scriptUnlocked = true;
+      window.finalizeShootingScriptUnlock();
+      window.triggerAutoSave();
+    };
+
+    window.finalizeShootingScriptUnlock = function() {
+      document.getElementById('script-paywall-container').classList.add('hidden');
+      const content = document.getElementById('script-content');
+      content.classList.remove('opacity-20', 'pointer-events-none');
+      window.renderShootingScript();
+    };
+
+    // Export CSV
+    window.exportCSV = function(type) {
+      let csv = "data:text/csv;charset=utf-8,";
+      let rows = [];
+
+      if (type === 'schedule') {
+        const active = window.state.scheduleMode === 'linear' ? window.state.linearSchedule : window.state.optimizedSchedule;
+        rows.push(["Day", "Time", "Scene", "D/N", "Heading", "Cast", "Props", "Pages"]);
+        active.forEach(d => {
+          d.scenes.forEach(s => {
+            rows.push([d.day, `${s.startTime}-${s.endTime}`, s.num, s.dns, `"${s.heading}"`, `"${s.cast.join(';')}"`, `"${s.props.join(';')}"`, s.pagesEighths]);
+          });
+        });
+      } else if (type === 'dood') {
+        const active = window.state.scheduleMode === 'linear' ? window.state.linearSchedule : window.state.optimizedSchedule;
+        const days = active.map(d => d.day);
+        rows.push(["Character", ...days.map(d => `Day ${d}`), "Work Days"]);
+        Object.keys(window.state.cast).forEach(c => {
+          let r = [c];
+          let total = 0;
+          days.forEach(d => {
+            let dData = active.find(sd => sd.day === d);
+            let inDay = dData && dData.scenes.some(sc => sc.cast.includes(c));
+            if(inDay) { r.push("W"); total++; } else { r.push("-"); }
+          });
+          r.push(total);
+          rows.push(r);
+        });
+      } else if (type === 'shots') {
+        rows.push(["Scene", "Shot ID", "Type", "Description"]);
+        window.state.shots.forEach(sh => rows.push([sh.sceneNum, sh.id, sh.type, `"${sh.desc}"`]));
+      } else if (type === 'cast') {
+        rows.push(["Character", "Scenes", "Costume", "Makeup"]);
+        Object.keys(window.state.cast).forEach(c => {
+          let d = window.state.cast[c];
+          rows.push([c, `"${d.scenesAppearing.join(';')}"`, `"${d.costume}"`, `"${d.makeup}"`]);
+        });
+      } else if (type === 'props') {
+        rows.push(["Acquired", "Scene", "Department", "Item", "Context"]);
+        window.state.props.forEach(p => rows.push([p.acquired ? "YES" : "NO", p.scene, p.dept || 'Props', `"${p.item}"`, `"${p.context}"`]));
+      } else if (type === 'locations') {
+        rows.push(["Name", "Address", "Notes"]);
+        window.state.locations.forEach(l => rows.push([`"${l.name}"`, `"${l.address}"`, `"${l.notes}"`]));
+      } else if (type === 'budget') {
+        rows.push(["Section", "Role", "Rate"]);
+        window.state.budget.forEach(b => rows.push([b.section, b.role, b.rate]));
+      } else if (type === 'indieplus') {
+        rows.push(["Account", "Description", "Model", "Qty", "Rate", "Subtotal"]);
+        window.state.indiePlusBudget.forEach(b => rows.push([b.acct, `"${b.desc}"`, b.model, b.x, b.rate, b.x * b.rate]));
+      } else if (type === 'signin') {
+        rows.push(["Name", "Role", "Call", "In", "Meal Out", "Meal In", "Wrap"]);
+        window.state.crewRoster.forEach(c => rows.push([`"${c.name}"`, `"${c.role}"`, c.call, c.inTime, c.mealOut, c.mealIn, c.wrap]));
+      } else if (type === 'gear') {
+        rows.push(["Category", "Item", "Rate"]);
+        window.state.gearList.forEach(g => rows.push([`"${g.category}"`, `"${g.item}"`, g.rate]));
+      }
+
+      csv += rows.map(r => r.join(",")).join("\n");
+      const a = document.createElement('a');
+      a.href = encodeURI(csv);
+      a.download = `${window.state.projectName}_${type}.csv`;
+      a.click();
+    };
+
+    // Print Layout Studio
+    window.openExportModal = function() {
+      window.renderPrintOrganizer();
+      document.getElementById('export-modal').classList.remove('hidden');
+    };
+
+    window.closeExportModal = function() {
+      document.getElementById('export-modal').classList.add('hidden');
+    };
+
+    window.renderPrintOrganizer = function() {
+      const container = document.getElementById('print-blocks-container');
+      if(!container) return;
+      container.innerHTML = window.state.printLayout.map(item => `
+        <div class="print-block flex items-center justify-between p-3 rounded-lg border border-gray-300 bg-white cursor-grab shadow-sm" data-id="${item.id}">
+          <div class="flex items-center gap-3">
+             <i data-lucide="grip-vertical" class="text-gray-400 w-4 h-4"></i>
+             <input type="checkbox" ${item.enabled?'checked':''} onchange="window.updatePrintConfig('${item.id}', 'enabled', this.checked)" class="w-4 h-4 accent-blue-600">
+             <span class="font-bold text-sm">${item.title}</span>
+          </div>
+          <div class="flex items-center gap-2">
+             <span class="text-xs text-gray-500">Zoom:</span>
+             <button onclick="window.updatePrintConfig('${item.id}', 'zoom', ${item.zoom - 10})" class="px-2 py-0.5 bg-gray-200 rounded font-bold">-</button>
+             <span class="text-xs font-mono font-bold w-10 text-center">${item.zoom}%</span>
+             <button onclick="window.updatePrintConfig('${item.id}', 'zoom', ${item.zoom + 10})" class="px-2 py-0.5 bg-gray-200 rounded font-bold">+</button>
+          </div>
+        </div>
+      `).join('');
+      window.safeIcons();
+
+      if (!container._sortable && typeof Sortable !== 'undefined') {
+        container._sortable = new Sortable(container, {
+          animation: 150,
+          handle: '.print-block',
+          onEnd: function() {
+            const newOrder = Array.from(container.querySelectorAll('.print-block')).map(el => el.getAttribute('data-id'));
+            window.state.printLayout = newOrder.map(id => window.state.printLayout.find(l => l.id === id));
+          }
+        });
+      }
+    };
+
+    window.updatePrintConfig = function(id, field, val) {
+      let item = window.state.printLayout.find(l => l.id === id);
+      if(item) {
+        item[field] = val;
+        if(field === 'zoom') item.zoom = Math.max(30, Math.min(150, item.zoom));
+      }
+      window.renderPrintOrganizer();
+    };
+
+    window.executeOrganizedPrint = function() {
+      window.state.printLayout.forEach(layout => {
+        let el = document.getElementById(`view-${layout.id}`);
+        if (el) {
+          if (layout.enabled) {
+            el.classList.remove('hidden');
+            el.style.zoom = (layout.zoom / 100);
+            el.style.order = window.state.printLayout.indexOf(layout);
+          } else {
+            el.classList.add('hidden');
+          }
+        }
+      });
+      document.getElementById('main-sections-wrapper').style.display = 'flex';
+      document.getElementById('main-sections-wrapper').style.flexDirection = 'column';
+
+      window.closeExportModal();
+      setTimeout(() => {
+        window.print();
+        document.getElementById('main-sections-wrapper').style.display = '';
+        document.getElementById('main-sections-wrapper').style.flexDirection = '';
+        window.state.printLayout.forEach(l => {
+          let el = document.getElementById(`view-${l.id}`);
+          if(el) { el.style.zoom = ''; el.style.order = ''; }
+        });
+        window.setTab('schedule');
+      }, 300);
+    };
+
+    // Master Render All
+    window.renderAll = function() {
+      document.getElementById("stat-scenes").innerText = window.state.scenes.length;
+      let totalPages = window.state.scenes.reduce((acc, s) => acc + (s.pagesDec || 0), 0);
+      document.getElementById("stat-pages").innerText = totalPages.toFixed(2);
+      document.getElementById('target-days-ui').innerText = window.state.targetDays;
+      document.getElementById('budget-shoot-days').innerText = window.state.targetDays;
+
+      window.renderSchedule();
+      window.renderCallSheet();
+      window.renderDOOD();
+      window.renderCast();
+      window.renderProps();
+      window.renderLocations();
+      window.renderGear();
+      window.renderShots();
+      window.renderDailies();
+      window.renderTakes();
+      window.renderSignIn();
+      window.renderBudget();
+      if(window.state.indiePlusUnlocked) window.renderIndiePlus();
+      if(window.state.scriptUnlocked) window.renderShootingScript();
+      window.safeIcons();
+    };
+
+    // Universal Table Resizer
+    window.makeAllTablesResizable = function() {
+      document.querySelectorAll('table th').forEach(th => {
+        if(th.querySelector('.resizer')) return;
+        let r = document.createElement('div');
+        r.className = 'resizer';
+        th.appendChild(r);
+        let x = 0; let w = 0;
+        r.addEventListener('mousedown', (e) => {
+          x = e.clientX; w = th.offsetWidth;
+          let move = (ev) => { th.style.width = (w + ev.clientX - x) + 'px'; };
+          let up = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+          document.addEventListener('mousemove', move);
+          document.addEventListener('mouseup', up);
+        });
+      });
+    };
+  </script>
+</body>
+</html>
