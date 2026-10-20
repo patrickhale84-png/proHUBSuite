@@ -29,10 +29,12 @@ var board = [{heading:'INT. DINER - NIGHT', hasSketch:true, status:'APPROVED'},
              {heading:'INT. DINER', hasPhoto:true},
              {heading:'INT. GONE - DAY', status:'APPROVED'}];
 var synced = SB.sync(board, scenes);
-check('sync count', synced.length, 3);
+check('sync count', synced.length, 4);
 check('orphan marked CUT', synced[synced.length-1].status, 'CUT');
 check('new scene added', synced[1]._si, 1);
-check('sketch preserved', synced[0].hasSketch, true);
+var sketchFrame = synced.filter(function(f){return f.hasSketch})[0];
+check('sketch preserved', !!sketchFrame, true);
+check('photo preserved', !!synced.filter(function(f){return f.hasPhoto})[0], true);
 check('new frame inferred', [synced[1].size, synced[1].status], ['WS','DRAFT']);
 var txt = SB.exportScript(synced);
 check('export skips CUT', txt.indexOf('INT. GONE') < 0, true);

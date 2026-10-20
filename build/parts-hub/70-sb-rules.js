@@ -82,7 +82,11 @@ function inferShot(heading, action) {
 
 /* ---- script scenes ---- */
 function sbNormHeading(t) {
-  return String(t || '').replace(/\s+/g, ' ').trim().toUpperCase();
+  // scene numbers are production bookkeeping, not part of the location: "1 INT. DINER" and
+  // "INT. DINER" must key to the same scene or sync invents duplicates beside the real frame
+  return String(t || '')
+    .replace(/^\s*\d+[A-Za-z]?[.)]?\s+/, '')
+    .replace(/\s+/g, ' ').trim().toUpperCase();
 }
 function sbBaseHeading(t) {
   return sbNormHeading(t).replace(/\s*[-\u2013]\s*(DAY|NIGHT|DAWN|DUSK|LATER|CONTINUOUS|MOMENTS LATER)\s*$/i, '').trim();
