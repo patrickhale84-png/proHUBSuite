@@ -108,12 +108,12 @@ var HubBridge=(function(){
  function post(msg){ try{ if(window.parent&&window.parent!==window) window.parent.postMessage(msg,'*'); return true }catch(e){ return false } }
  function readLocal(){ try{var r=localStorage.getItem(KEY);return r?JSON.parse(r):null}catch(e){return null} }
  function writeLocal(v){ try{localStorage.setItem(KEY,JSON.stringify(v));return true}catch(e){return false} }
- function apply(profile){
+ function apply(profile,fromLocal){
   if(!profile) return;
   var tags=profile.tags||{};
   for(var k in tags){ try{ ModalSync.publish(k,tags[k],'profile') }catch(e){} }
   if(profile.script!=null){ try{ ModalSync.publish('screenplay:main',{content:profile.script},'profile') }catch(e){} }
-  mode='profile';
+  mode=fromLocal?'local':'profile';
  }
  function snapshot(){
   var out={version:1,updatedAt:new Date().toISOString(),tags:{},script:null};
@@ -136,7 +136,9 @@ var HubBridge=(function(){
   timer=setTimeout(function(){ save(reason) },900);
  }
  function load(){
-  if(!post({hub:'profile:load'})) { var p=readLocal(); if(p) apply(p); }
+  var sent=post({hub:'profile:load'});
+  if(!sent){ var p0=readLocal(); if(p0) apply(p0,true); return true; }
+  setTimeout(function(){ if(mode!=='profile'){ var p1=readLocal(); if(p1) apply(p1,true) } },1200);
   return true;
  }
  window.addEventListener('message',function(e){
@@ -150,7 +152,6 @@ var HubBridge=(function(){
    ModalSync.subscribe('*',function(){ queueSave('auto') });
   }
   load();
-  setTimeout(function(){ if(mode!=='profile'){ var p=readLocal(); if(p&&!Object.keys(p.tags||{}).length===false) apply(p) } },1300);
   document.addEventListener('visibilitychange',function(){ if(document.hidden) save('hide') });
   window.addEventListener('beforeunload',function(){ save('unload') });
  }
