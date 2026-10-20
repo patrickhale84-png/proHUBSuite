@@ -1718,7 +1718,11 @@ function expElement(url, isAudio){
     el.src = url; el.preload = 'auto'; el.playsInline = true;
     var node = EXPORT.ctx.createMediaElementSource(el);
     node.connect(EXPORT.dest);
-    node.connect(EXPORT.ctx.destination); // lets you hear the render
+    /* the render node stays OFF the speakers.
+   Connecting it here left a DC offset on the output: a steady hum with nothing on the
+   timeline, and it kept humming during playback because the graph was never disconnected.
+   Monitoring the render through the speakers is opt-in, and off unless asked for. */
+  if (window.PH_MONITOR_EXPORT === true) { try { node.connect(EXPORT.ctx.destination); } catch (e) {} }
     m = EXPORT.els[url] = { el: el };
   }
   return m.el;
@@ -1850,6 +1854,12 @@ function expStart(){
   // A silent source keeps the audio track live even when no clip has sound yet.
   var silent = AUDIO_CTX.createConstantSource ? AUDIO_CTX.createConstantSource() : null;
   if(silent){ var silentGain = AUDIO_CTX.createGain(); silentGain.gain.value = 0; silent.connect(silentGain); silentGain.connect(dest); silent.start(); }
+  /* release the graph when the render ends, so nothing is left running behind the timeline */
+  EXPORT.stopAll = function () {
+    try { if (node && node.disconnect) node.disconnect(); } catch (e) {}
+    try { if (silent && silent.stop) silent.stop(); } catch (e) {}
+    try { if (silent && silent.disconnect) silent.disconnect(); } catch (e) {}
+  };
   var stream = new MediaStream(cv.captureStream(FPS).getVideoTracks().concat(dest.stream.getAudioTracks()));
   var mime = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
     .filter(function(m){ return MediaRecorder.isTypeSupported(m); })[0];
