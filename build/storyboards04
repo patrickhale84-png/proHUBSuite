@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>filmHUB | Script-to-Storyboard Studio</title>
+<style>
+:root {
+  --ink: #060911;
+  --panel: #0A0F1D;
+  --card: #0D1424;
+  --line: #1B2436;
+  --line2: #26344E;
+  --tx: #E6EBF2;
+  --mu: #8794A6;
+  --gold: #E5A93C;
+  --amber: #F0A30A;
+  --cyan: #00ABA9;
+  --lime: #88C13F;
+  --red: #E51400;
+  --fd: 'Impact', 'Arial Narrow Bold', sans-serif;
+  --fb: system-ui, -apple-system, sans-serif;
+  --fm: 'Courier Prime', 'Courier New', Courier, monospace;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--tx);
+  font-family: var(--fb);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  padding: 8px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.brand {
+  font-family: var(--fd);
+  font-size: 22px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.brand b { color: var(--gold); font-weight: normal; }
+.badge {
+  font-family: var(--fm);
+  font-size: 9px;
+  letter-spacing: .12em;
+  background: rgba(229,169,60,.12);
+  border: 1px solid rgba(229,169,60,.4);
+  color: var(--gold);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.top-tools {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #131A28;
+  border: 1px solid var(--line2);
+  color: var(--tx);
+  padding: 6px 11px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+  transition: .15s;
+}
+.btn:hover { background: #1B2436; color: #fff; }
+.btn.pri { background: linear-gradient(135deg, var(--amber), #C98708); color: #060911; border: none; }
+.btn.sm { padding: 4px 8px; font-size: 11px; }
+
+main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 16px 80px;
+}
+.panel-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 16px;
+}
+@media(max-width: 900px) {
+  .panel-grid { grid-template-columns: 1fr; }
+}
+
+.box {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+}
+.box h3 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-family: var(--fm);
+  letter-spacing: .08em;
+  color: var(--mu);
+  text-transform: uppercase;
+}
+textarea {
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--line2);
+  color: var(--tx);
+  border-radius: 6px;
+  padding: 10px;
+  font-family: var(--fm);
+  font-size: 12px;
+  line-height: 1.4;
+  outline: none;
+  resize: vertical;
+}
+textarea:focus { border-color: var(--gold); }
+
+/* Scene Shot List & Cards */
+.scene-block {
+  margin-bottom: 24px;
+  border: 1px solid var(--line2);
+  border-radius: 8px;
+  background: #090E1A;
+  overflow: hidden;
+}
+.scene-header {
+  padding: 10px 14px;
+  background: #0D1628;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.scene-title {
+  font-family: var(--fd);
+  font-size: 16px;
+  color: var(--gold);
+  letter-spacing: .04em;
+  margin: 0;
+}
+.shot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  padding: 14px;
+}
+.shot-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.shot-card-header {
+  padding: 6px 10px;
+  background: #0A0F1D;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+.shot-num {
+  font-family: var(--fm);
+  font-size: 11px;
+  color: var(--amber);
+  font-weight: 700;
+}
+.shot-type-badge {
+  font-family: var(--fm);
+  font-size: 10px;
+  color: var(--cyan);
+  background: rgba(0,171,169,.12);
+  border: 1px solid rgba(0,171,169,.35);
+  padding: 1px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.frame-wrap {
+  width: 100%;
+  aspect-ratio: 16 / 8.5;
+  background: #030509;
+  position: relative;
+  overflow: hidden;
+}
+.frame-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.frame-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+.shot-body {
+  padding: 10px;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.shot-line {
+  font-size: 11.5px;
+  color: #CBD6E2;
+  line-height: 1.35;
+  margin: 0;
+}
+.shot-subtext {
+  font-family: var(--fm);
+  font-size: 10.5px;
+  color: var(--gold);
+}
+.shot-footer {
+  margin-top: auto;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+/* Modals */
+dialog {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+dialog::backdrop {
+  background: rgba(3,6,12,.85);
+}
+.dlg {
+  width: 100%;
+  max-width: 620px;
+  background: #0D1421;
+  border: 1px solid var(--line2);
+  border-top: 3px solid var(--gold);
+  border-radius: 8px;
+  overflow: hidden;
+  color: var(--tx);
+}
+.dlg-h {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  background: #0A0F1D;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.dlg-b {
+  padding: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.dlg-f {
+  padding: 10px 16px;
+  border-top: 1px solid var(--line);
+  background: #0A0F1D;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.lib-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.lib-thumb {
+  border: 1px solid var(--line2);
+  border-radius: 5px;
+  overflow: hidden;
+  background: #070B14;
+  cursor: pointer;
+  text-align: center;
+  padding-bottom: 6px;
+}
+.lib-thumb:hover {
+  border-color: var(--gold);
+  filter: brightness(1.1);
+}
+.lib-thumb img {
+  width: 100%;
+  aspect-ratio: 16 / 8.5;
+  object-fit: cover;
+  display: block;
+}
+.lib-thumb span {
+  display: block;
+  font-family: var(--fm);
+  font-size: 10px;
+  margin-top: 5px;
+  color: #C6D1DC;
+}
+
+/* Print Sheet */
+@media print {
+  body > * { display: none !important; }
+  #printSheet { display: block !important; background: #fff !important; color: #000 !important; }
+  .p-page { page-break-after: always; padding: 20px; }
+  .p-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .p-card { border: 1px solid #999; border-radius: 4px; overflow: hidden; }
+  .p-card img { width: 100%; aspect-ratio: 16 / 8.5; object-fit: cover; }
+  .p-desc { padding: 6px; font-size: 10px; font-family: monospace; }
+}
+#printSheet { display: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">film<b>HUB</b> Storyboard Studio</div>
+  <span class="badge">SCRIPT-TO-STORYBOARD ENGINE</span>
+  <div class="top-tools">
+    <button class="btn sm" id="btnExportCSV">Export Shot List (.CSV)</button>
+    <button class="btn sm" id="btnPrintSheet">Print / PDF Sheet</button>
+  </div>
+</header>
+
+<main>
+  <div class="panel-grid">
+    <!-- Left: Script Input & Controls -->
+    <div class="box">
+      <h3>1. Paste Screenplay</h3>
+      <textarea id="scriptInput" rows="18" placeholder="Paste your screenplay scene or fountain text here..."></textarea>
+      <div style="display: flex; gap: 8px; margin-top: 10px;">
+        <button class="btn pri" id="btnParse" style="flex: 1;">Generate Storyboard</button>
+        <button class="btn" id="btnLoadSample">Sample Script</button>
+      </div>
+      
+      <div style="margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px;">
+        <h3>Parsing Rules Loaded</h3>
+        <ul style="font-size: 11.5px; color: var(--mu); padding-left: 18px; margin: 0; line-height: 1.6;">
+          <li><b>Ground Level:</b> Feet, boots, asphalt, shoes, floor, crawling</li>
+          <li><b>Knee Level:</b> Dodging, scrambling, lunging, crouching, diving, low actions</li>
+          <li><b>Hip Level:</b> Holsters, weapons, draw, belt, pocket, standoff</li>
+          <li><b>Shoulder Level:</b> Intimate dialogue, kissing, embrace, whispered reactions</li>
+          <li><b>Eye Level:</b> Direct confrontation, formal dialogue, interviews[cite: 13]</li>
+          <li><b>Overhead Shot:</b> Fallen bodies, crime scenes, ceilings, lights from above</li>
+          <li><b>Dutch Tilt:</b> Tension, dread, disoriented, alien glyphs, shock</li>
+          <li><b>High Angle (HA):</b> Group confrontations, outnumbered, approaching danger[cite: 16]</li>
+          <li><b>OTS:</b> Turn-taking dialogues, two characters facing off[cite: 17]</li>
+          <li><b>Insert Shot:</b> Hand props, keys, phones, dials, notebooks, screens</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Right: Generated Storyboard Flow -->
+    <div>
+      <div id="storyboardContainer">
+        <div style="border: 2px dashed var(--line2); border-radius: 8px; padding: 40px; text-align: center; color: var(--mu);">
+          Paste your script on the left and click <b>Generate Storyboard</b> to parse scenes and build your shot layout.
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="printSheet"></div>
+
+<!-- Image Picker Modal -->
+<dialog id="pickerModal">
+  <div class="dlg">
+    <div class="dlg-h">
+      <h3 style="margin:0; font-size:14px;">Select Shot Framing</h3>
+      <button class="btn sm" onclick="document.getElementById('pickerModal').close()">✕</button>
+    </div>
+    <div class="dlg-b">
+      <div class="lib-grid" id="pickerGrid"></div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+// The Default Reference Framing Library with inline SVG renders matching the default shot types
+const SHOT_LIBRARY = {
+  'ground': {
+    name: 'Ground Level',
+    svg: `<svg viewBox="0 0 850 450" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="850" height="450" fill="#0b1120"/><path d="M0,70 L850,70 L850,450 L0,450 Z" fill="#1e2238"/><path d="M265,0 L420,0 L325,260 L235,260 Z" fill="#7d8ab4"/><path d="M500,0 L700,0 L795,230 L700,230 L690,330 L555,350 C540,290 600,260 625,230 L585,0 Z" fill="#7d8ab4"/><path d="M190,145 C230,170 290,260 350,260 L270,260 Z" fill="#7d8ab4"/><path d="M480,315 C540,325 615,325 645,290 L745,290 L745,330 L660,350 L480,350 Z" fill="#7d8ab4"/></svg>`
+  },
+  'knee': {
+    name: 'Knee Level',
+    svg: `<svg viewBox="0 0 850 450" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="850" height="450" fill="#070c17"/><rect y="250" width="850" height="200" fill="#1a2236"/><path d="M220,0 L290,40 L195,145 L500,260 C580,260 580,100 520,105 L625,200 L710,185 L740,230 L560,265 L180,245 L115,450 L195,450 L205,330 L220,0 Z" fill="#7d8ab4"/><path d="M10,185 L140,295 L115,360 L0,250 Z" fill="#7d8ab4"/></svg>`
+  },
+  'hip': {
+    name: 'Hip Level',
+    svg: `<svg viewBox="0 0 850 450" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="850" height="450" fill="#060913"/><rect y="260" width="850" height="190" fill="#1b2238"/><path d="M0,0 L260,0 L250,185 C230,225 155,245 155,245 L135,450 L0,450 Z" fill="#7d8ab4"/><rect x="65" y="195" width="180" height="50" rx="6" fill="#69769e"/><rect x="225" y="200" width="25" height="40" rx="3" fill="#8d9bc5"/><path d="M65,195 L65,420 C85,425 145,425 145,395 L145,245 Z" fill="#69769e"/><g transform="translate(460, 130) scale(0.65)"><circle cx="50" cy="30" r="18" fill="#7d8ab4"/><rect x="35" y="55" width="30" height="75" rx="5" fill="#7d8ab4"/><path d="M20,65 L80,65 L80,120 L20,120 Z" fill="#7d8ab4"/><rect x="35" y="130" width="12" height="100" fill="#7d8ab4"/><rect x="53" y="130" width="12" height="100" fill="#7d8ab4"/></g></svg>`
+  },
+  'shoulder': {
+    name: 'Shoulder Level',
+    svg: `<svg viewBox="0 0 850 450" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="850" height="450" fill="#080c18"/><g fill="#7d8ab4"><path d="M430,40 C520,30 610,65 615,190 C600,230 650,290 740,450 L380,450 C380,380 430,300 450,240 Z"/><path d="M350,125 C410,135 460,200 440,265 C390,290 300,270 240,360 L280,450 L480,450 C440,380 440,290 350,125 Z"/></g></svg>`
+  },
+  'eye': {
+    name: 'Eye Level',
+    svg: `<svg viewBox="0 0 850 450" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="850" height="450" fill="#070a14"/><path d="M425,75 C490,75 520,120 520,225 C520,295 480,310 495,335 C520,370 650,370 700,450 L150,450 C200,370 330,370 355,335 C370,310 330,295 330,225 C330,120 360,75 425,75 Z" fill="#7d8ab4"/></svg>`
+  },
+  'overhead': {
+    name: 'Overhead Shot',
+    svg: `<svg viewBox="0 0 850 450" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="850" height="450" fill="#090d1a"/><polygon points="390,100 480,100 570,370 360,370" fill="#1b253d"/><g transform="translate(420, 240) rotate(-40)" fill="#7d8ab4"><circle cx="0" cy="-70" r="28"/><rect x="-24" y="-40" width="48" height="120" rx="10"/><path d="M-24,-20 L-90,-80 L-110,-60 L-30,10 Z"/><path d="M24,-20 L110,-30 L110,0 L24,20 Z"/><rect x="-24" y="80" width="20" height="90"/><rect x="4" y="80" width="20" height="90"/></g></svg>`
+  },
+  'dutch': {
+    name: 'Dutch Tilt',
+    svg: `<svg viewBox="0 0 850 450" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="850" height="450" fill="#060913"/><g fill="#7d8ab4" transform="rotate(16, 425, 225)"><path d="M200,80 C260,70 310,120 310,210 C310,270 280,290 320,450 L70,450 C80,310 140,290 140,210 C140,120 160,80 200,80 Z"/><path d="M520,160 C580,160 620,200 620,280 C620,340 580,360 660,450 L380,450 C440,360 420,340 420,280 C420,200 460,160 520,160 Z"/></g></svg>`
+  },
+  'ha': {
+    name: 'High Angle (HA)',
+    svg: `<svg viewBox="0 0 850 450" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="850" height="450" fill="#070c18"/><g fill="#7d8ab4"><g transform="translate(180, 240) scale(0.65)"><circle cx="0" cy="-60" r="28"/><path d="M-25,-30 L25,-30 L35,160 L-35,160 Z"/></g><g transform="translate(350, 200) scale(0.75)"><circle cx="0" cy="-60" r="28"/><path d="M-30,-30 L30,-30 L40,180 L-40,180 Z"/></g><g transform="translate(500, 110) scale(1.15)"><circle cx="0" cy="-60" r="35"/><path d="M-45,-25 L45,-25 L55,200 L-55,200 Z"/></g><g transform="translate(620, 260) scale(0.85)"><circle cx="0" cy="-60" r="28"/><path d="M-30,-30 L30,-30 L40,180 L-40,180 Z"/></g><g transform="translate(400, 310) scale(0.95)"><circle cx="0" cy="-60" r="28"/><path d="M-30,-30 L30,-30 L40,180 L-40,180 Z"/></g></g></svg>`
+  },
+  'ots': {
+    name: 'Over the Shoulder (OTS)',
+    svg: `<svg viewBox="0 0 850 450" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="850" height="450" fill="#060912"/><g fill="#7d8ab4"><g transform="translate(300, 160) scale(0.7)"><circle cx="0" cy="-50" r="35"/><path d="M-45,-10 L45,-10 L60,350 L-60,350 Z"/></g><path d="M720,50 C810,50 850,110 850,250 C850,330 850,450 850,450 L350,450 C380,370 520,330 570,250 C580,180 620,50 720,50 Z"/></g></svg>`
+  },
+  'insert': {
+    name: 'Insert Shot',
+    svg: `<svg viewBox="0 0 850 450" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="850" height="450" fill="#070c18"/><path d="M0,0 L240,140 L370,450 L0,450 Z" fill="#1b243b"/><g transform="translate(540, 270) scale(1.1)"><path d="M-140,40 C-80,-40 20,-30 40,40 C50,110 -60,140 -140,100 Z" fill="#586791"/><path d="M-60,20 L10,20 L40,-5 L70,20 L60,40 L-60,40 Z" fill="#9db0e0"/><circle cx="50" cy="20" r="8" fill="#1b243b"/></g></svg>`
+  }
+};
+
+let activeTargetShot = null;
+let storyboardData = [];
+
+// Semantic Shot Classifier using Scene Text
+function classifyShot(text, prevType, characterCount) {
+  const t = text.toLowerCase();
+
+  // 1. Specific insert props / hands[cite: 18]
+  if (/\b(phone|key|keys|gun|display|analog|glyphs|screen|letter|watch|dial|wallet|knife|pill|badge)\b/i.test(t)) {
+    return 'insert';
+  }
+  // 2. Low angle / feet / floor / ground level[cite: 9]
+  if (/\b(floor|boots|feet|footsteps|shoes|pavement|asphalt|ground|curb|grass|dirt|treads)\b/i.test(t)) {
+    return 'ground';
+  }
+  // 3. Stunts, scrambling, low struggle[cite: 10]
+  if (/\b(crouch|crouching|crawl|crawling|scramble|scrambles|tackle|dives|lunges|scramble|knee)\b/i.test(t)) {
+    return 'knee';
+  }
+  // 4. Weapons, holsters, standoff[cite: 11]
+  if (/\b(holster|belt|waist|pocket|draws|grip|standoff|unholster)\b/i.test(t)) {
+    return 'hip';
+  }
+  // 5. Overhead perspective[cite: 14]
+  if (/\b(ceiling|overhead|above|down on|lying|fallen|dead|silhouette from high|spiral)\b/i.test(t)) {
+    return 'overhead';
+  }
+  // 6. Extreme psychological tension, disorientation, shock[cite: 15]
+  if (/\b(dread|pulse|alien|flicker|mimicking|strange|terror|tremble|rumble|shakes|spinning)\b/i.test(t)) {
+    return 'dutch';
+  }
+  // 7. Multiple characters or crowd[cite: 16]
+  if (/\b(crowd|group|officers|men|agents|everyone|they|surround|stand around)\b/i.test(t) || characterCount >= 3) {
+    return 'ha';
+  }
+  // 8. Intimate or high emotion close proximity[cite: 12]
+  if (/\b(kiss|whisper|tears|embrace|clutch|ear|mouth|eyes dart|breathes shallow)\b/i.test(t)) {
+    return 'shoulder';
+  }
+  // 9. Two-person dialogue exchange[cite: 17]
+  if (characterCount === 2 && prevType !== 'ots') {
+    return 'ots';
+  }
+  // Default to Eye Level dialogue / standard shot[cite: 13]
+  return 'eye';
+}
+
+// Robust Screenplay Parser
+function parseScreenplay(raw) {
+  const lines = raw.split(/\r?\n/);
+  const scenes = [];
+  let currentScene = null;
+  let currentSpeechChar = null;
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+
+    // Detect Scene Heading
+    if (/^\s*(?:INT|EXT|EST|I\/E)[\.\s]/i.test(trimmed)) {
+      currentScene = {
+        heading: trimmed.toUpperCase(),
+        shots: []
+      };
+      scenes.push(currentScene);
+      currentSpeechChar = null;
+      return;
+    }
+
+    if (!currentScene) {
+      currentScene = { heading: "INT. SCENE 1 - DAY", shots: [] };
+      scenes.push(currentScene);
+    }
+
+    // Detect Character Cue
+    if (trimmed === trimmed.toUpperCase() && trimmed.length < 35 && !/[.,!?]$/.test(trimmed)) {
+      currentSpeechChar = trimmed.replace(/\s*\(.*?\)/, '');
+      return;
+    }
+
+    // Dialogue Beat
+    if (currentSpeechChar && !/^[\[\(]/.test(trimmed)) {
+      currentScene.shots.push({
+        type: 'dialogue',
+        character: currentSpeechChar,
+        text: trimmed
+      });
+      currentSpeechChar = null;
+      return;
+    }
+
+    // Action Narrative Beat
+    currentScene.shots.push({
+      type: 'action',
+      text: trimmed
+    });
+    currentSpeechChar = null;
+  });
+
+  return scenes;
+}
+
+// Generate Storyboard Data Structure
+function generateStoryboard() {
+  const raw = document.getElementById('scriptInput').value;
+  if (!raw.trim()) return;
+
+  const parsedScenes = parseScreenplay(raw);
+  storyboardData = [];
+
+  parsedScenes.forEach((sc, sIdx) => {
+    const sceneShots = [];
+    let prevShotKey = 'eye';
+
+    sc.shots.forEach((shot, shIdx) => {
+      // Condense very short dialogue/action bursts so we generate clear beats
+      const key = classifyShot(shot.text, prevShotKey, 1);
+      prevShotKey = key;
+
+      sceneShots.push({
+        id: `${sIdx + 1}.${shIdx + 1}`,
+        key: key,
+        title: SHOT_LIBRARY[key].name,
+        action: shot.type === 'action' ? shot.text : `[${shot.character}] "${shot.text}"`,
+        note: shot.type === 'dialogue' ? `Dialogue: ${shot.character}` : `Visual Setup`
+      });
+    });
+
+    storyboardData.push({
+      heading: sc.heading,
+      shots: sceneShots
+    });
+  });
+
+  renderStoryboard();
+}
+
+function renderStoryboard() {
+  const container = document.getElementById('storyboardContainer');
+  if (!storyboardData.length) {
+    container.innerHTML = `<div style="padding: 20px; color: var(--mu);">No shots found in script.</div>`;
+    return;
+  }
+
+  container.innerHTML = storyboardData.map((sc, sIdx) => `
+    <div class="scene-block">
+      <div class="scene-header">
+        <h3 class="scene-title">SCENE ${sIdx + 1}: ${sc.heading}</h3>
+        <span class="badge">${sc.shots.length} SHOTS</span>
+      </div>
+      <div class="shot-grid">
+        ${sc.shots.map((sh, shIdx) => `
+          <div class="shot-card">
+            <div class="shot-card-header">
+              <span class="shot-num">SHOT ${sh.id}</span>
+              <span class="shot-type-badge" onclick="openPicker(${sIdx}, ${shIdx})">${sh.title} ▾</span>
+            </div>
+            <div class="frame-wrap" id="wrap_${sIdx}_${shIdx}">
+              ${SHOT_LIBRARY[sh.key].svg}
+              <canvas class="frame-canvas" id="cv_${sIdx}_${shIdx}" width="425" height="225"></canvas>
+            </div>
+            <div class="shot-body">
+              <p class="shot-line">${sh.action}</p>
+              <div class="shot-subtext">${sh.note}</div>
+              <div class="shot-footer">
+                <button class="btn sm" onclick="clearCanvas(${sIdx},${shIdx})">Clear Sketch</button>
+                <button class="btn sm" onclick="openPicker(${sIdx},${shIdx})">Change Shot</button>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  // Wire canvas drawing on each shot
+  storyboardData.forEach((sc, sIdx) => {
+    sc.shots.forEach((sh, shIdx) => {
+      wireDrawing(sIdx, shIdx);
+    });
+  });
+}
+
+function wireDrawing(sIdx, shIdx) {
+  const cv = document.getElementById(`cv_${sIdx}_${shIdx}`);
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  let drawing = false, last = null;
+
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = '#E5A93C';
+  ctx.lineCap = 'round';
+
+  function pos(e) {
+    const r = cv.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * (cv.width / r.width),
+      y: (e.clientY - r.top) * (cv.height / r.height)
+    };
+  }
+
+  cv.onmousedown = (e) => { drawing = true; last = pos(e); };
+  cv.onmousemove = (e) => {
+    if (!drawing) return;
+    const p = pos(e);
+    ctx.beginPath();
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    last = p;
+  };
+  window.addEventListener('mouseup', () => { drawing = false; });
+}
+
+function clearCanvas(sIdx, shIdx) {
+  const cv = document.getElementById(`cv_${sIdx}_${shIdx}`);
+  if (cv) cv.getContext('2d').clearRect(0, 0, cv.width, cv.height);
+}
+
+// Modal Selector
+function openPicker(sIdx, shIdx) {
+  activeTargetShot = { sIdx, shIdx };
+  const grid = document.getElementById('pickerGrid');
+  grid.innerHTML = Object.keys(SHOT_LIBRARY).map((k) => `
+    <div class="lib-thumb" onclick="assignShotFraming('${k}')">
+      ${SHOT_LIBRARY[k].svg}
+      <span>${SHOT_LIBRARY[k].name}</span>
+    </div>
+  `).join('');
+  document.getElementById('pickerModal').showModal();
+}
+
+function assignShotFraming(key) {
+  if (!activeTargetShot) return;
+  const { sIdx, shIdx } = activeTargetShot;
+  storyboardData[sIdx].shots[shIdx].key = key;
+  storyboardData[sIdx].shots[shIdx].title = SHOT_LIBRARY[key].name;
+  document.getElementById('pickerModal').close();
+  renderStoryboard();
+}
+
+// CSV Export
+document.getElementById('btnExportCSV').onclick = () => {
+  if (!storyboardData.length) return alert('Generate a storyboard first.');
+  let csv = 'Scene,Shot,Type,Description,Notes\n';
+  storyboardData.forEach((sc, sIdx) => {
+    sc.shots.forEach((sh) => {
+      csv += `"${sc.heading}","${sh.id}","${sh.title}","${sh.action.replace(/"/g, '""')}","${sh.note}"\n`;
+    });
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'production_storyboard_shotlist.csv';
+  a.click();
+};
+
+// Print / PDF Sheet
+document.getElementById('btnPrintSheet').onclick = () => {
+  if (!storyboardData.length) return alert('Generate a storyboard first.');
+  const pSheet = document.getElementById('printSheet');
+  pSheet.innerHTML = storyboardData.map((sc, sIdx) => `
+    <div class="p-page">
+      <h2 style="font-family:sans-serif; margin-bottom:14px;">SCENE ${sIdx + 1}: ${sc.heading}</h2>
+      <div class="p-grid">
+        ${sc.shots.map((sh) => `
+          <div class="p-card">
+            ${SHOT_LIBRARY[sh.key].svg}
+            <div class="p-desc">
+              <b>SHOT ${sh.id} &middot; ${sh.title}</b><br>${sh.action}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+  window.print();
+};
+
+// Sample Script Loader
+document.getElementById('btnLoadSample').onclick = () => {
+  document.getElementById('scriptInput').value = 
+`INT. INTERROGATION ROOM - STUDIO
+
+The light above Ingrid flickers RED then WHITE mimicking the frequency.
+
+INGRID
+Where is Lotus?
+
+Ingrid opens her eyes and rubs her split fingernails together, using the pain to ground her.
+
+THERAPIST (O.S.)
+You were grieving a child that you hadn't lost yet. Why?
+
+Another CLICK.
+
+THERAPIST (O.S.)
+What is the very first thing you remember?
+
+She breathes shallow, quick breaths. Her eyes dart beneath her eyelids.
+
+INGRID
+I was...
+
+(beat)
+I had an appointment.
+
+EXT. WOODS - DAY
+
+Silence. Strange ALIEN GLYPHS appear on the analog display of her satellite phone as it pulses red on the forest floor.
+
+A distant RUMBLE shakes the trees and a bright pulse of fiery orange light illuminates the forest floor.
+
+SMASH TO:
+
+INT. APARTMENT - NIGHT
+
+Ingrid draws her weapon from her holster and backs into the shadow of the door.`;
+  generateStoryboard();
+};
+
+document.getElementById('btnParse').onclick = generateStoryboard;
+</script>
+</body>
+</html>
