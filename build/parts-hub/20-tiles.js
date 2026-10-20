@@ -35,14 +35,19 @@ function layout(){
  var html=[];
  for(var i=0;i<TILES.length;i++){
   var t=TILES[i];
-  html.push('<div class="tile'+(t.big?' big':'')+'" data-id="'+t.id+'">'+
-   '<div class="row"><span class="dot" style="background:'+(t.colour||'#E2A93B')+'"></span>'+
-   '<span class="k">'+(t.tag||'modality')+'</span></div>'+
-   '<h2>'+esc(t.title)+'</h2><p>'+esc(t.sub||'')+'</p><span class="tzgrip" data-grip="'+t.id+'"></span></div>');
+  var grad='linear-gradient(135deg,'+(t.colour||'#E2A93B')+' 0%,'+shade(t.colour||'#E2A93B',-54)+' 100%)';
+  html.push('<div class="tile'+(t.big?' big':'')+'" data-id="'+t.id+'" style="background:'+grad+'">'+
+   '<div class="ttop"><span class="tn">'+('0'+(i+1)).slice(-2)+'</span>'+
+   '<i class="fa-solid '+faFor(t)+'"></i>'+
+   '<span class="badge">'+esc(badgeFor(t))+'</span></div>'+
+   '<h2>'+esc(t.title)+'</h2><p>'+esc(t.sub||'')+'</p>'+
+   '<span class="tzgrip" data-grip="'+t.id+'"></span></div>');
  }
  g.innerHTML=html.join('');
  var tiles=g.querySelectorAll('[data-id]');
  for(var j=0;j<tiles.length;j++)tiles[j].onclick=function(){open(this.getAttribute('data-id'))};
+ var grips=g.querySelectorAll('[data-grip]');
+ for(var q=0;q<grips.length;q++)grips[q].onclick=function(e){e.stopPropagation();nextSpan(this.getAttribute('data-grip'))};
  sizeGrid();
 }
 /* spans let a tile be extended beyond its square, but the grid never scrolls: the cell size
