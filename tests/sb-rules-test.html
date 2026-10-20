@@ -1,0 +1,42 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>rules engine tests</title></head><body>
+<pre id="out"></pre>
+<script src="sb-rules.js"></script>
+<script>
+var results = [];
+function check(name, got, want) {
+  var ok = JSON.stringify(got) === JSON.stringify(want);
+  results.push((ok ? 'PASS ' : 'FAIL ') + name + '  got ' + JSON.stringify(got) + (ok ? '' : '  want ' + JSON.stringify(want)));
+}
+var a = SB.inferShot('INT. OFFICE - DAY', '');
+check('bare INT DAY', [a.size, a.angle, a.movement, a.lighting], ['MS','EYE','STATIC','HIGH_KEY']);
+var b = SB.inferShot('EXT. FIELD - NIGHT', '');
+check('bare EXT NIGHT', [b.size, b.angle, b.movement, b.lighting], ['WS','EYE','STATIC','LOW_KEY']);
+var c2 = SB.inferShot('INT. ALLEY - NIGHT', 'Dolly slowly through the dark alley.');
+check('dolly + low key', [c2.movement, c2.lighting], ['DOLLY','LOW_KEY']);
+var d = SB.inferShot('EXT. DESERT - DAY', 'Aerial drone shot, extreme wide.');
+check('aerial ELS', [d.size], ['ELS']);
+var e = SB.inferShot('EXT. DUNES - DUSK', 'Handheld, shaky cam, golden hour.');
+check('handheld + golden', [e.movement, e.lighting], ['HANDHELD','GOLDEN']);
+var f = SB.inferShot('INT. DINER - NIGHT', 'Close up on her face. Low angle.');
+check('CU + LOW', [f.size, f.angle], ['CU','LOW']);
+// accumulation: two rules reinforce the same value
+var g = SB.inferShot('EXT. STREET - NIGHT', 'Neon signs, fluorescent club lighting, cyberpunk.');
+check('neon accumulates', [g.lighting], ['NEON']);
+// sync: preserve, orphan, add
+var scenes = SB.parseScenes([{type:'SCENE_HEADING',text:'1 INT. DINER - NIGHT'},{type:'ACTION',text:'Alex slides the envelope.'},
+  {type:'CHARACTER',text:'ALEX'},{type:'SCENE_HEADING',text:'2 EXT. STREET - DAY'},{type:'ACTION',text:'She runs.'}]);
+var board = [{heading:'INT. DINER - NIGHT', hasSketch:true, status:'APPROVED'},
+             {heading:'INT. DINER', hasPhoto:true},
+             {heading:'INT. GONE - DAY', status:'APPROVED'}];
+var synced = SB.sync(board, scenes);
+check('sync count', synced.length, 3);
+check('orphan marked CUT', synced[synced.length-1].status, 'CUT');
+check('new scene added', synced[1]._si, 1);
+check('sketch preserved', synced[0].hasSketch, true);
+check('new frame inferred', [synced[1].size, synced[1].status], ['WS','DRAFT']);
+var txt = SB.exportScript(synced);
+check('export skips CUT', txt.indexOf('INT. GONE') < 0, true);
+check('export has frames', txt.indexOf('FRAME 01') === 0, true);
+document.getElementById('out').textContent = results.join('\n') + '\n\n' +
+  (results.filter(function(r){return r.indexOf('PASS')===0}).length + '/' + results.length + ' passed');
+</script></body></html>
