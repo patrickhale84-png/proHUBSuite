@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>proHUB | Production Suite</title>
+<style>
+:root{--ink:#0A0E16;--panel:#101725;--line:#1E2A3E;--paper:#F6F4EF;--amber:#E2A93B;--lime:#8FC13F;--red:#D64541;--mu:#8493A8;--fd:"Iowan Old Style",Georgia,"Times New Roman",serif;--fs:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--fm:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;height:100%}
+body{background:var(--ink);color:#E6EBF2;font-family:var(--fs);overflow:hidden}
+.wrap{display:flex;flex-direction:column;height:100dvh}
+header{display:flex;align-items:baseline;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);flex:0 0 auto}
+.brand{font-family:var(--fd);font-size:22px;letter-spacing:.01em;color:#fff}
+.brand i{color:var(--amber);font-style:normal}
+.tag{font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
+.spacer{flex:1}
+.live{font-family:var(--fm);font-size:11.5px;color:var(--lime)}
+.live b{color:#fff}
+#tgrid{flex:1 1 auto;display:grid;gap:12px;padding:16px;overflow:auto;align-content:start}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;cursor:pointer;display:flex;flex-direction:column;gap:8px;position:relative;transition:border-color .15s,transform .12s}
+.tile:hover{border-color:#33456A;transform:translateY(-1px)}
+.tile .dot{width:9px;height:9px;border-radius:50%}
+.tile h2{font-family:var(--fd);font-size:19px;margin:0;color:#fff;font-weight:600}
+.tile p{margin:0;font-size:12.5px;color:var(--mu);line-height:1.5}
+.tile .k{font-family:var(--fm);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#6F7F96}
+.tile.big{grid-column:span 2;grid-row:span 2}
+#modal{position:fixed;inset:0;display:none;background:rgba(4,7,12,.86);z-index:50;padding:12px}
+#modal.on{display:block}
+.mbox{background:var(--ink);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;overflow:hidden;height:100%}
+.mhd{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);flex:0 0 auto}
+.mhd h2{font-family:var(--fd);font-size:21px;margin:0;color:#fff}
+.mhd .k{font-family:var(--fm);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--amber)}
+.mbody{flex:1 1 auto;overflow:auto;padding:16px}
+button{font-family:var(--fs);font-size:13px;padding:7px 12px;border-radius:7px;border:1px solid var(--line);background:#16202F;color:#DDE5EF;cursor:pointer}
+button:hover{background:#1D293B}
+button.pri{background:var(--amber);border-color:var(--amber);color:#12161F;font-weight:600}
+textarea,input,select{width:100%;background:#0D1420;border:1px solid var(--line);border-radius:7px;color:#E6EBF2;padding:9px 10px;font-family:var(--fm);font-size:13px;line-height:1.6}
+textarea:focus,input:focus{outline:2px solid var(--amber);outline-offset:-1px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.note{font-size:12.5px;color:var(--mu);line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <header>
+  <div class="brand">pro<i>HUB</i></div>
+  <div class="tag" id="tagline">production suite</div>
+  <div class="spacer"></div>
+  <div class="live" id="livebox">bus <b id="tagcount">0</b> tags</div>
+ </header>
+ <div id="tgrid"></div>
+</div>
+<div id="modal">
+ <div class="mbox">
+  <div class="mhd">
+   <div><div class="k" id="mkey">modality</div><h2 id="mtitle">-</h2></div>
+   <div class="spacer"></div>
+   <button id="mclose">Close</button>
+  </div>
+  <div class="mbody" id="mbody"></div>
+ </div>
+</div>
+<script>
+;
+/* modalsync */
+(function(){
+/* ModalSync - the tag bus. Everything a modality knows that another needs goes here,
+   published under a tag, so tiles stay decoupled. Persisted per tag, versioned, and with a
+   wildcard subscription for the harness. */
+window.ModalSync=(function(){
+ var data={},subs={},vers={};
+ function ls(tag){try{var r=localStorage.getItem('ms:'+tag);return r?JSON.parse(r):null}catch(e){return null}}
+ function save(tag,rec){try{localStorage.setItem('ms:'+tag,JSON.stringify(rec))}catch(e){}}
+ function publish(tag,payload,source){
+  var rec={tag:tag,data:payload,source:source||'',version:(vers[tag]||0)+1,updatedAt:new Date().toISOString()};
+  vers[tag]=rec.version;data[tag]=rec;save(tag,rec);
+  var list=(subs[tag]||[]).slice();
+  for(var i=0;i<list.length;i++){try{list[i](rec)}catch(e){}}
+  var all=(subs['*']||[]).slice();
+  for(var j=0;j<all.length;j++){try{all[j](rec)}catch(e){}}
+  try{if(window.HUB&&HUB.busTick)HUB.busTick()}catch(e){}
+  return rec;
+ }
+ function subscribe(tag,cb){(subs[tag]=subs[tag]||[]).push(cb);
+  return function(){(subs[tag]||[]).filter(function(f){return f!==cb})}}
+ function getWithMetadata(tag){return data[tag]||ls(tag)}
+ function get(tag){var r=getWithMetadata(tag);return r?r.data:null}
+ function watch(tag,cb){subscribe(tag,cb);var cur=getWithMetadata(tag);if(cur){try{cb(cur)}catch(e){}}}
+ function getAllData(){var o={};for(var k in data){if(data[k])o[k]=data[k].data}return o}
+ function getTags(){var t={};for(var k in data){t[k]=1}
+  try{for(var i=0;i<localStorage.length;i++){var key=localStorage.key(i);if(key&&key.indexOf('ms:')===0)t[key.slice(3)]=1}}catch(e){}
+  return Object.keys(t)}
+ function publishMultiple(obj,source){for(var k in obj){publish(k,obj[k],source)}}
+ return {publish:publish,subscribe:subscribe,watch:watch,get:get,getWithMetadata:getWithMetadata,
+         getAllData:getAllData,getTags:getTags,publishMultiple:publishMultiple};
+})();
+})();
+;
+/* hub */
+(function(){
+/* the tile host: registers modalities, lays them out to the viewport, opens them full screen
+   and sizes itself again whenever the window changes. */
+var TILES=[],OPEN=null;
+function reg(t){TILES.push(t)}
+function busTick(){var n=window.ModalSync?ModalSync.getTags().length:0;var el=document.getElementById('tagcount');if(el)el.textContent=n}
+function layout(){
+ var g=document.getElementById('tgrid');if(!g)return;
+ var html=[];
+ for(var i=0;i<TILES.length;i++){
+  var t=TILES[i];
+  html.push('<div class="tile'+(t.big?' big':'')+'" data-id="'+t.id+'">'+
+   '<div class="row"><span class="dot" style="background:'+(t.colour||'#E2A93B')+'"></span>'+
+   '<span class="k">'+(t.tag||'modality')+'</span></div>'+
+   '<h2>'+esc(t.title)+'</h2><p>'+esc(t.sub||'')+'</p></div>');
+ }
+ g.innerHTML=html.join('');
+ var tiles=g.querySelectorAll('[data-id]');
+ for(var j=0;j<tiles.length;j++)tiles[j].onclick=function(){open(this.getAttribute('data-id'))};
+ sizeGrid();
+}
+function sizeGrid(){
+ var g=document.getElementById('tgrid');if(!g)return;
+ var avail=g.clientWidth-32,availH=g.clientHeight-32;
+ var cols=Math.max(2,Math.min(6,Math.floor(avail/230)));
+ var rows=Math.max(1,Math.round(availH/168));
+ g.style.gridTemplateColumns='repeat('+cols+',minmax(0,1fr))';
+ g.style.gridAutoRows=Math.max(120,Math.floor(availH/rows))+'px';
+}
+function open(id){
+ var t=null;
+ for(var i=0;i<TILES.length;i++)if(TILES[i].id===id)t=TILES[i];
+ if(!t)return;
+ OPEN=t;
+ var m=document.getElementById('modal');
+ m.classList.add('on');document.body.style.overflow='hidden';
+ document.getElementById('mtitle').textContent=t.title;
+ document.getElementById('mkey').textContent=t.tag||'modality';
+ var body=document.getElementById('mbody');
+ body.innerHTML='';
+ try{t.render(body)}catch(e){body.innerHTML='<p class="note">That modality failed to open: '+esc(e.message)+'</p>'}
+ autosize();
+}
+function close(){
+ OPEN=null;
+ document.getElementById('modal').classList.remove('on');
+ document.body.style.overflow='';
+ var body=document.getElementById('mbody');if(body)body.innerHTML='';
+}
+function autosize(){
+ var m=document.getElementById('modal').querySelector('.mbox');
+ if(!m)return;
+ m.style.height=(window.innerHeight-24)+'px';
+}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function boot(){
+ layout();
+ document.getElementById('mclose').onclick=close;
+ document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)close()});
+ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&OPEN)close()});
+ window.addEventListener('resize',function(){sizeGrid();if(OPEN)autosize()});
+ busTick();
+ if(window.HUB_READY)HUB_READY();
+}
+window.HUB={reg:reg,open:open,close:close,layout:layout,sizeGrid:sizeGrid,tiles:function(){return TILES.map(function(t){return t.id})},busTick:busTick,esc:esc};
+window.HUB_READY=function(){document.getElementById('tagline').textContent='production suite · '+TILES.length+' modalities'};
+})();
+;
+/* demo */
+(function(){
+/* two modalities, to prove the bus end to end: the script publishes screenplay:main, and the
+   notes tile watches it and re-counts live without either knowing the other exists. */
+HUB.reg({id:'script',title:'Screenplay',sub:'The draft, published to the bus',tag:'screenplay',colour:'#E2A93B',big:true,
+ render:function(box){
+  box.innerHTML='<div class="row" style="margin-bottom:8px"><button class="pri" id="sPub">Publish</button>'+
+   '<span class="note">every keystroke publishes <b>screenplay:main</b></span></div>'+
+   '<textarea id="sBody" rows="18"></textarea>';
+  var ta=document.getElementById('sBody');
+  var cur=ModalSync.get('screenplay:main');
+  ta.value=(cur&&cur.content)||'INT. KITCHEN - DAY\n\nMARY\nWe have to go before the light turns.';
+  ModalSync.publish('screenplay:main',{content:ta.value},'script');
+  var timer=null;
+  ta.oninput=function(){
+   if(timer)clearTimeout(timer);
+   timer=setTimeout(function(){ModalSync.publish('screenplay:main',{content:ta.value},'script')},250);
+  };
+  document.getElementById('sPub').onclick=function(){ModalSync.publish('screenplay:main',{content:ta.value},'script')};
+  ModalSync.watch('screenplay:main',function(rec){
+   if(rec.source==='script')return;
+   if(ta.value!==rec.data.content)ta.value=rec.data.content;
+  });
+ }});
+HUB.reg({id:'notes',title:'Notes',sub:'Watches the script and counts it live',tag:'notes',colour:'#8FC13F',
+ render:function(box){
+  box.innerHTML='<div class="note" id="nStat">waiting for the script</div>'+
+   '<div class="row" style="margin:10px 0"><input id="nIn" placeholder="a note about this draft"><button class="pri" id="nAdd">Add</button></div>'+
+   '<div id="nList"></div>';
+  function draw(){
+   var rec=ModalSync.getWithMetadata('notes:list'),items=(rec&&rec.data&&rec.data.items)||[];
+   document.getElementById('nList').innerHTML=items.length?items.map(function(x,i){
+    return '<div class="row" style="border-bottom:1px solid var(--line);padding:7px 0"><span class="note" style="flex:1">'+HUB.esc(x)+'</span>'+
+     '<button data-del="'+i+'">x</button></div>';
+   }).join(''):'<p class="note">No notes yet.</p>';
+   var bs=document.querySelectorAll('#nList [data-del]');
+   for(var i=0;i<bs.length;i++)bs[i].onclick=function(){
+    var ix=+this.getAttribute('data-del'),its=(ModalSync.get('notes:list')||{}).items||[];
+    its.splice(ix,1);ModalSync.publish('notes:list',{items:its},'notes');
+   };
+  }
+  document.getElementById('nAdd').onclick=function(){
+   var v=document.getElementById('nIn').value.trim();if(!v)return;
+   var its=(ModalSync.get('notes:list')||{}).items||[];its.push(v);
+   ModalSync.publish('notes:list',{items:its},'notes');
+   document.getElementById('nIn').value='';
+  };
+  ModalSync.watch('notes:list',function(){draw()});
+  ModalSync.watch('screenplay:main',function(rec){
+   var txt=(rec.data&&rec.data.content)||'';
+   var lines=txt.split('\n').filter(function(l){return l.trim()}).length;
+   var words=txt.split(/\s+/).filter(Boolean).length;
+   var scenes=txt.split('\n').filter(function(l){return /^(INT|EXT)/i.test(l.trim())}).length;
+   document.getElementById('nStat').innerHTML='<b>'+lines+'</b> lines &middot; <b>'+words+'</b> words &middot; <b>'+scenes+'</b> scenes &middot; updated '+new Date(rec.updatedAt).toLocaleTimeString();
+  });
+  draw();
+ }});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+})();
+</script>
+</body>
+</html>
