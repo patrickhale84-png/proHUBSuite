@@ -122,6 +122,7 @@ html,body{height:100%;background:var(--bg);color:var(--txt);font-family:var(--fu
 .param-table td{padding:5px 10px;border-bottom:1px solid rgba(30,42,69,.5);
   color:var(--txt2);vertical-align:top}
 .param-table td:last-child{text-align:right;font-family:var(--fds);font-weight:700}
+.judge-chip{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:12px;color:var(--txt2,#B9C4D2)}.judge-chip strong{color:var(--txt,#fff)}.judge-redraw{font:inherit;font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid #5A6C8C;background:transparent;color:inherit;cursor:pointer}.judge-redraw:hover{border-color:#E5A93C}.judge-bye{display:block;margin-top:8px;font-style:italic;color:var(--txt2,#B9C4D2)}.judge-focus p{border-left:0}
 .score-hi{color:#4CAF50}.score-mid{color:var(--acc)}.score-lo{color:var(--acc6)}
 /* ── EMPTY STATE ── */
 .empty-state{flex:1;display:flex;flex-direction:column;align-items:center;
@@ -366,7 +367,7 @@ const HalionParser = {
 };
 
 // ══════════════════════════════════════════════════════════════
-// SECTION 2 — 100 PARAMETERS
+// SECTION 2 — 150 PARAMETERS
 // Each parameter: { id, axis, name, weight, evaluate(parsed) → {raw,normalized,evidence} }
 // Score raw: 0–10 per parameter, normalized to 0–1 for axis aggregation
 // ══════════════════════════════════════════════════════════════
@@ -1098,21 +1099,355 @@ const PARAMETERS = [
     const raw = Math.min(10, (p.themeHits+p.sensoryHits)*0.25+(p.sceneCount>3?1:0)+(p.nonLinear?1:0)+(p.charCount>3?1:0)+3);
     return {raw, normalized:raw/10, evidence:'Composite: theme + sensory + structure + character range'};
   }},
+// ── P101–P150: fifty more rules ───────────────────────────────
+// Same contract as P01–P100. Counting helpers keep each rule to one readable line of logic.
+{id:'P101',axis:'CHAR',name:'Protagonist Entrance Image',weight:1.1,
+  evaluate(p){
+    const first = p.action.slice(0,40).map(a=>a.text).join(' ');
+    const named = new RegExp('\\b'+p.protagonistName+'\\b').test(first);
+    const vivid = /\(\d0s\)|\(\d+\)|\b(her|his|their) (hair|hands|eyes|face|fingernails|coat|boots)\b/i.test(first);
+    const raw = named ? (vivid ? 8.5 : 6) : 3.5;
+    return {raw, normalized:raw/10, evidence: named ? (vivid?'Protagonist introduced early with a concrete physical image':'Protagonist introduced early but without a defining image') : 'Protagonist not introduced in the opening action'};
+  }},
+{id:'P102',axis:'CHAR',name:'Want Stated or Shown',weight:1.2,
+  evaluate(p){
+    const cnt = (p.raw.match(/\b(i need|i want|i have to|i've got to|i must|let me|where is|give (me|her|him) back)\b/gi)||[]).length;
+    const raw = Math.min(10, 3 + cnt*1.1);
+    return {raw, normalized:raw/10, evidence:`${cnt} explicit want/need statements in dialogue`};
+  }},
+{id:'P103',axis:'CHAR',name:'Physical Habit or Tic',weight:0.9,
+  evaluate(p){
+    const ref = p.action.map(a=>a.text.toLowerCase());
+    const verbs = ['rubs','taps','bites','twists','clicks','grips','pats','touches','adjusts','squeezes','tugs','picks at'];
+    const repeated = verbs.filter(v=>ref.filter(t=>t.includes(v)).length>=2).length;
+    const any = verbs.filter(v=>ref.some(t=>t.includes(v))).length;
+    const raw = Math.min(10, 3 + any*0.6 + repeated*1.5);
+    return {raw, normalized:raw/10, evidence:`${any} habitual gestures, ${repeated} repeated as a motif`};
+  }},
+{id:'P104',axis:'CHAR',name:'Name Consistency',weight:0.7,
+  evaluate(p){
+    const bases = p.chars.map(c=>c.split(' ')[0]);
+    const clashes = bases.filter((b,i)=>bases.indexOf(b)!==i).length;
+    const raw = Math.max(2, 9.5 - clashes*2);
+    return {raw, normalized:raw/10, evidence: clashes?`${clashes} cue names share a first word (possible duplicate cues)`:'Every speaking part has one consistent cue name'};
+  }},
+{id:'P105',axis:'CHAR',name:'Off-Screen Voice Use',weight:0.8,
+  evaluate(p){
+    const vo = (p.raw.match(/\((V\.O\.|O\.S\.|O\.C\.)\)/g)||[]).length;
+    const ratio = p.dialogueCount ? vo/p.dialogueCount : 0;
+    const raw = vo===0 ? 6 : ratio<0.45 ? Math.min(10, 6 + vo*0.25) : 4.5;
+    return {raw, normalized:raw/10, evidence:`${vo} V.O./O.S. cues (${Math.round(ratio*100)}% of speeches)`};
+  }},
+{id:'P106',axis:'CHAR',name:'Protagonist Present in Most Scenes',weight:1.2,
+  evaluate(p){
+    const name = p.protagonistName, ls = p.lines;
+    let present = 0;
+    p.scenes.forEach((s,i)=>{ const end = (p.scenes[i+1]||{line:ls.length}).line; if(ls.slice(s.line,end).join(' ').toUpperCase().includes(name)) present++; });
+    const ratio = p.sceneCount ? present/p.sceneCount : 0;
+    const raw = Math.min(10, 2 + ratio*8.5);
+    return {raw, normalized:raw/10, evidence:`${name} appears in ${present} of ${p.sceneCount} scenes`};
+  }},
+{id:'P107',axis:'CHAR',name:'Choice Under Pressure',weight:1.3,
+  evaluate(p){
+    const cnt = (p.raw.match(/\b(decides|chooses|refuses|instead|hesitates, then|stops\. then|turns back|doesn't|won't)\b/gi)||[]).length;
+    const raw = Math.min(10, 3 + cnt*0.8);
+    return {raw, normalized:raw/10, evidence:`${cnt} visible decision beats`};
+  }},
+{id:'P108',axis:'CHAR',name:'Absent Character Presence',weight:0.9,
+  evaluate(p){
+    const named = {}; p.action.forEach(a=>(a.text.match(/\b[A-Z][a-z]{2,}\b/g)||[]).forEach(w=>named[w]=(named[w]||0)+1));
+    const ghosts = Object.entries(named).filter(([w,n])=>n>=3 && !p.chars.includes(w.toUpperCase()) && !/^(She|He|They|The|Her|His|It|A|An|In|On|At|Then|Ingrid's|Now)$/.test(w)).length;
+    const raw = Math.min(10, 4 + ghosts*1.5);
+    return {raw, normalized:raw/10, evidence:`${ghosts} non-speaking figure(s) carried through the action`};
+  }},
+{id:'P109',axis:'PLOT',name:'Cold Open Hook',weight:1.3,
+  evaluate(p){
+    const open = p.action.slice(0,12).map(a=>a.text).join(' ');
+    const cnt = (open.match(/\b[A-Z]{3,}[-!.]?\b/g)||[]).length + (/[?!]/.test(open)?2:0) + (/\b(blood|scream|dead|gun|crash|fire|missing|shattered|crushed)\b/i.test(open)?3:0);
+    const raw = Math.min(10, 3 + cnt*0.5);
+    return {raw, normalized:raw/10, evidence:`Opening action carries ${cnt} hook signals (sound cues, jolts, stakes words)`};
+  }},
+{id:'P110',axis:'PLOT',name:'Scene Count for Length',weight:1.0,
+  evaluate(p){
+    const perPage = p.sceneCount / Math.max(1,p.pageEst);
+    const raw = perPage<0.3 ? 4 : perPage<=1.6 ? 8.5 : 6;
+    return {raw, normalized:raw/10, evidence:`${p.sceneCount} scenes over ~${p.pageEst} pages (${perPage.toFixed(2)}/page)`};
+  }},
+{id:'P111',axis:'PLOT',name:'Return to a Frame Location',weight:1.0,
+  evaluate(p){
+    const heads = p.scenes.map(s=>s.heading.replace(/^\s*\d*\s*/,'').split(/\s+-\s+/)[0].toUpperCase());
+    const first = heads[0]; const returns = heads.slice(1).filter(h=>h===first).length;
+    const raw = returns ? Math.min(10, 6 + returns*1.2) : 5;
+    return {raw, normalized:raw/10, evidence: returns?`Returns to the opening location ${returns} time(s): a frame device`:'No return to the opening location'};
+  }},
+{id:'P112',axis:'PLOT',name:'Continuous Momentum',weight:1.0,
+  evaluate(p){
+    const cont = p.scenes.filter(s=>/CONTINUOUS|MOMENTS LATER|SAME/i.test(s.heading)).length;
+    const ratio = p.sceneCount ? cont/p.sceneCount : 0;
+    const raw = Math.min(10, 4 + ratio*9);
+    return {raw, normalized:raw/10, evidence:`${cont} of ${p.sceneCount} scenes cut CONTINUOUS / MOMENTS LATER`};
+  }},
+{id:'P113',axis:'PLOT',name:'Ticking Clock',weight:1.2,
+  evaluate(p){
+    const cnt = (p.raw.match(/\b(minutes?|seconds?|hours?|before (dawn|dark|sunset)|deadline|countdown|running out|in time|too late|now or never)\b/gi)||[]).length;
+    const raw = Math.min(10, 3 + cnt*0.6);
+    return {raw, normalized:raw/10, evidence:`${cnt} time-pressure markers`};
+  }},
+{id:'P114',axis:'PLOT',name:'Escalation Across Scenes',weight:1.3,
+  evaluate(p){
+    const w = ['louder','closer','faster','worse','more','again','bigger','deafening','violent','frantic'];
+    const half = Math.floor(p.lines.length/2);
+    const a = p.lines.slice(0,half).join(' ').toLowerCase(), b = p.lines.slice(half).join(' ').toLowerCase();
+    const ca = w.filter(x=>a.includes(x)).length, cb = w.filter(x=>b.includes(x)).length;
+    const raw = Math.min(10, 4 + Math.max(0,cb-ca)*1.2 + cb*0.3);
+    return {raw, normalized:raw/10, evidence:`Escalation vocabulary: ${ca} in first half, ${cb} in second`};
+  }},
+{id:'P115',axis:'PLOT',name:'Ending Image',weight:1.2,
+  evaluate(p){
+    const last = p.action.slice(-6).map(a=>a.text).join(' ');
+    const strong = /\b(HOLD ON|FREEZE|FADE TO BLACK|SILENCE|stands|stares|alone|unflinching|motionless|light)\b/i.test(last);
+    const raw = strong ? 8.5 : 5;
+    return {raw, normalized:raw/10, evidence: strong?'Closes on a held, deliberate image':'Final beat is not framed as an image'};
+  }},
+{id:'P116',axis:'PLOT',name:'Reversal Count',weight:1.1,
+  evaluate(p){
+    const cnt = (p.raw.match(/\b(but|suddenly|instead|except|until|then she realizes|it's not|isn't real|empty)\b/gi)||[]).length;
+    const raw = Math.min(10, 2 + cnt*0.25);
+    return {raw, normalized:raw/10, evidence:`${cnt} reversal hinges ("but", "instead", "empty"...)`};
+  }},
+{id:'P117',axis:'DIAL',name:'Interruptions and Overlaps',weight:0.9,
+  evaluate(p){
+    const cut = p.dialogue.filter(d=>/[-—]\s*$/.test(d.text)).length + p.parentheticals.filter(x=>/interrupt|cuts (her|him) off/i.test(x)).length;
+    const raw = Math.min(10, 4 + cut*0.6);
+    return {raw, normalized:raw/10, evidence:`${cut} cut-off or interrupted lines`};
+  }},
+{id:'P118',axis:'DIAL',name:'Question Pressure',weight:0.9,
+  evaluate(p){
+    const q = p.dialogue.filter(d=>/\?/.test(d.text)).length;
+    const ratio = p.dialogueCount ? q/p.dialogueCount : 0;
+    const raw = ratio>0.5 ? 5.5 : Math.min(10, 4 + ratio*16);
+    return {raw, normalized:raw/10, evidence:`${q} of ${p.dialogueCount} lines are questions (${Math.round(ratio*100)}%)`};
+  }},
+{id:'P119',axis:'DIAL',name:'Parenthetical Restraint',weight:0.8,
+  evaluate(p){
+    const r = p.parentheticalRatio;
+    const raw = r<0.08 ? 8.5 : r<0.2 ? 7 : r<0.35 ? 5 : 3;
+    return {raw, normalized:raw/10, evidence:`${p.parentheticals.length} parentheticals for ${p.dialogueCount} lines (${Math.round(r*100)}%)`};
+  }},
+{id:'P120',axis:'DIAL',name:'Name-Calling in Dialogue',weight:0.7,
+  evaluate(p){
+    const caps = p.chars.map(c=>c.charAt(0)+c.slice(1).toLowerCase());
+    const hits = p.dialogue.filter(d=>caps.some(n=>new RegExp('\\b'+n+'\\b').test(d.text))).length;
+    const ratio = p.dialogueCount ? hits/p.dialogueCount : 0;
+    const raw = ratio>0.2 ? 4.5 : 8;
+    return {raw, normalized:raw/10, evidence:`${hits} lines address someone by name (${Math.round(ratio*100)}%)`};
+  }},
+{id:'P121',axis:'DIAL',name:'Repeated Line as Motif',weight:1.0,
+  evaluate(p){
+    const c = {}; p.dialogue.forEach(d=>{const t=d.text.toLowerCase().replace(/[^a-z' ]/g,'').trim(); if(t.split(' ').length>=2) c[t]=(c[t]||0)+1;});
+    const motifs = Object.values(c).filter(n=>n>=2).length;
+    const raw = Math.min(10, 4.5 + motifs*1.5);
+    return {raw, normalized:raw/10, evidence:`${motifs} line(s) repeated as a refrain`};
+  }},
+{id:'P122',axis:'DIAL',name:'Fragment Rhythm',weight:0.8,
+  evaluate(p){
+    const frag = p.dialogue.filter(d=>/\.\.\.|—|-$|^\w+[.!]$/.test(d.text.trim())).length;
+    const raw = Math.min(10, 4 + frag*0.4);
+    return {raw, normalized:raw/10, evidence:`${frag} fragmented or trailing lines`};
+  }},
+{id:'P123',axis:'DIAL',name:'Speech Length Control',weight:1.0,
+  evaluate(p){
+    const long = p.dlgWords.filter(w=>w>40).length;
+    const raw = Math.max(2, 9 - long*1.5);
+    return {raw, normalized:raw/10, evidence:`${long} speeches over 40 words`};
+  }},
+{id:'P124',axis:'DIAL',name:'Profanity as Punctuation',weight:0.6,
+  evaluate(p){
+    const sw = p.dialogue.filter(d=>/\b(shit|fuck|damn|hell|christ|god)\b/i.test(d.text)).length;
+    const ratio = p.dialogueCount ? sw/p.dialogueCount : 0;
+    const raw = ratio===0 ? 6.5 : ratio<0.08 ? 8.5 : 5;
+    return {raw, normalized:raw/10, evidence:`${sw} lines with a curse (${Math.round(ratio*100)}%)`};
+  }},
+{id:'P125',axis:'ORIG',name:'Invented Sound Design',weight:1.1,
+  evaluate(p){
+    const snd = (p.raw.match(/\b[A-Z]{3,}(-[A-Z]{2,})+[.!]?/g)||[]).length;
+    const raw = Math.min(10, 4 + snd*0.35);
+    return {raw, normalized:raw/10, evidence:`${snd} written sound effects (e.g. BOOM-CLICK)`};
+  }},
+{id:'P126',axis:'ORIG',name:'Genre Blend',weight:1.1,
+  evaluate(p){
+    const g = {scifi:/\b(alien|nasa|satellite|signal|orbit|infrared|glyph|planet)\b/i, horror:/\b(blood|scream|cleaver|shadow|burned|claw)\b/i, drama:/\b(mother|grief|therapist|child|baby|memory)\b/i, thriller:/\b(chase|gun|police|escape|lock)\b/i, comedy:/\b(laughs|joke|awkward|deadpan)\b/i};
+    const hit = Object.keys(g).filter(k=>g[k].test(p.raw));
+    const raw = Math.min(10, 3 + hit.length*1.6);
+    return {raw, normalized:raw/10, evidence:`Genre signals: ${hit.join(', ')||'none'}`};
+  }},
+{id:'P127',axis:'ORIG',name:'Unreliable Reality',weight:1.0,
+  evaluate(p){
+    const cnt = (p.raw.match(/\b(not real|isn't real|imagine|hallucinat|memory|dream|transition|flicker|glitch|scramble|snaps? back)\b/gi)||[]).length;
+    const raw = Math.min(10, 4 + cnt*0.6);
+    return {raw, normalized:raw/10, evidence:`${cnt} reality-slip markers`};
+  }},
+{id:'P128',axis:'ORIG',name:'Specific Brand and Object Detail',weight:0.8,
+  evaluate(p){
+    const cnt = (p.raw.match(/\b[A-Z][a-z]+ [A-Z][a-z]+\b|\b(BIC|NASA|laminated|silver tube|portfolio|badge)\b/g)||[]).length;
+    const raw = Math.min(10, 4 + cnt*0.15);
+    return {raw, normalized:raw/10, evidence:`${cnt} specific named objects and brands`};
+  }},
+{id:'P129',axis:'ORIG',name:'Dedication or Framing Super',weight:0.6,
+  evaluate(p){
+    const sup = (p.raw.match(/\bSUPER:/g)||[]).length;
+    const raw = sup ? Math.min(10, 6.5 + sup*0.8) : 5;
+    return {raw, normalized:raw/10, evidence: sup?`${sup} on-screen SUPER card(s) frame the story`:'No framing title cards'};
+  }},
+{id:'P130',axis:'ORIG',name:'Avoids Stock Phrases',weight:1.0,
+  evaluate(p){
+    const stock = (p.raw.match(/\b(little did|all hell breaks loose|in the nick of time|a beat later|we need to talk|it's not what it looks like|you don't understand|let's do this)\b/gi)||[]).length;
+    const raw = Math.max(2, 9 - stock*1.5);
+    return {raw, normalized:raw/10, evidence:`${stock} stock phrases found`};
+  }},
+{id:'P131',axis:'EMOT',name:'Body-Level Fear',weight:1.1,
+  evaluate(p){
+    const cnt = (p.raw.match(/\b(breath|breathes|heartbeat|trembl|shak|wince|freezes|sweat|pulse|gasp|chest|throat)\w*/gi)||[]).length;
+    const raw = Math.min(10, 3 + cnt*0.35);
+    return {raw, normalized:raw/10, evidence:`${cnt} physical fear responses written into action`};
+  }},
+{id:'P132',axis:'EMOT',name:'Child in Jeopardy Stakes',weight:1.0,
+  evaluate(p){
+    const cnt = (p.raw.match(/\b(baby|child|daughter|son|infant|kid|crib|car seat|baby seat|feeding|nursery)\b/gi)||[]).length;
+    const raw = cnt ? Math.min(10, 5 + cnt*0.25) : 4;
+    return {raw, normalized:raw/10, evidence:`${cnt} references to a child at risk`};
+  }},
+{id:'P133',axis:'EMOT',name:'Quiet Before the Hit',weight:0.9,
+  evaluate(p){
+    const q = (p.raw.match(/\b(silence|still|quiet|nothing|motionless|hush|holds)\b/gi)||[]).length;
+    const raw = Math.min(10, 4 + q*0.4);
+    return {raw, normalized:raw/10, evidence:`${q} written silences and holds`};
+  }},
+{id:'P134',axis:'EMOT',name:'Tenderness Beat',weight:1.0,
+  evaluate(p){
+    const t = (p.raw.match(/\b(squeezes|holds (her|his) hand|kisses|hugs|whispers|smiles|soft|gently|tucks)\b/gi)||[]).length;
+    const raw = Math.min(10, 3.5 + t*0.8);
+    return {raw, normalized:raw/10, evidence:`${t} tender gestures`};
+  }},
+{id:'P135',axis:'EMOT',name:'Grief Made Visible',weight:1.1,
+  evaluate(p){
+    const g = (p.raw.match(/\b(grie\w*|lost|loss|mourn\w*|empty|crushed|gone|cries|tears|sobs)\b/gi)||[]).length;
+    const raw = Math.min(10, 3 + g*0.45);
+    return {raw, normalized:raw/10, evidence:`${g} grief markers`};
+  }},
+{id:'P136',axis:'EMOT',name:'Ending Lands on a Feeling',weight:1.2,
+  evaluate(p){
+    const last = p.lines.slice(-40).join(' ').toLowerCase();
+    const f = ['mother','feeding','heartbeat','alone','hold','home','love','memory','gone','safe'].filter(w=>last.includes(w)).length;
+    const raw = Math.min(10, 4 + f*1.1);
+    return {raw, normalized:raw/10, evidence:`${f} emotional anchors in the final pages`};
+  }},
+{id:'P137',axis:'THEME',name:'Title Echo',weight:1.0,
+  evaluate(p){
+    const title = (p.raw.match(/^Title:\s*(.+)$/mi)||[])[1] || p.lines.find(l=>l.trim())||'';
+    const words = title.toLowerCase().split(/\W+/).filter(w=>w.length>3);
+    const hits = words.filter(w=>p.raw.toLowerCase().split(w).length>2).length;
+    const raw = words.length ? Math.min(10, 4 + hits*2.5) : 5;
+    return {raw, normalized:raw/10, evidence: words.length?`${hits} of ${words.length} title words recur in the script`:'No title found to echo'};
+  }},
+{id:'P138',axis:'THEME',name:'Family Bond Thread',weight:0.9,
+  evaluate(p){
+    const m = (p.raw.match(/\b(mother|father|mom|dad|mama|papa|son|daughter|brother|sister|family|womb|pregnan\w*|birth|baby)\b/gi)||[]).length;
+    const raw = m ? Math.min(10, 5 + m*0.5) : 5;
+    return {raw, normalized:raw/10, evidence:`${m} family and parenthood images`};
+  }},
+{id:'P139',axis:'THEME',name:'Opening and Closing Rhyme',weight:1.2,
+  evaluate(p){
+    const words = s=>new Set(s.toLowerCase().split(/\W+/).filter(w=>w.length>4));
+    const a = words(p.lines.slice(0,25).join(' ')), b = words(p.lines.slice(-25).join(' '));
+    const shared = [...a].filter(w=>b.has(w)).length;
+    const raw = Math.min(10, 3.5 + shared*0.9);
+    return {raw, normalized:raw/10, evidence:`${shared} words shared by the first and last page (bookend)`};
+  }},
+{id:'P140',axis:'THEME',name:'Symbolic Object Recurrence',weight:1.1,
+  evaluate(p){
+    const low = p.raw.toLowerCase();
+    const objs = ['lipstick','badge','phone','key','cleaver','blanket','mirror','ring','photo','light','door','seat'];
+    const rec = objs.filter(o=>low.split(o).length>3).length;
+    const raw = Math.min(10, 3.5 + rec*1.2);
+    return {raw, normalized:raw/10, evidence:`${rec} objects return three or more times`};
+  }},
+{id:'P141',axis:'THEME',name:'Question the Script Leaves',weight:1.0,
+  evaluate(p){
+    const late = p.dialogue.slice(-Math.max(5,Math.floor(p.dialogueCount*0.2))).filter(d=>/\?/.test(d.text)).length;
+    const raw = Math.min(10, 5 + late*0.8);
+    return {raw, normalized:raw/10, evidence:`${late} open questions in the final fifth`};
+  }},
+{id:'P142',axis:'THEME',name:'Public Message Card',weight:0.6,
+  evaluate(p){
+    const msg = /\b(hotline|call 1-|visit [a-z]+\.[a-z]+|support|resources)\b/i.test(p.raw);
+    const raw = msg ? 8 : 5.5;
+    return {raw, normalized:raw/10, evidence: msg?'Ends with a real-world resource card':'No real-world message card'};
+  }},
+{id:'P143',axis:'COMM',name:'Contained Locations',weight:1.1,
+  evaluate(p){
+    const locs = new Set(p.scenes.map(s=>s.heading.replace(/^\s*\d*\s*/,'').split(/\s+-\s+/)[0].toUpperCase()));
+    const raw = locs.size<=6 ? 9 : locs.size<=12 ? 7 : locs.size<=25 ? 5 : 3.5;
+    return {raw, normalized:raw/10, evidence:`${locs.size} distinct locations`};
+  }},
+{id:'P144',axis:'COMM',name:'Small Speaking Cast',weight:1.0,
+  evaluate(p){
+    const raw = p.charCount<=4 ? 9 : p.charCount<=10 ? 7.5 : p.charCount<=20 ? 6 : 4;
+    return {raw, normalized:raw/10, evidence:`${p.charCount} speaking parts`};
+  }},
+{id:'P145',axis:'COMM',name:'Night Exterior Load',weight:0.9,
+  evaluate(p){
+    const ne = p.scenes.filter(s=>/^\s*\d*\s*EXT/i.test(s.heading)&&/NIGHT/i.test(s.heading)).length;
+    const raw = Math.max(3, 9 - ne*1.2);
+    return {raw, normalized:raw/10, evidence:`${ne} night exteriors (the most expensive set-ups)`};
+  }},
+{id:'P146',axis:'COMM',name:'VFX Footprint',weight:0.9,
+  evaluate(p){
+    const fx = (p.raw.match(/\b(infrared|overlay|glyph|alien|explosion|downdraft|melted|burn marks|hologram|cgi|vfx|transforms)\w*/gi)||[]).length;
+    const raw = fx<=3 ? 8.5 : fx<=12 ? 6.5 : 4.5;
+    return {raw, normalized:raw/10, evidence:`${fx} effects-heavy moments`};
+  }},
+{id:'P147',axis:'CRAFT',name:'Scene Heading Format',weight:1.0,
+  evaluate(p){
+    const ok = p.scenes.filter(s=>/^\s*\d*\s*(INT\.|EXT\.|INT\.?\/EXT\.|I\/E\.)\s+\S.*\s-\s+\S/.test(s.heading)).length;
+    const ratio = p.sceneCount ? ok/p.sceneCount : 0;
+    const raw = Math.min(10, 2 + ratio*8);
+    return {raw, normalized:raw/10, evidence:`${ok} of ${p.sceneCount} headings are INT./EXT. PLACE - TIME`};
+  }},
+{id:'P148',axis:'CRAFT',name:'Action Paragraph Length',weight:1.0,
+  evaluate(p){
+    const long = p.action.filter(a=>a.text.split(/\s+/).length>60).length;
+    const raw = Math.max(2, 9.5 - long*1.2);
+    return {raw, normalized:raw/10, evidence:`${long} action blocks over 60 words`};
+  }},
+{id:'P149',axis:'CRAFT',name:'Capitalised Cues for Sound and Props',weight:0.8,
+  evaluate(p){
+    const caps = p.action.filter(a=>/\b[A-Z]{4,}\b/.test(a.text)).length;
+    const ratio = p.actionCount ? caps/p.actionCount : 0;
+    const raw = ratio<0.05 ? 5 : ratio<0.6 ? 8.5 : 6;
+    return {raw, normalized:raw/10, evidence:`${caps} action lines flag sounds or props in caps (${Math.round(ratio*100)}%)`};
+  }},
+{id:'P150',axis:'CRAFT',name:'Transition Economy',weight:0.8,
+  evaluate(p){
+    const per = p.transitionCount / Math.max(1,p.sceneCount);
+    const raw = per<=0.5 ? 8.5 : per<=1 ? 6.5 : 4.5;
+    return {raw, normalized:raw/10, evidence:`${p.transitionCount} transitions for ${p.sceneCount} scenes`};
+  }}
 ];
 
 // ══════════════════════════════════════════════════════════════
 // SECTION 3 — SCORING ENGINE
-// Aggregates 100 parameter results into 7 axis scores
+// Aggregates 150 parameter results into 7 axis scores
 // ══════════════════════════════════════════════════════════════
 const AXIS_CONFIG = {
-  CHAR: {label:'Character Dev.',  color:'var(--acc2)', cls:'ch', maxParams:14},
-  PLOT: {label:'Plot Construction',color:'var(--acc4)', cls:'pl', maxParams:14},
-  DIAL: {label:'Dialogue',         color:'var(--acc5)', cls:'dl', maxParams:12},
-  ORIG: {label:'Originality',      color:'var(--acc)',  cls:'or', maxParams:10},
-  EMOT: {label:'Emotional Engage.',color:'var(--acc3)', cls:'em', maxParams:10},
-  THEME:{label:'Theme & Message',  color:'var(--acc7)', cls:'th', maxParams:10},
-  COMM: {label:'Commercial',       color:'#888',        cls:'cm', maxParams:10},
-  CRAFT:{label:'Craft',            color:'#888',        cls:'cf', maxParams:20},
+  CHAR: {label:'Character Dev.',  color:'var(--acc2)', cls:'ch', maxParams:22},
+  PLOT: {label:'Plot Construction',color:'var(--acc4)', cls:'pl', maxParams:22},
+  DIAL: {label:'Dialogue',         color:'var(--acc5)', cls:'dl', maxParams:20},
+  ORIG: {label:'Originality',      color:'var(--acc)',  cls:'or', maxParams:16},
+  EMOT: {label:'Emotional Engage.',color:'var(--acc3)', cls:'em', maxParams:16},
+  THEME:{label:'Theme & Message',  color:'var(--acc7)', cls:'th', maxParams:16},
+  COMM: {label:'Commercial',       color:'#888',        cls:'cm', maxParams:14},
+  CRAFT:{label:'Craft',            color:'#888',        cls:'cf', maxParams:24},
 };
 
 function computeAxisScores(parsed) {
@@ -1449,7 +1784,90 @@ function renderScoreTiles(finalScores) {
   return html;
 }
 
+// ══════════════════════════════════════════════════════════════
+// SECTION 4b — JUDGES
+// One judge reads each script. The judge never changes a score: every number comes from the
+// 150 rules above. What changes is the voice: each judge opens every section their own way,
+// signs off their own way, and writes a longer passage on their own subject. The judge is drawn
+// from the script's text, so the same draft always gets the same judge; Draw another judge
+// re-draws on purpose. Voices are never mixed within one report.
+// ══════════════════════════════════════════════════════════════
+const JUDGES = [
+  { id:'vance', name:'Marguerite Vance', role:'Story editor, thirty years in development', axis:'PLOT',
+    hello:'I read for structure first and everything else second.',
+    lead:{ hi:'The architecture holds.', mid:'The frame is up, but a few beams are carrying more than they should.', lo:'This is where the building leans.' },
+    aside:{ hi:"Not my department, but the {x} pulls its weight.", mid:"Not my department, but the {x} is uneven, and the structure feels it.", lo:"Not my department, but the {x} is costing the structure." },
+    bye:'Fix the spine and the rest of the draft will tell you what it needs. — M.V.' },
+  { id:'okafor', name:'Theo Okafor', role:'Casting director, former stage actor', axis:'CHAR',
+    hello:'I read every script asking one thing: would an actor fight for this part?',
+    lead:{ hi:'An actor would chase this role.', mid:'There is a performance in here, waiting for one more scene to unlock it.', lo:'Right now an actor would have to invent this person from scratch.' },
+    aside:{ hi:"An actor would thank you for the {x}.", mid:"The {x} gives an actor something, not everything.", lo:"The {x} leaves the cast with little to play." },
+    bye:'Give the cast something to play in every scene and they will carry you. — Theo' },
+  { id:'reyes', name:'Dana Reyes', role:'Playwright and dialogue doctor', axis:'DIAL',
+    hello:'I read with my ears. If it does not sound right out loud, it is not right yet.',
+    lead:{ hi:'This ear is good.', mid:'The rhythm is there in patches.', lo:'Too many lines are doing the plot\'s job instead of the character\'s.' },
+    aside:{ hi:"The {x} sounds as good as it reads.", mid:"The {x} reads better than it would sound.", lo:"Say the {x} out loud and the problems show." },
+    bye:'Read it out loud, all of it, with people who will not be polite. — D.R.' },
+  { id:'laurent', name:'Inès Laurent', role:'Festival programmer', axis:'ORIG',
+    hello:'I watch four hundred films a season. I am looking for the one I have not seen.',
+    lead:{ hi:'I have not seen this before, and that is rare.', mid:'There is a distinct film in here, dressed in a familiar coat.', lo:'This lives in a crowded room; it needs its own door.' },
+    aside:{ hi:"The {x} is part of what makes this distinct.", mid:"The {x} is competent, not yet distinctive.", lo:"The {x} is where this looks most like other films." },
+    bye:'Keep the strangest thing in the script. Cut the safest. — Inès' },
+  { id:'adebayo', name:'Ruth Adebayo', role:'Novelist and former grief counsellor', axis:'EMOT',
+    hello:'I read for what the body feels before the mind catches up.',
+    lead:{ hi:'This one stays with you after the last page.', mid:'The feeling arrives, but sometimes a beat late.', lo:'The events are there; the feeling has not caught up with them.' },
+    aside:{ hi:"The {x} lets the feeling in.", mid:"The {x} sometimes stands between the reader and the feeling.", lo:"The {x} keeps the reader at arm's length." },
+    bye:'Trust the quiet moments. They are doing more than you think. — Ruth' },
+  { id:'price', name:'Dr Alma Price', role:'Film scholar', axis:'THEME',
+    hello:'I read for what a story argues, and whether it earns the argument.',
+    lead:{ hi:'The script knows what it means.', mid:'The idea is present but not yet in charge.', lo:'The meaning is still waiting to be found.' },
+    aside:{ hi:"The {x} serves the argument.", mid:"The {x} only half serves the argument.", lo:"The {x} works against the argument." },
+    bye:'Every image should be an answer to the same question. — A.P.' },
+  { id:'whitlock', name:'Sam Whitlock', role:'Independent producer and financier', axis:'COMM',
+    hello:'I read with a budget open in the other window.',
+    lead:{ hi:'I can see how this gets made and who buys it.', mid:'Makeable, with a couple of line items I would want to argue about.', lo:'The page count and the price tag are not friends yet.' },
+    aside:{ hi:"The {x} helps the sale.", mid:"The {x} won't stop a sale, and won't make one either.", lo:"The {x} is a harder sell." },
+    bye:'Make it cheaper to shoot and harder to forget. — Sam' },
+  { id:'mori', name:'Kenji Mori', role:'Cinematographer', axis:'CRAFT',
+    hello:'I read every script as a shot list waiting to happen.',
+    lead:{ hi:'I can already see the frames.', mid:'Some pages shoot themselves; others leave the camera guessing.', lo:'The page is not yet telling the camera where to stand.' },
+    aside:{ hi:"The {x} gives the camera plenty.", mid:"The {x} gives the camera some of what it needs.", lo:"The {x} leaves the camera guessing." },
+    bye:'Write the image, not the instruction. — K. Mori' },
+];
+const AXIS_WORDS = { CHAR:'character work', PLOT:'structure', DIAL:'dialogue', ORIG:'concept', EMOT:'emotional line', THEME:'theme', COMM:'commercial footing', CRAFT:'page craft' };
+
+function hashText(s){ let h = 2166136261; for(let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+let judgeOffset = 0; // Draw another judge moves this on by one
+function pickJudge(raw){ return JUDGES[(hashText(String(raw||'')) + judgeOffset) % JUDGES.length]; }
+
+function judgeLead(j, axis, score){
+  const band = score>=7.5 ? 'hi' : score>=6 ? 'mid' : 'lo';
+  return (axis===j.axis ? j.lead[band] : j.aside[band].replace('{x}', AXIS_WORDS[axis])) + ' ';
+}
+// The judge's own subject, at length: the rules that carried it and the ones that held it back
+function judgeFocus(j, p, scores, axisResults){
+  const rs = (axisResults[j.axis]||[]).slice().sort((a,b)=>b.normalized-a.normalized);
+  if(!rs.length) return '';
+  const top = rs.slice(0,3), low = rs.slice(-3).reverse();
+  const s = scores[j.axis];
+  const said = r => `<em>${r.name}</em> (${(r.normalized*10).toFixed(1)}: ${r.evidence.charAt(0).toLowerCase()+r.evidence.slice(1)})`;
+  const subject = AXIS_WORDS[j.axis];
+  const opener = { PLOT:`Let me walk the ${subject} beam by beam.`, CHAR:`Let me talk about the people, because that is who I would be casting.`,
+    DIAL:`Let me stay with the ${subject} a while longer, because that is where I live.`, ORIG:`Let me say why this would or would not stand out on a festival slate.`,
+    EMOT:`Let me stay with how this feels, because that is what a reader remembers.`, THEME:`Let me press on what the script is arguing.`,
+    COMM:`Let me put on the producer's hat and talk about getting this made.`, CRAFT:`Let me talk about how this reads as a set of images.` }[j.axis];
+  const verdict = s>=7.5 ? `At ${s.toFixed(1)}, this is the script's ${subject} working the way it should.` : s>=6 ? `At ${s.toFixed(1)}, the ${subject} is solid but not yet a selling point.` : `At ${s.toFixed(1)}, the ${subject} is the part of this draft I would take apart first.`;
+  const fix = { PLOT:'Find the scene that only moves information and make it turn something, too.', CHAR:`Give ${p.protagonistName.charAt(0)+p.protagonistName.slice(1).toLowerCase()} one more choice that costs them something on screen.`,
+    DIAL:'Cut the longest speech in half and see if anyone misses the other half.', ORIG:'Take the most unusual image in the script and let it recur.',
+    EMOT:'Find the moment before the biggest beat and hold it a little longer.', THEME:'Ask what the last image says, and make the first image ask it.',
+    COMM:'Count the night exteriors and the effects shots; each one you lose buys a shooting day.', CRAFT:'Turn two instructions in the action into images the camera can find.' }[j.axis];
+  return `${opener} ${verdict} What carries it: ${top.map(said).join('; ')}. What holds it back: ${low.map(said).join('; ')}. If I had one note, it would be this: ${fix}`;
+}
+
+let lastRender = null;
 function renderCoverage(parsed, finalScores, axisResults) {
+  lastRender = [parsed, finalScores, axisResults];
+  const J = pickJudge(parsed.raw);
   const v     = verdictFromScore(finalScores.OVERALL);
   const pctl  = computePercentile(finalScores.OVERALL);
 
@@ -1462,7 +1880,8 @@ function renderCoverage(parsed, finalScores, axisResults) {
       &nbsp;·&nbsp; ${parsed.pageEst} est. pages
       &nbsp;·&nbsp; ${parsed.charCount} speaking characters
       &nbsp;·&nbsp; ${parsed.sceneCount} scenes
-    </div>`;
+    </div>
+    <div class="judge-chip"><span>Read by <strong>${J.name}</strong>, ${J.role}</span><button type="button" class="judge-redraw" onclick="judgeOffset++;renderCoverage.apply(null,lastRender)">Draw another judge</button></div>`;
 
   // Generate all prose
   const narrative = {
@@ -1474,6 +1893,10 @@ function renderCoverage(parsed, finalScores, axisResults) {
     theme:    PROSE.theme(parsed, finalScores, axisResults),
     overall:  PROSE.overall(parsed, finalScores),
   };
+  const AX = { charDev:'CHAR', plot:'PLOT', dialogue:'DIAL', orig:'ORIG', emot:'EMOT', theme:'THEME' };
+  Object.keys(AX).forEach(k => { narrative[k] = judgeLead(J, AX[k], finalScores[AX[k]]) + narrative[k]; });
+  narrative.overall = `${J.hello} ${narrative.overall} <span class="judge-bye">${J.bye}</span>`;
+  const focus = judgeFocus(J, parsed, finalScores, axisResults);
   const strengths     = PROSE.strengths(parsed, finalScores, axisResults);
   const vulns         = PROSE.vulnerabilities(parsed, finalScores, axisResults);
   const suggestions   = PROSE.suggestions(parsed, finalScores, axisResults);
@@ -1509,6 +1932,10 @@ function renderCoverage(parsed, finalScores, axisResults) {
       <h3>Overall Assessment</h3>
       <p>${narrative.overall}</p>
     </div>
+    <div class="cov-section judge-focus">
+      <h3>${J.name} on ${AXIS_WORDS[J.axis]}</h3>
+      <p>${focus}</p>
+    </div>
     <div class="cov-section">
       <h3>Strengths</h3>
       ${strengths.map(s=>`<div class="strength-item">${s}</div>`).join('')}
@@ -1526,7 +1953,7 @@ function renderCoverage(parsed, finalScores, axisResults) {
       <p>${market}</p>
     </div>
     <div class="cov-section">
-      <h3>Parameter Detail (All 100)</h3>
+      <h3>Parameter Detail (All ${PARAMETERS.length})</h3>
       <table class="param-table">
         <thead><tr><th>ID</th><th>Parameter</th><th>Axis</th><th>Evidence</th><th>Score</th></tr></thead>
         <tbody>${
@@ -1623,10 +2050,13 @@ window.HalionEvaluatorEngine = {
     suggestions: PROSE.suggestions(parsed, finalScores, axisResults),
     market:      PROSE.marketDiagnostic(parsed, finalScores, parsed.fmt),
     verdict:     verdictFromScore(finalScores.OVERALL),
+    judge:       (({id,name,role,axis}) => ({id,name,role,axis}))(pickJudge(parsed.raw)),
+    judgeFocus:  judgeFocus(pickJudge(parsed.raw), parsed, finalScores, axisResults),
     percentile:  computePercentile(finalScores.OVERALL),
   }),
   PARAMETERS,
   AXIS_CONFIG,
+  JUDGES,
 };
 </script>
 </body>

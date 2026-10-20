@@ -89,10 +89,46 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 .cv-hi{color:#A3E635;font-weight:700;}.cv-mid{color:#D4A034;font-weight:700;}.cv-lo{color:#EF4444;font-weight:700;}
 @keyframes cvSpin{to{transform:rotate(360deg);}}
 .cv-spinner{animation:cvSpin 1s linear infinite;display:inline-block;}
-/* Storyboard */
-.sbc{background:#0E131F;border:1px solid #1E293B;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s;}
-.sbc:hover{border-color:#374151;}
+/* Storyboard — StudioBinder-style white cards */
+.sbc{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.12);overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s;}
+.sbc:hover{box-shadow:0 4px 16px rgba(0,0,0,.18);}
 .asp169{aspect-ratio:16/9;}.asp239{aspect-ratio:2.39/1;}.asp43{aspect-ratio:4/3;}
+.card-topbar{background:#1F2937;display:flex;align-items:center;justify-content:space-between;padding:6px 12px;}
+.card-topbar .shot-num{color:#fff;font-size:11px;font-weight:700;font-family:monospace;}
+.card-topbar .btn-card{background:rgba(255,255,255,.1);color:#D1D5DB;border:none;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:600;cursor:pointer;transition:background .15s;}
+.card-topbar .btn-card:hover{background:rgba(255,255,255,.2);}
+.card-frame{aspect-ratio:16/8.5;background:#F3F4F6;position:relative;overflow:hidden;}
+.card-frame .sb-angle-svg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:.35;}
+.card-frame .sb-angle-svg svg{width:60%;height:60%;}
+.drop-overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(124,58,237,.12);border:2px dashed #7C3AED;color:#7C3AED;font-size:12px;font-weight:700;z-index:3;pointer-events:none;}
+.card-frame.dragover .drop-overlay{display:flex;}
+.card-footer{padding:8px 0;}
+.meta-row{display:flex;align-items:baseline;gap:6px;padding:4px 12px;border-bottom:1px solid #F3F4F6;}
+.meta-row:last-child{border-bottom:none;}
+.meta-label{font-size:10px;color:#9CA3AF;min-width:68px;text-transform:uppercase;font-weight:700;letter-spacing:.04em;}
+.meta-edit{font-size:12px;color:#111;outline:none;flex:1;border:none;background:transparent;font-family:inherit;padding:1px 0;}
+.meta-edit:focus{color:#7C3AED;}
+select.meta-edit{cursor:pointer;appearance:none;-webkit-appearance:none;padding-right:14px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239CA3AF'/%3E%3C/svg%3E") no-repeat right 2px center/8px;}
+/* Export drawer */
+.sb-export-drawer{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;display:none;align-items:stretch;justify-content:flex-end;}
+.sb-export-drawer.open{display:flex;}
+.sb-export-inner{display:flex;width:100%;max-width:1200px;height:100%;margin-left:auto;}
+.sheet-preview-pane{flex:1;overflow-y:auto;background:#E5E7EB;padding:32px;}
+.sheet-paper{width:8.5in;margin:0 auto 24px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15);padding:0.5in;page-break-after:always;}
+.sheet-header-block{margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #111;}
+.sheet-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.sheet-card{border:1px solid #E5E7EB;border-radius:6px;overflow:hidden;background:#fff;}
+.sheet-card-frame{aspect-ratio:16/9;background:#F9FAFB;overflow:hidden;}
+.sheet-card-frame img{width:100%;height:100%;object-fit:cover;}
+.sheet-card-meta{padding:6px 8px;font-size:9px;line-height:1.4;}
+.settings-drawer{width:360px;background:#1F2937;color:#fff;display:flex;flex-direction:column;flex-shrink:0;}
+.switch{position:relative;display:inline-block;width:36px;height:20px;}
+.switch input{opacity:0;width:0;height:0;}
+.slider{position:absolute;cursor:pointer;inset:0;background:#4B5563;border-radius:20px;transition:.25s;}
+.slider::before{content:'';position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.25s;}
+.switch input:checked+.slider{background:#7C3AED;}
+.switch input:checked+.slider::before{transform:translateX(16px);}
+@media print{body>*:not(.sb-export-drawer){display:none!important;}.sb-export-drawer{position:static!important;display:block!important;background:none!important;}.settings-drawer{display:none!important;}.sheet-preview-pane{padding:0!important;overflow:visible!important;}.sheet-paper{box-shadow:none!important;margin:0!important;page-break-after:always;}}
 /* Toast */
 #tc{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:10000;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:90%;max-width:360px;}
 .tm{background:rgba(10,15,20,.96);border:1px solid var(--acc);color:var(--acc);padding:7px 14px;border-radius:8px;font-size:11.5px;font-weight:700;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.6);}
@@ -2036,7 +2072,13 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
 /* Screenwriter: white shadowed pages, stacked with grey gaps at each 11in break, scrolling in the workspace */
 .paper-sheet-container{
   background-color:#ffffff!important;
-  background-image:repeating-linear-gradient(to bottom,#ffffff 0,#ffffff 11in,#5b6370 11in,#5b6370 calc(11in + 14px));
+  /* page breaks: a hairline in the margins only, so no line of text is ever crossed or hidden */
+  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(11in - 1px),#9aa1ab calc(11in - 1px),#9aa1ab 11in),
+    repeating-linear-gradient(to bottom,transparent 0,transparent calc(11in - 1px),#9aa1ab calc(11in - 1px),#9aa1ab 11in);
+  background-position:left top,right top;
+  background-size:min(1.2in,8%) 100%,min(0.8in,6%) 100%;
+  background-repeat:no-repeat;
+  max-width:100%!important;container-type:inline-size;
   border:1px solid #d6d9de!important;
   box-shadow:0 2px 6px rgba(0,0,0,.35),0 18px 44px rgba(0,0,0,.45)!important;
   margin:28px auto 40px!important;
@@ -2045,6 +2087,13 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
   color:#111827!important;
 }
 #screenplay-paper-sheet > div{flex:0 0 auto!important;}
+/* a sheet narrower than 8.5in (tablets, split screens) switches to proportional indents so nothing runs off the paper */
+@container (max-width:5.9in){
+  .line-editable-box{overflow-wrap:anywhere;}
+  .element-character{padding-left:37%!important;}
+  .element-parenthetical{padding-left:27%!important;padding-right:20%!important;}
+  .element-dialogue{padding-left:17%!important;padding-right:17%!important;}
+}
 #script-editable-node-rows-stack{overflow:visible!important;}
 .paper-sheet-container *{color:#111827;}
 .paper-sheet-container .line-editable-box{color:#111827!important;}
@@ -2356,7 +2405,7 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
       <div class="relative group">
         <button class="px-3 py-1 bg-slate-900 border border-slate-800 text-slate-300 font-mono font-bold text-[10px] rounded hover:bg-slate-800 flex items-center gap-1"><i class="fa-solid fa-file-export text-[9px]"></i> Export</button>
         <div class="absolute right-0 bottom-full mb-1 w-48 bg-slate-950 border border-slate-800 rounded shadow-2xl py-1 hidden group-hover:block text-xs z-40">
-          <button onclick="printView('storyboard')" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-file-pdf text-rose-400 w-4"></i> Print Board (PDF)</button>
+          <button onclick="openSBExport()" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-file-pdf text-rose-400 w-4"></i> Export Shot List (PDF)</button>
           <button onclick="exportSBJ()" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-cubes text-purple-400 w-4"></i> Storyboard JSON</button>
           <button onclick="exportSBCSV()" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-table text-teal-400 w-4"></i> Shot List CSV</button>
           <button onclick="exportBoardAsScript()" class="w-full text-left px-4 py-2 hover:bg-slate-900 text-slate-300 flex items-center gap-2"><i class="fa-solid fa-file-lines text-indigo-400 w-4"></i> Board → Script</button>
@@ -2401,6 +2450,23 @@ body{background:var(--bg);color:var(--tx);font-family:var(--fui);margin:0;displa
   </div>
   <div id="sbg" class="hidden flex-1 overflow-y-auto p-5"><div id="sbcc" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 pb-16"></div></div>
   <input type="file" id="sbip" accept="image/*" class="hidden" onchange="handleSBImg(event)">
+  <!-- STORYBOARD EXPORT DRAWER -->
+  <div id="sb-export-drawer" class="sb-export-drawer">
+    <div class="sb-export-inner">
+      <div class="sheet-preview-pane" id="sb-sheet-preview"></div>
+      <div class="settings-drawer">
+        <div style="padding:20px;border-bottom:1px solid #374151;">
+          <h3 style="font-size:16px;font-weight:700;margin:0 0 4px;">Export Shot List</h3>
+          <p style="font-size:12px;color:#9CA3AF;margin:0;">Configure which fields appear on the printed sheet.</p>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:16px 20px;" id="sb-export-toggles"></div>
+        <div style="padding:16px 20px;border-top:1px solid #374151;display:flex;flex-direction:column;gap:8px;">
+          <button onclick="printSBExport()" style="width:100%;padding:10px;background:#7C3AED;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;"><i class="fa-solid fa-file-pdf" style="margin-right:6px;"></i>Download PDF</button>
+          <button onclick="closeSBExport()" style="width:100%;padding:10px;background:#374151;color:#D1D5DB;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <!-- VIEW 5: BUDGET -->
@@ -2868,10 +2934,10 @@ She throws it in reverse!`;
               if ((prevY - y) > 20) rawAccumulatedLines.push({ text: '', x: 0 });
             }
             const tokens = lineBuckets[y].sort((a, b) => a.x - b.x);
-            const lineText = tokens.map(t => t.str).join(' ').trim();
+            const lineText = tokens.map(t => t.str).join(' ').replace(/\s+/g,' ').trim();
             if (lineText) {
               if (/^\d+\.?$/.test(lineText) && lineText.length <= 4) return;
-              rawAccumulatedLines.push({ text: lineText, x: tokens[0].x });
+              rawAccumulatedLines.push({ text: lineText, x: tokens[0].x, page: i });
             }
           });
           // Blank sentinel between pages resets speaker state across page breaks
@@ -2879,14 +2945,29 @@ She throws it in reverse!`;
         }
 
         onProgress(85, "Normalizing screenplay grammar from PDF coordinates...");
-        const normalized = this.normalizeRawTokensToScriptNodes(rawAccumulatedLines);
+        /* Title page: everything before the script's first heading or transition. The first line is the
+           title, the name(s) after "Written by" the author; e-mails and phone numbers are contact details. */
+        let title = '', author = '', start = 0;
+        const firstScript = rawAccumulatedLines.findIndex(l => /^(\d+[A-Z]?\s+)?(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)|^(FADE IN|OVER BLACK|COLD OPEN|TEASER)/i.test(l.text.trim()));
+        if (firstScript > 0 && firstScript < 25) {
+          const tp = rawAccumulatedLines.slice(0, firstScript).map(l => l.text.trim()).filter(Boolean);
+          title = tp[0] || '';
+          const wb = tp.findIndex(t => /^written by|^by$|^screenplay by/i.test(t));
+          if (wb >= 0 && tp[wb + 1] && !/@/.test(tp[wb + 1])) author = tp[wb + 1];
+          start = firstScript;
+        }
+        const normalized = this.normalizeRawTokensToScriptNodes(rawAccumulatedLines.slice(start), true);
+        if (title) normalized.title = title;
+        if (author) normalized.author = author;
+        if (start) normalized.titleLines = rawAccumulatedLines.slice(0, start).map(l => l.text);
         onProgress(100, "Done!");
         return normalized;
       }
 
-      static normalizeRawTokensToScriptNodes(tokenLines) {
+      static normalizeRawTokensToScriptNodes(tokenLines, fromPdf) {
         let resultLines = [];
         let speakerActive = false;
+        let afterMore = false, lastCue = '';
 
         // PDF X-coordinate thresholds (72pt/in basis, typical screenplay PDF layout)
         // Action / Scene Heading starts at ~108pt (1.5in left margin)
@@ -2898,12 +2979,15 @@ She throws it in reverse!`;
         const X_CHAR    = 230;  // center indent threshold for character name
         const X_DIAL    = 150;  // dialogue / parenthetical indent (between left and char)
 
+        let gap = true;
         tokenLines.forEach(item => {
           const t = item.text.trim();
           if (!t) {
             speakerActive = false;
+            gap = true;
             return;
           }
+          item._gap = gap; gap = false;
 
           let type = "ACTION";
           const x = item.x || 0;
@@ -2913,10 +2997,11 @@ She throws it in reverse!`;
           // Strip suffixes for detection
           const cl2 = t.replace(/\s*\(CONT['']D\)\s*$/i,'').replace(/\s*\(V\.O\.\)\s*$/i,'').replace(/\s*\(O\.S\.\)\s*$/i,'').replace(/\s*\(O\.C\.\)\s*$/i,'').trim();
 
+          if (fromPdf && /^\(MORE\)$/i.test(t)) { afterMore = true; return; }
           if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(ht)) {
             type = "SCENE_HEADING";
             speakerActive = false;
-          } else if (/^(FADE IN:|FADE OUT[.!]|CUT TO:|SMASH CUT TO:|DISSOLVE TO:|MATCH CUT TO:|JUMP CUT TO:)/i.test(t) || /\bTO:$/.test(t.toUpperCase())) {
+          } else if (/^(FADE IN:|FADE OUT[.!]?|FADE TO BLACK[.!]?|CUT TO:|SMASH CUT TO:|DISSOLVE TO:|MATCH CUT TO:|JUMP CUT TO:|FADE IN\/OUT:|OVER BLACK:|ROLL CREDITS\.?|CUE SERIES TITLE:)/i.test(t) || /\bTO:$/.test(t.toUpperCase()) || (fromPdf && x > 380 && t === t.toUpperCase() && /[A-Z]/.test(t) && t.length < 40)) {
             type = "TRANSITION";
             speakerActive = false;
           } else if (t.startsWith("(") && t.endsWith(")")) {
@@ -2938,7 +3023,19 @@ She throws it in reverse!`;
             speakerActive = false;
           }
 
-          resultLines.push({ type, text: t });
+          let text = t;
+          if (type === "SCENE_HEADING") text = ht.replace(/\s+\d+[A-Z]?\.?$/, '').trim();   // scene numbers on both sides
+          if (fromPdf) {
+            const prev = resultLines[resultLines.length - 1];
+            // a (CONT'D) cue straight after (MORE) continues the same speech across the page break
+            if (type === "CHARACTER" && afterMore && cl2 === lastCue) { afterMore = false; return; }
+            afterMore = false;
+            if (type === "CHARACTER") lastCue = cl2;
+            // wrapped lines: the printed page breaks long action and speeches; join them back
+            if (prev && !item._gap && prev.type === type && (type === "ACTION" || type === "DIALOGUE")) { prev.text += ' ' + text; return; }
+            if (prev && prev.type === "PARENTHETICAL" && !/\)$/.test(prev.text)) { prev.text += ' ' + text; return; }
+          }
+          resultLines.push({ type, text });
         });
 
         return { lines: resultLines };
@@ -3470,89 +3567,78 @@ let isTitlePageVisible = false;
 
       executeReformatSyncCommand() {
         const sel = window.getSelection();
+        const allRows = Array.from(this.rowsContainer.querySelectorAll('.script-line-row'));
         let targetRows = [];
 
         // Check if user has highlighted text across rows
         if (sel && !sel.isCollapsed && sel.rangeCount > 0) {
           const range = sel.getRangeAt(0);
-          const allRows = Array.from(this.rowsContainer.querySelectorAll('.script-line-row'));
           targetRows = allRows.filter(row => range.intersectsNode(row));
         }
 
         // If none highlighted, reformat ALL rows in editor
-        if (targetRows.length === 0) {
-          targetRows = Array.from(this.rowsContainer.querySelectorAll('.script-line-row'));
-        }
+        if (targetRows.length === 0) targetRows = allRows;
 
         if (targetRows.length === 0) {
           return this.showSystemToast("No lines to reformat.", true);
         }
 
-        let updatedCount = 0;
-        let speakerActive = false;
+        const boxOf = row => row.querySelector('.line-editable-box');
+        const textOf = row => { const b = boxOf(row); return b ? b.innerText.trim() : ''; };
+        const typeOf = row => { const b = boxOf(row); return b ? (b.getAttribute('data-element-type') || 'ACTION') : 'ACTION'; };
+        // Character extensions are kept, never stripped: (V.O.) (O.S.) (O.C.) (CONT'D) (PRE-LAP) …
+        const EXT = /\s*\((?:V\.O\.|O\.S\.|O\.C\.|CONT[''’]D|CONT\.|PRE-LAP|FILTERED|ON PHONE|ON RADIO|ON TV|SUBTITLED)\)\s*$/i;
+        const HEADING = /^(INT\.|EXT\.|EST\.|INT\.?\/EXT\.|I\/E\.?)(\s|$)/i;
+        const TRANSITION = /^(FADE IN:|FADE OUT\.?|FADE TO BLACK\.?|CUT TO:|SMASH CUT TO:|DISSOLVE TO:|MATCH CUT TO:|JUMP CUT TO:|CUT TO BLACK\.?)$/i;
+        const NOT_A_NAME = /^(THE|A|AN|AND|IN|ON|AT|BY|TO|OF|IT|HE|SHE|WE|THEY|ALL|BUT|FOR|OR|NOR|SO|YET|NOT|ONLY|CONTINUED|CONT|MORE|END|THE END|FADE|CUT|SMASH|DISSOLVE|MATCH|JUMP|BACK|SILENCE|BLACK|DARKNESS|LATER|MONTAGE|FLASHBACK|TITLE|SUPER|INSERT)$/;
+        const looksLikeName = t => {
+          const base = t.replace(EXT, '').trim();
+          return base === base.toUpperCase() && /[A-Z]/.test(base) && base.length >= 2 && base.length < 38 &&
+            !/[.!?,:;]$/.test(base) && !/^\d[\d\s]*$/.test(base) && (base.match(/-/g) || []).length < 2 &&
+            !NOT_A_NAME.test(base) && !HEADING.test(base);
+        };
+        // The next non-empty row, used to confirm a character cue really has something spoken under it
+        const nextText = row => { for (let i = allRows.indexOf(row) + 1; i < allRows.length; i++) { const t = textOf(allRows[i]); if (t) return t; } return ''; };
 
+        // Seed the dialogue state from the row before the selection, so a selection that starts mid-scene keeps its speaker
+        let block = 'none'; // none | speaker (after a cue or parenthetical) | dialogue
+        for (let i = allRows.indexOf(targetRows[0]) - 1; i >= 0; i--) {
+          if (!textOf(allRows[i])) break;
+          const t = typeOf(allRows[i]);
+          block = (t === 'CHARACTER' || t === 'PARENTHETICAL') ? 'speaker' : t === 'DIALOGUE' ? 'dialogue' : 'none';
+          break;
+        }
+
+        let updatedCount = 0;
         targetRows.forEach((row) => {
-          const box = row.querySelector('.line-editable-box');
+          const box = boxOf(row);
           if (!box) return;
           const rawText = box.innerText.trim();
-          if (!rawText) return;
+          if (!rawText) { block = 'none'; return; } // a blank line always ends a dialogue block
+          const was = box.getAttribute('data-element-type') || 'ACTION';
 
-          let newType = "ACTION";
+          let newType = 'ACTION';
           let formattedText = rawText;
 
-          // Strip common suffixes before type detection
-          const stripped = rawText.replace(/\s*\(CONT['']D\)\s*$/i,'').replace(/\s*\(V\.O\.\)\s*$/i,'').replace(/\s*\(O\.S\.\)\s*$/i,'').replace(/\s*\(O\.C\.\)\s*$/i,'').trim();
-
-          // 1. Scene Headings
-          if (/^(INT\.|EXT\.|EST\.|INT\/EXT\.|I\/E\.)/i.test(stripped)) {
-            newType = "SCENE_HEADING";
-            formattedText = rawText.toUpperCase();
-            speakerActive = false;
-          }
-          // 2. Transitions
-          else if (/^(FADE IN:|FADE OUT[.!]|CUT TO:|SMASH CUT TO:|DISSOLVE TO:|MATCH CUT TO:|JUMP CUT TO:)/i.test(rawText) || /\bTO:$/.test(rawText.toUpperCase())) {
-            newType = "TRANSITION";
-            formattedText = rawText.toUpperCase();
-            speakerActive = false;
-          }
-          // 3. Parentheticals
-          else if (rawText.startsWith("(") && rawText.endsWith(")")) {
-            newType = "PARENTHETICAL";
-            // parentheticals lowercase inside parens
-            formattedText = '(' + rawText.slice(1,-1).toLowerCase() + ')';
-          }
-          // 4. Character names — must be ALL CAPS, short, not a transition/slugline word, not a sentence
-          else if (
-            stripped === stripped.toUpperCase() &&
-            stripped.length >= 2 && stripped.length < 40 &&
-            !stripped.endsWith(':') &&
-            !/[.!?,]$/.test(stripped) &&
-            // Must contain a letter (not just numbers/punctuation)
-            /[A-Z]/.test(stripped) &&
-            // Not a standalone common word that happens to be caps
-            !/^(THE|A|AN|AND|IN|ON|AT|BY|TO|OF|IT|HE|SHE|WE|THEY|ALL|BUT|FOR|OR|NOR|SO|YET|BOTH|EITHER|NEITHER|NOT|ONLY|SAME|SUCH|THAN|TOO|VERY|CONTINUED|CONT|MORE|END|THE END|FADE|CUT|SMASH|DISSOLVE|MATCH|JUMP|BACK)$/.test(stripped) &&
-            // Not all digits or scene numbers
-            !/^\d[\d\s]*$/.test(stripped) &&
-            // Sound effects often have multiple hyphens
-            (stripped.match(/-/g)||[]).length < 2 &&
-            // Real character names don't start with these
-            !/^(INT\b|EXT\b|EST\b)/i.test(stripped)
-          ) {
-            newType = "CHARACTER";
-            formattedText = stripped.toUpperCase();
-            speakerActive = true;
-          }
-          // 5. Dialogue — only if immediately after a CHARACTER or PARENTHETICAL
-          else if (speakerActive) {
-            newType = "DIALOGUE";
-            // speakerActive stays true through dialogue (multi-line dialogue)
-          }
-          // 6. Action default
-          else {
-            newType = "ACTION";
-            speakerActive = false;
+          if (HEADING.test(rawText)) {
+            newType = 'SCENE_HEADING'; formattedText = rawText.toUpperCase(); block = 'none';
+          } else if (TRANSITION.test(rawText) || (/^[A-Z ]+TO:$/.test(rawText) && rawText.length < 30)) {
+            newType = 'TRANSITION'; formattedText = rawText.toUpperCase(); block = 'none';
+          } else if (rawText.startsWith('(') && rawText.endsWith(')') && block !== 'none') {
+            // A parenthetical belongs to a speaker; its words keep their own case: "(to MARA)"
+            newType = 'PARENTHETICAL'; block = 'speaker';
+          } else if (block === 'none' && looksLikeName(rawText) && nextText(row) && !HEADING.test(nextText(row)) && !looksLikeName(nextText(row))) {
+            const base = rawText.replace(EXT, '').trim().toUpperCase();
+            const ext = (rawText.match(EXT) || [''])[0].trim().toUpperCase();
+            newType = 'CHARACTER'; formattedText = ext ? base + ' ' + ext : base; block = 'speaker';
+          } else if (block === 'speaker' || (block === 'dialogue' && was === 'DIALOGUE')) {
+            // Dialogue follows a cue or parenthetical; after that it continues only on rows already marked as dialogue
+            newType = 'DIALOGUE'; block = 'dialogue';
+          } else {
+            newType = 'ACTION'; block = 'none';
           }
 
+          if (newType === was && formattedText === rawText) return;
           box.innerText = formattedText;
           box.className = `line-editable-box ${this.getStyleClassForElementType(newType)}`;
           box.setAttribute('data-element-type', newType);
@@ -3563,7 +3649,7 @@ let isTitlePageVisible = false;
         this.recordActiveStateToHistorySnapshotStack("Reformat & Sync");
         this.runRealTimeLinguisticLintingSweep();
         this.recalculatePageHUDCounters();
-        this.showSystemToast(`Reformat & Sync Complete: Normalized ${updatedCount} screenplay lines!`);
+        this.showSystemToast(updatedCount ? `Reformatted ${updatedCount} line${updatedCount === 1 ? '' : 's'}.` : 'Already formatted. Nothing changed.');
       },
 
       toggleIngestModal(visible) {
@@ -3602,22 +3688,36 @@ let isTitlePageVisible = false;
           this.rowsContainer.innerHTML = "";
           /* title-page lines (Title:, Author:, Written by + name) belong to the title page, not the script body */
           var seenScene = false, skipNext = false;
+          /* keep the title page's people: the author line(s) and any e-mail or phone, for the crew directory */
+          var tp = { title: parsed.title || '', author: /^\s*(written\s+)?by\s*$/i.test(parsed.author || '') ? '' : (parsed.author || ''), emails: [], phones: [] };
+          (parsed.titleLines || []).concat(parsed.lines.slice(0, 12).map(function(l){ return l.text || ''; })).forEach(function(x){
+            (String(x).match(/[\w.+-]+@[\w-]+\.[\w.]+/g) || []).forEach(function(e){ if(tp.emails.indexOf(e) < 0) tp.emails.push(e); });
+            var au = String(x).match(/^(?:author|authors)\s*:\s*(.+)$/i); if(au) tp.author = au[1].trim();
+          });
+          try{ S.titlePage = tp; }catch(e){}
           parsed.lines.forEach(lineNode => {
             var t = (lineNode.text || '').trim();
             if(lineNode.type === 'scene-heading') seenScene = true;
             if(!seenScene){
               if(skipNext){ skipNext = false; return; }
-              if(/^(title|author|authors|credit|source)\s*:/i.test(t)) return;
+              if(/^(title|author|authors|credit|source|contact|draft date|copyright|notes|revision)\s*:/i.test(t)) return;
               if(/^(written by|by)$/i.test(t)){ skipNext = true; return; }
               if(/^written by\s*:?\s*/i.test(t)) return;
               if(parsed.title && t.toLowerCase()===String(parsed.title).trim().toLowerCase()) return;
               if(parsed.author && t.toLowerCase()===String(parsed.author).trim().toLowerCase()) return;
             }
+            /* Fountain's forced elements: ">TEXT" transition, ".TEXT" heading, "@NAME" cue, ">TEXT<" centred action */
+            if(/^>.*<$/.test(t)) { this.injectScreenplayLineRowNode('ACTION', t.slice(1,-1).trim()); return; }
+            if(/^>\s*\S/.test(t)) { this.injectScreenplayLineRowNode('TRANSITION', t.replace(/^>\s*/,'').toUpperCase()); return; }
+            if(/^\.[A-Za-z0-9]/.test(t) && !/^\.\./.test(t)) { seenScene = true; this.injectScreenplayLineRowNode('SCENE_HEADING', t.slice(1).toUpperCase()); return; }
+            if(/^@\S/.test(t)) { this.injectScreenplayLineRowNode('CHARACTER', t.slice(1).toUpperCase()); return; }
             this.injectScreenplayLineRowNode(lineNode.type, lineNode.text);
           });
 
           document.getElementById('title-page-main-heading').textContent = (parsed.title || 'UNTITLED').toUpperCase();
-          document.getElementById('title-page-author-name').textContent = (parsed.author || '').toUpperCase();
+          /* the script's own title names the project, unless the project already has a name */
+          try{ var pni=document.getElementById('pni'); if(parsed.title && pni && (!pni.value || /^untitled/i.test(pni.value))){ pni.value=String(parsed.title).toUpperCase(); if(typeof syncT==='function') syncT(); if(typeof autoSave==='function') autoSave(); } }catch(e){}
+          document.getElementById('title-page-author-name').textContent = (tp.author || '').toUpperCase();
 
           currentVersionLevelCounter++;
           currentVersionRevisionCounter = 0;
@@ -5022,6 +5122,47 @@ WGA Registration #: [Number]
   }
   toast('Pitch deck generated with '+tmpls.length+' slides.');}
 // ========== STORYBOARDS ==========
+const ANGLE_ASSETS={
+eye:{name:'Eye Level',svg:'<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="60" y="20" width="80" height="60" rx="4" stroke="#94A3B8" stroke-width="2"/><circle cx="100" cy="50" r="8" stroke="#94A3B8" stroke-width="2"/><line x1="40" y1="50" x2="60" y2="50" stroke="#94A3B8" stroke-width="2"/><line x1="140" y1="50" x2="160" y2="50" stroke="#94A3B8" stroke-width="2"/><line x1="40" y1="50" x2="48" y2="44" stroke="#94A3B8" stroke-width="2"/><line x1="40" y1="50" x2="48" y2="56" stroke="#94A3B8" stroke-width="2"/><text x="100" y="100" text-anchor="middle" fill="#94A3B8" font-size="10" font-family="monospace">EYE LEVEL</text></svg>'},
+low:{name:'Low Angle',svg:'<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="60" y="10" width="80" height="60" rx="4" stroke="#94A3B8" stroke-width="2" transform="rotate(-12 100 40)"/><circle cx="100" cy="40" r="8" stroke="#94A3B8" stroke-width="2"/><line x1="30" y1="95" x2="60" y2="50" stroke="#94A3B8" stroke-width="2"/><line x1="30" y1="95" x2="38" y2="86" stroke="#94A3B8" stroke-width="2"/><text x="100" y="110" text-anchor="middle" fill="#94A3B8" font-size="10" font-family="monospace">LOW ANGLE</text></svg>'},
+high:{name:'High Angle',svg:'<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="60" y="30" width="80" height="60" rx="4" stroke="#94A3B8" stroke-width="2" transform="rotate(12 100 60)"/><circle cx="100" cy="60" r="8" stroke="#94A3B8" stroke-width="2"/><line x1="30" y1="15" x2="65" y2="55" stroke="#94A3B8" stroke-width="2"/><line x1="30" y1="15" x2="40" y2="22" stroke="#94A3B8" stroke-width="2"/><text x="100" y="110" text-anchor="middle" fill="#94A3B8" font-size="10" font-family="monospace">HIGH ANGLE</text></svg>'},
+ground:{name:'Ground Level',svg:'<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="85" x2="190" y2="85" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="4 3"/><rect x="60" y="25" width="80" height="55" rx="4" stroke="#94A3B8" stroke-width="2"/><circle cx="100" cy="52" r="8" stroke="#94A3B8" stroke-width="2"/><line x1="20" y1="84" x2="60" y2="60" stroke="#94A3B8" stroke-width="2"/><line x1="20" y1="84" x2="28" y2="76" stroke="#94A3B8" stroke-width="2"/><text x="100" y="105" text-anchor="middle" fill="#94A3B8" font-size="10" font-family="monospace">GROUND</text></svg>'},
+knee:{name:'Knee Level',svg:'<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="60" y="15" width="80" height="65" rx="4" stroke="#94A3B8" stroke-width="2"/><circle cx="100" cy="35" r="6" stroke="#94A3B8" stroke-width="2"/><line x1="85" y1="45" x2="85" y2="78" stroke="#94A3B8" stroke-width="2"/><line x1="115" y1="45" x2="115" y2="78" stroke="#94A3B8" stroke-width="2"/><line x1="30" y1="75" x2="60" y2="55" stroke="#94A3B8" stroke-width="2"/><line x1="30" y1="75" x2="38" y2="67" stroke="#94A3B8" stroke-width="2"/><text x="100" y="105" text-anchor="middle" fill="#94A3B8" font-size="10" font-family="monospace">KNEE LEVEL</text></svg>'},
+hip:{name:'Hip Level',svg:'<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="60" y="15" width="80" height="65" rx="4" stroke="#94A3B8" stroke-width="2"/><circle cx="100" cy="30" r="6" stroke="#94A3B8" stroke-width="2"/><line x1="100" y1="38" x2="100" y2="55" stroke="#94A3B8" stroke-width="2"/><line x1="85" y1="55" x2="115" y2="55" stroke="#94A3B8" stroke-width="2"/><line x1="30" y1="62" x2="60" y2="52" stroke="#94A3B8" stroke-width="2"/><line x1="30" y1="62" x2="38" y2="55" stroke="#94A3B8" stroke-width="2"/><text x="100" y="105" text-anchor="middle" fill="#94A3B8" font-size="10" font-family="monospace">HIP LEVEL</text></svg>'},
+shoulder:{name:'Over-the-Shoulder',svg:'<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M25 90 Q25 60 45 50 Q55 45 55 35" stroke="#94A3B8" stroke-width="3" fill="none"/><circle cx="55" cy="28" r="8" stroke="#94A3B8" stroke-width="2"/><rect x="80" y="25" width="90" height="55" rx="4" stroke="#94A3B8" stroke-width="2"/><circle cx="125" cy="52" r="8" stroke="#94A3B8" stroke-width="2"/><text x="100" y="108" text-anchor="middle" fill="#94A3B8" font-size="10" font-family="monospace">OTS</text></svg>'},
+overhead:{name:'Overhead / Bird\'s Eye',svg:'<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="100" cy="65" rx="40" ry="25" stroke="#94A3B8" stroke-width="2"/><circle cx="100" cy="58" r="6" stroke="#94A3B8" stroke-width="1.5"/><line x1="100" y1="8" x2="100" y2="38" stroke="#94A3B8" stroke-width="2"/><line x1="100" y1="38" x2="94" y2="30" stroke="#94A3B8" stroke-width="2"/><line x1="100" y1="38" x2="106" y2="30" stroke="#94A3B8" stroke-width="2"/><text x="100" y="108" text-anchor="middle" fill="#94A3B8" font-size="10" font-family="monospace">OVERHEAD</text></svg>'},
+dutch:{name:'Dutch Tilt',svg:'<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="50" y="15" width="100" height="65" rx="4" stroke="#94A3B8" stroke-width="2" transform="rotate(18 100 47)"/><circle cx="100" cy="47" r="8" stroke="#94A3B8" stroke-width="2"/><line x1="30" y1="47" x2="55" y2="47" stroke="#94A3B8" stroke-width="2"/><line x1="30" y1="47" x2="38" y2="41" stroke="#94A3B8" stroke-width="2"/><line x1="30" y1="47" x2="38" y2="53" stroke="#94A3B8" stroke-width="2"/><text x="100" y="108" text-anchor="middle" fill="#94A3B8" font-size="10" font-family="monospace">DUTCH TILT</text></svg>'},
+insert:{name:'Insert / Detail',svg:'<svg viewBox="0 0 200 120" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="55" y="20" width="90" height="60" rx="4" stroke="#94A3B8" stroke-width="2"/><rect x="75" y="35" width="50" height="30" rx="2" stroke="#94A3B8" stroke-width="2" stroke-dasharray="3 2"/><circle cx="100" cy="50" r="4" fill="#94A3B8"/><text x="100" y="105" text-anchor="middle" fill="#94A3B8" font-size="10" font-family="monospace">INSERT</text></svg>'}
+};
+function classifyShot(text){
+  if(!text)return'eye';const t=text.toLowerCase();
+  if(/\b(phone|key|gun|letter|object|detail|macro|ring|watch|hand|note)\b/.test(t))return'insert';
+  if(/\b(floor|boots|feet|ground|ant|worm|crawl)\b/.test(t))return'ground';
+  if(/\b(holster|belt|waist|hip|cowboy)\b/.test(t))return'hip';
+  if(/\b(knee|crouch|squat|kneel)\b/.test(t))return'knee';
+  if(/\b(shoulder|behind|ots|over.the)\b/.test(t))return'shoulder';
+  if(/\b(above|aerial|bird|overhead|top|ceiling|drone)\b/.test(t))return'overhead';
+  if(/\b(tilt|dutch|canted|skew|off.kilter)\b/.test(t))return'dutch';
+  if(/\b(high|down|descend|balcony|tower|rooftop)\b/.test(t))return'high';
+  if(/\b(low|up|hero|power|imposing|beneath|worm)\b/.test(t))return'low';
+  return'eye';
+}
+function updateAngleSVG(card){
+  const sel=card.querySelector('.sas');const svgEl=card.querySelector('.sb-angle-svg');
+  if(!sel||!svgEl)return;
+  const val=(sel.value||'EYE').toLowerCase();
+  const key=val==='pov'?'eye':val==='bird'?'overhead':val;
+  const asset=ANGLE_ASSETS[key]||ANGLE_ASSETS.eye;
+  svgEl.innerHTML=asset.svg;
+}
+function cycleAngle(card){
+  const sel=card.querySelector('.sas');if(!sel)return;
+  const opts=Array.from(sel.options);const cur=opts.findIndex(o=>o.selected);
+  const nxt=(cur+1)%opts.length;sel.selectedIndex=nxt;
+  sel.dispatchEvent(new Event('change'));
+  updateAngleSVG(card);
+  recSBH('Cycle Angle');
+}
 const aspMap={'asp169':'asp169','asp239':'asp239','asp43':'asp43'};
 function setAsp(cls,lbl){sbAsp=cls;['b169','b239','b43'].forEach(id=>{const b=document.getElementById(id);if(b)b.className='text-slate-500 font-mono text-[10px]';});const m={'asp169':'b169','asp239':'b239','asp43':'b43'};const btn=document.getElementById(m[cls]);if(btn)btn.className='text-lime-400 font-mono text-[10px] font-bold';document.querySelectorAll('.sbthumb').forEach(el=>{el.classList.remove('asp169','asp239','asp43');el.classList.add(cls);});toast('Aspect: '+lbl);}
 function recSBH(lbl='Edit'){if(sbHM)return;const c=document.getElementById('sbcc'),snap=c?c.innerHTML:'';if(sbHI<sbH.length-1)sbH=sbH.slice(0,sbHI+1);sbH.push({lbl,snap,asp:sbAsp});if(sbH.length>50)sbH.shift();sbHI=sbH.length-1;}
@@ -5042,17 +5183,24 @@ function _sbShotPanel(data) {
     ${_sbMetaRow('Movement',moves,data.movement||'static','movement')}
   </div>`;
 }
-function addFrame(data={}){const c=document.getElementById('sbcc');if(!c)return;document.getElementById('sbe').classList.add('hidden');document.getElementById('sbg').classList.remove('hidden');const idx=c.children.length+1,card=document.createElement('div');card.className='sbc';const tc=sbAsp;const has=(n,v)=>n===v?'selected':'';card.innerHTML=`<div class="sbthumb ${tc} bg-[#050810] border-b border-slate-800 flex flex-col items-center justify-center text-slate-700 relative overflow-hidden" style="width:100%;cursor:crosshair;">${data.imgSrc?`<img src="${data.imgSrc}" class="sbi absolute inset-0 w-full h-full object-cover">`:'<i class="fa-solid fa-mountain-sun text-2xl opacity-20"></i>'}<canvas class="sdc absolute inset-0" style="width:100%;height:100%;touch-action:none;"></canvas><div style="position:absolute;top:8px;left:8px;display:flex;gap:4px;align-items:center;"><div style="background:rgba(0,0,0,.72);color:#CBD5E1;font-size:9px;font-family:monospace;font-weight:700;padding:2px 8px;border-radius:4px;border:1px solid #1E293B;" class="sfb">FRAME ${String(idx).padStart(2,'0')}</div><div class="sstatus" onclick="cycleSBStatus(this)" style="background:rgba(71,85,105,.35);color:#64748B;font-size:8px;font-family:monospace;font-weight:700;padding:2px 6px;border-radius:3px;border:1px solid #334155;cursor:pointer;" title="Click to change status">DRAFT</div></div><div class="scc" style="position:absolute;top:6px;right:6px;display:flex;gap:4px;opacity:0;transition:opacity .2s;"><button class="slibBtn" style="background:rgba(6,182,212,.75);color:#fff;border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Image Library"><i class="fa-solid fa-images" style="font-size:9px;"></i></button><button class="sbub" style="background:rgba(139,92,246,.75);color:#fff;border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Upload ref image"><i class="fa-solid fa-camera" style="font-size:9px;"></i></button><button class="scb" style="background:rgba(30,41,59,.9);color:#9CA3AF;border:1px solid #374151;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Clear drawing"><i class="fa-solid fa-eraser" style="font-size:9px;"></i></button><button class="sdb2" style="background:rgba(30,41,59,.9);color:#9CA3AF;border:1px solid #374151;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Duplicate"><i class="fa-solid fa-clone" style="font-size:9px;"></i></button><button class="sdel" style="background:rgba(127,29,29,.85);color:#FCA5A5;border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;" title="Delete"><i class="fa-solid fa-trash" style="font-size:9px;"></i></button></div></div><div style="padding:12px;display:flex;flex-direction:column;gap:8px;flex:1;"><div style="display:flex;gap:8px;"><div style="flex:1;"><div style="font-size:9px;font-weight:700;color:#6B7280;text-transform:uppercase;margin-bottom:3px;">Scene</div><input type="text" class="ssi" value="${data.scene||'INT. LOCATION - DAY'}" style="width:100%;padding:4px 8px;background:#050810;border:1px solid #1E293B;border-radius:5px;font-family:var(--fsc);font-size:10px;color:#fff;outline:none;text-transform:uppercase;"></div><div style="flex:0 0 auto;"><div style="font-size:9px;font-weight:700;color:#6B7280;text-transform:uppercase;margin-bottom:3px;">Shot</div><select class="sss" style="padding:4px 6px;background:#0F172A;border:1px solid #1E293B;border-radius:5px;font-size:10px;color:#CBD5E1;outline:none;cursor:pointer;"><option value="WS" ${has(data.size,'WS')}>WS</option><option value="MS" ${has(data.size,'MS')}>MS</option><option value="CU" ${has(data.size,'CU')}>CU</option><option value="ECU" ${has(data.size,'ECU')}>ECU</option><option value="ELS" ${has(data.size,'ELS')}>ELS</option><option value="MCU" ${has(data.size,'MCU')}>MCU</option></select></div></div><div><div style="font-size:9px;font-weight:700;color:#6B7280;text-transform:uppercase;margin-bottom:3px;">Characters</div><input type="text" class="sch" value="${data.chars||''}" placeholder="e.g. ALEX, JORDAN" style="width:100%;padding:4px 8px;background:#050810;border:1px solid #1E293B;border-radius:5px;font-family:var(--fsc);font-size:10px;color:#CBD5E1;outline:none;"></div><textarea class="sat" style="width:100%;height:48px;padding:5px 8px;background:#050810;border:1px solid #1E293B;border-radius:5px;font-family:var(--fsc);font-size:10px;color:#D1D5DB;outline:none;resize:none;line-height:1.5;">${data.action||'Describe the shot...'}</textarea><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;"><div><div style="font-size:8px;font-weight:700;color:#4B5563;text-transform:uppercase;margin-bottom:3px;">Angle</div><select class="sas" style="width:100%;padding:3px 5px;background:#0F172A;border:1px solid #1E293B;border-radius:4px;font-size:10px;color:#9CA3AF;outline:none;cursor:pointer;"><option value="EYE" ${has(data.angle,'EYE')}>EYE LEVEL</option><option value="LOW" ${has(data.angle,'LOW')}>LOW ANGLE</option><option value="HIGH" ${has(data.angle,'HIGH')}>HIGH ANGLE</option><option value="DUTCH" ${has(data.angle,'DUTCH')}>DUTCH TILT</option><option value="POV" ${has(data.angle,'POV')}>POV</option></select></div><div><div style="font-size:8px;font-weight:700;color:#4B5563;text-transform:uppercase;margin-bottom:3px;">Lighting</div><select class="sls" style="width:100%;padding:3px 5px;background:#0F172A;border:1px solid #1E293B;border-radius:4px;font-size:10px;color:#9CA3AF;outline:none;cursor:pointer;"><option value="NATURAL" ${has(data.lighting,'NATURAL')}>NATURAL</option><option value="HIGH_KEY" ${has(data.lighting,'HIGH_KEY')}>HIGH KEY</option><option value="LOW_KEY" ${has(data.lighting,'LOW_KEY')}>LOW KEY</option><option value="GOLDEN" ${has(data.lighting,'GOLDEN')}>GOLDEN HR</option><option value="NEON" ${has(data.lighting,'NEON')}>STYLIZED</option></select></div><div><div style="font-size:8px;font-weight:700;color:#4B5563;text-transform:uppercase;margin-bottom:3px;">Movement</div><select class="smov" style="width:100%;padding:3px 5px;background:#0F172A;border:1px solid #1E293B;border-radius:4px;font-size:10px;color:#9CA3AF;outline:none;cursor:pointer;"><option value="STATIC" ${has(data.movement,'STATIC')}>STATIC</option><option value="PAN" ${has(data.movement,'PAN')}>PAN</option><option value="TILT" ${has(data.movement,'TILT')}>TILT</option><option value="DOLLY" ${has(data.movement,'DOLLY')}>DOLLY IN/OUT</option><option value="TRACK" ${has(data.movement,'TRACK')}>TRACKING</option><option value="CRANE" ${has(data.movement,'CRANE')}>CRANE/JIB</option><option value="HANDHELD" ${has(data.movement,'HANDHELD')}>HANDHELD</option><option value="STEADICAM" ${has(data.movement,'STEADICAM')}>STEADICAM</option><option value="ZOOM" ${has(data.movement,'ZOOM')}>PUSH ZOOM</option><option value="ONER" ${has(data.movement,'ONER')}>ONE'R</option></select></div></div></div>`;c.appendChild(card);bindSBCard(card);initCanvas(card);updSBHUD();recSBH('Add Frame');}
+function addFrame(data={}){const c=document.getElementById('sbcc');if(!c)return;document.getElementById('sbe').classList.add('hidden');document.getElementById('sbg').classList.remove('hidden');const idx=c.children.length+1,card=document.createElement('div');card.className='sbc';const tc=sbAsp;const has=(n,v)=>n===v?'selected':'';const autoAngle=data.angle||classifyShot(data.action||'').toUpperCase()||'EYE';card.innerHTML=`<div class="card-topbar"><span class="shot-num sfb">FRAME ${String(idx).padStart(2,'0')}</span><div style="display:flex;gap:6px;align-items:center;"><div class="sstatus" onclick="cycleSBStatus(this)" style="background:rgba(255,255,255,.15);color:#D1D5DB;font-size:8px;font-family:monospace;font-weight:700;padding:2px 6px;border-radius:3px;cursor:pointer;" title="Click to change status">${data.status||'DRAFT'}</div><button class="btn-card sbub" title="Upload Photo"><i class="fa-solid fa-camera" style="font-size:9px;margin-right:3px;"></i>Photo</button><button class="btn-card" onclick="cycleAngle(this.closest('.sbc'))" title="Cycle Angle"><i class="fa-solid fa-video" style="font-size:9px;margin-right:3px;"></i>Angle</button></div></div><div class="card-frame sbthumb ${tc}" style="cursor:crosshair;position:relative;overflow:hidden;"><div class="sb-angle-svg" style="z-index:0;"></div>${data.imgSrc?`<img src="${data.imgSrc}" class="sbi" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1;">`:''}
+<canvas class="sdc" style="position:absolute;inset:0;width:100%;height:100%;touch-action:none;z-index:2;"></canvas><div class="drop-overlay"><i class="fa-solid fa-cloud-arrow-up" style="margin-right:6px;"></i>Drop image here</div><div class="scc" style="position:absolute;top:6px;right:6px;display:flex;gap:4px;opacity:0;transition:opacity .2s;z-index:4;"><button class="slibBtn" style="background:rgba(124,58,237,.85);color:#fff;border:none;border-radius:6px;width:24px;height:24px;cursor:pointer;" title="Image Library"><i class="fa-solid fa-images" style="font-size:9px;"></i></button><button class="scb" style="background:rgba(30,41,59,.9);color:#9CA3AF;border:1px solid #374151;border-radius:6px;width:24px;height:24px;cursor:pointer;" title="Clear drawing"><i class="fa-solid fa-eraser" style="font-size:9px;"></i></button><button class="sdb2" style="background:rgba(30,41,59,.9);color:#9CA3AF;border:1px solid #374151;border-radius:6px;width:24px;height:24px;cursor:pointer;" title="Duplicate"><i class="fa-solid fa-clone" style="font-size:9px;"></i></button><button class="sdel" style="background:rgba(127,29,29,.85);color:#FCA5A5;border:none;border-radius:6px;width:24px;height:24px;cursor:pointer;" title="Delete"><i class="fa-solid fa-trash" style="font-size:9px;"></i></button></div></div><div class="card-footer"><div class="meta-row"><span class="meta-label">Scene</span><input type="text" class="ssi meta-edit" value="${data.scene||'INT. LOCATION - DAY'}" style="text-transform:uppercase;font-family:var(--fsc);"></div><div class="meta-row"><span class="meta-label">Shot</span><select class="sss meta-edit"><option value="WS" ${has(data.size,'WS')}>WS — Wide Shot</option><option value="MS" ${has(data.size,'MS')}>MS — Medium Shot</option><option value="CU" ${has(data.size,'CU')}>CU — Close-Up</option><option value="ECU" ${has(data.size,'ECU')}>ECU — Extreme Close-Up</option><option value="ELS" ${has(data.size,'ELS')}>ELS — Extreme Long</option><option value="MCU" ${has(data.size,'MCU')}>MCU — Medium Close-Up</option><option value="OTS" ${has(data.size,'OTS')}>OTS — Over-the-Shoulder</option><option value="POV" ${has(data.size,'POV')}>POV — Point of View</option><option value="INSERT" ${has(data.size,'INSERT')}>INSERT</option></select></div><div class="meta-row"><span class="meta-label">Characters</span><input type="text" class="sch meta-edit" value="${data.chars||''}" placeholder="e.g. ALEX, JORDAN"></div><div class="meta-row"><span class="meta-label">Action</span><textarea class="sat meta-edit" style="resize:none;height:36px;line-height:1.4;font-family:var(--fsc);">${data.action||'Describe the shot...'}</textarea></div><div class="meta-row"><span class="meta-label">Angle</span><select class="sas meta-edit" onchange="updateAngleSVG(this.closest('.sbc'))"><option value="EYE" ${has(autoAngle,'EYE')}>Eye Level</option><option value="LOW" ${has(autoAngle,'LOW')}>Low Angle</option><option value="HIGH" ${has(autoAngle,'HIGH')}>High Angle</option><option value="DUTCH" ${has(autoAngle,'DUTCH')}>Dutch Tilt</option><option value="POV" ${has(autoAngle,'POV')}>POV</option></select></div><div class="meta-row"><span class="meta-label">Lighting</span><select class="sls meta-edit"><option value="NATURAL" ${has(data.lighting,'NATURAL')}>Natural</option><option value="HIGH_KEY" ${has(data.lighting,'HIGH_KEY')}>High Key</option><option value="LOW_KEY" ${has(data.lighting,'LOW_KEY')}>Low Key</option><option value="GOLDEN" ${has(data.lighting,'GOLDEN')}>Golden Hour</option><option value="NEON" ${has(data.lighting,'NEON')}>Stylized / Neon</option></select></div><div class="meta-row"><span class="meta-label">Movement</span><select class="smov meta-edit"><option value="STATIC" ${has(data.movement,'STATIC')}>Static</option><option value="PAN" ${has(data.movement,'PAN')}>Pan</option><option value="TILT" ${has(data.movement,'TILT')}>Tilt</option><option value="DOLLY" ${has(data.movement,'DOLLY')}>Dolly In/Out</option><option value="TRACK" ${has(data.movement,'TRACK')}>Tracking</option><option value="CRANE" ${has(data.movement,'CRANE')}>Crane / Jib</option><option value="HANDHELD" ${has(data.movement,'HANDHELD')}>Handheld</option><option value="STEADICAM" ${has(data.movement,'STEADICAM')}>Steadicam</option><option value="ZOOM" ${has(data.movement,'ZOOM')}>Push Zoom</option><option value="ONER" ${has(data.movement,'ONER')}>One\'r / Long Take</option></select></div></div>`;c.appendChild(card);bindSBCard(card);initCanvas(card);updateAngleSVG(card);updSBHUD();recSBH('Add Frame');}
 function bindSBCard(card){card.addEventListener('mouseenter',()=>{const cc=card.querySelector('.scc');if(cc)cc.style.opacity='1';});card.addEventListener('mouseleave',()=>{const cc=card.querySelector('.scc');if(cc)cc.style.opacity='0';});const del=card.querySelector('.sdel');if(del)del.addEventListener('click',()=>{card.remove();updSBHUD();recSBH('Delete Frame');toast('Frame deleted.');});const dup=card.querySelector('.sdb2');if(dup)dup.addEventListener('click',()=>{addFrame({scene:card.querySelector('.ssi')?.value||'',action:card.querySelector('.sat')?.value+' (Var.)'||'',size:card.querySelector('.sss')?.value||'WS',angle:card.querySelector('.sas')?.value||'EYE',lighting:card.querySelector('.sls')?.value||'NATURAL',movement:card.querySelector('.smov')?.value||'STATIC',chars:card.querySelector('.sch')?.value||''});toast('Frame duplicated.');});const up=card.querySelector('.sbub');if(up)up.addEventListener('click',()=>{sbImgCard=card;document.getElementById('sbip').click();});
 const lib=card.querySelector('.slibBtn');if(lib)lib.addEventListener('click',()=>openSBLibrary(card));const cl=card.querySelector('.scb');if(cl)cl.addEventListener('click',()=>{const cv=card.querySelector('.sdc');if(cv){const ctx=cv.getContext('2d');ctx.clearRect(0,0,cv.width,cv.height);}recSBH('Clear Draw');});let db=null;card.querySelectorAll('input,select,textarea').forEach(el=>el.addEventListener('input',()=>{clearTimeout(db);db=setTimeout(()=>recSBH('Edit Frame'),600);}));}
 function initCanvas(card){const cv=card.querySelector('.sdc');if(!cv)return;const th=card.querySelector('.sbthumb');const sz=()=>{if(th){cv.width=th.offsetWidth||400;cv.height=th.offsetHeight||225;}};sz();const ctx=cv.getContext('2d');ctx.lineCap='round';ctx.lineJoin='round';let dwg=false;const gp=e=>{const rc=cv.getBoundingClientRect();const cx=e.touches?e.touches[0].clientX:e.clientX;const cy=e.touches?e.touches[0].clientY:e.clientY;return{x:(cx-rc.left)*(cv.width/rc.width),y:(cy-rc.top)*(cv.height/rc.height)};};const st=e=>{dwg=true;if(sbDrawMode==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.lineWidth=sbDrawSize*5;}else{ctx.globalCompositeOperation='source-over';ctx.strokeStyle=sbDrawColor;ctx.lineWidth=sbDrawSize;}const p=gp(e);ctx.beginPath();ctx.moveTo(p.x,p.y);};const dr=e=>{if(!dwg)return;e.preventDefault();const p=gp(e);ctx.lineTo(p.x,p.y);ctx.stroke();};const sp=()=>{if(dwg){dwg=false;ctx.globalCompositeOperation='source-over';recSBH('Draw');}};cv.addEventListener('mousedown',st);cv.addEventListener('mousemove',dr);cv.addEventListener('mouseup',sp);cv.addEventListener('mouseleave',sp);cv.addEventListener('touchstart',st,{passive:false});cv.addEventListener('touchmove',dr,{passive:false});cv.addEventListener('touchend',sp);}
 function handleSBImg(e){const f=e.target.files[0];if(!f||!sbImgCard)return;const rd=new FileReader();rd.onload=ev=>{let img=sbImgCard.querySelector('.sbi');const th=sbImgCard.querySelector('.sbthumb');if(!img&&th){img=document.createElement('img');img.className='sbi absolute inset-0 w-full h-full object-cover';th.prepend(img);}if(img)img.src=ev.target.result;recSBH('Set Image');toast('Reference image attached.');};rd.readAsDataURL(f);e.target.value='';}
-function rebindSB(){const c=document.getElementById('sbcc');if(!c)return;Array.from(c.children).forEach(card=>{bindSBCard(card);initCanvas(card);});updSBHUD();}
+function rebindSB(){const c=document.getElementById('sbcc');if(!c)return;Array.from(c.children).forEach(card=>{bindSBCard(card);initCanvas(card);updateAngleSVG(card);});updSBHUD();}
 function updSBHUD(){const c=document.getElementById('sbcc'),n=c?c.children.length:0;const el=document.getElementById('sfc');if(el)el.innerText=n;const sp=document.getElementById('sbp');if(sp)sp.innerText=n+' Setups';if(n===0){document.getElementById('sbe').classList.remove('hidden');document.getElementById('sbg').classList.add('hidden');}else{document.getElementById('sbe').classList.add('hidden');document.getElementById('sbg').classList.remove('hidden');}Array.from(c?.children||[]).forEach((card,i)=>{const b=card.querySelector('.sfb');if(b)b.innerText='FRAME '+String(i+1).padStart(2,'0');});}
 function loadSampleBoards(){const c=document.getElementById('sbcc');if(!c)return;c.innerHTML='';[{scene:'EXT. DESERT HIGHWAY - DUSK',action:'Extreme wide crane shot. A vintage sedan drives down open blacktop under deep violet clouds.',size:'ELS',angle:'HIGH',lighting:'GOLDEN'},{scene:'INT. VINTAGE SEDAN - CONTINUOUS',action:'Medium close-up on Ingrid gripping the cracked steering wheel. Exhaustion in her eyes.',size:'MCU',angle:'EYE',lighting:'LOW_KEY'},{scene:'EXT. ROADSIDE DINER - NIGHT',action:'Dutch tilt. Fluorescent neon flicker across the gravel lot as headlights cut through fog.',size:'WS',angle:'DUTCH',lighting:'NEON'}].forEach(s=>addFrame(s));toast('Sample cinematic sequence loaded.');}
 function exportSBJ(){const c=document.getElementById('sbcc');if(!c)return;const d=Array.from(c.children).map((card,i)=>({frame:i+1,scene:card.querySelector('.ssi')?.value||'',chars:card.querySelector('.sch')?.value||'',action:card.querySelector('.sat')?.value||'',size:card.querySelector('.sss')?.value||'WS',angle:card.querySelector('.sas')?.value||'EYE',movement:card.querySelector('.smov')?.value||'STATIC',lighting:card.querySelector('.sls')?.value||'NATURAL',status:card.querySelector('.sstatus')?.textContent||'DRAFT'}));const bl=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=S.projectName.replace(/\s+/g,'_')+'_Storyboard.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);toast('Storyboard JSON exported.');}
 function exportSBCSV(){const c=document.getElementById('sbcc');if(!c||!c.children.length)return toast('No frames to export.');const rows=[['Frame','Status','Scene','Characters','Shot','Angle','Movement','Lighting','Action']];Array.from(c.children).forEach((card,i)=>{rows.push([i+1,card.querySelector('.sstatus')?.textContent||'DRAFT',card.querySelector('.ssi')?.value||'',card.querySelector('.sch')?.value||'',card.querySelector('.sss')?.value||'WS',card.querySelector('.sas')?.value||'EYE',card.querySelector('.smov')?.value||'STATIC',card.querySelector('.sls')?.value||'NATURAL',(card.querySelector('.sat')?.value||'').replace(/\n/g,' ')]);});const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');const bl=new Blob([csv],{type:'text/csv'}),u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=(S.projectName||'Project').replace(/\s+/g,'_')+'_ShotList.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);toast('Shot list CSV exported.');}
 function cycleSBStatus(el){const s=[{lbl:'DRAFT',bg:'rgba(71,85,105,.35)',col:'#64748B',br:'#334155'},{lbl:'APPROVED',bg:'rgba(16,185,129,.18)',col:'#34D399',br:'#065F46'},{lbl:'VFX',bg:'rgba(139,92,246,.2)',col:'#A78BFA',br:'#5B21B6'},{lbl:'PICKUP',bg:'rgba(251,191,36,.18)',col:'#FCD34D',br:'#92400E'},{lbl:'CUT',bg:'rgba(239,68,68,.18)',col:'#F87171',br:'#7F1D1D'}];const cur=s.findIndex(x=>x.lbl===el.textContent.trim());const nxt=s[(cur+1)%s.length];el.textContent=nxt.lbl;el.style.background=nxt.bg;el.style.color=nxt.col;el.style.borderColor=nxt.br;recSBH('Status Change');}
+// === EXPORT DRAWER ===
+function openSBExport(){const c=document.getElementById('sbcc');if(!c||!c.children.length)return toast('No frames to export.');const drawer=document.getElementById('sb-export-drawer');if(!drawer)return;buildExportToggles();buildExportPreview();drawer.classList.add('open');}
+function closeSBExport(){const drawer=document.getElementById('sb-export-drawer');if(drawer)drawer.classList.remove('open');}
+function buildExportToggles(){const container=document.getElementById('sb-export-toggles');if(!container)return;const fields=[{key:'shotType',label:'Shot Type',def:true},{key:'description',label:'Description',def:true},{key:'subject',label:'Characters',def:true},{key:'scene',label:'Scene',def:true},{key:'angle',label:'Camera Angle',def:true},{key:'movement',label:'Movement',def:true},{key:'lighting',label:'Lighting',def:true}];container.innerHTML=fields.map(f=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #374151;"><span style="font-size:13px;">${f.label}</span><label class="switch"><input type="checkbox" data-export-field="${f.key}" ${f.def?'checked':''} onchange="buildExportPreview()"><span class="slider"></span></label></div>`).join('');}
+function buildExportPreview(){const preview=document.getElementById('sb-sheet-preview');const c=document.getElementById('sbcc');if(!preview||!c)return;const cards=Array.from(c.children);if(!cards.length){preview.innerHTML='<div style="text-align:center;color:#6B7280;padding:64px;font-size:14px;">No frames to export.</div>';return;}const vis={};document.querySelectorAll('[data-export-field]').forEach(cb=>{vis[cb.dataset.exportField]=cb.checked;});const perPage=6,pages=[];for(let i=0;i<cards.length;i+=perPage)pages.push(cards.slice(i,i+perPage));const pn=(typeof S!=='undefined'&&S.projectName)?S.projectName:'Untitled Project';preview.innerHTML=pages.map((page,pi)=>{const ch=page.map((card,ci)=>{const idx=pi*perPage+ci+1;const scene=card.querySelector('.ssi')?.value||'';const shot=card.querySelector('.sss')?.value||'WS';const angle=card.querySelector('.sas')?.value||'EYE';const movement=card.querySelector('.smov')?.value||'STATIC';const lighting=card.querySelector('.sls')?.value||'NATURAL';const chars=card.querySelector('.sch')?.value||'';const action=card.querySelector('.sat')?.value||'';const img=card.querySelector('.sbi');const imgSrc=img?.src?.startsWith('data:')?img.src:'';const frameHTML=imgSrc?`<img src="${imgSrc}" style="width:100%;height:100%;object-fit:cover;">`:'<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#D1D5DB;font-size:10px;background:#F3F4F6;">No Image</div>';return`<div class="sheet-card"><div class="sheet-card-frame">${frameHTML}</div><div class="sheet-card-meta"><div style="font-weight:700;font-size:10px;color:#111;margin-bottom:2px;">${String(idx).padStart(2,'0')}${vis.shotType!==false?'. '+shot:''}</div>${vis.scene!==false?`<div style="font-size:9px;color:#6B7280;line-height:1.3;">${scene}</div>`:''}${vis.subject!==false&&chars?`<div style="font-size:9px;color:#6B7280;">${chars}</div>`:''}${vis.description!==false?`<div style="font-size:9px;color:#374151;line-height:1.3;">${action}</div>`:''}${vis.angle!==false?`<div style="font-size:8px;color:#9CA3AF;margin-top:2px;">Angle: ${angle}</div>`:''}${vis.movement!==false?`<div style="font-size:8px;color:#9CA3AF;">Move: ${movement}</div>`:''}${vis.lighting!==false?`<div style="font-size:8px;color:#9CA3AF;">Light: ${lighting}</div>`:''}</div></div>`;}).join('');return`<div class="sheet-paper"><div class="sheet-header-block"><div style="font-size:16px;font-weight:800;color:#111;">${pn}</div><div style="font-size:11px;color:#6B7280;">Shot List — Page ${pi+1} of ${pages.length}</div></div><div class="sheet-grid">${ch}</div></div>`;}).join('');}
+function printSBExport(){window.print();}
 function setSBDrawMode(m){sbDrawMode=m;document.querySelectorAll('.sbdm').forEach(b=>{b.style.borderColor='#334155';b.style.background='rgba(15,23,42,.8)';b.style.color='#6B7280';});const btn=document.getElementById('sbm-'+m);if(btn){btn.style.borderColor=m==='eraser'?'#EF4444':'#D97706';btn.style.background=m==='eraser'?'rgba(127,29,29,.4)':'rgba(120,53,15,.4)';btn.style.color=m==='eraser'?'#FCA5A5':'#FCD34D';}}
 function setSBDrawSize(s){sbDrawSize=s;document.querySelectorAll('.sbds').forEach(b=>{b.style.borderColor='#334155';b.style.background='rgba(15,23,42,.8)';b.style.color='#6B7280';});const m={1.5:'sbs-s',2.5:'sbs-m',5:'sbs-l',10:'sbs-xl'};const btn=document.getElementById(m[s]);if(btn){btn.style.borderColor='#0D9488';btn.style.background='rgba(17,94,89,.4)';btn.style.color='#5EEAD4';}}
 function setSBDrawColor(c){sbDrawColor=c;document.querySelectorAll('.sbdc').forEach(b=>{b.style.outline='';b.style.outlineOffset='';});event?.target?.style&&(event.target.style.outline='2px solid #fff',event.target.style.outlineOffset='1px');}
@@ -5483,7 +5631,9 @@ function generateSBFromScript() {
   document.getElementById('sbg').classList.remove('hidden');
   scenes.slice(0,36).forEach(s=>{
     const inferred=inferShot(s.scene,s.action);
-    addFrame({scene:s.scene,chars:s.chars,action:s.action.slice(0,120),size:inferred.size,angle:inferred.angle,movement:inferred.movement,lighting:inferred.lighting});
+    /* one name per person: INGRID, INGRID (CONT'D) and INGRID (V.O.) are the same character */
+    const chars=String(s.chars||'').split(',').map(x=>x.replace(/\s*\(.*$/,'').trim()).filter((x,i,a)=>x&&a.indexOf(x)===i).join(', ');
+    addFrame({scene:s.scene,chars:chars,action:s.action.slice(0,120),size:inferred.size,angle:inferred.angle,movement:inferred.movement,lighting:inferred.lighting});
   });
   updSBHUD();
   recSBH('Generate from Script');
@@ -5802,7 +5952,7 @@ function obExportICS(){
 // ========== BUDGET ==========
 function renderBudget(){const tb=document.getElementById('bb');if(!tb)return;let tot=0;tb.innerHTML=S.budget.map(b=>{tot+=b.amt;return`<tr><td class="p-3 font-bold">${b.cat}</td><td class="p-3 text-right text-emerald-400 font-bold">$${b.amt.toLocaleString()}</td></tr>`;}).join('');const el=document.getElementById('bt');if(el)el.innerText='$'+tot.toLocaleString();}
 // ========== TRANSMIT ==========
-function txProHub(){const r=document.getElementById('script-editable-node-rows-stack');const lines=r?Array.from(r.children).map(rw=>{const b=rw.querySelector('.line-editable-box');if(!b)return null;const c=[...b.classList].find(x=>x.indexOf('element-')===0);const type=c?c.slice(8):(b.getAttribute('data-element-type')||'action').toLowerCase().replace(/_/g,'-');const text=(b.innerText||'').trim();return text?{type:type,text:text}:null;}).filter(Boolean):[];if(!lines.length)return toast('Write a screenplay before transmitting.');try{localStorage.setItem('prehub_master_v1',JSON.stringify({origin:'preHUB',target:'proHUB',projectName:S.projectName,lines,ts:new Date().toISOString()}));autoSave();toast('Transmitted to proHUB bridge!');}catch{toast('Transmission failed.');}}
+function txProHub(){const r=document.getElementById('script-editable-node-rows-stack');const lines=r?Array.from(r.children).map(rw=>{const b=rw.querySelector('.line-editable-box');if(!b)return null;const c=[...b.classList].find(x=>x.indexOf('element-')===0);const type=c?c.slice(8):(b.getAttribute('data-element-type')||'action').toLowerCase().replace(/_/g,'-');const text=(b.innerText||'').trim();return text?{type:type,text:text}:null;}).filter(Boolean):[];if(!lines.length)return toast('Write a screenplay before transmitting.');try{localStorage.setItem('prehub_master_v1',JSON.stringify({origin:'preHUB',target:'proHUB',projectName:S.projectName,titlePage:S.titlePage||null,lines,ts:new Date().toISOString()}));autoSave();toast('Transmitted to proHUB bridge!');}catch{toast('Transmission failed.');}}
 // ========== AUTOSAVE ==========
 let asTimer=120;
 setInterval(()=>{asTimer--;const m=Math.floor(asTimer/60),s=asTimer%60,el=document.getElementById('asc');if(el)el.innerText=`${m}:${String(s).padStart(2,'0')}`;if(asTimer<=0){autoSave();asTimer=S.autosaveInterval;toast('Auto-sync complete.');}},1000);
@@ -6915,6 +7065,121 @@ window.directImport = function(e){
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
 </script>
+<script>
+/* Storyboard shot examples: every frame shows a drawn example of its shot, made here, no network.
+   It follows the frame's own settings (shot size, angle, lighting, movement, the characters named and
+   whether the heading is INT or EXT, day or night) and redraws the moment one changes. Swap cycles the
+   composition (centred, left third, right third, over the shoulder). An uploaded or library image covers
+   the example; Swap on such a frame takes the image off and brings the example back. */
+(function(){
+  var SIZE={ELS:{h:16,head:2.2,ground:72},WS:{h:62,head:5.5,ground:84},MS:{h:110,head:10,ground:132},MCU:{h:150,head:15,ground:173},CU:{h:240,head:25,ground:259},ECU:{h:700,head:72,ground:668}};
+  function pal(light, night, ext){
+    var p={NATURAL:{sky:'#8fb3cf',gnd:'#6b7a5a',wall:'#a9a294',floor:'#6e6358',fig:'#1d232c',rim:'none'},
+      HIGH_KEY:{sky:'#eef1f4',gnd:'#d7dce1',wall:'#f2f2ef',floor:'#d9d6cf',fig:'#56606d',rim:'none'},
+      LOW_KEY:{sky:'#10141c',gnd:'#07090d',wall:'#11151d',floor:'#08090c',fig:'#030405',rim:'#c9d6e8'},
+      GOLDEN:{sky:'#f2a65a',gnd:'#6b4a2b',wall:'#c98b55',floor:'#6a4429',fig:'#2a1a12',rim:'#ffd59a'},
+      NEON:{sky:'#1a0f2e',gnd:'#0d0a1a',wall:'#22123d',floor:'#100a20',fig:'#07040e',rim:'#ff3fa4'}}[light]||{};
+    if(night && light!=='NEON' && light!=='LOW_KEY'){ p={sky:'#1b2540',gnd:'#10151f',wall:'#232a38',floor:'#141821',fig:'#05070b',rim:'#8fb0d8'}; }
+    return p;
+  }
+  function figure(x, ground, s, fill, rim, back){
+    // a figure standing on `ground`, s.h tall: head, neck, shoulders, body; the frame crops what it crops
+    var h=s.h, r=s.head, top=ground-h, sw=r*2.6, cx=x;
+    var body='M'+(cx-sw)+' '+(top+r*2.6)+' Q'+cx+' '+(top+r*1.9)+' '+(cx+sw)+' '+(top+r*2.6)+' L'+(cx+sw*0.8)+' '+(ground-h*0.45)+' L'+(cx+sw*0.45)+' '+ground+' L'+(cx-sw*0.45)+' '+ground+' L'+(cx-sw*0.8)+' '+(ground-h*0.45)+' Z';
+    var st=rim&&rim!=='none'?' stroke="'+rim+'" stroke-width="'+Math.min(1.1,Math.max(0.5,r*0.05))+'"':'';
+    return '<g'+(back?' opacity=".92"':'')+'><path d="'+body+'" fill="'+fill+'"'+st+'/><circle cx="'+cx+'" cy="'+(top+r)+'" r="'+r+'" fill="'+fill+'"'+st+'/></g>';
+  }
+  function arrow(m, c){
+    var a='<g fill="none" stroke="'+c+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">', z='</g>';
+    var head=function(x,y,dx,dy){ var l=4, ang=Math.atan2(dy,dx), a1=ang+2.6, a2=ang-2.6; return 'M'+x+' '+y+' L'+(x+l*Math.cos(a1))+' '+(y+l*Math.sin(a1))+' M'+x+' '+y+' L'+(x+l*Math.cos(a2))+' '+(y+l*Math.sin(a2)); };
+    switch(m){
+      case 'PAN': return a+'<path d="M50 10 H110 '+head(110,10,1,0)+' '+head(50,10,-1,0)+'"/>'+z;
+      case 'TILT': return a+'<path d="M150 22 V68 '+head(150,22,0,-1)+' '+head(150,68,0,1)+'"/>'+z;
+      case 'DOLLY': return a+'<path d="M18 45 H34 '+head(34,45,1,0)+' M142 45 H126 '+head(126,45,-1,0)+'"/>'+z;
+      case 'TRACK': return a+'<path d="M30 82 H130 '+head(130,82,1,0)+'"/>'+z;
+      case 'CRANE': return a+'<path d="M140 78 Q150 40 128 14 '+head(128,14,-0.6,-1)+'"/>'+z;
+      case 'HANDHELD': return a+'<path d="M40 12 q5 -4 10 0 t10 0 t10 0 t10 0 t10 0 t10 0 t10 0"/>'+z;
+      case 'STEADICAM': return a+'<path d="M24 80 C60 60 100 92 136 70 '+head(136,70,1,-0.6)+'"/>'+z;
+      case 'ZOOM': return a+'<path d="M58 30 V24 H66 M102 30 V24 H94 M58 60 V66 H66 M102 60 V66 H94"/>'+z;
+      case 'ONER': return a+'<path d="M14 78 C40 20 80 90 110 30 S146 40 148 18 '+head(148,18,0.2,-1)+'"/>'+z;
+      default: return '';
+    }
+  }
+  function svg(o){
+    var size=SIZE[o.size]?o.size:'WS', s=SIZE[size], heading=(o.scene||'').toUpperCase();
+    var ext=/^\s*(\d+\s+)?(EXT|I\/E|INT\.?\/EXT)/.test(heading), night=/NIGHT|DUSK|EVENING/.test(heading);
+    var p=pal(o.lighting||'NATURAL', night, ext), angle=o.angle||'EYE', v=(o.variant||0)%4;
+    var names=(o.chars||'').split(/[,&]/).map(function(x){return x.replace(/\s*\(.*$/,'').trim().toUpperCase();}).filter(function(x,i,a){return x && a.indexOf(x)===i;}), n=Math.max(1,Math.min(3,names.length||1));
+    var horizon=angle==='LOW'?74:angle==='HIGH'?18:44, scale=angle==='LOW'?1.12:angle==='HIGH'?0.86:1;
+    var bg='';
+    if(ext){ bg='<rect width="160" height="'+horizon+'" fill="'+p.sky+'"/><rect y="'+horizon+'" width="160" height="'+(90-horizon)+'" fill="'+p.gnd+'"/>';
+      if(!night && o.lighting!=='LOW_KEY' && o.lighting!=='NEON') bg+='<circle cx="'+(v===1?128:30)+'" cy="'+Math.max(10,horizon-26)+'" r="7" fill="#fff" opacity=".35"/>';
+      if(night) bg+='<circle cx="128" cy="14" r="4" fill="#e8eef8" opacity=".7"/>';
+    } else { var fl=Math.min(86,horizon+18); bg='<rect width="160" height="90" fill="'+p.wall+'"/><rect y="'+fl+'" width="160" height="'+(90-fl)+'" fill="'+p.floor+'"/>'+
+      '<rect x="'+(v===1?108:18)+'" y="'+(fl-46)+'" width="30" height="34" fill="'+(night?'#3a4d70':'#dfe9f2')+'" opacity=".55"/>'; }
+    if(o.lighting==='NEON') bg+='<rect width="160" height="90" fill="url(#neon)" opacity=".5"/>';
+    if(o.lighting==='GOLDEN') bg+='<rect width="160" height="90" fill="url(#gold)" opacity=".45"/>';
+    var xs=v===1?[53]:v===2?[107]:[80];
+    if(n===2) xs=v===2?[60,112]:[48,100]; if(n===3) xs=[36,80,124];
+    var ground=size==='ELS'||size==='WS'?(ext?Math.max(horizon+10,s.ground*(angle==='HIGH'?0.9:1)):s.ground):s.ground;
+    var big=size==='CU'||size==='ECU'||size==='MCU';
+    /* low angle: the subject looms, so the head grows but drops a little to stay in frame; high angle: smaller, lower */
+    var ss={h:s.h*scale,head:s.head*scale}, figs='';
+    if(big||size==='MS'){ ground+= angle==='LOW' ? s.head*0.45 : angle==='HIGH' ? s.head*0.5 : 0; }
+    if(big){ figs=figure(xs[0]===80&&v===3?104:xs[0], ground, ss, p.fig, p.rim); }
+    else { xs.slice(0,n).forEach(function(x,i){ figs+=figure(x, ground, ss, p.fig, p.rim, i>0); }); }
+    if(size==='ECU') figs+='<g fill="#d9dee6" opacity=".85"><ellipse cx="'+(xs[0]-20)+'" cy="34" rx="9" ry="3.6"/><ellipse cx="'+(xs[0]+20)+'" cy="34" rx="9" ry="3.6"/></g><g fill="#05070a"><circle cx="'+(xs[0]-20)+'" cy="34" r="2.6"/><circle cx="'+(xs[0]+20)+'" cy="34" r="2.6"/></g>';
+    if(v===3 && n>=1) figs+='<ellipse cx="18" cy="96" rx="44" ry="44" fill="'+p.fig+'" opacity=".97"/>';   // over-the-shoulder
+    var world='<g'+(angle==='DUTCH'?' transform="rotate(-12 80 45)"':'')+'>'+bg+figs+'</g>';
+    var pov=angle==='POV'?'<rect width="160" height="90" fill="url(#vig)"/>':'';
+    var label=[size, angle==='EYE'?'':angle, o.movement&&o.movement!=='STATIC'?o.movement:'', v===3?'OTS':''].filter(Boolean).join(' · ');
+    var s2='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice"><defs>'+
+      '<radialGradient id="vig"><stop offset="55%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity=".85"/></radialGradient>'+
+      '<linearGradient id="neon" x1="0" x2="1"><stop offset="0" stop-color="#ff3fa4"/><stop offset="1" stop-color="#2de2e6"/></linearGradient>'+
+      '<linearGradient id="gold" y1="0" y2="1"><stop offset="0" stop-color="#ffcf7a"/><stop offset="1" stop-color="#7c3f2a"/></linearGradient>'+
+      '<clipPath id="f"><rect width="160" height="90"/></clipPath></defs><g clip-path="url(#f)">'+world+pov+arrow(o.movement,'#F0A30A')+'</g>'+
+      '<g font-family="IBM Plex Mono,monospace" font-size="6.5" font-weight="700"><rect x="4" y="80" width="'+(label.length*4.1+8)+'" height="9" rx="2" fill="#000" opacity=".66"/><text x="8" y="86.6" fill="#E6EBF2">'+label+'</text></g></svg>';
+    return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s2);
+  }
+  window.shotExampleSVG=svg;
+
+  function opts(card){ var q=function(c){ var e=card.querySelector(c); return e?e.value:''; };
+    return {scene:q('.ssi'), size:q('.sss'), angle:q('.sas'), lighting:q('.sls'), movement:q('.smov'), chars:q('.sch'), variant:+(card.getAttribute('data-ex-v')||0)}; }
+  function paint(card){
+    var th=card.querySelector('.sbthumb'); if(!th) return;
+    var img=th.querySelector('img.sbx');
+    if(!img){ img=document.createElement('img'); img.className='sbx'; img.alt=''; img.setAttribute('aria-hidden','true');
+      img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;';
+      var cv=th.querySelector('canvas'); th.insertBefore(img, cv||null); }
+    img.src=svg(opts(card));
+    var ph=th.querySelector(':scope > i.fa-mountain-sun'); if(ph) ph.style.display='none';
+    img.style.display=th.querySelector('img.sbi')?'none':'';
+    var cc=card.querySelector('.scc');
+    if(cc && !cc.querySelector('.sbswap')){
+      var b=document.createElement('button'); b.className='sbswap'; b.type='button'; b.title='Swap the example shot (or take off the image and go back to the example)';
+      b.setAttribute('aria-label','Swap example shot');
+      b.style.cssText='background:rgba(240,163,10,.85);color:#0A0D12;border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;';
+      b.innerHTML='<i class="fa-solid fa-shuffle" style="font-size:9px;"></i>';
+      cc.insertBefore(b, cc.firstChild);
+    }
+  }
+  function all(){ var c=document.getElementById('sbcc'); if(c) Array.prototype.forEach.call(c.children, paint); }
+  function boot(){
+    var c=document.getElementById('sbcc'); if(!c) return;
+    all();
+    new MutationObserver(function(ms){ ms.forEach(function(m){ Array.prototype.forEach.call(m.addedNodes, function(n){ if(n.nodeType===1 && n.classList.contains('sbc')) paint(n);
+      else if(n.nodeType===1 && n.tagName==='IMG' && n.classList.contains('sbi')){ var cd=n.closest('.sbc'); if(cd) paint(cd); } }); }); })
+      .observe(c,{childList:true,subtree:true});
+    ['change','input'].forEach(function(ev){ c.addEventListener(ev,function(e){ if(e.target.matches('.sss,.sas,.sls,.smov,.sch,.ssi')){ var cd=e.target.closest('.sbc'); if(cd) paint(cd); } }); });
+    c.addEventListener('click',function(e){ var b=e.target.closest('.sbswap'); if(!b) return; e.preventDefault(); e.stopPropagation();
+      var cd=b.closest('.sbc'), im=cd.querySelector('img.sbi');
+      if(im){ im.remove(); } else { cd.setAttribute('data-ex-v', String((+(cd.getAttribute('data-ex-v')||0)+1)%4)); }
+      paint(cd); if(typeof recSBH==='function') recSBH('Swap example'); },true);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',boot); else boot();
+})();
+</script>
+
 <!-- PF:BEGIN -->
 <style id="pf-style">
 /* ==== Phone frame ====================================================

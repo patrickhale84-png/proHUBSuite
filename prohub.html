@@ -718,6 +718,7 @@ body.dyslexia-mode,body.dyslexia-mode input,body.dyslexia-mode button,body.dysle
     <div class="cs-title"><i class="fa-solid fa-calendar-days"></i> Call Sheet</div>
     <div class="cs-days" id="cs-days"></div>
     <div class="cs-actions">
+      <button class="cs-btn" data-act="fromscript" title="Build the days, set-ups and cast from the script preHUB sent">From script</button>
       <button class="cs-btn" data-act="addday">+ Day</button>
       <button class="cs-btn" data-act="dupday">Duplicate</button>
       <button class="cs-btn" data-act="delday" id="cs-del">Delete day</button>
@@ -849,7 +850,9 @@ function loadBridgeData(){
     const d=JSON.parse(raw);
     bridgeData=d;
     // Extract scenes from script lines if available
-    const scriptText=d.scriptText||'';
+    let scriptText=d.scriptText||'';
+    /* preHUB now sends the script as lines (prehub_master_v1); read the headings from there when there is no scriptText */
+    try{ const m=JSON.parse(localStorage.getItem('prehub_master_v1')||'null'); if(!scriptText && m && m.lines) scriptText=m.lines.filter(l=>/scene/i.test(l.type)).map(l=>l.text).join('\n'); if(m && m.projectName && /untitled/i.test(d.projectName||'')) d.projectName=m.projectName; }catch(e){}
     if(scriptText){
       const lines=scriptText.split('\n');
       let sc=[],scNum=0;
@@ -1523,10 +1526,44 @@ function hubGo(page, ev){
   function publish(){
     if(!CS.days.some(function(d){return d.generalCall;})) return msg('Set a general call first');
     var sheets=CS.days.map(function(d,i){ return {day:i+1,date:d.date,call:d.generalCall,next:d.nextSetup,wrap:d.wrap,move:!!d.move,location:d.location}; });
-    try{ localStorage.setItem(PUB, JSON.stringify({origin:'proHUB', day:CS.active+1, sheets:sheets})); }
+    /* the scenes travel with the sheet, so postHUB can conform the cut to the script (Auto-Conform) */
+    var sc=(typeof scenesFromMaster==='function')?(scenesFromMaster()||[]):[], m=null; try{ m=JSON.parse(localStorage.getItem('prehub_master_v1')||'null'); }catch(e){}
+    var W={action:61,'scene-heading':61,character:38,parenthetical:25,dialogue:35,transition:61};
+    var sceneManifest=sc.map(function(x){ var rows=0; x.lines.forEach(function(l){ rows+=((l.type==='dialogue'||l.type==='parenthetical')?0:1)+Math.max(1,Math.ceil(l.text.length/(W[l.type]||61))); });
+      var e=Math.max(1,Math.round(rows/55*8)); return {num:x.num, heading:x.heading, eighths:e, seconds:Math.round(e*7.5)}; });
+    try{ localStorage.setItem(PUB, JSON.stringify({origin:'proHUB', projectName:(m&&m.projectName)||'', day:CS.active+1, sheets:sheets, sceneManifest:sceneManifest})); }
     catch(e){ return msg('Could not publish: storage is full'); }
     CS.published=new Date().toISOString(); save(); setStatus(summary()); msg('Published to filmHUB');
   }
+  /* From script: the scenes preHUB sent, about four pages a day. Each day gets its first scene's location,
+     a set-up per scene timed from its length (an hour a page, in 15-minute steps) and the cast who speak in it. */
+  function directory(){ try{ var a=JSON.parse(localStorage.getItem('prohub_crew_v1')||'null'); return a instanceof Array?a:[]; }catch(e){ return []; } }
+  function actorFor(part){ var p=directory().filter(function(x){ return x.dept==='Cast' && x.role===part && x.name; })[0]; return p?p.name:''; }
+  function fromScript(quiet){
+    var sc=(typeof scenesFromMaster==='function')?scenesFromMaster():null;
+    if(!sc||!sc.length){ if(!quiet) msg('No script yet. Transmit it from preHUB first.'); return false; }
+    var W={action:61,'scene-heading':61,character:38,parenthetical:25,dialogue:35,transition:61};
+    var days=[], cur=null, used=0;
+    function hm(m){ m=Math.round(m/15)*15; return ('0'+Math.floor(m/60)%24).slice(-2)+':'+('0'+m%60).slice(-2); }
+    sc.forEach(function(x){
+      var rows=0, cast=[];
+      x.lines.forEach(function(l){ rows+=((l.type==='dialogue'||l.type==='parenthetical')?0:1)+Math.max(1,Math.ceil(l.text.length/(W[l.type]||61)));
+        if(l.type==='character'){ var n=l.text.replace(/\s*\((V\.O\.|O\.S\.|O\.C\.|CONT'D|CONT\u2019D)\)/gi,'').trim().toUpperCase(); if(cast.indexOf(n)<0) cast.push(n); } });
+      var e=Math.max(1,Math.round(rows/55*8));
+      if(!cur||used+e>32){ cur=blankDay(); cur.location=x.heading.replace(/^(INT\.?\/EXT\.?|I\/E\.?|INT\.|EXT\.|EST\.)\s*/i,'').split(/\s+[-\u2013]\s+/)[0]; cur._t=7*60+30; days.push(cur); used=0; }
+      cur.setups.push({time:hm(cur._t), scene:x.num, desc:x.heading+' ('+(e>=8?Math.floor(e/8)+(e%8?' '+e%8+'/8':''):e+'/8')+' pg)'});
+      cur._t+=Math.max(15,e*7.5); used+=e;
+      cast.forEach(function(n){ if(!cur.cast.some(function(c){return c.role===n;})) cur.cast.push({name:actorFor(n)||n,role:n,call:'06:30',pickup:'',notes:'Sc '+x.num}); else { cur.cast.forEach(function(c){ if(c.role===n && c.notes.indexOf('Sc '+x.num)<0) c.notes+=', '+x.num; }); } });
+    });
+    /* the crew come from the suite's crew directory (filmHUB Contacts), everyone with a name, called at general call */
+    var crewDir=directory().filter(function(p){ return p.name && p.dept!=='Cast' && p.dept!=='Writing'; });
+    days.forEach(function(d){ d.nextSetup=d.setups[1]?d.setups[1].time:''; d.wrap=hm(d._t+30); delete d._t;
+      d.crew=crewDir.map(function(p){ return {name:p.name, dept:p.dept, role:p.role, call:d.generalCall}; }); });
+    CS.days=days; CS.active=0; save(); render(); setStatus(summary());
+    if(!quiet) msg('Call sheet built from the script: '+days.length+' day'+(days.length>1?'s':'')+', '+sc.length+' scenes');
+    return true;
+  }
+  function blankSheet(){ return CS.days.length===1 && !CS.days[0].setups.length && !CS.days[0].cast.length && !CS.days[0].location; }
   function addDay(){ CS.days.push(blankDay()); CS.active=CS.days.length-1; save(); render(); }
   function dupDay(){ var c=JSON.parse(JSON.stringify(D())); CS.days.splice(CS.active+1,0,c); CS.active=CS.active+1; save(); render(); }
   function delDay(){
@@ -1552,7 +1589,8 @@ function hubGo(page, ev){
     if(t.hasAttribute('data-day')){ CS.active=+t.getAttribute('data-day'); armed=false; save(); render(); return; }
     var act=t.getAttribute('data-act');
     if(act!=='delday') armed=false;
-    if(act==='addday') addDay();
+    if(act==='fromscript') fromScript(false);
+    else if(act==='addday') addDay();
     else if(act==='dupday') dupDay();
     else if(act==='delday') delDay();
     else if(act==='publish') publish();
@@ -1560,6 +1598,7 @@ function hubGo(page, ev){
     else if(act==='del'){ var l2=t.getAttribute('data-list'); D()[l2].splice(+t.getAttribute('data-i'),1); save(); render(); }
   });
   window.csRender=function(){ render(); setStatus(summary()); };
+  if(blankSheet()) fromScript(true);
   csRender();
 })();
 </script>

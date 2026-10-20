@@ -179,12 +179,17 @@ var st=null;function saveSoon(){clearTimeout(st);st=setTimeout(function(){save(t
 function lines(){return $$('#paper .ln').map(function(e){return {type:e.getAttribute('data-t'),text:e.textContent}})}
 function setLines(a){var p=$('#paper');if(!p)return;p.innerHTML='';a.forEach(function(l){addLine(l.type||'ACTION',l.text||'')});saveSoon();hud()}
 function hud(){var L=lines(),sc=L.filter(function(l){return l.type==='SCENE_HEADING'}).length,g=$('#pagePill');if(g)g.textContent=L.length+' lines / '+Math.max(1,Math.ceil(L.length/22))+' page'+(Math.ceil(L.length/22)>1?'s':'');var n=$('#sceneCount');if(n)n.textContent=sc}
-function reformat(){$$('#paper .ln').forEach(function(e){var t=e.textContent.trim();if(!t)return;var k='ACTION';
- if(/^(INT\.|EXT\.|INT\/EXT\.|I\/E\.|EST\.)/i.test(t))k='SCENE_HEADING';
- else if(/^(FADE IN|FADE OUT|CUT TO|SMASH TO|MATCH CUT|DISSOLVE TO|HARD CUT)/i.test(t)||/\bTO:\s*$/.test(t))k='TRANSITION';
- else if(/^\(.*\)$/.test(t))k='PARENTHETICAL';
- else if(t===t.toUpperCase()&&t.length<44&&!/[.,!?]$/.test(t)&&!/[:;]/.test(t))k='CHARACTER';
- else{var pv=e.previousElementSibling,pt=pv?pv.getAttribute('data-t'):'';if(pt==='CHARACTER'||pt==='PARENTHETICAL'||pt==='DIALOGUE')k='DIALOGUE'}
+function reformat(){var L=$$('#paper .ln'),blk='none';
+ function nxt(i){for(var j=i+1;j<L.length;j++){var t=L[j].textContent.trim();if(t)return t}return ''}
+ var EXT=/\s*\((?:V\.O\.|O\.S\.|O\.C\.|CONT['’]D|PRE-LAP)\)\s*$/i,HEAD=/^(INT\.|EXT\.|INT\/EXT\.|I\/E\.|EST\.)/i;
+ function name(t){var b=t.replace(EXT,'').trim();return b===b.toUpperCase()&&/[A-Z]/.test(b)&&b.length<38&&!/[.,!?:;]$/.test(b)&&!HEAD.test(b)&&!/^(SILENCE|BLACK|LATER|MONTAGE|FLASHBACK|INSERT|SUPER|TITLE|THE END|CONTINUED)$/.test(b)}
+ L.forEach(function(e,i){var t=e.textContent.trim(),was=e.getAttribute('data-t');if(!t){blk='none';return}var k='ACTION';
+ if(HEAD.test(t)){k='SCENE_HEADING';blk='none'}
+ else if(/^(FADE IN|FADE OUT|CUT TO|SMASH TO|MATCH CUT|DISSOLVE TO|HARD CUT)/i.test(t)||/\bTO:\s*$/.test(t)){k='TRANSITION';blk='none'}
+ else if(/^\(.*\)$/.test(t)&&blk!=='none'){k='PARENTHETICAL';blk='sp'}
+ else if(blk==='none'&&name(t)&&nxt(i)&&!HEAD.test(nxt(i))&&!name(nxt(i))){k='CHARACTER';blk='sp'}
+ else if(blk==='sp'||(blk==='d'&&was==='DIALOGUE')){k='DIALOGUE';blk='d'}
+ else blk='none';
  if(k==='SCENE_HEADING'||k==='CHARACTER'||k==='TRANSITION')t=t.toUpperCase();
  e.className='ln '+CLS[k];e.setAttribute('data-t',k);e.setAttribute('data-ph',PH[k]||'');e.textContent=t});
  save(true);hud();toast('Reformatted and synced','good')}

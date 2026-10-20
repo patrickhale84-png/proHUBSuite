@@ -81,7 +81,7 @@ function readShots() {
     var d = jread(STORY_KEYS[i]);
     if (!d) continue;
     var heads = [];
-    if (d.lines && d.lines.length) { for (var j = 0; j < d.lines.length; j++) { if (d.lines[j].type === 'SCENE_HEADING') heads.push(d.lines[j].text); } }
+    if (d.lines && d.lines.length) { for (var j = 0; j < d.lines.length; j++) { if (/^scene[-_]heading$/i.test(d.lines[j].type)) heads.push(d.lines[j].text); } }
     var frames = d.frames || d.panels || null;
     if (frames && typeof frames === 'object' && !(frames instanceof Array)) {
       var keys = Object.keys(frames).filter(function (k) { return /^sc\d+$/.test(k); })
