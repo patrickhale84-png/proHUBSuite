@@ -57,6 +57,7 @@ function sizeGrid(){
   if(!best) return;
   g.style.gridTemplateColumns='repeat('+best.cols+',minmax(0,1fr))';
   g.style.gridAutoRows=Math.floor(best.cell)+'px';
+  g.setAttribute('data-hub-size', best.cell < 130 ? 'sm' : (best.cell < 185 ? 'md' : 'lg'));
   g.style.gridAutoFlow='row dense';
   g.style.overflow='hidden';
   for(var k=0;k<TILES.length;k++){
@@ -104,3 +105,5 @@ function boot(){
 window.HUB={reg:reg,open:open,close:close,boot:boot,layout:layout,sizeGrid:sizeGrid,tiles:function(){return TILES.map(function(t){return t.id})},busTick:busTick,esc:esc};
 /* injected styles for the grip */
 (function(){var s=document.createElement('style');s.textContent="\n/* the grip that extends a tile, and a grid that never scrolls */\n.tile{position:relative;overflow:hidden}\n.tzgrip{position:absolute;right:6px;bottom:6px;width:14px;height:14px;border-radius:3px;cursor:nwse-resize;opacity:.35;\n background:linear-gradient(135deg,transparent 45%,#7E8FA6 45%,#7E8FA6 55%,transparent 55%,transparent 70%,#7E8FA6 70%,#7E8FA6 80%,transparent 80%)}\n.tile:hover .tzgrip{opacity:.8}\n#tgrid{overflow:hidden !important;overscroll-behavior:none}\n@supports(height:100dvh){.wrap{height:100dvh}}\n";document.head.appendChild(s);})();
+/* shrink behaviour */
+(function(){var s=document.createElement('style');s.textContent="\n/* shrinking: the dot and the title always survive; the sub text and the tag label give way first */\n[data-hub-size] .tile{display:flex;flex-direction:column;justify-content:flex-start;gap:5px;min-height:0}\n[data-hub-size] .tile .row{flex:0 0 auto;align-items:center;gap:6px;min-width:0}\n[data-hub-size] .tile .dot{flex:0 0 auto;width:9px;height:9px}\n[data-hub-size] .tile h2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;\n  margin:0;flex:0 0 auto;overflow-wrap:anywhere}\n[data-hub-size] .tile p{flex:1 1 auto;overflow:hidden;margin:0}\n[data-hub-size=\"md\"] .tile p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}\n[data-hub-size=\"md\"] .tile h2{font-size:16px;line-height:1.2}\n[data-hub-size=\"sm\"] .tile p{display:none}\n[data-hub-size=\"sm\"] .tile .k{display:none}\n[data-hub-size=\"sm\"] .tile h2{font-size:13.5px;line-height:1.15}\n[data-hub-size=\"sm\"] .tile{padding:10px;gap:3px}\n";document.head.appendChild(s);})();
