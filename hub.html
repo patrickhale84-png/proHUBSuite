@@ -542,6 +542,10 @@ HUB.reg({id:'import',title:'Import script',sub:'PDF, FDX, WriterDuet JSON, Fount
 /* every modal in modals-config.js as a tile. The config is the catalogue: one generic renderer
    turns each definition's fields into a form, and each action publishes the result on the bus
    under modal:<id>, so a save, an export or a check-in is a tag every other tile can hear. */
+/* Export and ingest are NLE actions, not modal destinations: they belong on the post
+   production toolbar where the timeline they act on is in front of you. Skipped here. */
+var MODAL_TILES_SKIP = { 'modal-export-xml':1, 'modal-export-edl':1, 'modal-export-master':1, 'modal-ingest-media':1 };
+
 var MODAL_TILES = [
   // ===== POST-PRODUCTION MODALS =====
   {
@@ -809,6 +813,7 @@ function modalField(f) {
 }
 
 for (var mi = 0; mi < MODAL_TILES.length; mi++) {
+  if (MODAL_TILES_SKIP[MODAL_TILES[mi].id]) continue;
   (function (def) {
     HUB.reg({
       id: 'modal-' + def.id,
