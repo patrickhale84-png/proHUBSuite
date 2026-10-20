@@ -39,6 +39,12 @@ textarea,input,select{width:100%;background:#0D1420;border:1px solid var(--line)
 textarea:focus,input:focus{outline:2px solid var(--amber);outline-offset:-1px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .note{font-size:12.5px;color:var(--mu);line-height:1.6}
+
+/* the master import: one strip at the top of proHUB, above the tiles */
+.ibar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:9px 18px;border-bottom:1px solid var(--line);background:#0C1220;flex:0 0 auto}
+.ibar .lbl{font-family:var(--fm);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
+.ibar .state{font-size:12.5px;color:var(--mu)}
+.ibar button.pri{background:var(--amber);border-color:var(--amber);color:#12161F;font-weight:600}
 </style>
 </head>
 <body>
@@ -49,6 +55,14 @@ textarea:focus,input:focus{outline:2px solid var(--amber);outline-offset:-1px}
   <div class="spacer"></div>
   <div class="live" id="livebox">bus <b id="tagcount">0</b> tags</div>
  </header>
+ <div class="ibar">
+  <span class="lbl">Script</span>
+  <button id="tiPick" class="pri">Import script</button>
+  <input id="tiFile" type="file" accept=".pdf,.fdx,.json,.fountain,.txt" hidden>
+  <button id="tiProfile">Load from member</button>
+  <button id="tiPaste">Paste</button>
+  <span class="state" id="tiState">no script loaded</span>
+ </div>
  <div id="tgrid"></div>
 </div>
 <div id="modal">
@@ -381,6 +395,86 @@ HUB.reg({id:'import',title:'Import script',sub:'PDF, FDX, WriterDuet JSON, Fount
    st.textContent='choose a file or paste text first';
   };
  }});
+})();
+;
+/* top import */
+/* the master import strip. Three ways in - the member's saved profile, a file, or pasted text -
+   and every one of them ends in the same place: HubImport parses it and publishes
+   screenplay:main, cast:updated, locations:updated and scenes:list, so every tile has it at once.
+
+   Formats: .fdx (final draft - typed), .json (writerduet or a saved profile - typed where it
+   says so), .pdf (positions on a page - classified), .fountain/.txt (classified). */
+(function () {
+  function el(id) { return document.getElementById(id); }
+  function say(msg) { var s = el('tiState'); if (s) s.textContent = msg; }
+
+  function announce(res, counts) {
+    say(res.format + ' · ' + counts.lines + ' lines · ' + counts.scenes + ' scenes · ' +
+        counts.cast + ' characters · ' + counts.locations + ' locations');
+    try { HubBridge.saveScript(); } catch (e) {}
+  }
+
+  function parseAndPublish(res) {
+    var counts = HubImport.publish(res);
+    announce(res, counts);
+    return counts;
+  }
+
+  function fromFile(file) {
+    say('reading ' + file.name + '…');
+    HubImport.fromFile(file).then(parseAndPublish).catch(function (e) {
+      say('could not read that file: ' + ((e && e.message) || e));
+    });
+  }
+
+  function fromText(text) {
+    if (!text || !text.trim()) { say('nothing pasted'); return; }
+    parseAndPublish({ format: 'pasted text', filename: '', lines: HubImport.classifyLines(text),
+                      confidence: 'classified from the text' });
+  }
+
+  function fromProfile() {
+    say('asking the member profile…');
+    try { HubBridge.load(); } catch (e) {}
+    setTimeout(function () {
+      var sp = ModalSync.get('screenplay:main');
+      if (sp && sp.content) {
+        var lines = (sp.lines && sp.lines.length) ? sp.lines.length : (sp.content || '').split('\n').length;
+        say('from the member profile · ' + lines + ' lines · ' + ((sp.scenes || []).length) + ' scenes');
+      } else {
+        say('no script in the profile yet');
+      }
+    }, 1400);
+  }
+
+  function pasteDialog() {
+    var t = window.prompt('Paste a screenplay, Fountain or plain text:', '');
+    if (t) fromText(t);
+  }
+
+  function start() {
+    var pick = el('tiPick'), input = el('tiFile'), prof = el('tiProfile'), past = el('tiPaste');
+    if (pick && input) pick.onclick = function () { input.click(); };
+    if (input) input.onchange = function () { if (this.files && this.files[0]) fromFile(this.files[0]); };
+    if (prof) prof.onclick = fromProfile;
+    if (past) past.onclick = pasteDialog;
+
+    // a profile that arrives from the page should be reported here too
+    try {
+      ModalSync.watch('screenplay:main', function (rec) {
+        if (rec.source === 'profile') {
+          var d = rec.data || {};
+          var n = (d.lines && d.lines.length) ? d.lines.length : (d.content || '').split('\n').length;
+          say('from the member profile · ' + n + ' lines · ' + ((d.scenes || []).length) + ' scenes');
+        }
+      });
+    } catch (e) {}
+  }
+
+  // test hook: run an import without the file picker
+  window.TopImport = { run: parseAndPublish, fromText: fromText, fromProfile: fromProfile };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
 })();
 ;
 /* demo */
