@@ -42,7 +42,10 @@ export async function saveProfile(patch, expectedVersion) {
   const stored = parse(item) || {};
   stored.tags = stored.tags || {};
   const incoming = (patch && patch.tags) || {};
-  Object.keys(incoming).forEach(function (k) { stored.tags[k] = incoming[k]; });
+  Object.keys(incoming).forEach(function (k) {
+    if (incoming[k] === null) delete stored.tags[k];
+    else stored.tags[k] = incoming[k];
+  });
   if (patch && patch.script != null) stored.script = patch.script;
   stored.version = currentVersion + 1;
   stored.updatedAt = new Date().toISOString();
