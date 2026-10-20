@@ -6,7 +6,8 @@ var HubBridge=(function(){
  var KEY='prohub_profile_v1', pending={}, seq=0, timer=null, mode='local';
  function parentOrigin(){
   if(typeof window!=='undefined'&&window.HUB_PARENT_ORIGIN) return window.HUB_PARENT_ORIGIN;
-  try{ var m=document.querySelector('meta[name="hub-parent-origin"]'); return m?m.getAttribute('content'):''; }catch(e){ return ''; }
+  try{ var m=document.querySelector('meta[name="hub-parent-origin"]'); var v=m?String(m.getAttribute('content')||'').trim():'';
+       return (v===''||v==='*')?'':v; }catch(e){ return ''; }
  }
  /* The page that embeds us is the only frame allowed to publish tags. Without this check any
     third-party frame on the same page could write over screenplay:main in the member's profile. */
