@@ -321,6 +321,22 @@ function nextSpan(id){
   SPANS[id]={w:n[0],h:n[1]};
   saveSpans(); sizeGrid();
 }
+/* the arithmetic says a layout fits; the browser disagrees by a padding or a border somewhere.
+   Rather than model every box, measure it: if the grid overflows, take the difference out of the
+   row height and re-apply. Two or three passes converge, and it cannot drift when tiles change. */
+function fitRows(){
+  var g=document.getElementById('tgrid'); if(!g) return;
+  var cell=parseFloat(getComputedStyle(g).gridAutoRows); if(!cell) return;
+  for(var pass=0; pass<6; pass++){
+    var over=g.scrollHeight-g.clientHeight;
+    if(over<=1) return;
+    var rows=Math.max(1, Math.round(g.clientHeight/cell));
+    var shrink=Math.ceil(over/rows)+1;
+    if(cell-shrink<24) return;
+    cell-=shrink;
+    g.style.gridAutoRows=cell+'px';
+  }
+}
 function sizeGrid(){
   var g=document.getElementById('tgrid'); if(!g) return;
   var W=g.clientWidth, H=g.clientHeight;
@@ -351,6 +367,7 @@ function sizeGrid(){
     var el=g.querySelector('[data-id="'+TILES[k].id+'"]');
     if(el){ el.style.gridColumn='span '+sp.w; el.style.gridRow='span '+sp.h; el.style.minHeight='0'; }
   }
+  try{ fitRows(); }catch(e){}
 }
 
 function open(id){
